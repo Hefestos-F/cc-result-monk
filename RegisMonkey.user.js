@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RegisMonkey
 // @namespace    http://tampermonkey.net/
-// @version      6
+// @version      4
 // @description  try to take over the world!
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
