@@ -1,12 +1,15 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      33
+// @version      34
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
+// @updateURL    https://raw.githubusercontent.com/OsirizF/cc-result-twfdfy/main/Nice_Monkey.user.js
+// @downloadURL  https://raw.githubusercontent.com/OsirizF/cc-result-twfdfy/main/Nice_Monkey.user.js
 // @grant        none
+
 // ==/UserScript==
 
 /*O código a seguir realiza o cálculo e a exibição dos valores com base nas informações da aba relatório.
