@@ -172,6 +172,10 @@
         const linha1in = CriarInput(0);
         linha1in.id = 'input1';
         linha1in.value = nome;
+        linha1in.addEventListener('input', () => {
+            nome = linha1in.value;
+            SalvarVari(1);
+        });
 
         const linha1T2 = document.createElement('p');
         linha1T2.textContent = ' entrou em contato solicitando:';
@@ -190,6 +194,8 @@
         linha2in.addEventListener('input', () => {
             linha2in.style.height = 'auto'; // Reset height
             linha2in.style.height = linha2in.scrollHeight + 'px'; // Set new height
+            entrada1 = linha2in.value;
+            SalvarVari(1);
         });
 
         linha2.appendChild(linha2in);
@@ -210,6 +216,8 @@
         linha4in.addEventListener('input', () => {
             linha4in.style.height = 'auto'; // Reset height
             linha4in.style.height = linha4in.scrollHeight + 'px'; // Set new height
+            entrada2 = linha4in.value;
+            SalvarVari(1);
         });
         linha4.appendChild(linha4in);
         contentBox.appendChild(linha4);
@@ -226,6 +234,8 @@
         linha6in.addEventListener('input', () => {
             linha6in.style.height = 'auto'; // Reset height
             linha6in.style.height = linha6in.scrollHeight + 'px'; // Set new height
+            entrada3 = linha6in.value;
+            SalvarVari(1);
         });
         linha6.appendChild(linha6in);
         contentBox.appendChild(linha6);
