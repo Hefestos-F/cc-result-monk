@@ -810,17 +810,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         }
     }
 
-    function ContagemPAtu(){
-        var interval = setInterval(function() {
-            Busc5s = 1;
-                Busc5sTem = Busc5sTem - 1;
-                if(!ErroVerif || Busc5sTem === 0){
-                    clearInterval(interval);
-                    Busc5s = 0;
-                }
-            }, 1000);
-    }
-
     async function VerificacoesN1(){
 
         await AtualizarContAtual();
@@ -830,10 +819,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         if(NewLogadoSegundos >= UltimaSomaDTI){
             UltimaSomaDTI = NewLogadoSegundos;
             ErroVerif = 0;
-            Busc5sTem = 5;
         }else if (Vigia && !Atualizando && !ErroVerif){
             ErroVerif = 1;
-            ContagemPAtu();
+            Busc5s = 1;
             ControleFront(7);
             setTimeout(function() {
                 iniciarBusca();
@@ -911,6 +899,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         var tFalta = document.getElementById('tFalta');
         tFalta.innerHTML = Busc5s ? 'Atualizar:' : HE ? 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
         vFalta.innerHTML = Busc5s ? Busc5sTem : HE ? FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
+
+        if (Busc5s) {
+            Busc5sTem = Busc5sTem - 1;
+            if(Busc5sTem < 1) Busc5s = 0;
+        }else{
+            Busc5sTem = 5;
+        }
 
         var OfflineSegundosFormatado = converterParaTempo(OfflineSegundos);
         var vOffline = document.getElementById('vOffline');
