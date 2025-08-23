@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.1.1
+// @version      3.3.1.2
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -813,7 +813,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     function ContagemPAtu(){
         var interval = setInterval(function() {
             Busc5s = 1;
-                Busc5sTem = Busc5sTem--;
+                Busc5sTem = Busc5sTem - 1;
                 if(!ErroVerif || Busc5sTem === 0){
                     clearInterval(interval);
                     Busc5s = 0;
