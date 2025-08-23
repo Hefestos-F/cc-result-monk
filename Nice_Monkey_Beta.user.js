@@ -80,7 +80,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var LoopAA = 0; //Atualizar auto Ativo
     var AbaConfig = 0;
     var AbaPausas = 0;
-    var NBT;
+    var NBT = 0;
     var HoraSegundos;
     var LogouSegundos;
     var DentrodCC2;
