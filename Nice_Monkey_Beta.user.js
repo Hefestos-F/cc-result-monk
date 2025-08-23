@@ -123,6 +123,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     var Busc5s = 0;
     var Busc5sTem = 5;
+    var EstouroDP = 0;
 
     const nomeBD = 'MeuBDNiceMonk';
     const StoreBD = 'NiceMonk';
@@ -1877,6 +1878,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         });
 
         return toggleContainer;
+    }
+
+    function VerifEstouro(x){
+        var a = converterParaSegundos(x);
+        EstouroDP = tContAtual > a ? 1:0;
+
     }
 
     function observarDisponibilidade() {
