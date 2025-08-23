@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      3.3.1
+// @version      3.3.2
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -83,17 +83,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var NBT;
     var HoraSegundos;
     var LogouSegundos;
-    var ErroAtuVar;
     var DentrodCC2;
     var DentrodCC1;
     var DentrodcCC;
     var DentrodMC;
-    var logueEmtreDatas;
     var UltimaSomaDTI = 0;
     var LogouSegundosSalvo;
-    var DataLogouSegundosSalvo;
     var NewLogadoSegundos;
-    var StatusAtual;
     var OfflineSegundos;
     var ErroDTI;
     var offForaDToler = 0;
@@ -105,12 +101,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var corVarian;
     var TcorVarian;
     var QualLogouSegundos = 0;
-    var Avari = 0;
     var CVAtivo;
 
-    var vpDisponível;
     var StatusANT = '';
-    var VarStatus = '';
     var Ndpausas = 2;
     var IPausaS;
     var FPausaS;
@@ -121,7 +114,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var ChavelogueManu = 'LogueManual';
     var ChavePrimLogue = 'PrimeiroLogue';
     var ChavePrimLogueOntem = 'PrimeiroLogueOntem';
-    var LogouOntem;
 
     let dadosdePausas;
     let dadosSalvosConfi;
@@ -802,7 +794,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             verificarESalvar(0);
             setInterval(VerificacoesN1, 1000);
         }
-        //console.log(`NiceMonk Ultima Disponibiliade : `,converterParaTempo(vpDisponívelB));
     }
 
     async function TentAtend(){
