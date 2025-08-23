@@ -808,6 +808,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             tTrabalhandoA = tTrabalhando;
         }
     }
+
     function ContagemPAtu(){
         var interval = setInterval(function() {
                 ErroVerif1 = ErroVerif1--;
@@ -1104,12 +1105,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         const style = document.createElement('style');
         style.textContent = `
-.placeholderPerso::placeholder {
-    color: #6d4500;
-    opacity: 1;
-    font-size: 12px;
-}
-`;
+        .placeholderPerso::placeholder {
+        color: #6d4500;
+        opacity: 1;
+        font-size: 12px;
+        }
+        `;
 
         const caixa = document.createElement('div');
         caixa.id = 'CaixaConfig';
@@ -1127,7 +1128,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         overflow: auto;
         width: 210px;
         border: solid steelblue;
-    `;
+        `;
 
         function criarCaixaSeg(){
             const caixa = document.createElement('div');
@@ -1139,7 +1140,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             return caixa;
         }
 
-
         const TitulomodoCalculo = criarTitulo('Modo de Calculo');
         const recalculando = criarLinhaTextoComBot(1, 'Recalculando');
         const primeiroLogue = criarLinhaTextoComBot(2, 'Primeiro Logue');
@@ -1147,32 +1147,28 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         const modoCalculo = criarCaixaSeg();
         modoCalculo.append(TitulomodoCalculo, recalculando, primeiroLogue);
 
-
         const quanContZero = criarLinhaTextoComBot(3, 'Automático');
-
 
         const ContTMA = document.createElement('div');
         ContTMA.style.cssText = `
         display: flex;
-       flex-direction: column;
-       align-items: center;
-       width: 100%;
-    `;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        `;
 
         const inputTMA = document.createElement('input');
         inputTMA.className = 'placeholderPerso';
         inputTMA.setAttribute('placeholder', MetaTMA);
         inputTMA.type = 'number';
         inputTMA.style.cssText = `
-    height: 16px;
-    color: white;
-    background-color: transparent;
-    border: solid 1px white;
-    width: 50px;
-    font-size: 12px;
-`;
-
-
+        height: 16px;
+        color: white;
+        background-color: transparent;
+        border: solid 1px white;
+        width: 50px;
+        font-size: 12px;
+        `;
 
         const MetaTMAC = criarLinhaTextoComBot(6, 'Meta TMA');
 
@@ -1193,9 +1189,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         InputTMABot.append(inputTMA, SalvarTMA);
         ContTMA.append(MetaTMAC, InputTMABot);
-
-
-
 
         function entradatempo(idV,houm,placeholderV) {
             const input = document.createElement('input');
@@ -1256,7 +1249,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         }
 
-
         const horaInputCai = document.createElement('div');
         horaInputCai.style.cssText = `
         display: flex;
@@ -1285,7 +1277,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         });
 
         InputCailogueManual.append(horaInputlogueManual, doispontos(), minuInputlogueManual);
-
 
         function salvarHorariologueManual() {
             const hora = parseInt(horaInputlogueManual.value || horaInputlogueManual.placeholder);
@@ -1318,7 +1309,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         margin-left: 6px;
         `;
 
-
         const horaInputCailogueManual = document.createElement('div');
         horaInputCailogueManual.style.cssText = `
         display: flex;
@@ -1327,7 +1317,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         `;
 
         horaInputCailogueManual.append(logueManualC);
-
 
         const ContlogueManual = criarCaixaSeg();
 
@@ -1351,7 +1340,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         background: #ffffff00;
         border: solid 1px white;
         margin: 0px 3px;
-    `;
+        `;
         InputMin.addEventListener('input', function () {
             ValorAuto = InputMin.value || 1;
         });
@@ -1368,7 +1357,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         const aCada = document.createElement('div');
         aCada.style.cssText = `
-    display: flex;
+        display: flex;
         align-items: center;
         margin: 3px 0px;
         justify-content: space-between;
@@ -1514,12 +1503,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         function criarLinhaTextoComBot(idbola, texto) {
             const linha = document.createElement('div');
             linha.style.cssText = `
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        margin: 3px 0px;
-        `;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin: 3px 0px;
+            `;
 
             const textoDiv = document.createElement('div');
             textoDiv.textContent = texto;
@@ -1530,16 +1519,15 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             return linha;
         }
 
-
         function LinhaSelCor(a, b, c) {
             const div1 = document.createElement('div');
             div1.style.cssText = `
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        margin-bottom: 5px;
-    `;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 5px;
+            `;
 
             const inputCor = document.createElement('input');
             inputCor.id = `cor${a}`;
@@ -1547,13 +1535,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             inputCor.value = c; // Corrigido aqui
 
             inputCor.style.cssText = `
-        height: 20px;
-        width: 20px;
-        padding: 0px;
-        border: none;
-        background: none;
-        cursor: pointer;
-    `;
+            height: 20px;
+            width: 20px;
+            padding: 0px;
+            border: none;
+            background: none;
+            cursor: pointer;
+             `;
 
             const textoDiv = document.createElement('div');
             textoDiv.textContent = b;
@@ -1592,7 +1580,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         return Botao;
     }
-
+    
     function AtualizarConf(zz){
         var CaixaConfig = document.getElementById('CaixaConfig');
         var InputMin = document.getElementById('InputMin');
@@ -1998,20 +1986,19 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         caixa.id = 'CaiDPa';
         caixa.style.cssText = `
         background: ${corConfig};
-            max-height: 170px;
+        max-height: 170px;
         margin-top: -15px;
-    border-radius: 8px;
-    display: flex;
-    padding: 5px;
-    width: auto;
-    border: solid steelblue;
-    transition: 0.5s;
+        border-radius: 8px;
+        display: flex;
+        padding: 5px;
+        width: auto;
+        border: solid steelblue;
+        transition: 0.5s;
         flex-direction: row;
         overflow: auto;
         align-items: center;
-       justify-content: center;
-
-    `;
+        justify-content: center;
+       `;
 
         function ADDCaixa1(id) {
             const caixa = document.createElement('div');
@@ -2067,9 +2054,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         cursor: pointer;
         justify-content: center;
         margin-left: auto;
-    margin-right: 5px;
-    margin-top: -20px;
-    margin-bottom: 20px;
+       margin-right: 5px;
+        margin-top: -20px;
+        margin-bottom: 20px;
         `;
         caixa.addEventListener('click', function() {
             AtualizarConf(17);
@@ -2558,12 +2545,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         caixa.id = 'CaiDeAvi';
         caixa.style.cssText = `
         background: ${corSpe};
-    position: absolute;
-    padding: 6px 10px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+        position: absolute;
+        padding: 6px 10px;
+        border-radius: 12px;
+       display: flex;
+        flex-direction: column;
+        align-items: center;
         `;
         const Ctitulo = document.createElement('div');
         Ctitulo.innerHTML = titulo ;
@@ -2592,10 +2579,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             a.innerHTML = texto ;
             a.style.cssText = `
             cursor: pointer;
-    border: white 1px solid;
-    border-radius: 15px;
-    padding: 2px 4px;
-            `;
+            border: white 1px solid;
+            border-radius: 15px;
+            padding: 2px 4px;
+           `;
             a.addEventListener('mouseover', function() {
                 a.style.background = 'white';
                 a.style.color = corSpe;
