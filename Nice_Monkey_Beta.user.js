@@ -908,8 +908,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         var FouHFormatado = converterParaTempo(FouH);
         var vFalta = document.getElementById('vFalta');
         var tFalta = document.getElementById('tFalta');
-        tFalta.innerHTML = HE ? 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
-        vFalta.innerHTML = HE ? FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
+        tFalta.innerHTML = HE ? ErroVerif ? 'Atualizar:' : 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
+        vFalta.innerHTML = HE ? ErroVerif ? ErroVerif1 : FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
 
         var OfflineSegundosFormatado = converterParaTempo(OfflineSegundos);
         var vOffline = document.getElementById('vOffline');
