@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Nice_Monkey
+// @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
 // @version      3.3.1
 // @description  that's all folks!
