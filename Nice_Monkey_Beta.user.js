@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.1
+// @version      3.3.1.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -911,15 +911,14 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         var FouHFormatado = converterParaTempo(FouH);
         var vFalta = document.getElementById('vFalta');
         var tFalta = document.getElementById('tFalta');
-        tFalta.innerHTML = HE ? Busc5s ? 'Atualizar:' : 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
-        vFalta.innerHTML = HE ? Busc5s ? Busc5sTem : FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
+        tFalta.innerHTML = Busc5s ? 'Atualizar:' : HE ? 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
+        vFalta.innerHTML = Busc5s ? Busc5sTem : HE ? FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
 
         var OfflineSegundosFormatado = converterParaTempo(OfflineSegundos);
         var vOffline = document.getElementById('vOffline');
         var tOffline = document.getElementById('tOffline');
         vOffline.innerHTML = OfflineSegundosFormatado;
         tOffline.innerHTML = mosValOff ? 'Com Offline' : 'Sem Offline';
-
 
         if(!Atualizando){
             ControleFront();
