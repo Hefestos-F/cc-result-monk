@@ -869,13 +869,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         var varia2 = mosValOff ? AFaltaSegundos : FaltaSegundos;
 
-        LogouOntem = LogadoSegundos < 0 || SaidaSegundos > 86400 ? 1 : 0 ;
-
-        //varia1 = LogouOntem ? varia1 - 86400 : varia1;
-
-        //varia2 = LogouOntem ? varia2 - 86400 : varia2;
-
-
         if(HoraSegundos > varia1 + dezMinutosSegundos){
             HE = true;
             vHE = HoraSegundos - varia1;
