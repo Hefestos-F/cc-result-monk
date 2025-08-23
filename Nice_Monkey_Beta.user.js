@@ -121,7 +121,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     let dadosPrimLogueOnt;
     let dadosLogueManu;
 
-    var ErroVerif1 = 5;
+    var Busc5s = 0;
+    var Busc5sTem = 5;
 
     const nomeBD = 'MeuBDNiceMonk';
     const StoreBD = 'NiceMonk';
@@ -811,9 +812,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     function ContagemPAtu(){
         var interval = setInterval(function() {
-                ErroVerif1 = ErroVerif1--;
-                if(!ErroVerif || ErroVerif1 === 0){
+            Busc5s = 1;
+                Busc5sTem = Busc5sTem--;
+                if(!ErroVerif || Busc5sTem === 0){
                     clearInterval(interval);
+                    Busc5s = 0;
                 }
             }, 1000);
     }
@@ -827,7 +830,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         if(NewLogadoSegundos >= UltimaSomaDTI){
             UltimaSomaDTI = NewLogadoSegundos;
             ErroVerif = 0;
-            ErroVerif1 = 5;
+            Busc5sTem = 5;
         }else if (Vigia && !Atualizando && !ErroVerif){
             ErroVerif = 1;
             ContagemPAtu();
@@ -908,8 +911,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         var FouHFormatado = converterParaTempo(FouH);
         var vFalta = document.getElementById('vFalta');
         var tFalta = document.getElementById('tFalta');
-        tFalta.innerHTML = HE ? ErroVerif ? 'Atualizar:' : 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
-        vFalta.innerHTML = HE ? ErroVerif ? ErroVerif1 : FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
+        tFalta.innerHTML = HE ? Busc5s ? 'Atualizar:' : 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
+        vFalta.innerHTML = HE ? Busc5s ? Busc5sTem : FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
 
         var OfflineSegundosFormatado = converterParaTempo(OfflineSegundos);
         var vOffline = document.getElementById('vOffline');
