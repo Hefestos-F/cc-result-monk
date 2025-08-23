@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      3.3
+// @version      3.3.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -356,7 +356,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         position: absolute;
         top: 20%;
         width: 100%;
-        z-index: 1;
+        z-index: 3;
         font-size: 12px;
         transition: all 0.5s ease;
         align-items: center;
