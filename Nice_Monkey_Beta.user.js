@@ -704,12 +704,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
 
     function AtualizarTMA(x) {
-        var tTMA = document.getElementById('tTMA');
-        var cTMA = document.getElementById('cTMA');
-        var SepCVal2 = document.getElementById('SepCVal2');
-        var contValores = document.getElementById('contValores');
+        const tTMA = document.getElementById('tTMA');
+        const cTMA = document.getElementById('cTMA');
+        const SepCVal2 = document.getElementById('SepCVal2');
+        const contValores = document.getElementById('contValores');
 
-        if (VIgTMA) {
+        if (VIgTMA && !Busc5s) {
             if (cTMA) {
                 cTMA.remove();
             }
