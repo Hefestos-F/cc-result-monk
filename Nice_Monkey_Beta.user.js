@@ -22,7 +22,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     const CConfig = {
         TempoEscaladoHoras : '06:20:00',
-        ValorMetaTMA,
+        ValorMetaTMA = 725,
         ModoSalvo,
         Vigia,
         MetaTMA,
