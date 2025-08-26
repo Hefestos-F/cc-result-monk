@@ -20,50 +20,55 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 (function() {
     'use strict';
 
-    const AsVariPadrao = {TempoEscaladoHoras : '06:20:00',
-                          MetaTMA : 725,
-                          modoSalvo : 1,
-                          Vigia : 1,
-                          MMetaTMA : 1,
-                          ValorAuto : 10,
-                          AutoAtivo : 0,
-                          TolOff : 40,
-                          CorOff : '#c97123',         // Laranja
-                          CorAtu : '#c97123',        // Laranja
-                          CorTMAForadMate : '#c97123',// Laranja
-                          corErro : '#992e2e',        // Vermelho
-                          corSpe : '#4a9985' ,        // Verde acinzentado
-                          corConfig : '#96a8bb',     // Azul (já estava certo)
-                          MosOff : 0,
-                          IGOff : 0,
-                          mosValOff : 0,
-                          ValoresFixosVF : 0,
-                          VIgTMA : 0,
-                          ErroNice
-                         };
+    const CConfig = {
+        TempoEscaladoHoras : '06:20:00',
+        ValorMetaTMA,
+        ModoSalvo,
+        Vigia,
+        MetaTMA,
+        ValorAuto,
+        AutoAtivo,
+        TolerOff,
+        MostraOff : 0,
+        IgnorarOff : 0,
+        MostraValorOff : 0,
+        FaixaFixa : 0,
+        IgnorarTMA : 0,
+        IgnorarErroNice : 0
+    }
+    const PCConfig = {
+        TempoEscaladoHoras : '06:20:00',
+        ValorMetaTMA : 725,
+        ModoSalvo : 1,
+        Vigia : 1,
+        MetaTMA : 1,
+        ValorAuto : 10,
+        AutoAtivo : 1,
+        TolerOff : 40,
+        MostraOff : 0,
+        IgnorarOff : 0,
+        MostraValorOff : 0,
+        FaixaFixa : 0,
+        IgnorarTMA : 0,
+        IgnorarErroNice : 0
+    }
+    
+    const Ccor = {Offline,
+        Atualizando,
+        Erro,
+        MetaTMA,
+        Principal,
+        Config
+    }
 
-    var MetaTMA;
-    var modoSalvo;
-    var Vigia;
-    var MMetaTMA;
-    var ValorAuto;
-    var AutoAtivo;
-    var TolOff;
+    const PCcor = {Offline : '#c97123',
+        Atualizando : '#c97123',
+        Erro : '#992e2e',
+        MetaTMA : '#c97123',
+        Principal : '#4a9985',
+        Config : '#96a8bb'
+    }
 
-    var CorOff ;
-    var CorAtu ;
-    var CorTMAForadMate ;
-    var corErro;
-    var corSpe;
-    var corConfig;
-    var MosOff = 0;
-    var IGOff = 0;
-    var mosValOff = 0;
-    var ValoresFixosVF = 0;
-    var VIgTMA = 0;
-    var ErroNice = 0;
-
-    var ValorLogueManual = '12:00:00';
     var LogueManual = 0;
 
     var tDisponivel = 0;
@@ -94,7 +99,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var ErroDTI;
     var offForaDToler = 0;
     var ErroVerif = 0;
-    var backgroundContValores = corSpe;
+    var backgroundContValores = Ccor.Principal;
     var backgroundContIcon;
     var backgroundcirculoclick;
     var backgroundcirculoclick2;
@@ -109,20 +114,22 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var FPausaS;
     var DPausaS;
     var TempoEscaladoHoras;
-    var ChavePausas = 'DadosDePausas';
-    var ChaveConfig = 'Configuções';
-    var ChavelogueManu = 'LogueManual';
-    var ChavePrimLogue = 'PrimeiroLogue';
-    var ChavePrimLogueOntem = 'PrimeiroLogueOntem';
 
+    const ChavePausas = 'DadosDePausas';
+    const ChaveConfig = 'Configuções';
+    const ChavelogueManu = 'LogueManual';
+    const ChavePrimLogue = 'PrimeiroLogue';
+    const ChavePrimLogueOntem = 'PrimeiroLogueOntem';
+
+    let ValorLogueManual = '12:00:00';
     let dadosdePausas;
     let dadosSalvosConfi;
     let dadosPrimLogue;
     let dadosPrimLogueOnt;
     let dadosLogueManu;
 
-    var Busc5s = 0;
-    var Busc5sTem = 5;
+    let Busc5s = 0;
+    let Busc5sTem = 5;
 
     const nomeBD = 'MeuBDNiceMonk';
     const StoreBD = 'NiceMonk';
@@ -213,13 +220,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     function atualizarAuto(ori) {
 
-        if (!LoopAA && AutoAtivo){
+        if (!LoopAA && CConfig.AutoAtivo){
             LoopAA = 1;
             setTimeout(function() {
                 iniciarBusca();
                 LoopAA = 0;
                 atualizarAuto();
-            },ValorAuto * 60000);
+            },CConfig.ValorAuto * 60000);
         }
     }
 
@@ -249,7 +256,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             caixa.id = `c${titulo}`;
             caixa.style.cssText = `
             transition: all 0.5s ease;
-                background: ${CorOff};
+                background: ${Ccor.Offline};
             border-radius: 6px;
             opacity: 1;
             padding: 0px 3px;
@@ -320,7 +327,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         container.style.cssText = `
         display: flex;
         opacity: 1;
-        background: ${corSpe};
+        background: ${Ccor.Principal};
         padding: 2px 5px;
         align-items: center;
         justify-content: space-evenly;
@@ -709,7 +716,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         const SepCVal2 = document.getElementById('SepCVal2');
         const contValores = document.getElementById('contValores');
 
-        if (VIgTMA && !Busc5s) {
+        if (CConfig.IgnorarTMA && !Busc5s) {
             if (cTMA) {
                 cTMA.remove();
             }
@@ -740,7 +747,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             var vTMA = document.getElementById('vTMA');
             tTMA.innerHTML = Busc5s ? 'Atualizar:' : 'TMA:';
             vTMA.innerHTML = Busc5s ? Busc5sTem : ErroAtu || x ? 'Atualize !!' : TMA; // Arredonda para o valor inteiro mais próximo
-            cTMA.style.background = TMA > MetaTMA && !ErroAtu && MMetaTMA ? CorTMAForadMate : '';
+            cTMA.style.background = TMA > CConfig.ValorMetaTMA && !ErroAtu && CConfig.MetaTMA ? Ccor.MetaTMA : '';
             cTMA.style.borderRadius = '5px';
             cTMA.style.padding = ' 0px 3px';
             cTMA.style.margin = '0px -3px';
@@ -777,9 +784,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             }
         }
 
-        ErroAtu = ErroNice ? 0 : ErroVerif;
+        ErroAtu = CConfig.IgnorarErroNice ? 0 : ErroVerif;
 
-        if(!ErroDTI && !ErroAtu && !VIgTMA){
+        if(!ErroDTI && !ErroAtu && !CConfig.IgnorarTMA){
             await TentAtend();
             for (let c = 0;ErroTMA && c < 3; c++) {
                 await TentAtend();
@@ -821,7 +828,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         if(NewLogadoSegundos >= UltimaSomaDTI){
             UltimaSomaDTI = NewLogadoSegundos;
             ErroVerif = 0;
-        }else if (Vigia && !Atualizando && !ErroVerif){
+        }else if (CConfig.Vigia && !Atualizando && !ErroVerif){
             ErroVerif = 1;
             Busc5s = 1;
             ControleFront(7);
@@ -839,14 +846,14 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             verificarESalvar(1);
         }
 
-        QualLogouSegundos = LogueManual ? converterParaSegundos(ValorLogueManual) : modoSalvo ? LogouSegundosSalvo : LogouSegundos;
+        QualLogouSegundos = LogueManual ? converterParaSegundos(ValorLogueManual) : CConfig.ModoSalvo ? LogouSegundosSalvo : LogouSegundos;
         OfflineSegundos = LogouSegundos - QualLogouSegundos;
 
-        var vari2 = modoSalvo || LogueManual ? 1 : 0 ;
-        offForaDToler = OfflineSegundos > TolOff && vari2 && !ErroAtu && !ErroVerif && !IGOff ? 1 : 0;
-        MosOff = offForaDToler;
-        if(!MosOff){
-            mosValOff = 0;
+        var vari2 = CConfig.ModoSalvo || LogueManual ? 1 : 0 ;
+        offForaDToler = OfflineSegundos > CConfig.TolerOff && vari2 && !ErroAtu && !ErroVerif && !CConfig.IgnorarOff ? 1 : 0;
+        CConfig.MostraOff = offForaDToler;
+        if(!CConfig.MostraOff){
+            CConfig.MostraValorOff = 0;
         }
 
         AtualizarInfo();
@@ -862,15 +869,15 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         var LogadoSegundos = HoraSegundos - QualLogouSegundos;
         var SaidaSegundos = QualLogouSegundos + TempoEscalado;
-        SaidaSegundos = !offForaDToler && !ErroAtu && !LogueManual && !IGOff ? SaidaSegundos + OfflineSegundos : SaidaSegundos;
+        SaidaSegundos = !offForaDToler && !ErroAtu && !LogueManual && !CConfig.IgnorarOff ? SaidaSegundos + OfflineSegundos : SaidaSegundos;
         var FaltaSegundos = SaidaSegundos - HoraSegundos;
         var ASaidaSegundos = SaidaSegundos + OfflineSegundos;
         var AFaltaSegundos = FaltaSegundos + OfflineSegundos;
         var dezMinutosSegundos = converterParaSegundos('00:10:00');
 
-        var varia1 = mosValOff ? ASaidaSegundos : SaidaSegundos;
+        var varia1 = CConfig.MostraValorOff ? ASaidaSegundos : SaidaSegundos;
 
-        var varia2 = mosValOff ? AFaltaSegundos : FaltaSegundos;
+        var varia2 = CConfig.MostraValorOff ? AFaltaSegundos : FaltaSegundos;
 
         if(HoraSegundos > varia1 + dezMinutosSegundos){
             HE = true;
@@ -885,7 +892,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         var vLogou = document.getElementById('vLogou');
         vLogou.innerHTML = LogouSegundosFormatado;
 
-        var vari1 = mosValOff ? NewLogadoSegundos : LogadoSegundos;
+        var vari1 = CConfig.MostraValorOff ? NewLogadoSegundos : LogadoSegundos;
         var LogadoSegundosFormatado = converterParaTempo(vari1);
         var vLogado = document.getElementById('vLogado');
         vLogado.innerHTML = LogadoSegundosFormatado;
@@ -914,7 +921,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         var vOffline = document.getElementById('vOffline');
         var tOffline = document.getElementById('tOffline');
         vOffline.innerHTML = OfflineSegundosFormatado;
-        tOffline.innerHTML = mosValOff ? 'Com Offline' : 'Sem Offline';
+        tOffline.innerHTML = CConfig.MostraValorOff ? 'Com Offline' : 'Sem Offline';
 
         if(!Atualizando){
             ControleFront();
@@ -935,7 +942,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         function TodasCores(d){
 
-            var b = ErroAtu ? corErro : d;
+            var b = ErroAtu ? Ccor.Erro : d;
             document.querySelectorAll('.iconec').forEach(element => {
                 element.style.backgroundColor = b;
             });
@@ -951,18 +958,18 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         if(a === 1){
             Atualizando = 1;
             ContIcon.style.animation = 'rotate 1s ease-in-out infinite';
-            TcorVarian = CorAtu;
+            TcorVarian = Ccor.Atualizando;
             backgroundcirculoclick2 = 'white';
             backgroundcirculoclick = DentrodCC1 ? 'white' : '';
             backgroundContIcon = 'white';
-            backgroundContValores = CorAtu;
+            backgroundContValores = Ccor.Atualizando;
             ControleFront(5);
             MostarcontValores(0);
         }
         if(a === 2){
             ContIcon.style.animation = '';
-            TcorVarian = corSpe;
-            backgroundContValores = corSpe;
+            TcorVarian = Ccor.Principal;
+            backgroundContValores = Ccor.Principal;
             DentrodcCC = 1;
             ControleFront(4);
             AtualizarConf();
@@ -1027,7 +1034,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         }
 
         function MostarcontValores(x){
-            x = Atualizando ? 0 : ValoresFixosVF ? 1 : x;
+            x = Atualizando ? 0 : CConfig.FaixaFixa ? 1 : x;
             contValores.style.visibility = x ? 'visible' : 'hidden';
             contValores.style.opacity = x ? '1' : '0';
             contValores.style.marginTop = x ? '' : '-30px';
@@ -1035,13 +1042,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             CVAtivo = x;
         }
 
-        cOffline.style.background = CorOff;
+        cOffline.style.background = Ccor.Offline;
 
         var vari4 = contValores.style.opacity ==='1' ? 1 : 0;
-        Alinha1.style.visibility = vari4 && MosOff ? 'visible' : 'hidden';
-        Alinha1.style.opacity = vari4 && MosOff ? '1' : '0';
-        Alinha1.style.marginTop = vari4 && MosOff ? '' : '-15px';
-        Alinha1.style.marginBottom = vari4 && MosOff ? '' : '5px';
+        Alinha1.style.visibility = vari4 && CConfig.MostraOff ? 'visible' : 'hidden';
+        Alinha1.style.opacity = vari4 && CConfig.MostraOff ? '1' : '0';
+        Alinha1.style.marginTop = vari4 && CConfig.MostraOff ? '' : '-15px';
+        Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? '' : '5px';
 
         atualizarComoff('cSaida');
         atualizarComoff('cLogado');
@@ -1050,15 +1057,15 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         function atualizarComoff(caixa){
             var x = document.getElementById(caixa);
             if (x){
-                x.style.background = mosValOff ? CorOff : '';
-                x.style.borderRadius = mosValOff ?'6px': '';
-                x.style.padding = mosValOff ? '0px 2px': '';
-                x.style.margin = mosValOff ? '0px -2px': '';
+                x.style.background = CConfig.MostraValorOff ? Ccor.Offline : '';
+                x.style.borderRadius = CConfig.MostraValorOff ?'6px': '';
+                x.style.padding = CConfig.MostraValorOff ? '0px 2px': '';
+                x.style.margin = CConfig.MostraValorOff ? '0px -2px': '';
             }
         }
 
         TodasCores(TcorVarian);
-        contValores.style.background = ErroAtu ? corErro : backgroundContValores;
+        contValores.style.background = ErroAtu ? Ccor.Erro : backgroundContValores;
         ContIcon.style.background = backgroundContIcon;
         circuloclick2.style.background = backgroundcirculoclick2;
         circuloclick.style.background = backgroundcirculoclick;
@@ -1067,13 +1074,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             element.style.width = ErroAtu ? '30px' : '1px';
             element.style.height = ErroAtu ? '12px' : '25px';
             element.style.margin = ErroAtu ? '0px -4px' : '';
-            element.style.background = MosOff ? CorOff : '#ffffff';
+            element.style.background = CConfig.MostraOff ? Ccor.Offline : '#ffffff';
             element.style.borderRadius = ErroAtu ? '5px':'';
             element.style.fontSize = ErroAtu ? '8px':'';
             element.style.transform = ErroAtu ? 'rotate(-90deg)':'';
             element.style.display = ErroAtu ? 'flex':'';
             element.style.justifyContent = ErroAtu ? 'center':'';
-            element.style.color = MosOff ? 'white' : corErro ;
+            element.style.color = CConfig.MostraOff ? 'white' : Ccor.Erro ;
             element.innerHTML = ErroAtu ? 'Erro':'';
         });
     }
@@ -1118,7 +1125,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         border-radius: 8px;
         display: flex;
         align-items: center;
-        background: ${corConfig};
+        background: ${Ccor.Config};
         transition: all 0.5s ease;
         opacity: 1;
         flex-direction: column;
@@ -1157,7 +1164,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         const inputTMA = document.createElement('input');
         inputTMA.className = 'placeholderPerso';
-        inputTMA.setAttribute('placeholder', MetaTMA);
+        inputTMA.setAttribute('placeholder', CConfig.ValorMetaTMA);
         inputTMA.type = 'number';
         inputTMA.style.cssText = `
         height: 16px;
@@ -1177,7 +1184,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         SalvarTMA.style.marginLeft = '5px';
         SalvarTMA.addEventListener('click', function () {
             const valorinputtma = inputTMA.value || inputTMA.placeholder;
-            MetaTMA = valorinputtma;
+            CConfig.ValorMetaTMA = valorinputtma;
             inputTMA.placeholder = valorinputtma;
             inputTMA.value = '';
             AtualizarTMA();
@@ -1340,7 +1347,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         margin: 0px 3px;
         `;
         InputMin.addEventListener('input', function () {
-            ValorAuto = InputMin.value || 1;
+            CConfig.ValorAuto = InputMin.value || 1;
         });
 
         const textoMinu = document.createElement('div');
@@ -1406,12 +1413,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         const caixaDeCor = criarCaixaSeg();
         caixaDeCor.append(criarTitulo('Cores'),
-                          LinhaSelCor(7,'Principal',corSpe),
-                          LinhaSelCor(8,'Atualizando',CorAtu),
-                          LinhaSelCor(9,'Meta TMA',CorTMAForadMate),
-                          LinhaSelCor(10,'Erro',corErro),
-                          LinhaSelCor(11,'Offline',CorOff),
-                          LinhaSelCor(12,'Config',corConfig)
+                          LinhaSelCor(7,'Principal',Ccor.Principal),
+                          LinhaSelCor(8,'Atualizando',Ccor.Atualizando),
+                          LinhaSelCor(9,'Meta TMA',Ccor.MetaTMA),
+                          LinhaSelCor(10,'Erro',Ccor.Erro),
+                          LinhaSelCor(11,'Offline',Ccor.Offline),
+                          LinhaSelCor(12,'Config',Ccor.Config)
                          );
 
 
@@ -1583,66 +1590,64 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         var CaixaConfig = document.getElementById('CaixaConfig');
         var InputMin = document.getElementById('InputMin');
         var InputMinX = document.getElementById('InputMinX');
-        var InputHLManual = document.getElementById('InputHLManual');
-        var InputMLManual = document.getElementById('InputMLManual');
         var CaiDPa = document.getElementById('CaiDPa');
         var BotPa = document.getElementById('BotPa');
         var minhaCaixa = document.getElementById('minhaCaixa');
 
         if(zz === 1){
-            modoSalvo = 0;
+            CConfig.ModoSalvo = 0;
         }
         if(zz === 2){
-            modoSalvo = 1;
+            CConfig.ModoSalvo = 1;
         }
         if(zz === 3){
-            Vigia = 1;
-            AutoAtivo = 0;
+            CConfig.Vigia = 1;
+            CConfig.AutoAtivo = 0;
         }
         if(zz === 4){
-            InputMin.value = ValorAuto;
-            Vigia = 0;
-            AutoAtivo = 1;
+            InputMin.value = CConfig.ValorAuto;
+            CConfig.Vigia = 0;
+            CConfig.AutoAtivo = 1;
             atualizarAuto();
-            console.log('NiceMonk Valor Auto : ',ValorAuto);
+            console.log('NiceMonk Valor Auto : ',CConfig.ValorAuto);
         }
         if(zz === 5){
-            Vigia = 0;
-            AutoAtivo = 0;
+            CConfig.Vigia = 0;
+            CConfig.AutoAtivo = 0;
         }
         if(zz === 6){
-            MMetaTMA = !MMetaTMA;
+            CConfig.MetaTMA = !CConfig.MetaTMA;
             AtualizarTMA();
         }
         if(zz === 7){
-            corSpe = corVarian;
-            backgroundContValores = corSpe;
-            BotPa.style.backgroundColor = corSpe;
+            Ccor.Principal = corVarian;
+            backgroundContValores = Ccor.Principal;
+            BotPa.style.backgroundColor = Ccor.Principal;
             document.querySelectorAll('.slider-button27.active').forEach(element => {
-                element.style.backgroundColor = corSpe;
+                element.style.backgroundColor = Ccor.Principal;
             });
         }
         if(zz === 8){
-            CorAtu = corVarian;
+            Ccor.Atualizando = corVarian;
         }
         if(zz === 9){
-            CorTMAForadMate = corVarian;
+            Ccor.MetaTMA = corVarian;
             AtualizarTMA();
         }
         if(zz === 10){
-            corErro = corVarian;
+            Ccor.Erro = corVarian;
         }
         if(zz === 11){
-            CorOff = corVarian;
+            Ccor.Offline = corVarian;
             ControleFront();
         }
         if(zz === 12){
-            corConfig = corVarian;
-            CaixaConfig.style.backgroundColor = corConfig;
-            CaiDPa.style.backgroundColor = corConfig;
+            Ccor.Config = corVarian;
+            CaixaConfig.style.backgroundColor = Ccor.Config;
+            CaiDPa.style.backgroundColor = Ccor.Config;
         }
         if(zz === 14){
-            mosValOff = MosOff ? !mosValOff : mosValOff;
+            CConfig.MostraValorOff = CConfig.MostraOff ? !CConfig.MostraValorOff : CConfig.MostraValorOff;
         }
         if(zz === 15){
             AbaConfig = !AbaConfig;
@@ -1660,9 +1665,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         }
         if(zz === 16){
-            IGOff = !IGOff;
-            if(IGOff){
-                mosValOff = 0;
+            CConfig.IgnorarOff = !CConfig.IgnorarOff;
+            if(CConfig.IgnorarOff){
+                CConfig.MostraValorOff = 0;
             }
         }
         if(zz === 17){
@@ -1679,42 +1684,42 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             }
         }
         if(zz === 18){
-            ValoresFixosVF = !ValoresFixosVF;
+            CConfig.FaixaFixa = !CConfig.FaixaFixa;
         }
         if(zz === 19){
-            VIgTMA = !VIgTMA;
+            CConfig.IgnorarTMA = !CConfig.IgnorarTMA;
             AtualizarTMA(0);
         }
         if(zz === 20){
-            ErroNice = !ErroNice;
+            CConfig.IgnorarErroNice = !CConfig.IgnorarErroNice;
 
-            VIgTMA = ErroNice;
-            IGOff = ErroNice;
+            CConfig.IgnorarTMA = CConfig.IgnorarErroNice;
+            CConfig.IgnorarOff = CConfig.IgnorarErroNice;
             AtualizarTMA(0);
-            if(ErroNice){
+            if(CConfig.IgnorarErroNice){
                 AtualizarConf(5);
             }
         }
 
         ControleFront(8);
-        if(InputMin) InputMin.style.display = AutoAtivo ? 'flex' : 'none';
-        if(InputMinX) InputMinX.style.display = !AutoAtivo ? 'flex' : 'none';
+        if(InputMin) InputMin.style.display = CConfig.AutoAtivo ? 'flex' : 'none';
+        if(InputMinX) InputMinX.style.display = !CConfig.AutoAtivo ? 'flex' : 'none';
 
-        atualizarVisual('Bot14', mosValOff);
+        atualizarVisual('Bot14', CConfig.MostraValorOff);
 
         if(AbaConfig){
-            atualizarVisual('Bot1', !modoSalvo);
-            atualizarVisual('Bot2', modoSalvo);
-            atualizarVisual('Bot6', MMetaTMA);
-            atualizarVisual('Bot3', Vigia);
-            atualizarVisual('Bot4', AutoAtivo);
-            var vari1 = Vigia || AutoAtivo ? 0 : 1;
+            atualizarVisual('Bot1', !CConfig.ModoSalvo);
+            atualizarVisual('Bot2', CConfig.ModoSalvo);
+            atualizarVisual('Bot6', CConfig.MetaTMA);
+            atualizarVisual('Bot3', CConfig.Vigia);
+            atualizarVisual('Bot4', CConfig.AutoAtivo);
+            var vari1 = CConfig.Vigia || CConfig.AutoAtivo ? 0 : 1;
             atualizarVisual('Bot5', vari1);
             atualizarVisual('Bot13', LogueManual);
-            atualizarVisual('Bot16', IGOff);
-            atualizarVisual('Bot18', ValoresFixosVF);
-            atualizarVisual('Bot19', VIgTMA);
-            atualizarVisual('Bot20', ErroNice);
+            atualizarVisual('Bot16', CConfig.IgnorarOff);
+            atualizarVisual('Bot18', CConfig.FaixaFixa);
+            atualizarVisual('Bot19', CConfig.IgnorarTMA);
+            atualizarVisual('Bot20', CConfig.IgnorarErroNice);
         }
 
         if(zz > 0 && zz !== 14){
@@ -1734,7 +1739,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         if (quem) {
             if (!x.classList.contains('active')) {
                 x.classList.add('active');
-                x.style.backgroundColor = corSpe;
+                x.style.backgroundColor = Ccor.Principal;
             }
         } else {
             if (x.classList.contains('active')) {
@@ -1772,7 +1777,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           }
 
           .slider-button27.active {
-            background-color: ${corSpe};
+            background-color: ${Ccor.Principal};
           }
 
           .slider-button27.active .slider-circle {
@@ -1841,7 +1846,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           }
 
           .slider-button27.active {
-            background-color: ${corSpe};
+            background-color: ${Ccor.Principal};
           }
 
           .slider-button27.active .slider-circle {
@@ -1979,7 +1984,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         const caixa = document.createElement('div');
         caixa.id = 'CaiDPa';
         caixa.style.cssText = `
-        background: ${corConfig};
+        background: ${Ccor.Config};
         max-height: 170px;
         margin-top: -15px;
         border-radius: 8px;
@@ -2035,7 +2040,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         caixa.id = 'BotPa';
         caixa.innerHTML = 'P';
         caixa.style.cssText = `
-        background: ${corSpe};
+        background: ${Ccor.Principal};
         height: 20px;
         width: 20px;
         border-radius: 15px;
@@ -2299,26 +2304,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     function SalvandoVari(a) {
 
-        const AsVari = {TempoEscaladoHoras : TempoEscaladoHoras,
-                        MetaTMA : MetaTMA,
-                        modoSalvo : modoSalvo,
-                        Vigia : Vigia,
-                        MMetaTMA : MMetaTMA,
-                        ValorAuto : ValorAuto,
-                        AutoAtivo : AutoAtivo,
-                        TolOff : TolOff,
-                        CorOff : CorOff,
-                        CorAtu : CorAtu,
-                        CorTMAForadMate : CorTMAForadMate,
-                        corErro : corErro,
-                        corSpe : corSpe,
-                        corConfig : corConfig,
-                        MosOff : MosOff,
-                        IGOff : IGOff,
-                        mosValOff : mosValOff,
-                        ValoresFixosVF : ValoresFixosVF,
-                        VIgTMA : VIgTMA,
-                        ErroNice : ErroNice
+        const AsVari = {CConfig : CConfig,
+                        Ccor : Ccor,
                        };
 
 
@@ -2327,8 +2314,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             ondemudar(AsVari);
         }
         if (a === 2) {
-            AddOuAtuIindexdb(ChaveConfig, AsVariPadrao);
-            ondemudar(AsVariPadrao);
+            AsVari.CConfig = PCConfig;
+            AsVari.Ccor = PCcor;
+            AddOuAtuIindexdb(ChaveConfig, AsVari);
+            ondemudar(AsVari);
         }
         if (a === 3) {
             if (dadosSalvosConfi && 'TempoEscaladoHoras' in dadosSalvosConfi) {
@@ -2337,33 +2326,14 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
             } else {
                 console.log(`NiceMonk Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão : `, dadosSalvosConfi);
-                AddOuAtuIindexdb(ChaveConfig, AsVariPadrao);
-                ondemudar(AsVariPadrao);
+                SalvandoVari(2);
             }
         }
 
         function ondemudar(x) {
             ({
-                TempoEscaladoHoras,
-                MetaTMA,
-                modoSalvo,
-                Vigia,
-                MMetaTMA,
-                ValorAuto,
-                AutoAtivo,
-                TolOff,
-                CorOff,
-                CorAtu,
-                CorTMAForadMate,
-                corErro,
-                corSpe,
-                corConfig,
-                MosOff,
-                IGOff,
-                mosValOff,
-                ValoresFixosVF,
-                VIgTMA,
-                ErroNice
+                CConfig,
+                Ccor
             } = x);
         }
 
@@ -2538,7 +2508,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         const caixa = document.createElement('div');
         caixa.id = 'CaiDeAvi';
         caixa.style.cssText = `
-        background: ${corSpe};
+        background: ${Ccor.Principal};
         position: absolute;
         padding: 6px 10px;
         border-radius: 12px;
@@ -2579,7 +2549,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
            `;
             a.addEventListener('mouseover', function() {
                 a.style.background = 'white';
-                a.style.color = corSpe;
+                a.style.color = Ccor.Principal;
             });
 
             a.addEventListener('mouseout', function() {
