@@ -704,6 +704,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
 
     function AtualizarTMA(x) {
+        var tTMA = document.getElementById('tTMA');
         var cTMA = document.getElementById('cTMA');
         var SepCVal2 = document.getElementById('SepCVal2');
         var contValores = document.getElementById('contValores');
@@ -737,7 +738,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             var TMA = vAtendidas === '0' ? 0 : tTrabalhando / vAtendidas;
             TMA = Math.floor(TMA);
             var vTMA = document.getElementById('vTMA');
-            vTMA.innerHTML = ErroAtu || x ? 'Atualize !!' : TMA; // Arredonda para o valor inteiro mais próximo
+            tTMA.innerHTML = Busc5s ? 'Atualizar:' : 'TMA:';
+            vTMA.innerHTML = Busc5s ? Busc5sTem : ErroAtu || x ? 'Atualize !!' : TMA; // Arredonda para o valor inteiro mais próximo
             cTMA.style.background = TMA > MetaTMA && !ErroAtu && MMetaTMA ? CorTMAForadMate : '';
             cTMA.style.borderRadius = '5px';
             cTMA.style.padding = ' 0px 3px';
@@ -897,10 +899,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         var FouHFormatado = converterParaTempo(FouH);
         var vFalta = document.getElementById('vFalta');
         var tFalta = document.getElementById('tFalta');
-        tFalta.innerHTML = Busc5s ? 'Atualizar:' : HE ? 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
-        vFalta.innerHTML = Busc5s ? Busc5sTem : HE ? FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
+        tFalta.innerHTML = HE ? 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
+        vFalta.innerHTML = HE ? FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
 
         if (Busc5s) {
+            AtualizarTMA(0);
             Busc5sTem = Busc5sTem - 1;
             if(Busc5sTem < 1) Busc5s = 0;
         }else{
