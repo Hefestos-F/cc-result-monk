@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.1.8
+// @version      3.3.1.9
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -22,13 +22,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     const CConfig = {
         TempoEscaladoHoras : '06:20:00',
-        ValorMetaTMA = 725,
-        ModoSalvo,
-        Vigia,
-        MetaTMA,
-        ValorAuto,
-        AutoAtivo,
-        TolerOff,
+        ValorMetaTMA : 725,
+        ModoSalvo : 1,
+        Vigia : 1,
+        MetaTMA : 1,
+        ValorAuto : 10,
+        AutoAtivo : 1,
+        TolerOff : 40,
         MostraOff : 0,
         IgnorarOff : 0,
         MostraValorOff : 0,
