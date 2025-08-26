@@ -53,15 +53,17 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         IgnorarErroNice : 0
     }
     
-    const Ccor = {Offline,
-        Atualizando,
-        Erro,
-        MetaTMA,
-        Principal,
-        Config
+    const Ccor = {
+        Offline : '#c97123',
+        Atualizando : '#c97123',
+        Erro : '#992e2e',
+        MetaTMA : '#c97123',
+        Principal : '#4a9985',
+        Config : '#96a8bb'
     }
 
-    const PCcor = {Offline : '#c97123',
+    const PCcor = {
+        Offline : '#c97123',
         Atualizando : '#c97123',
         Erro : '#992e2e',
         MetaTMA : '#c97123',
