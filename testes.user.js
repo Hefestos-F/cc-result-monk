@@ -32,9 +32,10 @@ const Ccor = {
     };
 
     function ondemudar(x) {
-        CConfig = { ...x.CConfig };
-        Ccor = { ...x.Ccor };
-    }
+    Object.assign(CConfig, x.CConfig);
+    Object.assign(Ccor, x.Ccor);
+}
+
 
     switch (a) {
         case 1:

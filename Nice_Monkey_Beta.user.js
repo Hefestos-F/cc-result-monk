@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.13
+// @version      3.3.14
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -2318,9 +2318,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     };
 
     function ondemudar(x) {
-        CConfig = { ...x.CConfig };
-        Ccor = { ...x.Ccor };
-    }
+    Object.assign(CConfig, x.CConfig);
+    Object.assign(Ccor, x.Ccor);
+}
+
 
     switch (a) {
         case 1:
