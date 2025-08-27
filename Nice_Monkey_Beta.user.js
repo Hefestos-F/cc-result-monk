@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.11
+// @version      3.3.12
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -22,6 +22,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     const CConfig = {
         TempoEscaladoHoras : '06:20:00',
+        ValorLogueManual: '12:00:00',
+        LogueManual: 0,
         ValorMetaTMA : 725,
         ModoSalvo : 1,
         Vigia : 1,
@@ -36,8 +38,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         IgnorarTMA : 0,
         IgnorarErroNice : 0
     }
+
     const PCConfig = {
         TempoEscaladoHoras : '06:20:00',
+        ValorLogueManual: '12:00:00',
         ValorMetaTMA : 725,
         ModoSalvo : 1,
         Vigia : 1,
@@ -59,7 +63,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         Erro : '#992e2e',
         MetaTMA : '#c97123',
         Principal : '#4a9985',
-        Config : '#96a8bb'
+        Config : '#96a8bb',
+        Varian : '',
+        TVarian : ''
     }
 
     const PCcor = {
@@ -68,53 +74,58 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         Erro : '#992e2e',
         MetaTMA : '#c97123',
         Principal : '#4a9985',
-        Config : '#96a8bb'
+        Config : '#96a8bb',
+        Varian : '',
+        TVarian : ''
     }
 
-    var LogueManual = 0;
-    var tDisponivel = 0;
-    var tTrabalhando = 0;
-    var tIndisponivel = 0;
-    var tContAtual = 0;
-    var vAtendidas;
-    var vAtendidasA = 0;
-    var tTrabalhandoA = 0;
-    var ErroAtu = 0;
-    var ErroAten;
-    var ErroTMA;
-    var Atualizando = 0;
-    var LoopAA = 0; //Atualizar auto Ativo
-    var AbaConfig = 0;
-    var AbaPausas = 0;
-    var NBT = 0;
-    var HoraSegundos;
-    var LogouSegundos;
-    var DentrodCC2;
-    var DentrodCC1;
-    var DentrodcCC;
-    var DentrodMC;
-    var UltimaSomaDTI = 0;
-    var LogouSegundosSalvo;
-    var NewLogadoSegundos;
-    var OfflineSegundos;
-    var ErroDTI;
-    var offForaDToler = 0;
-    var ErroVerif = 0;
-    var backgroundContValores = Ccor.Principal;
-    var backgroundContIcon;
-    var backgroundcirculoclick;
-    var backgroundcirculoclick2;
-    var corVarian;
-    var TcorVarian;
-    var QualLogouSegundos = 0;
-    var CVAtivo;
+    const Segun = {
+        Disponivel: 0,
+        Trabalhando: 0,
+        TrabalhandoA: 0,
+        Indisponivel: 0,
+        ContAtual: 0,
+        Hora: '',
+        Logou: '',
+        UltimaSomaDTI: 0,
+        LogouSalvo:0,
+        NewLogado:0,
+        Offline:0,
+        QualLogou:0
+    }
 
-    var StatusANT = '';
-    var Ndpausas = 2;
-    var IPausaS;
-    var FPausaS;
-    var DPausaS;
-    var TempoEscaladoHoras;
+    const stt = {
+    vAtendidas: '',
+    vAtendidasA: 0,
+    ErroAtu: 0,
+    ErroAten: '',
+    ErroTMA: '',
+    Atualizando: 0,
+    LoopAA: 0, // Atualizar auto Ativo
+    AbaConfig: 0,
+    AbaPausas: 0,
+    NBT: 0,
+    DentrodCC2: '',
+    DentrodCC1: '',
+    DentrodcCC: '',
+    DentrodMC: '',
+    ErroDTI: '',
+    offForaDToler: 0,
+    ErroVerif: 0,
+    CVAtivo: '',
+    StatusANT: '',
+    Ndpausas: 2,
+    IPausaS: '',
+    FPausaS: '',
+    DPausaS: ''
+    }
+
+    const BGround = {
+    ContValores: Ccor.Principal,
+    ContIcon: '',
+    circuloclick: '',
+    circuloclick2: ''
+    }
 
     const ChavePausas = 'DadosDePausas';
     const ChaveConfig = 'Configuções';
@@ -122,7 +133,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     const ChavePrimLogue = 'PrimeiroLogue';
     const ChavePrimLogueOntem = 'PrimeiroLogueOntem';
 
-    let ValorLogueManual = '12:00:00';
     let dadosdePausas;
     let dadosSalvosConfi;
     let dadosPrimLogue;
@@ -168,7 +178,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             clearInterval(interval);
             AdicionarCaixaAtualizada(elementoReferencia);
             addcirculo(elementoReferencia2);
-            NBT = 1;
+            stt.NBT = 1;
             iniciarBusca();
         } else {
             attempts++;
@@ -221,11 +231,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     function atualizarAuto(ori) {
 
-        if (!LoopAA && CConfig.AutoAtivo){
-            LoopAA = 1;
+        if (!stt.LoopAA && CConfig.AutoAtivo){
+            stt.LoopAA = 1;
             setTimeout(function() {
                 iniciarBusca();
-                LoopAA = 0;
+                stt.LoopAA = 0;
                 atualizarAuto();
             },CConfig.ValorAuto * 60000);
         }
@@ -384,12 +394,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
 
         minhaCaixa.addEventListener('mouseover', function() {
-            DentrodMC = 1;
+            stt.DentrodMC = 1;
             ControleFront(8);
         });
 
         minhaCaixa.addEventListener('mouseout', function() {
-            DentrodMC = 0;
+            stt.DentrodMC = 0;
             ControleFront(8);
         });
     }
@@ -521,37 +531,37 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
             // Adiciona o evento de mouseover ao circuloclick
             circuloclick.addEventListener('mouseover', function() {
-                DentrodCC1 = 1;
+                stt.DentrodCC1 = 1;
                 ControleFront(4);
             });
 
             // Adiciona o evento de mouseout ao circuloclick
             circuloclick.addEventListener('mouseout', function() {
-                DentrodCC1 = 0;
+                stt.DentrodCC1 = 0;
                 ControleFront(4);
             });
 
             // Adiciona o evento de mouseover ao circuloclick2
             circuloclick2.addEventListener('mouseover', function() {
-                DentrodCC2 = 1;
+                stt.DentrodCC2 = 1;
                 ControleFront(5);
             });
 
             // Adiciona o evento de mouseout ao circuloclick2
             circuloclick2.addEventListener('mouseout', function() {
-                DentrodCC2 = 0;
+                stt.DentrodCC2 = 0;
                 ControleFront(5);
             });
 
             // Adiciona o evento de mouseover ao circuloclickCont
             circuloclickCont.addEventListener('mouseover', function() {
-                DentrodcCC = 1;
+                stt.DentrodcCC = 1;
                 ControleFront(3);
             });
 
             // Adiciona o evento de mouseout ao circuloclickCont
             circuloclickCont.addEventListener('mouseout', function() {
-                DentrodcCC = 0;
+                stt.DentrodcCC = 0;
                 ControleFront(3);
             });
 
@@ -682,7 +692,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     async function AtualizarContAtual(){
         if (await seExiste(LugarJS.lContAtual)) {
             const formattedTime = formatTime(document.querySelector(LugarJS.lContAtual).textContent);
-            tContAtual = converterParaSegundos(formattedTime);
+            Segun.ContAtual = converterParaSegundos(formattedTime);
             return true;
         }else{
             return false;
@@ -692,7 +702,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     async function AtualizarAtendidas(){
         await caminhoInfo(1); // Caminho Atendidas
         if(await seExiste(LugarJS.lAtendidas)){
-            vAtendidas = document.querySelector(LugarJS.lAtendidas).textContent;
+            stt.vAtendidas = document.querySelector(LugarJS.lAtendidas).textContent;
             return true;
         }else{
             return false;
@@ -702,9 +712,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     async function AtualizarDTI(){
         //await caminhoInfo(0); // Caminho logado
         if(await caminhoInfo(0) && await seExiste(LugarJS.lDisponibilidade)){
-            tDisponivel = converterParaSegundos(document.querySelector(LugarJS.lDisponibilidade).textContent);
-            tTrabalhando = converterParaSegundos(document.querySelector(LugarJS.ltrabalhando).textContent);
-            tIndisponivel = converterParaSegundos(document.querySelector(LugarJS.lIndisponivel).textContent);
+            Segun.Disponivel = converterParaSegundos(document.querySelector(LugarJS.lDisponibilidade).textContent);
+            Segun.Trabalhando = converterParaSegundos(document.querySelector(LugarJS.ltrabalhando).textContent);
+            Segun.Indisponivel = converterParaSegundos(document.querySelector(LugarJS.lIndisponivel).textContent);
             return true;
         }else{
             return false;
@@ -743,12 +753,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
 
         if(cTMA){
-            var TMA = vAtendidas === '0' ? 0 : tTrabalhando / vAtendidas;
+            var TMA = stt.vAtendidas === '0' ? 0 : Segun.Trabalhando / stt.vAtendidas;
             TMA = Math.floor(TMA);
             var vTMA = document.getElementById('vTMA');
             tTMA.innerHTML = Busc5s ? 'Atualizar:' : 'TMA:';
-            vTMA.innerHTML = Busc5s ? Busc5sTem : ErroAtu || x ? 'Atualize !!' : TMA; // Arredonda para o valor inteiro mais próximo
-            cTMA.style.background = TMA > CConfig.ValorMetaTMA && !ErroAtu && CConfig.MetaTMA ? Ccor.MetaTMA : '';
+            vTMA.innerHTML = Busc5s ? Busc5sTem : stt.ErroAtu || x ? 'Atualize !!' : TMA; // Arredonda para o valor inteiro mais próximo
+            cTMA.style.background = TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA ? Ccor.MetaTMA : '';
             cTMA.style.borderRadius = '5px';
             cTMA.style.padding = ' 0px 3px';
             cTMA.style.margin = '0px -3px';
@@ -777,46 +787,46 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         await VerificacoesN1();
 
-        for (let b = 0; ErroVerif && b < 3; b++) {
+        for (let b = 0; stt.ErroVerif && b < 3; b++) {
             await AtualizarDTI();
             await VerificacoesN1();
-            if (ErroVerif) {
+            if (stt.ErroVerif) {
                 await esperar(1000);
             }
         }
 
-        ErroAtu = CConfig.IgnorarErroNice ? 0 : ErroVerif;
+        stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
 
-        if(!ErroDTI && !ErroAtu && !CConfig.IgnorarTMA){
+        if(!ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA){
             await TentAtend();
-            for (let c = 0;ErroTMA && c < 3; c++) {
+            for (let c = 0;stt.ErroTMA && c < 3; c++) {
                 await TentAtend();
-                if (ErroTMA) {
+                if (stt.ErroTMA) {
                     await esperar(1000);
                 }
             }
         }
-        AtualizarTMA(ErroAten);
+        AtualizarTMA(stt.ErroAten);
 
 
         await VerificacoesN1();
         ControleFront(2);
 
-        if(NBT){
-            NBT = 0;
+        if(stt.NBT){
+            stt.NBT = 0;
             verificarESalvar(0);
             setInterval(VerificacoesN1, 1000);
         }
     }
 
     async function TentAtend(){
-        ErroAten = !await AtualizarAtendidas();
-        if(vAtendidas <= vAtendidasA && tTrabalhando > tTrabalhandoA){
-            ErroTMA = 1;
+        stt.ErroAten = !await AtualizarAtendidas();
+        if(stt.vAtendidas <= stt.vAtendidasA && Segun.Trabalhando > Segun.TrabalhandoA){
+            stt.ErroTMA = 1;
         }else{
-            ErroTMA = 0;
-            vAtendidasA = vAtendidas;
-            tTrabalhandoA = tTrabalhando;
+            stt.ErroTMA = 0;
+            stt.vAtendidasA = stt.vAtendidas;
+            Segun.TrabalhandoA = Segun.Trabalhando;
         }
     }
 
@@ -824,35 +834,35 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         await AtualizarContAtual();
 
-        NewLogadoSegundos = tDisponivel + tTrabalhando + tIndisponivel + tContAtual;
+        Segun.NewLogado = Segun.Disponivel + Segun.Trabalhando + Segun.Indisponivel + Segun.ContAtual;
 
-        if(NewLogadoSegundos >= UltimaSomaDTI){
-            UltimaSomaDTI = NewLogadoSegundos;
-            ErroVerif = 0;
-        }else if (CConfig.Vigia && !Atualizando && !ErroVerif){
-            ErroVerif = 1;
+        if(Segun.NewLogado >= Segun.UltimaSomaDTI){
+            Segun.UltimaSomaDTI = Segun.NewLogado;
+            stt.ErroVerif = 0;
+        }else if (CConfig.Vigia && !stt.Atualizando && !stt.ErroVerif){
+            stt.ErroVerif = 1;
             Busc5s = 1;
             ControleFront(7);
             setTimeout(function() {
                 iniciarBusca();
             }, 5000);
         }else{
-            ErroVerif = 1;
+            stt.ErroVerif = 1;
         }
 
-        HoraSegundos = converterParaSegundos(mostrarHora());
-        LogouSegundos = HoraSegundos - NewLogadoSegundos;
+        Segun.Hora = converterParaSegundos(mostrarHora());
+        Segun.Logou = Segun.Hora - Segun.NewLogado;
 
-        if(LogouSegundos < LogouSegundosSalvo){
+        if(Segun.Logou < Segun.LogouSalvo){
             verificarESalvar(1);
         }
 
-        QualLogouSegundos = LogueManual ? converterParaSegundos(ValorLogueManual) : CConfig.ModoSalvo ? LogouSegundosSalvo : LogouSegundos;
-        OfflineSegundos = LogouSegundos - QualLogouSegundos;
+        Segun.QualLogou = CConfig.LogueManual ? converterParaSegundos(CConfig.ValorLogueManual) : CConfig.ModoSalvo ? Segun.LogouSalvo : Segun.Logou;
+        Segun.Offline = Segun.Logou - Segun.QualLogou;
 
-        var vari2 = CConfig.ModoSalvo || LogueManual ? 1 : 0 ;
-        offForaDToler = OfflineSegundos > CConfig.TolerOff && vari2 && !ErroAtu && !ErroVerif && !CConfig.IgnorarOff ? 1 : 0;
-        CConfig.MostraOff = offForaDToler;
+        var vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0 ;
+        stt.offForaDToler = Segun.Offline > CConfig.TolerOff && vari2 && !stt.ErroAtu && !stt.ErroVerif && !CConfig.IgnorarOff ? 1 : 0;
+        CConfig.MostraOff = stt.offForaDToler;
         if(!CConfig.MostraOff){
             CConfig.MostraValorOff = 0;
         }
@@ -863,37 +873,35 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     function AtualizarInfo(){
 
-        var TempoEscalado = converterParaSegundos(TempoEscaladoHoras);
+        var TempoEscalado = converterParaSegundos(CConfig.TempoEscaladoHoras);
         var vHE;
         var TempoCumprido = false;
         var HE = false;
 
-        var LogadoSegundos = HoraSegundos - QualLogouSegundos;
-        var SaidaSegundos = QualLogouSegundos + TempoEscalado;
-        SaidaSegundos = !offForaDToler && !ErroAtu && !LogueManual && !CConfig.IgnorarOff ? SaidaSegundos + OfflineSegundos : SaidaSegundos;
-        var FaltaSegundos = SaidaSegundos - HoraSegundos;
-        var ASaidaSegundos = SaidaSegundos + OfflineSegundos;
-        var AFaltaSegundos = FaltaSegundos + OfflineSegundos;
+        var LogadoSegundos = Segun.Hora - Segun.QualLogou;
+        var SaidaSegundos = Segun.QualLogou + TempoEscalado;
+        SaidaSegundos = !stt.offForaDToler && !stt.ErroAtu && !CConfig.LogueManual && !CConfig.IgnorarOff ? SaidaSegundos + Segun.Offline : SaidaSegundos;
+        var FaltaSegundos = SaidaSegundos - Segun.Hora;
+        var ASaidaSegundos = SaidaSegundos + Segun.Offline;
+        var AFaltaSegundos = FaltaSegundos + Segun.Offline;
         var dezMinutosSegundos = converterParaSegundos('00:10:00');
 
         var varia1 = CConfig.MostraValorOff ? ASaidaSegundos : SaidaSegundos;
 
         var varia2 = CConfig.MostraValorOff ? AFaltaSegundos : FaltaSegundos;
 
-        if(HoraSegundos > varia1 + dezMinutosSegundos){
+        if(Segun.Hora > varia1 + dezMinutosSegundos){
             HE = true;
-            vHE = HoraSegundos - varia1;
-        }else if(HoraSegundos > varia1){
+            vHE = Segun.Hora - varia1;
+        }else if(Segun.Hora > varia1){
             TempoCumprido = true;
         }
-        //console.log(converterParaTempo(HoraSegundos));
-        //console.log(converterParaTempo(varia1));
 
-        var LogouSegundosFormatado = converterParaTempo(QualLogouSegundos);
+        var LogouSegundosFormatado = converterParaTempo(Segun.QualLogou);
         var vLogou = document.getElementById('vLogou');
         vLogou.innerHTML = LogouSegundosFormatado;
 
-        var vari1 = CConfig.MostraValorOff ? NewLogadoSegundos : LogadoSegundos;
+        var vari1 = CConfig.MostraValorOff ? Segun.NewLogado : LogadoSegundos;
         var LogadoSegundosFormatado = converterParaTempo(vari1);
         var vLogado = document.getElementById('vLogado');
         vLogado.innerHTML = LogadoSegundosFormatado;
@@ -918,13 +926,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             Busc5sTem = 5;
         }
 
-        var OfflineSegundosFormatado = converterParaTempo(OfflineSegundos);
+        var OfflineSegundosFormatado = converterParaTempo(Segun.Offline);
         var vOffline = document.getElementById('vOffline');
         var tOffline = document.getElementById('tOffline');
         vOffline.innerHTML = OfflineSegundosFormatado;
         tOffline.innerHTML = CConfig.MostraValorOff ? 'Com Offline' : 'Sem Offline';
 
-        if(!Atualizando){
+        if(!stt.Atualizando){
             ControleFront();
         }
     }
@@ -943,7 +951,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         function TodasCores(d){
 
-            var b = ErroAtu ? Ccor.Erro : d;
+            var b = stt.ErroAtu ? Ccor.Erro : d;
             document.querySelectorAll('.iconec').forEach(element => {
                 element.style.backgroundColor = b;
             });
@@ -954,65 +962,65 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             circuloclick2.style.color = b;
         }
 
-        textCC1.innerHTML = ErroAtu ? 'Atualizar!!': Atualizando ? 'Atualizando...' : a === 2 ? 'Atualizado' : 'Atualizar';
+        textCC1.innerHTML = stt.ErroAtu ? 'Atualizar!!': stt.Atualizando ? 'Atualizando...' : a === 2 ? 'Atualizado' : 'Atualizar';
 
         if(a === 1){
-            Atualizando = 1;
+            stt.Atualizando = 1;
             ContIcon.style.animation = 'rotate 1s ease-in-out infinite';
-            TcorVarian = Ccor.Atualizando;
-            backgroundcirculoclick2 = 'white';
-            backgroundcirculoclick = DentrodCC1 ? 'white' : '';
-            backgroundContIcon = 'white';
-            backgroundContValores = Ccor.Atualizando;
+            Ccor.TVarian = Ccor.Atualizando;
+            BGround.circuloclick2 = 'white';
+            BGround.circuloclick = stt.DentrodCC1 ? 'white' : '';
+            BGround.ContIcon = 'white';
+            BGround.ContValores = Ccor.Atualizando;
             ControleFront(5);
             MostarcontValores(0);
         }
         if(a === 2){
             ContIcon.style.animation = '';
-            TcorVarian = Ccor.Principal;
-            backgroundContValores = Ccor.Principal;
-            DentrodcCC = 1;
+            Ccor.TVarian = Ccor.Principal;
+            BGround.ContValores = Ccor.Principal;
+            stt.DentrodcCC = 1;
             ControleFront(4);
             AtualizarConf();
-            if(!ErroAtu){
+            if(!stt.ErroAtu){
                 setTimeout(function() {
-                    TcorVarian = 'white';
-                    backgroundcirculoclick = '';
-                    backgroundcirculoclick2 = '';
-                    backgroundContIcon = '';
+                    Ccor.TVarian = 'white';
+                    BGround.circuloclick = '';
+                    BGround.circuloclick2 = '';
+                    BGround.ContIcon = '';
                     circuloclick2.style.borderColor = '';
                     circuloclick2.style.color = '';
                     ControleFront();
                 },2000);
             }
-            Atualizando = 0;
+            stt.Atualizando = 0;
             MostarcontValores(1);
-            DentrodcCC = 0;
+            stt.DentrodcCC = 0;
         }
         if(a === 3){//Chamado do circuloclick cont
-            Mostarcirculoclick2(DentrodcCC);
-            if(!AbaConfig){
-                MostarcontValores(DentrodcCC);
+            Mostarcirculoclick2(stt.DentrodcCC);
+            if(!stt.AbaConfig){
+                MostarcontValores(stt.DentrodcCC);
             }
         }
 
         if(a === 4){//Chamado do circuloclick
-            textCC1.style.display = DentrodCC1 ? 'flex' : 'none';
-            textCC1.style.opacity = DentrodCC1 ? '1' : '0';
-            circuloclick.style.borderStyle = DentrodCC1 ? 'solid' : '';
-            backgroundcirculoclick = DentrodCC1 ? ErroAtu || Atualizando ? 'white' : '' : '';
+            textCC1.style.display = stt.DentrodCC1 ? 'flex' : 'none';
+            textCC1.style.opacity = stt.DentrodCC1 ? '1' : '0';
+            circuloclick.style.borderStyle = stt.DentrodCC1 ? 'solid' : '';
+            BGround.circuloclick = stt.DentrodCC1 ? stt.ErroAtu || stt.Atualizando ? 'white' : '' : '';
         }
         if (a === 5) {//Chamado do circuloclick2
-            circuloclick2.style.width = DentrodCC2 ? 'auto' : AbaConfig ? '24px' : '17px';
-            circuloclick2.style.height = DentrodCC2 || AbaConfig ? '24px' : '17px';
-            circuloclick2.style.borderRadius = DentrodCC2 || AbaConfig ? '25px' : '';
-            circuloclick2.style.transform = DentrodCC2 || AbaConfig ? '' : 'rotate(45deg)';
-            textCC2.style.transform = DentrodCC2 || AbaConfig ? '' : 'rotate(-45deg)';
-            textCC2.innerHTML = DentrodCC2 ? 'Config' : 'C';
+            circuloclick2.style.width = stt.DentrodCC2 ? 'auto' : stt.AbaConfig ? '24px' : '17px';
+            circuloclick2.style.height = stt.DentrodCC2 || stt.AbaConfig ? '24px' : '17px';
+            circuloclick2.style.borderRadius = stt.DentrodCC2 || stt.AbaConfig ? '25px' : '';
+            circuloclick2.style.transform = stt.DentrodCC2 || stt.AbaConfig ? '' : 'rotate(45deg)';
+            textCC2.style.transform = stt.DentrodCC2 || stt.AbaConfig ? '' : 'rotate(-45deg)';
+            textCC2.innerHTML = stt.DentrodCC2 ? 'Config' : 'C';
 
         }
         function Mostarcirculoclick2(x){
-            x = AbaConfig ? 1: x;
+            x = stt.AbaConfig ? 1: x;
             circuloclick2.style.visibility = x ? 'visible' : 'hidden';
             circuloclick2.style.opacity = x ? '1' : '0';
             circuloclick2.style.marginRight = x ? '10px':'30px';
@@ -1020,27 +1028,27 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         }
 
         if (a === 6) {//Mostar contValores
-            MostarcontValores(DentrodcCC);
+            MostarcontValores(stt.DentrodcCC);
         }
         if (a === 7) {//Mostar contValores
             MostarcontValores(0);
         }
         if (a === 8) {
-            BotPa.style.visibility = (DentrodMC && CVAtivo) || AbaPausas ? 'visible' : 'hidden';
-            BotPa.style.opacity = (DentrodMC && CVAtivo) || AbaPausas ? '1' : '0';
+            BotPa.style.visibility = (stt.DentrodMC && stt.CVAtivo) || stt.AbaPausas ? 'visible' : 'hidden';
+            BotPa.style.opacity = (stt.DentrodMC && stt.CVAtivo) || stt.AbaPausas ? '1' : '0';
 
-            BotPa.style.marginTop = (DentrodMC && CVAtivo) || AbaPausas ? '5px' : '-20px';
-            BotPa.style.marginBottom = (DentrodMC && CVAtivo) || AbaPausas ? '-5px' : !AbaPausas && !AbaConfig ? '' : '20px';
+            BotPa.style.marginTop = (stt.DentrodMC && stt.CVAtivo) || stt.AbaPausas ? '5px' : '-20px';
+            BotPa.style.marginBottom = (stt.DentrodMC && stt.CVAtivo) || stt.AbaPausas ? '-5px' : !stt.AbaPausas && !stt.AbaConfig ? '' : '20px';
 
         }
 
         function MostarcontValores(x){
-            x = Atualizando ? 0 : CConfig.FaixaFixa ? 1 : x;
+            x = stt.Atualizando ? 0 : CConfig.FaixaFixa ? 1 : x;
             contValores.style.visibility = x ? 'visible' : 'hidden';
             contValores.style.opacity = x ? '1' : '0';
             contValores.style.marginTop = x ? '' : '-30px';
             contValores.style.marginBottom = x ? '' : '30px';
-            CVAtivo = x;
+            stt.CVAtivo = x;
         }
 
         cOffline.style.background = Ccor.Offline;
@@ -1065,24 +1073,24 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             }
         }
 
-        TodasCores(TcorVarian);
-        contValores.style.background = ErroAtu ? Ccor.Erro : backgroundContValores;
-        ContIcon.style.background = backgroundContIcon;
-        circuloclick2.style.background = backgroundcirculoclick2;
-        circuloclick.style.background = backgroundcirculoclick;
+        TodasCores(Ccor.TVarian);
+        contValores.style.background = stt.ErroAtu ? Ccor.Erro : BGround.ContValores;
+        ContIcon.style.background = BGround.ContIcon;
+        circuloclick2.style.background = BGround.circuloclick2;
+        circuloclick.style.background = BGround.circuloclick;
 
         document.querySelectorAll('.separadorC').forEach(element => {
-            element.style.width = ErroAtu ? '30px' : '1px';
-            element.style.height = ErroAtu ? '12px' : '25px';
-            element.style.margin = ErroAtu ? '0px -4px' : '';
+            element.style.width = stt.ErroAtu ? '30px' : '1px';
+            element.style.height = stt.ErroAtu ? '12px' : '25px';
+            element.style.margin = stt.ErroAtu ? '0px -4px' : '';
             element.style.background = CConfig.MostraOff ? Ccor.Offline : '#ffffff';
-            element.style.borderRadius = ErroAtu ? '5px':'';
-            element.style.fontSize = ErroAtu ? '8px':'';
-            element.style.transform = ErroAtu ? 'rotate(-90deg)':'';
-            element.style.display = ErroAtu ? 'flex':'';
-            element.style.justifyContent = ErroAtu ? 'center':'';
+            element.style.borderRadius = stt.ErroAtu ? '5px':'';
+            element.style.fontSize = stt.ErroAtu ? '8px':'';
+            element.style.transform = stt.ErroAtu ? 'rotate(-90deg)':'';
+            element.style.display = stt.ErroAtu ? 'flex':'';
+            element.style.justifyContent = stt.ErroAtu ? 'center':'';
             element.style.color = CConfig.MostraOff ? 'white' : Ccor.Erro ;
-            element.innerHTML = ErroAtu ? 'Erro':'';
+            element.innerHTML = stt.ErroAtu ? 'Erro':'';
         });
     }
 
@@ -1225,8 +1233,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             `;
             return DoisP;
         }
-
-        const [horasS, minutosS, segundosS] = TempoEscaladoHoras.split(':').map(Number);
+        const [horasS, minutosS, segundosS] = CConfig.TempoEscaladoHoras.split(':').map(Number);
         const horaInputTE = entradatempo('HoraEsc',1,String(horasS).padStart(2, '0'));
         const minuInputTE = entradatempo('MinuEsc',0,String(minutosS).padStart(2, '0'));
 
@@ -1246,7 +1253,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
 
             // Salva na variável
-            TempoEscaladoHoras = horarioFormatado;
+            CConfig.TempoEscaladoHoras = horarioFormatado;
 
             horaInputTE.value = '';
             minuInputTE.value = '';
@@ -1293,15 +1300,15 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
             horaInputlogueManual.placeholder = horaFormatada;
             minuInputlogueManual.placeholder = minutoFormatado;
-            ValorLogueManual = horarioFormatado;
+            CConfig.ValorLogueManual = horarioFormatado;
             SalvarLogueManual(1);
         }
 
         const logueManualC = criarBotaoSlide2(13, () => {
-            LogueManual = !LogueManual;
-            if(LogueManual){
+            CConfig.LogueManual = !CConfig.LogueManual;
+            if(CConfig.LogueManual){
                 horaInputCailogueManual.prepend(InputCailogueManual);
-                const [horasIm, minutosIm, segundosIm] = converterParaTempo(QualLogouSegundos).split(':').map(Number);
+                const [horasIm, minutosIm, segundosIm] = converterParaTempo(Segun.QualLogou).split(':').map(Number);
                 horaInputlogueManual.value = String(horasIm).padStart(2, '0');
                 minuInputlogueManual.value = String(minutosIm).padStart(2, '0');
             }else{
@@ -1555,8 +1562,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             const botao = criarBotSalv(a,'Salvar');
 
             botao.addEventListener('click', function () {
-                corVarian = inputCor.value;
-                copiarTexto(corVarian);
+                Ccor.Varian = inputCor.value;
+                copiarTexto(Ccor.Varian);
                 AtualizarConf(a);
                 ControleFront();
                 SalvandoVari(1);
@@ -1621,29 +1628,29 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             AtualizarTMA();
         }
         if(zz === 7){
-            Ccor.Principal = corVarian;
-            backgroundContValores = Ccor.Principal;
+            Ccor.Principal = Ccor.Varian;
+            BGround.ContValores = Ccor.Principal;
             BotPa.style.backgroundColor = Ccor.Principal;
             document.querySelectorAll('.slider-button27.active').forEach(element => {
                 element.style.backgroundColor = Ccor.Principal;
             });
         }
         if(zz === 8){
-            Ccor.Atualizando = corVarian;
+            Ccor.Atualizando = Ccor.Varian;
         }
         if(zz === 9){
-            Ccor.MetaTMA = corVarian;
+            Ccor.MetaTMA = Ccor.Varian;
             AtualizarTMA();
         }
         if(zz === 10){
-            Ccor.Erro = corVarian;
+            Ccor.Erro = Ccor.Varian;
         }
         if(zz === 11){
-            Ccor.Offline = corVarian;
+            Ccor.Offline = Ccor.Varian;
             ControleFront();
         }
         if(zz === 12){
-            Ccor.Config = corVarian;
+            Ccor.Config = Ccor.Varian;
             CaixaConfig.style.backgroundColor = Ccor.Config;
             CaiDPa.style.backgroundColor = Ccor.Config;
         }
@@ -1651,11 +1658,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             CConfig.MostraValorOff = CConfig.MostraOff ? !CConfig.MostraValorOff : CConfig.MostraValorOff;
         }
         if(zz === 15){
-            AbaConfig = !AbaConfig;
+            stt.AbaConfig = !stt.AbaConfig;
 
-            if(AbaConfig){
-                if(AbaPausas){
-                    AbaPausas = 0;
+            if(stt.AbaConfig){
+                if(stt.AbaPausas){
+                    stt.AbaPausas = 0;
                     CaiDPa.remove();
                 }
                 minhaCaixa.appendChild(criarC());
@@ -1672,10 +1679,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             }
         }
         if(zz === 17){
-            AbaPausas = !AbaPausas;
-            if(AbaPausas){
-                if(AbaConfig) {
-                    AbaConfig = 0;
+            stt.AbaPausas = !stt.AbaPausas;
+            if(stt.AbaPausas){
+                if(stt.AbaConfig) {
+                    stt.AbaConfig = 0;
                     CaixaConfig.remove();
                 }
                 minhaCaixa.appendChild(ADDCaiPausas());
@@ -1708,7 +1715,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         atualizarVisual('Bot14', CConfig.MostraValorOff);
 
-        if(AbaConfig){
+        if(stt.AbaConfig){
             atualizarVisual('Bot1', !CConfig.ModoSalvo);
             atualizarVisual('Bot2', CConfig.ModoSalvo);
             atualizarVisual('Bot6', CConfig.MetaTMA);
@@ -1716,7 +1723,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             atualizarVisual('Bot4', CConfig.AutoAtivo);
             var vari1 = CConfig.Vigia || CConfig.AutoAtivo ? 0 : 1;
             atualizarVisual('Bot5', vari1);
-            atualizarVisual('Bot13', LogueManual);
+            atualizarVisual('Bot13', CConfig.LogueManual);
             atualizarVisual('Bot16', CConfig.IgnorarOff);
             atualizarVisual('Bot18', CConfig.FaixaFixa);
             atualizarVisual('Bot19', CConfig.IgnorarTMA);
@@ -1911,18 +1918,18 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             verificacaoStatus(tipo);
         }
 
-        if (StatusNOV !== StatusANT) {
-            StatusANT = StatusNOV;
+        if (StatusNOV !== stt.StatusANT) {
+            stt.StatusANT = StatusNOV;
             atualizarID1();
         }
 
         function verificacaoStatus(tipo) {
             if (StatusNOV.includes(tipo)) {
-                if (!StatusANT.includes(tipo)) {
-                    IPausaS = converterParaSegundos(mostrarHora());
-                    Ndpausas = Ndpausas + 1;
+                if (!stt.StatusANT.includes(tipo)) {
+                    stt.IPausaS = converterParaSegundos(mostrarHora());
+                    stt.Ndpausas = stt.Ndpausas + 1;
 
-                    var a = tipo.includes("Dispon") ? 2 : Ndpausas;
+                    var a = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
                     var b = tipo.includes("PRE") ? 'Logout' : tipo;
                     var c = '00:00:00';
                     var e = 0;
@@ -1934,13 +1941,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
                         e = 1;
                     }
                     var d = converterParaSegundos(c);
-                    var f = e ? converterParaTempo(IPausaS + d) : 0;
+                    var f = e ? converterParaTempo(stt.IPausaS + d) : 0;
                     if(e){
                         console.log(`NiceMonk o D Esta : ${d}`);
                     }
                     var g = e ? '<-Volta' : 0;
-                    if (Ndpausas >= 100) {
-                        Ndpausas = 2;
+                    if (stt.Ndpausas >= 100) {
+                        stt.Ndpausas = 2;
                     }
 
                     if(a === 2){
@@ -1953,13 +1960,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
                     if(CaiDPa) AtuaPausas();
                 }
-            } else if (StatusANT.includes(tipo)) {
-                FPausaS = converterParaSegundos(mostrarHora());
-                DPausaS = FPausaS - IPausaS;
-                var DPausaS1 = converterParaTempo(DPausaS);
-                var y = tipo.includes("Dispon") ? 2 : Ndpausas;
+            } else if (stt.StatusANT.includes(tipo)) {
+                stt.FPausaS = converterParaSegundos(mostrarHora());
+                stt.DPausaS = stt.FPausaS - stt.IPausaS;
+                var DPausaS1 = converterParaTempo(stt.DPausaS);
+                var y = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
 
-                if(y === 2) console.log(`NiceMonk Valor de Tempo em Disponivel : Inicial ${IPausaS} / Fim ${FPausaS} / Duração ${DPausaS}`);
+                if(y === 2) console.log(`NiceMonk Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`);
 
                 atualizarCampos(y, "Fim", mostrarHora());
                 atualizarCampos(y, "Duracao", DPausaS1);
@@ -2077,7 +2084,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         function Controle(x){
             caixa.style.width = x ? 'auto' : '20px';
             //Esperar antes de mudar o innerHTML
-            caixa.innerHTML = x ? AbaPausas ? 'Fechar' : 'Pausas' : AbaPausas ? 'F' : 'P';
+            caixa.innerHTML = x ? stt.AbaPausas ? 'Fechar' : 'Pausas' : stt.AbaPausas ? 'F' : 'P';
         }
         return caixa;
     }
@@ -2248,8 +2255,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         ontem.setDate(hoje.getDate() - 1);
         const ontemFormatado = ontem.toISOString().split('T')[0];
 
-        const valorEdata = {ValorLogueManual: ValorLogueManual,
-                            LogueManual: LogueManual,
+        const valorEdata = {ValorLogueManual: CConfig.ValorLogueManual,
+                            LogueManual: CConfig.LogueManual,
                             data : hojeFormatado
                            };
 
@@ -2265,8 +2272,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             AddOuAtuIindexdb(ChavelogueManu, valorEdata);
             //console.log("NiceMonk Informação salva para a data de hoje  LogueManual: ",valorEdata);
         } else {
-            ValorLogueManual = dadosLogueManu.ValorLogueManual;
-            LogueManual = dadosLogueManu.LogueManual;
+            CConfig.ValorLogueManual = dadosLogueManu.ValorLogueManual;
+            CConfig.LogueManual = dadosLogueManu.LogueManual;
             //console.log("NiceMonk x False");
         }
     }
@@ -2279,7 +2286,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         ontem.setDate(hoje.getDate() - 1);
         const ontemFormatado = ontem.toISOString().split('T')[0];
 
-        var convert = converterParaTempo(LogouSegundos);
+        var convert = converterParaTempo(Segun.Logou);
         const valorEdata = {valor: convert,
                             data: hojeFormatado}; // Usa a data de hoje e o valor passado
 
@@ -2296,9 +2303,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
             dadosPrimLogue = valorEdata;
             console.log("NiceMonk Informação salva para a data de hoje primeiroLogue: ",valorEdata);
-            LogouSegundosSalvo = converterParaSegundos(valorEdata.valor);
+            Segun.LogouSalvo = converterParaSegundos(valorEdata.valor);
         } else {
-            LogouSegundosSalvo = converterParaSegundos(dadosPrimLogue.valor);
+            Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.valor);
             console.log("NiceMonk Informação salva em primeiroLogue: ",dadosPrimLogue);
         }
     }
@@ -2332,7 +2339,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             break;
 
         case 3:
-            if (typeof dadosSalvosConfi !== 'undefined' && 'TempoEscaladoHoras' in dadosSalvosConfi) {
+            if (typeof dadosSalvosConfi !== 'undefined') {
                 ondemudar(dadosSalvosConfi);
                 console.log(`NiceMonk Dados em ${ChaveConfig}:`, dadosSalvosConfi);
             } else {
@@ -2369,9 +2376,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             dadosdePausas = [...valorEdata]; // reinicia com os dados padrão
             AddOuAtuIindexdb(ChavePausas, dadosdePausas);
         } else {
-            Ndpausas = itemComData.Ndpausas;
-            StatusANT = itemComData.StatusANT;
-            IPausaS = itemComData.IPausaS;
+            stt.Ndpausas = itemComData.Ndpausas;
+            stt.StatusANT = itemComData.StatusANT;
+            stt.IPausaS = itemComData.IPausaS;
         }
     }
 
@@ -2433,9 +2440,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         }
         const index = dadosdePausas.findIndex(item => item.id === 1);
         if (index !== -1) {
-            dadosdePausas[index].Ndpausas = Ndpausas;
-            dadosdePausas[index].StatusANT = StatusANT;
-            dadosdePausas[index].IPausaS = IPausaS;
+            dadosdePausas[index].Ndpausas = stt.Ndpausas;
+            dadosdePausas[index].StatusANT = stt.StatusANT;
+            dadosdePausas[index].IPausaS = stt.IPausaS;
         }
         AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     }
