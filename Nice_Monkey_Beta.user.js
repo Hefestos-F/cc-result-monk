@@ -2019,11 +2019,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       return;
     }
 
-    let StatusNOV;
-
     const text = alvo?.textContent || "";
     const primeiraPalavra = text.trim().split(" ")[0];
-    StatusNOV = primeiraPalavra;
+    let StatusNOV = primeiraPalavra;
 
     const tiposStatus = [
       "Lanche",
@@ -2050,7 +2048,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
 
     function VeriEstDPausa(tipo) {
-      if (stt.StatusNOV.includes(tipo)) {
+      if (StatusNOV.includes(tipo)) {
         let a = '00:00:00';
         let b = 0;
         if (tipo.includes("Descanso")) {
