@@ -2035,14 +2035,38 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       "PRE",
       "Dispon",
     ];
+    const StatusLim = ["Lanche", "Descanso"];
 
     for (const tipo of tiposStatus) {
       verificacaoStatus(tipo);
+    }
+    for (const tipo of StatusLim) {
+      VeriEstDPausa(tipo);
     }
 
     if (StatusNOV !== stt.StatusANT) {
       stt.StatusANT = StatusNOV;
       atualizarID1();
+    }
+
+    function VeriEstDPausa(tipo) {
+      if (stt.StatusNOV.includes(tipo)) {
+        let a = '00:00:00';
+        let b = 0;
+        if (tipo.includes("Descanso")) {
+          a = "00:10:00";
+          b = 1;
+        } else if (tipo.includes("Lanche")) {
+          a = "00:20:00";
+          b = 1;
+        }
+        let c = converterParaSegundos(a);
+
+        if (Segun.ContAtual > c && c > 0) {
+            let d = c - Segun.ContAtual;
+            console.log(`Estouro de Pausa ${tipo}:`,d);
+        }
+      }
     }
 
     function verificacaoStatus(tipo) {
@@ -2051,10 +2075,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           stt.IPausaS = converterParaSegundos(mostrarHora());
           stt.Ndpausas = stt.Ndpausas + 1;
 
-          var a = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
-          var b = tipo.includes("PRE") ? "Logout" : tipo;
-          var c = "00:00:00";
-          var e = 0;
+          let a = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
+          let b = tipo.includes("PRE") ? "Logout" : tipo;
+          let c = "00:00:00";
+          let e = 0;
           if (tipo.includes("Descanso")) {
             c = "00:10:00";
             e = 1;
@@ -2062,12 +2086,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             c = "00:20:00";
             e = 1;
           }
-          var d = converterParaSegundos(c);
-          var f = e ? converterParaTempo(stt.IPausaS + d) : 0;
+          let d = converterParaSegundos(c);
+          let f = e ? converterParaTempo(stt.IPausaS + d) : 0;
           if (e) {
             console.log(`NiceMonk o D Esta : ${d}`);
           }
-          var g = e ? "<-Volta" : 0;
+          let g = e ? "<-Volta" : 0;
           if (stt.Ndpausas >= 100) {
             stt.Ndpausas = 2;
           }
@@ -2744,6 +2768,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     return caixa;
   }
+
+  function VeriEstDPausa() {}
 
   // Your code here...
 })();
