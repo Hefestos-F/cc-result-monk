@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.14
+// @version      3.3.15
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -29,7 +29,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         Vigia : 1,
         MetaTMA : 1,
         ValorAuto : 10,
-        AutoAtivo : 1,
+        AutoAtivo : 0,
         TolerOff : 40,
         MostraOff : 0,
         IgnorarOff : 0,
@@ -56,7 +56,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         IgnorarTMA : 0,
         IgnorarErroNice : 0
     }
-    
+
     const Ccor = {
         Offline : '#c97123',
         Atualizando : '#c97123',
@@ -95,36 +95,38 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
 
     const stt = {
-    vAtendidas: '',
-    vAtendidasA: 0,
-    ErroAtu: 0,
-    ErroAten: '',
-    ErroTMA: '',
-    Atualizando: 0,
-    LoopAA: 0, // Atualizar auto Ativo
-    AbaConfig: 0,
-    AbaPausas: 0,
-    NBT: 0,
-    DentrodCC2: '',
-    DentrodCC1: '',
-    DentrodcCC: '',
-    DentrodMC: '',
-    ErroDTI: '',
-    offForaDToler: 0,
-    ErroVerif: 0,
-    CVAtivo: '',
-    StatusANT: '',
-    Ndpausas: 2,
-    IPausaS: '',
-    FPausaS: '',
-    DPausaS: ''
+        vAtendidas: '',
+        vAtendidasA: 0,
+        ErroAtu: 0,
+        ErroAten: '',
+        ErroTMA: '',
+        Atualizando: 0,
+        LoopAA: 0, // Atualizar auto Ativo
+        AbaConfig: 0,
+        AbaPausas: 0,
+        NBT: 0,
+        DentrodCC2: '',
+        DentrodCC1: '',
+        DentrodcCC: '',
+        DentrodMC: '',
+        ErroDTI: '',
+        offForaDToler: 0,
+        ErroVerif: 0,
+        CVAtivo: '',
+        StatusANT: '',
+        Ndpausas: 2,
+        IPausaS: '',
+        FPausaS: '',
+        DPausaS: '',
+        Busc5s = 0,
+        Busc5sTem = 5
     }
 
     const BGround = {
-    ContValores: Ccor.Principal,
-    ContIcon: '',
-    circuloclick: '',
-    circuloclick2: ''
+        ContValores: Ccor.Principal,
+        ContIcon: '',
+        circuloclick: '',
+        circuloclick2: ''
     }
 
     const ChavePausas = 'DadosDePausas';
@@ -138,9 +140,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     let dadosPrimLogue;
     let dadosPrimLogueOnt;
     let dadosLogueManu;
-
-    let Busc5s = 0;
-    let Busc5sTem = 5;
 
     const nomeBD = 'MeuBDNiceMonk';
     const StoreBD = 'NiceMonk';
@@ -727,7 +726,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         const SepCVal2 = document.getElementById('SepCVal2');
         const contValores = document.getElementById('contValores');
 
-        if (CConfig.IgnorarTMA && !Busc5s) {
+        if (CConfig.IgnorarTMA && !stt.Busc5s) {
             if (cTMA) {
                 cTMA.remove();
             }
@@ -756,8 +755,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             var TMA = stt.vAtendidas === '0' ? 0 : Segun.Trabalhando / stt.vAtendidas;
             TMA = Math.floor(TMA);
             var vTMA = document.getElementById('vTMA');
-            tTMA.innerHTML = Busc5s ? 'Atualizar:' : 'TMA:';
-            vTMA.innerHTML = Busc5s ? Busc5sTem : stt.ErroAtu || x ? 'Atualize !!' : TMA; // Arredonda para o valor inteiro mais próximo
+            tTMA.innerHTML = stt.Busc5s ? 'Atualizar:' : 'TMA:';
+            vTMA.innerHTML = stt.Busc5s ? stt.Busc5sTem : stt.ErroAtu || x ? 'Atualize !!' : TMA; // Arredonda para o valor inteiro mais próximo
             cTMA.style.background = TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA ? Ccor.MetaTMA : '';
             cTMA.style.borderRadius = '5px';
             cTMA.style.padding = ' 0px 3px';
@@ -841,7 +840,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             stt.ErroVerif = 0;
         }else if (CConfig.Vigia && !stt.Atualizando && !stt.ErroVerif){
             stt.ErroVerif = 1;
-            Busc5s = 1;
+            stt.Busc5s = 1;
             ControleFront(7);
             setTimeout(function() {
                 iniciarBusca();
@@ -918,12 +917,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         tFalta.innerHTML = HE ? 'HE:': TempoCumprido ? 'Tempo' : 'Falta:';
         vFalta.innerHTML = HE ? FouHFormatado : TempoCumprido ? 'Cumprido' : FouHFormatado;
 
-        if (Busc5s) {
+        if (stt.Busc5s) {
             AtualizarTMA(0);
-            Busc5sTem = Busc5sTem - 1;
-            if(Busc5sTem < 1) Busc5s = 0;
+            stt.Busc5sTem = stt.Busc5sTem - 1;
+            if(stt.Busc5sTem < 1) stt.Busc5s = 0;
         }else{
-            Busc5sTem = 5;
+            stt.Busc5sTem = 5;
         }
 
         var OfflineSegundosFormatado = converterParaTempo(Segun.Offline);
@@ -1593,7 +1592,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         return Botao;
     }
-    
+
     function AtualizarConf(zz){
         var CaixaConfig = document.getElementById('CaixaConfig');
         var InputMin = document.getElementById('InputMin');
@@ -2310,50 +2309,49 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         }
     }
 
- function SalvandoVari(a) {
+    function SalvandoVari(a) {
 
-    let AsVari = {
-        CConfig: { ...CConfig },
-        Ccor: { ...Ccor }
-    };
+        let AsVari = {
+            CConfig: { ...CConfig },
+            Ccor: { ...Ccor }
+        };
 
-    function ondemudar(x) {
-    Object.assign(CConfig, x.CConfig);
-    Object.assign(Ccor, x.Ccor);
-}
+        function ondemudar(x) {
+            Object.assign(CConfig, x.CConfig);
+            Object.assign(Ccor, x.Ccor);
+        }
 
-
-    switch (a) {
-        case 1:
-            AddOuAtuIindexdb(ChaveConfig, AsVari);
-            ondemudar(AsVari);
-            break;
-
-        case 2:
-            if (typeof PCConfig !== 'undefined' && typeof PCcor !== 'undefined') {
-                AsVari.CConfig = { ...PCConfig };
-                AsVari.Ccor = { ...PCcor };
+        switch (a) {
+            case 1:
                 AddOuAtuIindexdb(ChaveConfig, AsVari);
                 ondemudar(AsVari);
-            } else {
-                console.warn('PCConfig ou PCcor não estão definidos.');
-            }
-            break;
+                break;
 
-        case 3:
-            if (typeof dadosSalvosConfi !== 'undefined') {
-                ondemudar(dadosSalvosConfi);
-                console.log(`NiceMonk Dados em ${ChaveConfig}:`, dadosSalvosConfi);
-            } else {
-                console.log(`NiceMonk Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão:`, dadosSalvosConfi);
-                SalvandoVari(2);
-            }
-            break;
+            case 2:
+                if (typeof PCConfig !== 'undefined' && typeof PCcor !== 'undefined') {
+                    AsVari.CConfig = { ...PCConfig };
+                    AsVari.Ccor = { ...PCcor };
+                    AddOuAtuIindexdb(ChaveConfig, AsVari);
+                    ondemudar(AsVari);
+                } else {
+                    console.warn('PCConfig ou PCcor não estão definidos.');
+                }
+                break;
 
-        default:
-            console.warn('Parâmetro inválido para SalvandoVari:', a);
+            case 3:
+                if (typeof dadosSalvosConfi !== 'undefined') {
+                    ondemudar(dadosSalvosConfi);
+                    console.log(`NiceMonk Dados em ${ChaveConfig}:`, dadosSalvosConfi);
+                } else {
+                    console.log(`NiceMonk Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão:`, dadosSalvosConfi);
+                    SalvandoVari(2);
+                }
+                break;
+
+            default:
+                console.warn('Parâmetro inválido para SalvandoVari:', a);
+        }
     }
-}
 
     function salvarDPausas() {
 
@@ -2592,7 +2590,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         return caixa;
     }
-
 
     // Your code here...
 })();
