@@ -24,7 +24,8 @@ const Ccor = {
     Config: '#96a8bb'
 };
 
-function SalvandoVari(a) {
+ function SalvandoVari(a) {
+
     let AsVari = {
         CConfig: { ...CConfig },
         Ccor: { ...Ccor }
@@ -53,7 +54,7 @@ function SalvandoVari(a) {
             break;
 
         case 3:
-            if (typeof dadosSalvosConfi !== 'undefined' && 'TempoEscaladoHoras' in dadosSalvosConfi) {
+            if (typeof dadosSalvosConfi !== 'undefined') {
                 ondemudar(dadosSalvosConfi);
                 console.log(`NiceMonk Dados em ${ChaveConfig}:`, dadosSalvosConfi);
             } else {

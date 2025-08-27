@@ -2310,7 +2310,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         }
     }
 
-    function SalvandoVari(a) {
+ function SalvandoVari(a) {
+
     let AsVari = {
         CConfig: { ...CConfig },
         Ccor: { ...Ccor }
