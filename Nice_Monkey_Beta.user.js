@@ -72,7 +72,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
 
     var LogueManual = 0;
-
     var tDisponivel = 0;
     var tTrabalhando = 0;
     var tIndisponivel = 0;
