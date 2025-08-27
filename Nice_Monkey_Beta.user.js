@@ -779,10 +779,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         ControleFront(1);
 
-        ErroDTI = !await AtualizarDTI();
+        stt.ErroDTI = !await AtualizarDTI();
 
-        for (let a = 0;ErroDTI && a < 3; a++) {
-            ErroDTI = !await AtualizarDTI();
+        for (let a = 0;stt.ErroDTI && a < 3; a++) {
+            stt.ErroDTI = !await AtualizarDTI();
         }
 
         await VerificacoesN1();
@@ -797,7 +797,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
 
-        if(!ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA){
+        if(!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA){
             await TentAtend();
             for (let c = 0;stt.ErroTMA && c < 3; c++) {
                 await TentAtend();
