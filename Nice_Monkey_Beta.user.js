@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.15
+// @version      3.3.16
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -118,8 +118,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         IPausaS: '',
         FPausaS: '',
         DPausaS: '',
-        Busc5s = 0,
-        Busc5sTem = 5
+        Busc5s : 0,
+        Busc5sTem : 5
     }
 
     const BGround = {
