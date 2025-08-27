@@ -2304,41 +2304,47 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
 
     function SalvandoVari(a) {
+    let AsVari = {
+        CConfig: { ...CConfig },
+        Ccor: { ...Ccor }
+    };
 
-        const AsVari = {CConfig : CConfig,
-                        Ccor : Ccor,
-                       };
+    function ondemudar(x) {
+        CConfig = { ...x.CConfig };
+        Ccor = { ...x.Ccor };
+    }
 
-
-        if (a === 1) {
+    switch (a) {
+        case 1:
             AddOuAtuIindexdb(ChaveConfig, AsVari);
             ondemudar(AsVari);
-        }
-        if (a === 2) {
-            AsVari.CConfig = PCConfig;
-            AsVari.Ccor = PCcor;
-            AddOuAtuIindexdb(ChaveConfig, AsVari);
-            ondemudar(AsVari);
-        }
-        if (a === 3) {
-            if (dadosSalvosConfi && 'TempoEscaladoHoras' in dadosSalvosConfi) {
-                ondemudar(dadosSalvosConfi);
-                console.log(`NiceMonk Dados em  ${ChaveConfig} : `, dadosSalvosConfi);
-
+            break;
+            
+        case 2:
+            if (typeof PCConfig !== 'undefined' && typeof PCcor !== 'undefined') {
+                AsVari.CConfig = { ...PCConfig };
+                AsVari.Ccor = { ...PCcor };
+                AddOuAtuIindexdb(ChaveConfig, AsVari);
+                ondemudar(AsVari);
             } else {
-                console.log(`NiceMonk Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão : `, dadosSalvosConfi);
+                console.warn('PCConfig ou PCcor não estão definidos.');
+            }
+            break;
+
+        case 3:
+            if (typeof dadosSalvosConfi !== 'undefined' && 'TempoEscaladoHoras' in dadosSalvosConfi) {
+                ondemudar(dadosSalvosConfi);
+                console.log(`NiceMonk Dados em ${ChaveConfig}:`, dadosSalvosConfi);
+            } else {
+                console.log(`NiceMonk Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão:`, dadosSalvosConfi);
                 SalvandoVari(2);
             }
-        }
+            break;
 
-        function ondemudar(x) {
-            ({
-                CConfig,
-                Ccor
-            } = x);
-        }
-
+        default:
+            console.warn('Parâmetro inválido para SalvandoVari:', a);
     }
+}
 
     function salvarDPausas() {
 
