@@ -123,7 +123,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     FPausaS: "",
     DPausaS: "",
     Busc5s: 0,
-    Busc5sTem: 5
+    Busc5sTem: 5,
+    Estouro:0
   };
 
   const BGround = {
@@ -276,11 +277,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
   function AdicionarCaixaAtualizada(LDCaixa) {
     function criarLinhaFixa(titulo) {
-      var caixa = document.createElement("div");
+      const caixa = document.createElement("div");
       caixa.id = `c${titulo}`;
       caixa.style.cssText = `
             transition: all 0.5s ease;
-                background: ${Ccor.Offline};
             border-radius: 6px;
             opacity: 1;
             padding: 0px 3px;
@@ -309,7 +309,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     // Função para criar a classe dinamicamente
     function criarClasse() {
-      var style = document.createElement("style");
+      const style = document.createElement("style");
       style.type = "text/css";
       style.innerHTML = `
             .info-caixa {
@@ -338,15 +338,18 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     criarClasse();
 
     // Cria as caixas com as informações
-    var logou = criarCaixaDCv("c", "Logou");
-    var logado = criarCaixaDCv("c", "Logado");
-    var tma = criarCaixaDCv("c", "TMA");
-    var falta = criarCaixaDCv("c", "Falta");
-    var saida = criarCaixaDCv("c", "Saida");
-    var Offline = criarLinhaFixa("Offline");
+    const logou = criarCaixaDCv("c", "Logou");
+    const logado = criarCaixaDCv("c", "Logado");
+    const tma = criarCaixaDCv("c", "TMA");
+    const falta = criarCaixaDCv("c", "Falta");
+    const saida = criarCaixaDCv("c", "Saida");
+    const Offline = criarLinhaFixa("Offline");
+    Offline.style.background = Ccor.Offline;
+    const Estouro = criarLinhaFixa("Estouro");
+    Estouro.style.background = Ccor.Erro;
 
     // Cria um contêiner para agrupar as caixas
-    var container = document.createElement("div");
+    const container = document.createElement("div");
     container.setAttribute("id", "contValores");
     container.style.cssText = `
         display: flex;
@@ -373,7 +376,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     container.appendChild(falta);
 
     // Cria um contêiner principal para agrupar tudo
-    var minhaCaixa = document.createElement("div");
+    const minhaCaixa = document.createElement("div");
     minhaCaixa.setAttribute("id", "minhaCaixa");
     minhaCaixa.style.cssText = `
         display: flex;
@@ -388,17 +391,25 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         align-items: center;
         `;
 
-    var Alinha1 = document.createElement("div");
-    Alinha1.setAttribute("id", "Alinha1");
-    Alinha1.style.cssText = `
+        function linha(a) {
+    const x = document.createElement("div");
+    x.id = a;
+    x.style.cssText = `
         display: flex;
         justify-content: center;
         transition: opacity 0.5s ease, margin-top 0.5s ease, margin-bottom 0.5s ease;
         `;
+        return 
+  }
     // Adiciona o contêiner ao contêiner principal
 
+
+    const Alinha1 = linha('Alinha1');
+    const Alinha2 = linha('Alinha2');
     Alinha1.appendChild(Offline);
+    Alinha2.appendChild(Estouro);
     minhaCaixa.appendChild(Alinha1);
+    minhaCaixa.appendChild(Alinha2);
     minhaCaixa.appendChild(container);
     minhaCaixa.appendChild(ADDBotPa());
 
@@ -2083,13 +2094,14 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           a = "00:20:00";
           b = 1;
         }
-        if (!b) return;
-
         let c = converterParaSegundos(a);
 
-        if (Segun.ContAtual > c) {
-            let d = c - Segun.ContAtual;
+        if (Segun.ContAtual > c && b) {
+          stt.Estouro = 1;
+            let d = Segun.ContAtual - c;
             console.log(`Estouro de Pausa ${tipo}:`,d);
+        }else{
+          stt.Estouro = 0;
         }
       }
     }
