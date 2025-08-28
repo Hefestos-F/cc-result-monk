@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.17
+// @version      3.3.18
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -2060,7 +2060,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         }
         let c = converterParaSegundos(a);
 
-        if (Segun.ContAtual > c && c > 0) {
+        if (Segun.ContAtual > c) {
             let d = c - Segun.ContAtual;
             console.log(`Estouro de Pausa ${tipo}:`,d);
         }
