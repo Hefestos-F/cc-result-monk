@@ -399,10 +399,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         justify-content: center;
         transition: opacity 0.5s ease, margin-top 0.5s ease, margin-bottom 0.5s ease;
         `;
-        return x;
-  }
+        return x; 
+        }
     // Adiciona o contêiner ao contêiner principal
-
 
     const Alinha1 = linha('Alinha1');
     const Alinha2 = linha('Alinha2');
