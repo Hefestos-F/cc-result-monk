@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.23
+// @version      3.3.24
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -299,11 +299,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       if (x) {
         const botao = criarBotaoSlide(14);
         botao.style.marginRight = "6px";
+        caixa.appendChild(botao);
       }
 
-
       // Adiciona os elementos corretamente
-      caixa.appendChild(botao);
       caixa.appendChild(caixa2);
       caixa.appendChild(caixa3);
 
