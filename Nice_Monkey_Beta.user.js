@@ -1883,6 +1883,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       atualizarVisual("Bot18", CConfig.FaixaFixa);
       atualizarVisual("Bot19", CConfig.IgnorarTMA);
       atualizarVisual("Bot20", CConfig.IgnorarErroNice);
+      atualizarVisual("Bot22", CConfig.Estouro);
+      atualizarVisual("Bot23", CConfig.SomEstouro);
     }
 
     if (zz > 0 && zz !== 14) {
@@ -2103,11 +2105,17 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           const vEstouro = document.getElementById("vEstouro");
           const tEstouro = document.getElementById("tEstouro");
           tEstouro.textContent = `Estourou a ${tipo}:`;
-          vEstouro.textContent = d;
-          console.log(`Estouro de Pausa ${tipo}:`, d);
+          vEstouro.textContent = converterParaTempo(d);
+          //console.log(`Estouro de Pausa ${tipo}:`, d);
         } else {
           stt.Estouro = 0;
         }
+
+        const Alinha2 = document.getElementById("Alinha2");
+        Alinha2.style.visibility = stt.Estouro ? "visible" : "hidden";
+        Alinha2.style.opacity = stt.Estouro ? "1" : "0";
+        Alinha2.style.marginTop = stt.Estouro ? "" : "-15px";
+        Alinha2.style.marginBottom = stt.Estouro ? "" : "5px";
       }
     }
 
