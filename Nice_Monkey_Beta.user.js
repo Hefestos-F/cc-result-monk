@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.20
+// @version      3.3.21
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -399,7 +399,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         justify-content: center;
         transition: opacity 0.5s ease, margin-top 0.5s ease, margin-bottom 0.5s ease;
         `;
-        return 
+        return x;
   }
     // Adiciona o contêiner ao contêiner principal
 
