@@ -276,7 +276,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function AdicionarCaixaAtualizada(LDCaixa) {
-    function criarLinhaFixa(titulo) {
+    function criarLinhaFixa(x, titulo) {
       const caixa = document.createElement("div");
       caixa.id = `c${titulo}`;
       caixa.style.cssText = `
@@ -296,8 +296,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       caixa3.id = `v${titulo}`;
       caixa3.textContent = "...";
 
-      const botao = criarBotaoSlide(14);
-      botao.style.marginRight = "6px";
+      if (x) {
+        const botao = criarBotaoSlide(14);
+        botao.style.marginRight = "6px";
+      }
+
 
       // Adiciona os elementos corretamente
       caixa.appendChild(botao);
@@ -343,9 +346,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     const tma = criarCaixaDCv("c", "TMA");
     const falta = criarCaixaDCv("c", "Falta");
     const saida = criarCaixaDCv("c", "Saida");
-    const Offline = criarLinhaFixa("Offline");
+    const Offline = criarLinhaFixa(1, "Offline");
     Offline.style.background = Ccor.Offline;
-    const Estouro = criarLinhaFixa("Estouro");
+    const Estouro = criarLinhaFixa(0, "Estouro");
     Estouro.style.background = Ccor.Erro;
 
     // Cria um contêiner para agrupar as caixas
@@ -964,24 +967,24 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     var LogouSegundosFormatado = converterParaTempo(Segun.QualLogou);
     var vLogou = document.getElementById("vLogou");
-    vLogou.innerHTML = LogouSegundosFormatado;
+    vLogou.textContent = LogouSegundosFormatado;
 
     var vari1 = CConfig.MostraValorOff ? Segun.NewLogado : LogadoSegundos;
     var LogadoSegundosFormatado = converterParaTempo(vari1);
     var vLogado = document.getElementById("vLogado");
-    vLogado.innerHTML = LogadoSegundosFormatado;
+    vLogado.textContent = LogadoSegundosFormatado;
 
     var vari2 = varia1;
     var SaidaSegundosFormatado = converterParaTempo(vari2);
     var vSaida = document.getElementById("vSaida");
-    vSaida.innerHTML = SaidaSegundosFormatado;
+    vSaida.textContent = SaidaSegundosFormatado;
 
     var FouH = HE ? vHE : varia2;
     var FouHFormatado = converterParaTempo(FouH);
     var vFalta = document.getElementById("vFalta");
     var tFalta = document.getElementById("tFalta");
-    tFalta.innerHTML = HE ? "HE:" : TempoCumprido ? "Tempo" : "Falta:";
-    vFalta.innerHTML = HE
+    tFalta.textContent = HE ? "HE:" : TempoCumprido ? "Tempo" : "Falta:";
+    vFalta.textContent = HE
       ? FouHFormatado
       : TempoCumprido
         ? "Cumprido"
@@ -998,8 +1001,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var OfflineSegundosFormatado = converterParaTempo(Segun.Offline);
     var vOffline = document.getElementById("vOffline");
     var tOffline = document.getElementById("tOffline");
-    vOffline.innerHTML = OfflineSegundosFormatado;
-    tOffline.innerHTML = CConfig.MostraValorOff ? "Com Offline" : "Sem Offline";
+    vOffline.textContent = OfflineSegundosFormatado;
+    tOffline.textContent = CConfig.MostraValorOff ? "Com Offline" : "Sem Offline";
 
     if (!stt.Atualizando) {
       ControleFront();
@@ -2098,6 +2101,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         if (Segun.ContAtual > c && b) {
           stt.Estouro = 1;
           let d = Segun.ContAtual - c;
+          const vEstouro = document.getElementById("vEstouro");
+          const tEstouro = document.getElementById("tEstouro");
+          tEstouro.textContent = `Estourou a ${tipo}:`;
+          vEstouro.textContent = d;
           console.log(`Estouro de Pausa ${tipo}:`, d);
         } else {
           stt.Estouro = 0;
