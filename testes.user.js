@@ -1,70 +1,70 @@
-const CConfig = {
-    TempoEscaladoHoras: '06:20:00',
-    ValorMetaTMA: 725,
-    ModoSalvo: 1,
-    Vigia: 1,
-    MetaTMA: 1,
-    ValorAuto: 10,
-    AutoAtivo: 1,
-    TolerOff: 40,
-    MostraOff: 0,
-    IgnorarOff: 0,
-    MostraValorOff: 0,
-    FaixaFixa: 0,
-    IgnorarTMA: 0,
-    IgnorarErroNice: 0
-};
-
-const Ccor = {
-    Offline: '#c97123',
-    Atualizando: '#c97123',
-    Erro: '#992e2e',
-    MetaTMA: '#c97123',
-    Principal: '#4a9985',
-    Config: '#96a8bb'
-};
-
- function SalvandoVari(a) {
-
-    let AsVari = {
-        CConfig: { ...CConfig },
-        Ccor: { ...Ccor }
-    };
-
-    function ondemudar(x) {
-    Object.assign(CConfig, x.CConfig);
-    Object.assign(Ccor, x.Ccor);
-}
 
 
-    switch (a) {
-        case 1:
-            AddOuAtuIindexdb(ChaveConfig, AsVari);
-            ondemudar(AsVari);
-            break;
+let a = 880;
 
-        case 2:
-            if (typeof PCConfig !== 'undefined' && typeof PCcor !== 'undefined') {
-                AsVari.CConfig = { ...PCConfig };
-                AsVari.Ccor = { ...PCcor };
-                AddOuAtuIindexdb(ChaveConfig, AsVari);
-                ondemudar(AsVari);
-            } else {
-                console.warn('PCConfig ou PCcor não estão definidos.');
-            }
-            break;
+function tocarBeep(a) {
+      const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+      const oscilador = contextoAudio.createOscillator();
+      const ganho = contextoAudio.createGain();
 
-        case 3:
-            if (typeof dadosSalvosConfi !== 'undefined') {
-                ondemudar(dadosSalvosConfi);
-                console.log(`NiceMonk Dados em ${ChaveConfig}:`, dadosSalvosConfi);
-            } else {
-                console.log(`NiceMonk Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão:`, dadosSalvosConfi);
-                SalvandoVari(2);
-            }
-            break;
+      
+      oscilador.type = 'sine'; // Tipo de onda: sine, square, triangle, sawtooth
+      oscilador.frequency.setValueAtTime(a, contextoAudio.currentTime); // Frequência em Hz (440Hz = nota A)
+      console.log('Frequencia :',a);
+      oscilador.connect(ganho);
+      ganho.connect(contextoAudio.destination);
 
-        default:
-            console.warn('Parâmetro inválido para SalvandoVari:', a);
+      oscilador.start();
+      oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
     }
-}
+    tocarBeep(700);
+
+
+
+    
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function beep(frequency, duration, volume = 100) {
+      return new Promise((resolve) => {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        gainNode.gain.value = volume / 100;
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + duration / 1000);
+
+        oscillator.onended = resolve;
+      });
+    }
+
+    async function tocarDingDong() {
+      await beep(880, 300); // Ding (nota aguda)
+      await beep(660, 300); // Dong (nota grave)
+    }
+
+
+
+
+        const listaTemposDescanso = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00'];
+        const listaTemposLanche = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '24:00', '24:30', '25:00'];
+ 
+        function tocarSom() {
+        var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        var oscilador = audioContext.createOscillator();
+        oscilador.type = 'sine'; // Tipo de onda: 'sine', 'square', 'sawtooth', 'triangle'
+        oscilador.frequency.setValueAtTime(440, audioContext.currentTime); // Frequência em Hz (440 Hz = nota Lá)
+        var gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(0.05, audioContext.currentTime); // Define o volume (0.05 = 10% do volume máximo)
+        oscilador.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscilador.start();
+        setTimeout(function() {
+            oscilador.stop();
+        }, 3000);
+    }

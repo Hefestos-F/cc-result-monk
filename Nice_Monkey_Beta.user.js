@@ -37,6 +37,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     FaixaFixa: 0,
     IgnorarTMA: 0,
     IgnorarErroNice: 0,
+    Estouro: 0,
+    SomEstouro: 0
   };
 
   const PCConfig = {
@@ -55,6 +57,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     FaixaFixa: 0,
     IgnorarTMA: 0,
     IgnorarErroNice: 0,
+    Estouro: 1,
+    SomEstouro: 1
   };
 
   const Ccor = {
@@ -119,7 +123,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     FPausaS: "",
     DPausaS: "",
     Busc5s: 0,
-    Busc5sTem: 5,
+    Busc5sTem: 5
   };
 
   const BGround = {
@@ -787,7 +791,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         ? "Atualize !!"
         : TMA; // Arredonda para o valor inteiro mais próximo
       cTMA.style.background =
-        TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA
+        (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) || stt.Busc5s 
           ? Ccor.MetaTMA
           : "";
       cTMA.style.borderRadius = "5px";
@@ -1560,6 +1564,14 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     const IgErro = criarLinhaTextoComBot(20, "Ignorar Erro Nice");
     CIgErro.append(IgErro);
 
+    const CIgEst = criarCaixaSeg();
+    
+    const IgEst = criarLinhaTextoComBot(22, "Notificar Estouro");
+    const IgEstSom = criarLinhaTextoComBot(23, "Som");
+    CIgEst.append(criarTitulo("Estouro de Pausa"));
+    CIgEst.append(IgEst);
+    CIgEst.append(IgEstSom);
+
     const Cbotavan = criarCaixaSeg();
     const botavan = criarBotSalv(21, "Avançado");
     botavan.addEventListener("click", function () {
@@ -1609,6 +1621,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       CIgOffline,
       CIgTMA,
       CIgErro,
+      criarSeparador(),
+      CIgEst,
       criarSeparador(),
       ContTMA,
       criarSeparador(),
@@ -1824,6 +1838,17 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       if (CConfig.IgnorarErroNice) {
         AtualizarConf(5);
       }
+    }
+    if (zz === 22) {
+      CConfig.Estouro = !CConfig.Estouro
+    }
+    if (zz === 23) {
+      if(CConfig.Estouro){
+        CConfig.SomEstouro = !CConfig.SomEstouro;
+      }else{
+        CConfig.SomEstouro = 0;
+      }
+
     }
 
     ControleFront(8);
@@ -2058,6 +2083,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           a = "00:20:00";
           b = 1;
         }
+        if (!b) return;
+
         let c = converterParaSegundos(a);
 
         if (Segun.ContAtual > c) {
@@ -2767,7 +2794,22 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     return caixa;
   }
 
-  function VeriEstDPausa() {}
+function tocarBeep(a) {
+      const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+      const oscilador = contextoAudio.createOscillator();
+      const ganho = contextoAudio.createGain();
+
+      
+      oscilador.type = 'sine'; // Tipo de onda: sine, square, triangle, sawtooth
+      oscilador.frequency.setValueAtTime(a, contextoAudio.currentTime); // Frequência em Hz (440Hz = nota A)
+      console.log('Frequencia :',a);
+      oscilador.connect(ganho);
+      ganho.connect(contextoAudio.destination);
+
+      oscilador.start();
+      oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
+    }
+    //tocarBeep(700);
 
   // Your code here...
 })();
