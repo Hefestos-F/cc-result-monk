@@ -124,7 +124,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     DPausaS: "",
     Busc5s: 0,
     Busc5sTem: 5,
-    Estouro:0
+    Estouro: 0
   };
 
   const BGround = {
@@ -391,16 +391,16 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         align-items: center;
         `;
 
-        function linha(a) {
-    const x = document.createElement("div");
-    x.id = a;
-    x.style.cssText = `
+    function linha(a) {
+      const x = document.createElement("div");
+      x.id = a;
+      x.style.cssText = `
         display: flex;
         justify-content: center;
         transition: opacity 0.5s ease, margin-top 0.5s ease, margin-bottom 0.5s ease;
         `;
-        return x; 
-        }
+      return x;
+    }
     // Adiciona o contêiner ao contêiner principal
 
     const Alinha1 = linha('Alinha1');
@@ -798,10 +798,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       vTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
         : stt.ErroAtu || x
-        ? "Atualize !!"
-        : TMA; // Arredonda para o valor inteiro mais próximo
+          ? "Atualize !!"
+          : TMA; // Arredonda para o valor inteiro mais próximo
       cTMA.style.background =
-        (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) || stt.Busc5s 
+        (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) || stt.Busc5s
           ? Ccor.MetaTMA
           : "";
       cTMA.style.borderRadius = "5px";
@@ -909,17 +909,17 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Segun.QualLogou = CConfig.LogueManual
       ? converterParaSegundos(CConfig.ValorLogueManual)
       : CConfig.ModoSalvo
-      ? Segun.LogouSalvo
-      : Segun.Logou;
+        ? Segun.LogouSalvo
+        : Segun.Logou;
     Segun.Offline = Segun.Logou - Segun.QualLogou;
 
     var vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
-      vari2 &&
-      !stt.ErroAtu &&
-      !stt.ErroVerif &&
-      !CConfig.IgnorarOff
+        vari2 &&
+        !stt.ErroAtu &&
+        !stt.ErroVerif &&
+        !CConfig.IgnorarOff
         ? 1
         : 0;
     CConfig.MostraOff = stt.offForaDToler;
@@ -941,9 +941,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var SaidaSegundos = Segun.QualLogou + TempoEscalado;
     SaidaSegundos =
       !stt.offForaDToler &&
-      !stt.ErroAtu &&
-      !CConfig.LogueManual &&
-      !CConfig.IgnorarOff
+        !stt.ErroAtu &&
+        !CConfig.LogueManual &&
+        !CConfig.IgnorarOff
         ? SaidaSegundos + Segun.Offline
         : SaidaSegundos;
     var FaltaSegundos = SaidaSegundos - Segun.Hora;
@@ -984,8 +984,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     vFalta.innerHTML = HE
       ? FouHFormatado
       : TempoCumprido
-      ? "Cumprido"
-      : FouHFormatado;
+        ? "Cumprido"
+        : FouHFormatado;
 
     if (stt.Busc5s) {
       AtualizarTMA(0);
@@ -1032,10 +1032,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     textCC1.innerHTML = stt.ErroAtu
       ? "Atualizar!!"
       : stt.Atualizando
-      ? "Atualizando..."
-      : a === 2
-      ? "Atualizado"
-      : "Atualizar";
+        ? "Atualizando..."
+        : a === 2
+          ? "Atualizado"
+          : "Atualizar";
 
     if (a === 1) {
       stt.Atualizando = 1;
@@ -1094,8 +1094,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       circuloclick2.style.width = stt.DentrodCC2
         ? "auto"
         : stt.AbaConfig
-        ? "24px"
-        : "17px";
+          ? "24px"
+          : "17px";
       circuloclick2.style.height =
         stt.DentrodCC2 || stt.AbaConfig ? "24px" : "17px";
       circuloclick2.style.borderRadius =
@@ -1134,8 +1134,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         (stt.DentrodMC && stt.CVAtivo) || stt.AbaPausas
           ? "-5px"
           : !stt.AbaPausas && !stt.AbaConfig
-          ? ""
-          : "20px";
+            ? ""
+            : "20px";
     }
 
     function MostarcontValores(x) {
@@ -1575,7 +1575,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     CIgErro.append(IgErro);
 
     const CIgEst = criarCaixaSeg();
-    
+
     const IgEst = criarLinhaTextoComBot(22, "Notificar Estouro");
     const IgEstSom = criarLinhaTextoComBot(23, "Som");
     CIgEst.append(criarTitulo("Estouro de Pausa"));
@@ -1853,9 +1853,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       CConfig.Estouro = !CConfig.Estouro
     }
     if (zz === 23) {
-      if(CConfig.Estouro){
+      if (CConfig.Estouro) {
         CConfig.SomEstouro = !CConfig.SomEstouro;
-      }else{
+      } else {
         CConfig.SomEstouro = 0;
       }
 
@@ -2097,9 +2097,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         if (Segun.ContAtual > c && b) {
           stt.Estouro = 1;
-            let d = Segun.ContAtual - c;
-            console.log(`Estouro de Pausa ${tipo}:`,d);
-        }else{
+          let d = Segun.ContAtual - c;
+          console.log(`Estouro de Pausa ${tipo}:`, d);
+        } else {
           stt.Estouro = 0;
         }
       }
@@ -2268,8 +2268,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           ? "Fechar"
           : "Pausas"
         : stt.AbaPausas
-        ? "F"
-        : "P";
+          ? "F"
+          : "P";
     }
     return caixa;
   }
@@ -2805,22 +2805,22 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     return caixa;
   }
 
-function tocarBeep(a) {
-      const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
-      const oscilador = contextoAudio.createOscillator();
-      const ganho = contextoAudio.createGain();
+  function tocarBeep(a) {
+    const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+    const oscilador = contextoAudio.createOscillator();
+    const ganho = contextoAudio.createGain();
 
-      
-      oscilador.type = 'sine'; // Tipo de onda: sine, square, triangle, sawtooth
-      oscilador.frequency.setValueAtTime(a, contextoAudio.currentTime); // Frequência em Hz (440Hz = nota A)
-      console.log('Frequencia :',a);
-      oscilador.connect(ganho);
-      ganho.connect(contextoAudio.destination);
 
-      oscilador.start();
-      oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
-    }
-    //tocarBeep(700);
+    oscilador.type = 'sine'; // Tipo de onda: sine, square, triangle, sawtooth
+    oscilador.frequency.setValueAtTime(a, contextoAudio.currentTime); // Frequência em Hz (440Hz = nota A)
+    console.log('Frequencia :', a);
+    oscilador.connect(ganho);
+    ganho.connect(contextoAudio.destination);
+
+    oscilador.start();
+    oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
+  }
+  //tocarBeep(700);
 
   // Your code here...
 })();
