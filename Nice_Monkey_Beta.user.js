@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.27
+// @version      3.3.28
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -37,8 +37,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     FaixaFixa: 0,
     IgnorarTMA: 0,
     IgnorarErroNice: 0,
-    Estouro: 0,
-    SomEstouro: 0
+    Estouro: 1,
+    SomEstouro: 1
   };
 
   const PCConfig = {
@@ -125,7 +125,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Busc5s: 0,
     Busc5sTem: 5,
     Estouro: 0,
-    Estour1: 0
+    Estour1: 0,
+    intervaloBeep : 1
   };
 
   const BGround = {
@@ -286,6 +287,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             opacity: 1;
             padding: 0px 3px;
             display: flex;
+            margin-bottom: -18px;
             `;
 
       const caixa2 = document.createElement("div");
@@ -386,7 +388,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         color: white;
         flex-direction: column;
         position: absolute;
-        top: 20%;
+        top: 16%;
         width: 100%;
         z-index: 3;
         font-size: 12px;
@@ -799,7 +801,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       var TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
       var vTMA = document.getElementById("vTMA");
-      tTMA.innerHTML = stt.Busc5s ? '' : 'TMA:';
+      tTMA.innerHTML = stt.Busc5s ? 'Busca' : 'TMA:';
       vTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
         : stt.ErroAtu || x
@@ -1158,7 +1160,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Alinha1.style.visibility =
       vari4 && CConfig.MostraOff ? "visible" : "hidden";
     Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
-    //Alinha1.style.marginTop = vari4 && CConfig.MostraOff ? "" : "-15px";
     Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? "" : "-18px";
 
     atualizarComoff("cSaida");
@@ -1855,7 +1856,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       }
     }
     if (zz === 22) {
-      CConfig.Estouro = !CConfig.Estouro
+      CConfig.Estouro = !CConfig.Estouro;
+      if(!CConfig.Estouro) CConfig.SomEstouro = 0;
     }
     if (zz === 23) {
       if (CConfig.Estouro) {
@@ -2103,14 +2105,26 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         let c = converterParaSegundos(a);
 
         if (Segun.ContAtual > c && b) {
-          if (!stt.Estour1) {
-            stt.Estour1 = 1;
-            tocarBeep();
-          } else {
-            stt.Estour1 = 0;
-          }
+
           stt.Estouro = 1;
           let d = Segun.ContAtual - c;
+
+          if (!stt.Estour1 && CConfig.SomEstouro) {
+            stt.Estour1 = 1;
+            tocarBeep();
+            setTimeout(function () {
+              stt.intervaloBeep = 3;
+               RepetirBeep();
+            }, 15000);
+          }
+          if (d > 150) {
+            stt.intervaloBeep = 45;
+          }else if (d > 90) {
+            stt.intervaloBeep = 30;
+          }else if (d > 45) {
+            stt.intervaloBeep = 15;
+          }
+          
           const vEstouro = document.getElementById("vEstouro");
           const tEstouro = document.getElementById("tEstouro");
           tEstouro.textContent = `Estourou a pausa ${tipo}:`;
@@ -2118,12 +2132,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           //console.log(`Estouro de Pausa ${tipo}:`, d);
         } else {
           stt.Estouro = 0;
+          stt.Estour1 = 0;   
+          stt.intervaloBeep = 3;       
         }
-
         const Alinha2 = document.getElementById("Alinha2");
         Alinha2.style.visibility = stt.Estouro ? "visible" : "hidden";
         Alinha2.style.opacity = stt.Estouro ? "1" : "0";
-        //Alinha2.style.marginTop = stt.Estouro ? "" : "-15px";
         Alinha2.style.marginBottom = stt.Estouro ? "" : "-18px";
       }
     }
@@ -2842,6 +2856,15 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     oscilador.start();
     oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
+  }
+
+  function RepetirBeep() {
+    if (stt.Estouro && CConfig.SomEstouro) {
+      setTimeout(function () {
+        tocarBeep();
+        RepetirBeep();
+      }, intervaloBeep * 1000);
+    }
   }
 
   // Your code here...
