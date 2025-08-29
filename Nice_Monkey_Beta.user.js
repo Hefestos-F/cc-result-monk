@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.28
+// @version      3.3.30
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -141,6 +141,14 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   const ChavelogueManu = "LogueManual";
   const ChavePrimLogue = "PrimeiroLogue";
   const ChavePrimLogueOntem = "PrimeiroLogueOntem";
+
+   const Dados = {
+    Pausas : {},
+    Config : {},
+    PrimLogue : {},
+    PrimLogueOnt : {},
+    LogueManu : {}
+   };
 
   let dadosdePausas;
   let dadosSalvosConfi;
@@ -388,7 +396,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         color: white;
         flex-direction: column;
         position: absolute;
-        top: 16%;
+        top: 23%;
         width: 100%;
         z-index: 3;
         font-size: 12px;
