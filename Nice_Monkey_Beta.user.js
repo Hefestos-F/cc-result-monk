@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.31
+// @version      3.3.32
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -2143,10 +2143,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           stt.Estour1 = 0;   
           stt.intervaloBeep = 3;       
         }
+        let e = stt.Estouro && CConfig.Estouro ? 1 : 0 ;
         const Alinha2 = document.getElementById("Alinha2");
-        Alinha2.style.visibility = stt.Estouro ? "visible" : "hidden";
-        Alinha2.style.opacity = stt.Estouro ? "1" : "0";
-        Alinha2.style.marginBottom = stt.Estouro ? "" : "-18px";
+        Alinha2.style.visibility = e ? "visible" : "hidden";
+        Alinha2.style.opacity = e ? "1" : "0";
+        Alinha2.style.marginBottom = e ? "" : "-18px";
       }
     }
 
@@ -2871,7 +2872,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       setTimeout(function () {
         tocarBeep();
         RepetirBeep();
-      }, intervaloBeep * 1000);
+      }, stt.intervaloBeep * 1000);
     }
   }
 
