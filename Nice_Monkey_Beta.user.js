@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.26
+// @version      3.3.27
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -124,7 +124,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     DPausaS: "",
     Busc5s: 0,
     Busc5sTem: 5,
-    Estouro: 0
+    Estouro: 0,
+    Estour1: 0
   };
 
   const BGround = {
@@ -399,6 +400,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       x.style.cssText = `
         display: flex;
         justify-content: center;
+        visibility: hidden;
+        opacity: 0;
         transition: opacity 0.5s ease, margin-top 0.5s ease, margin-bottom 0.5s ease;
         `;
       return x;
@@ -796,11 +799,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       var TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
       var vTMA = document.getElementById("vTMA");
-      tTMA.innerHTML = stt.Busc5s ? "Atualizar:" : "TMA:";
+      tTMA.innerHTML = stt.Busc5s ? '' : 'TMA:';
       vTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
         : stt.ErroAtu || x
-          ? "Atualize !!"
+          ? 'Atualize !!'
           : TMA; // Arredonda para o valor inteiro mais próximo
       cTMA.style.background =
         (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) || stt.Busc5s
@@ -1155,8 +1158,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Alinha1.style.visibility =
       vari4 && CConfig.MostraOff ? "visible" : "hidden";
     Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
-    Alinha1.style.marginTop = vari4 && CConfig.MostraOff ? "" : "-15px";
-    Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? "" : "5px";
+    //Alinha1.style.marginTop = vari4 && CConfig.MostraOff ? "" : "-15px";
+    Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? "" : "-18px";
 
     atualizarComoff("cSaida");
     atualizarComoff("cLogado");
@@ -2100,11 +2103,17 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         let c = converterParaSegundos(a);
 
         if (Segun.ContAtual > c && b) {
+          if (!stt.Estour1) {
+            stt.Estour1 = 1;
+            tocarBeep();
+          } else {
+            stt.Estour1 = 0;
+          }
           stt.Estouro = 1;
           let d = Segun.ContAtual - c;
           const vEstouro = document.getElementById("vEstouro");
           const tEstouro = document.getElementById("tEstouro");
-          tEstouro.textContent = `Estourou a ${tipo}:`;
+          tEstouro.textContent = `Estourou a pausa ${tipo}:`;
           vEstouro.textContent = converterParaTempo(d);
           //console.log(`Estouro de Pausa ${tipo}:`, d);
         } else {
@@ -2114,8 +2123,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         const Alinha2 = document.getElementById("Alinha2");
         Alinha2.style.visibility = stt.Estouro ? "visible" : "hidden";
         Alinha2.style.opacity = stt.Estouro ? "1" : "0";
-        Alinha2.style.marginTop = stt.Estouro ? "" : "-15px";
-        Alinha2.style.marginBottom = stt.Estouro ? "" : "5px";
+        //Alinha2.style.marginTop = stt.Estouro ? "" : "-15px";
+        Alinha2.style.marginBottom = stt.Estouro ? "" : "-18px";
       }
     }
 
@@ -2819,22 +2828,21 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     return caixa;
   }
 
-  function tocarBeep(a) {
+  function tocarBeep() {
     const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
     const oscilador = contextoAudio.createOscillator();
     const ganho = contextoAudio.createGain();
 
 
     oscilador.type = 'sine'; // Tipo de onda: sine, square, triangle, sawtooth
-    oscilador.frequency.setValueAtTime(a, contextoAudio.currentTime); // Frequência em Hz (440Hz = nota A)
-    console.log('Frequencia :', a);
+    oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz (440Hz = nota A)
+    //console.log('Frequencia :', 700);
     oscilador.connect(ganho);
     ganho.connect(contextoAudio.destination);
 
     oscilador.start();
     oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
   }
-  //tocarBeep(700);
 
   // Your code here...
 })();
