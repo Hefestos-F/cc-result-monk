@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.5.2
+// @version      3.3.5.3
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -126,7 +126,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Busc5sTem: 5,
     Estouro: 0,
     Estour1: 0,
-    intervaloBeep: 1
+    intervaloBeep: 1,
+    BeepRet: 0
   };
 
   const BGround = {
@@ -1863,6 +1864,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     if (zz === 23) {
       if (CConfig.Estouro) {
         CConfig.SomEstouro = !CConfig.SomEstouro;
+        if(CConfig.SomEstouro) stt.Estour1 = 0;
       } else {
         CConfig.SomEstouro = 0;
       }
@@ -2101,7 +2103,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         f = "Descanso";
         b = 1;
       } else if (StatusNOV.includes('Lanche')) {
-        a = "00:18:00";
+        a = "00:20:00";
         f = "Lanche";
         b = 1;
       }
@@ -2116,16 +2118,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           stt.Estour1 = 1;
           tocarBeep();
           setTimeout(function () {
-            stt.intervaloBeep = 3;
+            stt.intervaloBeep = 4;
             RepetirBeep();
           }, 15000);
-        }
-        if (d < 45) {
-          stt.intervaloBeep = 10;
-        } else if (d < 90) {
-          stt.intervaloBeep = 30;
-        } else if (d < 150) {
-          stt.intervaloBeep = 50;
         }
 
         const vEstouro = document.getElementById("vEstouro");
@@ -2863,8 +2858,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function RepetirBeep() {
-    if (stt.Estouro && CConfig.SomEstouro) {
+    if (stt.Estouro && CConfig.SomEstouro && !BeepRet) {
+      BeepRet = 1;
       setTimeout(function () {
+        BeepRet = 0;
         tocarBeep();
         RepetirBeep();
       }, stt.intervaloBeep * 1000);
