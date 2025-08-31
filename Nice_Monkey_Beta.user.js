@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.39.4
+// @version      3.3.39.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -2122,12 +2122,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             RepetirBeep();
           }, 15000);
         }
-        if (d > 150) {
-          stt.intervaloBeep = 45;
-        } else if (d > 90) {
+        if (d < 45) {
+          stt.intervaloBeep = 10;
+        } else if (d < 90) {
           stt.intervaloBeep = 30;
-        } else if (d > 45) {
-          stt.intervaloBeep = 15;
+        } else if (d < 150) {
+          stt.intervaloBeep = 50;
         }
 
         const vEstouro = document.getElementById("vEstouro");
