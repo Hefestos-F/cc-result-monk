@@ -2098,7 +2098,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         a = "00:10:00";
         b = 1;
       } else if (StatusNOV.includes("Lanche")) {
-        a = "00:09:00";
+        a = "00:10:00";
         b = 1;
       }
       let c = converterParaSegundos(a);
