@@ -142,14 +142,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   const ChavePrimLogue = "PrimeiroLogue";
   const ChavePrimLogueOntem = "PrimeiroLogueOntem";
 
-  const Dados = {
-    Pausas: {},
-    Config: {},
-    PrimLogue: {},
-    PrimLogueOnt: {},
-    LogueManu: {}
-  };
-
   let dadosdePausas;
   let dadosSalvosConfi;
   let dadosPrimLogue;
