@@ -812,8 +812,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           ? Ccor.MetaTMA
           : "";
       cTMA.style.borderRadius = "5px";
-      cTMA.style.padding = " 0px 3px";
-      cTMA.style.margin = "0px -3px";
+      cTMA.style.padding = " 0px 4px";
+      cTMA.style.margin = "0px -4px";
     }
   }
 
@@ -1172,8 +1172,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       if (x) {
         x.style.background = CConfig.MostraValorOff ? Ccor.Offline : "";
         x.style.borderRadius = CConfig.MostraValorOff ? "6px" : "";
-        x.style.padding = CConfig.MostraValorOff ? "0px 3px" : "";
-        x.style.margin = CConfig.MostraValorOff ? "0px -3px" : "";
+        x.style.padding = CConfig.MostraValorOff ? "0px 4px" : "";
+        x.style.margin = CConfig.MostraValorOff ? "0px -4px" : "";
       }
     }
 
