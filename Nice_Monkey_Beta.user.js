@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.39.7
+// @version      3.3.39.8
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -988,12 +988,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var vFalta = document.getElementById("vFalta");
     var tFalta = document.getElementById("tFalta");
     tFalta.textContent = HE ? "HE:" : TempoCumprido ? "Tempo" : "Falta:";
-    vFalta.textContent = HE
-      ? FouHFormatado
-      : TempoCumprido
-        ? "Cumprido"
-        : FouHFormatado;
-
+    if (!stt.ErroVerif) {
+      vFalta.textContent = HE
+        ? FouHFormatado
+        : TempoCumprido
+          ? "Cumprido"
+          : FouHFormatado;
+    }
     if (stt.Busc5s) {
       AtualizarTMA(0);
       stt.Busc5sTem = stt.Busc5sTem - 1;
@@ -1171,8 +1172,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       if (x) {
         x.style.background = CConfig.MostraValorOff ? Ccor.Offline : "";
         x.style.borderRadius = CConfig.MostraValorOff ? "6px" : "";
-        x.style.padding = CConfig.MostraValorOff ? "0px 2px" : "";
-        x.style.margin = CConfig.MostraValorOff ? "0px -2px" : "";
+        x.style.padding = CConfig.MostraValorOff ? "0px 3px" : "";
+        x.style.margin = CConfig.MostraValorOff ? "0px -3px" : "";
       }
     }
 
