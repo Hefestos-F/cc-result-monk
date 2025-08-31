@@ -126,7 +126,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Busc5sTem: 5,
     Estouro: 0,
     Estour1: 0,
-    intervaloBeep : 1
+    intervaloBeep: 1
   };
 
   const BGround = {
@@ -142,13 +142,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   const ChavePrimLogue = "PrimeiroLogue";
   const ChavePrimLogueOntem = "PrimeiroLogueOntem";
 
-   const Dados = {
-    Pausas : {},
-    Config : {},
-    PrimLogue : {},
-    PrimLogueOnt : {},
-    LogueManu : {}
-   };
+  const Dados = {
+    Pausas: {},
+    Config: {},
+    PrimLogue: {},
+    PrimLogueOnt: {},
+    LogueManu: {}
+  };
 
   let dadosdePausas;
   let dadosSalvosConfi;
@@ -1059,7 +1059,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       BGround.circuloclick2 = "white";
       BGround.circuloclick = stt.DentrodCC1 ? "white" : "";
       BGround.ContIcon = "white";
-      BGround.ContValores = Ccor.Atualizando; 
+      BGround.ContValores = Ccor.Atualizando;
       ControleFront(5);
       MostarcontValores(0);
     }
@@ -1865,7 +1865,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
     if (zz === 22) {
       CConfig.Estouro = !CConfig.Estouro;
-      if(!CConfig.Estouro) CConfig.SomEstouro = 0;
+      if (!CConfig.Estouro) CConfig.SomEstouro = 0;
     }
     if (zz === 23) {
       if (CConfig.Estouro) {
@@ -2072,8 +2072,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
 
     const text = alvo?.textContent || "";
-    const primeiraPalavra = text.trim().split(" ")[0];
-    let StatusNOV = primeiraPalavra;
+    const StatusNOV = text.trim().split(" ")[0];
 
     const tiposStatus = [
       "Lanche",
@@ -2085,12 +2084,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       "PRE",
       "Dispon",
     ];
-    const StatusLim = ["Lanche", "Descanso"];
 
     for (const tipo of tiposStatus) {
       verificacaoStatus(tipo);
-    }
-    for (const tipo of StatusLim) {
       VeriEstDPausa(tipo);
     }
 
@@ -2099,56 +2095,57 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       atualizarID1();
     }
 
-    function VeriEstDPausa(tipo) {
-      if (StatusNOV.includes(tipo)) {
-        let a = '00:00:00';
-        let b = 0;
-        if (tipo.includes("Descanso")) {
-          a = "00:10:00";
-          b = 1;
-        } else if (tipo.includes("Lanche")) {
-          a = "00:20:00";
-          b = 1;
-        }
-        let c = converterParaSegundos(a);
+    VeriEstDPausa();
 
-        if (Segun.ContAtual > c && b) {
-
-          stt.Estouro = 1;
-          let d = Segun.ContAtual - c;
-
-          if (!stt.Estour1 && CConfig.SomEstouro) {
-            stt.Estour1 = 1;
-            tocarBeep();
-            setTimeout(function () {
-              stt.intervaloBeep = 3;
-               RepetirBeep();
-            }, 15000);
-          }
-          if (d > 150) {
-            stt.intervaloBeep = 45;
-          }else if (d > 90) {
-            stt.intervaloBeep = 30;
-          }else if (d > 45) {
-            stt.intervaloBeep = 15;
-          }
-          
-          const vEstouro = document.getElementById("vEstouro");
-          const tEstouro = document.getElementById("tEstouro");
-          tEstouro.textContent = `Estourou a pausa ${tipo}:`;
-          vEstouro.textContent = converterParaTempo(d);
-          //console.log(`Estouro de Pausa ${tipo}:`, d);
-        } else {
-          stt.Estouro = 0;
-          stt.Estour1 = 0;   
-          stt.intervaloBeep = 3;       
-        }
-        let e = stt.Estouro && CConfig.Estouro ? 1 : 0 ;
-        const Alinha2 = document.getElementById("Alinha2");
-        Alinha2.style.visibility = e ? "visible" : "hidden";
-        Alinha2.style.opacity = e ? "1" : "0";
-        Alinha2.style.marginBottom = e ? "" : "-18px";
+    function VeriEstDPausa() {
+      let a = '00:00:00';
+      let b = 0;
+      if (StatusNOV.includes("Descanso")) {
+        a = "00:10:00";
+        b = 1;
+      } else if (StatusNOV.includes("Lanche")) {
+        a = "00:20:00";
+        b = 1;
       }
+      let c = converterParaSegundos(a);
+
+      if (Segun.ContAtual > c && b) {
+
+        stt.Estouro = 1;
+        let d = Segun.ContAtual - c;
+
+        if (!stt.Estour1 && CConfig.SomEstouro) {
+          stt.Estour1 = 1;
+          tocarBeep();
+          setTimeout(function () {
+            stt.intervaloBeep = 3;
+            RepetirBeep();
+          }, 15000);
+        }
+        if (d > 150) {
+          stt.intervaloBeep = 45;
+        } else if (d > 90) {
+          stt.intervaloBeep = 30;
+        } else if (d > 45) {
+          stt.intervaloBeep = 15;
+        }
+
+        const vEstouro = document.getElementById("vEstouro");
+        const tEstouro = document.getElementById("tEstouro");
+        tEstouro.textContent = `Estourou a pausa ${tipo}:`;
+        vEstouro.textContent = converterParaTempo(d);
+        //console.log(`Estouro de Pausa ${tipo}:`, d);
+      } else {
+        stt.Estouro = 0;
+        stt.Estour1 = 0;
+        stt.intervaloBeep = 3;
+      }
+      let e = stt.Estouro && CConfig.Estouro ? 1 : 0;
+      const Alinha2 = document.getElementById("Alinha2");
+      Alinha2.style.visibility = e ? "visible" : "hidden";
+      Alinha2.style.opacity = e ? "1" : "0";
+      Alinha2.style.marginBottom = e ? "" : "-18px";
+
     }
 
     function verificacaoStatus(tipo) {
