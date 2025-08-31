@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.39.8
+// @version      3.3.39.9
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -2089,6 +2089,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     VeriEstDPausa();
 
+    var CCC = document.getElementById("circuloclickCont");
+
     function VeriEstDPausa() {
       let a = '00:00:00';
       let b = 0;
@@ -2154,7 +2156,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
             c = "00:10:00";
             e = 1;
           } else if (tipo.includes("Lanche")) {
-            c = "00:20:00";
+            c = "00:07:00";
             e = 1;
           }
           let d = converterParaSegundos(c);
