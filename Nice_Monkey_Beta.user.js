@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.5.1
+// @version      3.3.5.2
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -2094,11 +2094,15 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     function VeriEstDPausa() {
       let a = '00:00:00';
       let b = 0;
-      if (StatusNOV.includes("Descanso")) {
+      let f = '';
+      
+      if (StatusNOV.includes('Descanso')) {
         a = "00:10:00";
+        f = "Descanso";
         b = 1;
-      } else if (StatusNOV.includes("Lanche")) {
-        a = "00:10:00";
+      } else if (StatusNOV.includes('Lanche')) {
+        a = "00:18:00";
+        f = "Lanche";
         b = 1;
       }
       let c = converterParaSegundos(a);
@@ -2126,7 +2130,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
         const vEstouro = document.getElementById("vEstouro");
         const tEstouro = document.getElementById("tEstouro");
-        tEstouro.textContent = `Estourou a pausa ${tipo}:`;
+        tEstouro.textContent = `Estourou a pausa ${f}:`;
         vEstouro.textContent = converterParaTempo(d);
         //console.log(`Estouro de Pausa ${tipo}:`, d);
       } else {
