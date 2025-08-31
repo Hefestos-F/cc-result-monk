@@ -1165,10 +1165,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     cOffline.style.background = Ccor.Offline;
 
     var vari4 = contValores.style.opacity === "1" ? 1 : 0;
-    //Alinha1.style.visibility =
-     // vari4 && CConfig.MostraOff ? "visible" : "hidden";
-    //Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
-    //Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? "" : "-18px";
+    Alinha1.style.visibility =
+      vari4 && CConfig.MostraOff ? "visible" : "hidden";
+    Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
+    Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? "" : "-18px";
 
     atualizarComoff("cSaida");
     atualizarComoff("cLogado");
@@ -2145,9 +2145,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         }
         let e = stt.Estouro && CConfig.Estouro ? 1 : 0 ;
         const Alinha2 = document.getElementById("Alinha2");
-        //Alinha2.style.visibility = e ? "visible" : "hidden";
-        //Alinha2.style.opacity = e ? "1" : "0";
-        //Alinha2.style.marginBottom = e ? "" : "-18px";
+        Alinha2.style.visibility = e ? "visible" : "hidden";
+        Alinha2.style.opacity = e ? "1" : "0";
+        Alinha2.style.marginBottom = e ? "" : "-18px";
       }
     }
 
