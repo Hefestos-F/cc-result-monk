@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.35
+// @version      3.3.36
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1059,7 +1059,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       BGround.circuloclick2 = "white";
       BGround.circuloclick = stt.DentrodCC1 ? "white" : "";
       BGround.ContIcon = "white";
-      BGround.ContValores = Ccor.Atualizando;
+      BGround.ContValores = Ccor.Atualizando; 
       ControleFront(5);
       MostarcontValores(0);
     }
@@ -1165,10 +1165,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     cOffline.style.background = Ccor.Offline;
 
     var vari4 = contValores.style.opacity === "1" ? 1 : 0;
-    Alinha1.style.visibility =
+    //Alinha1.style.visibility =
       vari4 && CConfig.MostraOff ? "visible" : "hidden";
-    Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
-    Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? "" : "-18px";
+    //Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
+    //Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? "" : "-18px";
 
     atualizarComoff("cSaida");
     atualizarComoff("cLogado");
