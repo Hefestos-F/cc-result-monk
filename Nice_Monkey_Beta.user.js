@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.39.6
+// @version      3.3.39.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -930,7 +930,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         ? 1
         : 0;
     CConfig.MostraOff = stt.offForaDToler;
-    if (!CConfig.MostraOff) {
+    if (!CConfig.MostraOff && !stt.ErroVerif) {
       CConfig.MostraValorOff = 0;
     }
 
