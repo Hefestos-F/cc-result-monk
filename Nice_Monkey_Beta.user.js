@@ -1006,7 +1006,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var vOffline = document.getElementById("vOffline");
     var tOffline = document.getElementById("tOffline");
     vOffline.textContent = OfflineSegundosFormatado;
-    tOffline.textContent = CConfig.MostraValorOff ? "Com Offline" : "Sem Offline";
+    tOffline.textContent = CConfig.MostraValorOff ? "Com Offline :" : "Sem Offline :";
 
     if (!stt.Atualizando) {
       ControleFront();
