@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.37
+// @version      3.3.38
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -292,10 +292,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       caixa.style.cssText = `
             transition: all 0.5s ease;
             border-radius: 6px;
-            opacity: 1;
-            visibility: visible;
+            opacity: 0;
+            visibility: hidden;
             padding: 0px 3px;
             display: flex;
+            margin-bottom: -18px;
             `;
 
       const caixa2 = document.createElement("div");
@@ -1165,10 +1166,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     cOffline.style.background = Ccor.Offline;
 
     var vari4 = contValores.style.opacity === "1" ? 1 : 0;
-    //Alinha1.style.visibility =
+    Alinha1.style.visibility =
       vari4 && CConfig.MostraOff ? "visible" : "hidden";
-    //Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
-    //Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? "" : "-18px";
+    Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
+    Alinha1.style.marginBottom = vari4 && CConfig.MostraOff ? "" : "-18px";
 
     atualizarComoff("cSaida");
     atualizarComoff("cLogado");
