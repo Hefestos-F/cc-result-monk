@@ -155,7 +155,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
   RecuperarTVariaveis();
 
-  const LugarJS = {
+  const LugarJS1 = {
     elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
     elementoReferencia2:
       "#cx1_agent_root > main > div > main > header > header > div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-6.MuiGrid-grid-sm-12.MuiGrid-grid-md-12.MuiGrid-grid-lg-6.css-1govgzr > div",
@@ -180,6 +180,25 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     lIndisponivel:
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
   };
+
+  const LugarJS = {
+    elementoReferencia: '//*[@id="cx1_agent_root"]/main/div/main/header/header',
+    elementoReferencia2: '//*[@id="cx1_agent_root"]/main/div/main/header/header/div/div',
+    Status: '//*[@id="agent-state-section"]/div/span/div/div',
+
+    abaRelatorio: '//*[@id="cx1_agent_root"]/div/div/nav/div/div[8]/div/div',
+    abaProdutividade: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/section/div/div/div/button[1]',
+    abaDesempenho: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/section/div/div/div/button[2]',
+    abaHoje: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div/div/button',
+
+    lContAtual: '//*[@id="agent-state-section"]/div/span/div/div/span/span',
+    lAtendidas: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div/div/table/tbody/tr[1]/td[2]/span',
+    lDisponibilidade: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div[1]/div[1]/div/p',
+    ltrabalhando: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div[2]/div[1]/div/p',
+    lIndisponivel: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div[3]/div[1]/div/p'
+  };
+
+
 
   var maxAttempts = 9000; // Tentativas máximas (10 segundos / 100ms por tentativa)
   var attempts = 0;
