@@ -155,7 +155,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
   RecuperarTVariaveis();
 
-  const LugarJS1 = {
+  const LugarJS = {
     elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
     elementoReferencia2:
       "#cx1_agent_root > main > div > main > header > header > div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-6.MuiGrid-grid-sm-12.MuiGrid-grid-md-12.MuiGrid-grid-lg-6.css-1govgzr > div",
@@ -181,44 +181,20 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
   };
 
-  const LugarJS = {
-    elementoReferencia: '//*[@id="cx1_agent_root"]/main/div/main/header/header',
-    elementoReferencia2: '//*[@id="cx1_agent_root"]/main/div/main/header/header/div/div',
-    Status: '//*[@id="agent-state-section"]/div/span/div/div',
-
-    abaRelatorio: '//*[@id="cx1_agent_root"]/div/div/nav/div/div[8]/div/div',
-    abaProdutividade: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/section/div/div/div/button[1]',
-    abaDesempenho: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/section/div/div/div/button[2]',
-    abaHoje: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div/div/button',
-
-    lContAtual: '//*[@id="agent-state-section"]/div/span/div/div/span/span',
-    lAtendidas: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div/div/table/tbody/tr[1]/td[2]/span',
-    lDisponibilidade: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div[1]/div[1]/div/p',
-    ltrabalhando: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div[2]/div[1]/div/p',
-    lIndisponivel: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div[3]/div[1]/div/p'
-  };
-
-function getElementByXPath(xpath) {
-  return document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-}
-
-// Exemplo de uso:
-const elemento = getElementByXPath('//*[@id="cx1_agent_root"]/main/div/main/header/header');
-
 
   var maxAttempts = 9000; // Tentativas máximas (10 segundos / 100ms por tentativa)
   var attempts = 0;
   var interval = setInterval(function () {
-    var elementoReferencia = getElementByXPath(LugarJS.elementoReferencia);
-    var elementoReferencia2 = getElementByXPath(
+    var elementoReferencia = document.querySelector(LugarJS.elementoReferencia);
+    var elementoReferencia2 = document.querySelector(
       LugarJS.elementoReferencia2
     );
 
     if (
       elementoReferencia &&
       elementoReferencia2 &&
-      getElementByXPath(LugarJS.abaRelatorio) &&
-      getElementByXPath(LugarJS.Status)
+      document.querySelector(LugarJS.abaRelatorio) &&
+      document.querySelector(LugarJS.Status)
     ) {
       clearInterval(interval);
       AdicionarCaixaAtualizada(elementoReferencia);
@@ -655,7 +631,7 @@ const elemento = getElementByXPath('//*[@id="cx1_agent_root"]/main/div/main/head
   }
 
   function clicarElementoQuerySelector(selector) {
-    var elemento = getElementByXPath(selector);
+    var elemento = document.querySelector(selector);
     if (elemento) {
       elemento.click();
       return true;
@@ -706,7 +682,7 @@ const elemento = getElementByXPath('//*[@id="cx1_agent_root"]/main/div/main/head
       var maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
       var attempts = 0;
       var interval = setInterval(function () {
-        var elemento = getElementByXPath(seletor);
+        var elemento = document.querySelector(seletor);
         var NomeDIt = Object.keys(LugarJS).filter(
           (chave) => LugarJS[chave] === seletor
         );
@@ -757,7 +733,7 @@ const elemento = getElementByXPath('//*[@id="cx1_agent_root"]/main/div/main/head
   async function AtualizarContAtual() {
     if (await seExiste(LugarJS.lContAtual)) {
       const formattedTime = formatTime(
-        getElementByXPath(LugarJS.lContAtual).textContent
+        document.querySelector(LugarJS.lContAtual).textContent
       );
       Segun.ContAtual = converterParaSegundos(formattedTime);
       return true;
@@ -769,7 +745,7 @@ const elemento = getElementByXPath('//*[@id="cx1_agent_root"]/main/div/main/head
   async function AtualizarAtendidas() {
     await caminhoInfo(1); // Caminho Atendidas
     if (await seExiste(LugarJS.lAtendidas)) {
-      stt.vAtendidas = getElementByXPath(LugarJS.lAtendidas).textContent;
+      stt.vAtendidas = document.querySelector(LugarJS.lAtendidas).textContent;
       return true;
     } else {
       return false;
@@ -780,13 +756,13 @@ const elemento = getElementByXPath('//*[@id="cx1_agent_root"]/main/div/main/head
     //await caminhoInfo(0); // Caminho logado
     if ((await caminhoInfo(0)) && (await seExiste(LugarJS.lDisponibilidade))) {
       Segun.Disponivel = converterParaSegundos(
-        getElementByXPath(LugarJS.lDisponibilidade).textContent
+        document.querySelector(LugarJS.lDisponibilidade).textContent
       );
       Segun.Trabalhando = converterParaSegundos(
-        getElementByXPath(LugarJS.ltrabalhando).textContent
+        document.querySelector(LugarJS.ltrabalhando).textContent
       );
       Segun.Indisponivel = converterParaSegundos(
-        getElementByXPath(LugarJS.lIndisponivel).textContent
+        document.querySelector(LugarJS.lIndisponivel).textContent
       );
       return true;
     } else {
@@ -2112,7 +2088,7 @@ const elemento = getElementByXPath('//*[@id="cx1_agent_root"]/main/div/main/head
   }
 
   function observarDisponibilidade() {
-    const alvo = getElementByXPath(LugarJS.Status);
+    const alvo = document.querySelector(LugarJS.Status);
     const CaiDPa = document.getElementById("CaiDPa");
 
     if (!alvo) {
@@ -2930,3 +2906,4 @@ const elemento = getElementByXPath('//*[@id="cx1_agent_root"]/main/div/main/head
 
   // Your code here...
 })();
+
