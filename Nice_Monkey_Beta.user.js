@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.5.4
+// @version      3.3.5.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1643,7 +1643,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         C2ValoresEnc.innerHTML  = ""; // Limpa o conteúdo
       }
     });
-    C2ValoresEnc.style.cssText = `
+    tValoresEnc.style.cssText = `
         cursor: pointer;
         text-decoration: underline;
         font-size: 13px;
@@ -1654,6 +1654,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     CValoresEnc.append(C2ValoresEnc);
 
     Cavancado.append(CBBancDa);
+    Cavancado.append(criarSeparador());
     Cavancado.append(CValoresEnc);
 
     caixa.append(
