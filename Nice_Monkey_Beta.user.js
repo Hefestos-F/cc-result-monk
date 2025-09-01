@@ -1892,7 +1892,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     if (zz === 23) {
       if (CConfig.Estouro) {
         CConfig.SomEstouro = !CConfig.SomEstouro;
-        if (CConfig.SomEstouro) stt.Estour1 = 0;
+        RepetirBeep();
       } else {
         CConfig.SomEstouro = 0;
       }
