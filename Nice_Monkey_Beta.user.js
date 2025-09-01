@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.5.7
+// @version      3.3.5.9
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1634,14 +1634,14 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     const C2ValoresEnc = criarCaixaSeg();
     C2ValoresEnc.style.alignItems = 'center';
     tValoresEnc.addEventListener("click", function () {
-      if (C2ValoresEnc.innerHTML  === "") {
-        C2ValoresEnc.innerHTML  = `
+      if (C2ValoresEnc.innerHTML === "") {
+        C2ValoresEnc.innerHTML = `
         <div>Disponivel = ${converterParaTempo(Segun.Disponivel)}</div>
         <div>Trabalhando = ${converterParaTempo(Segun.Trabalhando)}</div>
         <div>Indisponivel = ${converterParaTempo(Segun.Indisponivel)}</div>
         `;
       } else {
-        C2ValoresEnc.innerHTML  = ""; // Limpa o conteúdo
+        C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
       }
     });
     tValoresEnc.style.cssText = `
@@ -2167,7 +2167,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
 
     const CCC = document.getElementById("circuloclickCont");
-    if(!CCC && !stt.logout) {
+    if (!CCC && !stt.logout) {
       stt.logout = 1;
       FimdePausa(stt.StatusANT);
     }
@@ -2877,21 +2877,20 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function tocarBeep() {
-  const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
-  const oscilador = contextoAudio.createOscillator();
-  const ganho = contextoAudio.createGain();
+    const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+    const oscilador = contextoAudio.createOscillator();
+    const ganho = contextoAudio.createGain();
 
-  oscilador.type = 'sine'; // Tipo de onda
-  oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
-  ganho.gain.setValueAtTime(0.8, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
+    oscilador.type = 'sine'; // Tipo de onda
+    oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
+    ganho.gain.setValueAtTime(0.8, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
 
-  oscilador.connect(ganho);
-  ganho.connect(contextoAudio.destination);
+    oscilador.connect(ganho);
+    ganho.connect(contextoAudio.destination);
 
-  oscilador.start();
-  oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
-}
-
+    oscilador.start();
+    oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
+  }
 
   function RepetirBeep() {
     if (stt.Estouro && CConfig.SomEstouro && !stt.BeepRet) {
