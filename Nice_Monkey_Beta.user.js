@@ -2893,10 +2893,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function RepetirBeep() {
-    if (stt.Estouro && CConfig.SomEstouro && !BeepRet) {
-      BeepRet = 1;
+    if (stt.Estouro && CConfig.SomEstouro && !stt.BeepRet) {
+      stt.BeepRet = 1;
       setTimeout(function () {
-        BeepRet = 0;
+        stt.BeepRet = 0;
         tocarBeep();
         RepetirBeep();
       }, stt.intervaloBeep * 1000);
