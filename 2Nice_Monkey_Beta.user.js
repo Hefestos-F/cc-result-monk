@@ -172,9 +172,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     lIndisponivel: '//*[@id="cx1_agent_root"]/div/div/div/div/div/div/div/div/div[3]/div[1]/div/p'
   };
 
-   function getElementByXPath(xpath) {
-     return document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-   }
+  function getElementByXPath(xpath) {
+    return document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  }
 
   var maxAttempts = 9000; // Tentativas máximas (10 segundos / 100ms por tentativa)
   var attempts = 0;

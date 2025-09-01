@@ -2145,7 +2145,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           stt.Estour1 = 1;
           tocarBeep();
           setTimeout(function () {
-            stt.intervaloBeep = 4;
+            stt.intervaloBeep = 3;
             RepetirBeep();
           }, 15000);
         }
