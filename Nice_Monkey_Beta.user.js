@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.5.3
+// @version      3.3.5.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -127,7 +127,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Estouro: 0,
     Estour1: 0,
     intervaloBeep: 1,
-    BeepRet: 0
+    BeepRet: 0,
+    logout: 0
   };
 
   const BGround = {
@@ -248,7 +249,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     salvarDPausas();
   }
 
-  function atualizarAuto(ori) {
+  function atualizarAuto() {
     if (!stt.LoopAA && CConfig.AutoAtivo) {
       stt.LoopAA = 1;
       setTimeout(function () {
@@ -1628,7 +1629,32 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     const Cavancado = criarCaixaSeg();
     Cavancado.id = "Cavancado";
 
+    const CValoresEnc = criarCaixaSeg();
+    const tValoresEnc = criarTitulo("Valores Encontrados");
+    const C2ValoresEnc = criarCaixaSeg();
+    tValoresEnc.addEventListener("click", function () {
+      if (C2ValoresEnc.innerHTML  === "") {
+        C2ValoresEnc.innerHTML  = `
+        Disponivel = ${converterParaTempo(Segun.Disponivel)}<br>
+        Trabalhando = ${converterParaTempo(Segun.Trabalhando)}<br>
+        Indisponivel = ${converterParaTempo(Segun.Indisponivel)}
+        `;
+      } else {
+        C2ValoresEnc.innerHTML  = ""; // Limpa o conteúdo
+      }
+    });
+    C2ValoresEnc.style.cssText = `
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: 13px;
+        margin: auto auto 5px;
+        `;
+
+    CValoresEnc.append(tValoresEnc);
+    CValoresEnc.append(C2ValoresEnc);
+
     Cavancado.append(CBBancDa);
+    Cavancado.append(CValoresEnc);
 
     caixa.append(
       ContTempEsc,
@@ -1864,7 +1890,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     if (zz === 23) {
       if (CConfig.Estouro) {
         CConfig.SomEstouro = !CConfig.SomEstouro;
-        if(CConfig.SomEstouro) stt.Estour1 = 0;
+        if (CConfig.SomEstouro) stt.Estour1 = 0;
       } else {
         CConfig.SomEstouro = 0;
       }
@@ -2091,13 +2117,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     VeriEstDPausa();
 
-    var CCC = document.getElementById("circuloclickCont");
-
     function VeriEstDPausa() {
       let a = '00:00:00';
       let b = 0;
       let f = '';
-      
+
       if (StatusNOV.includes('Descanso')) {
         a = "00:10:00";
         f = "Descanso";
@@ -2138,7 +2162,29 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       Alinha2.style.visibility = e ? "visible" : "hidden";
       Alinha2.style.opacity = e ? "1" : "0";
       Alinha2.style.marginBottom = e ? "" : "-18px";
+    }
 
+    const CCC = document.getElementById("circuloclickCont");
+    if(!CCC && !stt.logout) {
+      stt.logout = 1;
+      FimdePausa(stt.StatusANT);
+    }
+
+    function FimdePausa(tipo) {
+      stt.FPausaS = converterParaSegundos(mostrarHora());
+      stt.DPausaS = stt.FPausaS - stt.IPausaS;
+      var DPausaS1 = converterParaTempo(stt.DPausaS);
+      var y = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
+
+      if (y === 2)
+        console.log(
+          `NiceMonk Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`
+        );
+
+      atualizarCampos(y, "Fim", mostrarHora());
+      atualizarCampos(y, "Duracao", DPausaS1);
+
+      if (CaiDPa) AtuaPausas();
     }
 
     function verificacaoStatus(tipo) {
@@ -2179,20 +2225,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           if (CaiDPa) AtuaPausas();
         }
       } else if (stt.StatusANT.includes(tipo)) {
-        stt.FPausaS = converterParaSegundos(mostrarHora());
-        stt.DPausaS = stt.FPausaS - stt.IPausaS;
-        var DPausaS1 = converterParaTempo(stt.DPausaS);
-        var y = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
-
-        if (y === 2)
-          console.log(
-            `NiceMonk Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`
-          );
-
-        atualizarCampos(y, "Fim", mostrarHora());
-        atualizarCampos(y, "Duracao", DPausaS1);
-
-        if (CaiDPa) AtuaPausas();
+        FimdePausa(tipo);
       }
     }
   }
