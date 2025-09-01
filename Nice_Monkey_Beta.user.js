@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.5.6
+// @version      3.3.5.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1632,12 +1632,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     const CValoresEnc = criarCaixaSeg();
     const tValoresEnc = criarTitulo("Valores Encontrados");
     const C2ValoresEnc = criarCaixaSeg();
+    C2ValoresEnc.style.alignItems = 'center';
     tValoresEnc.addEventListener("click", function () {
       if (C2ValoresEnc.innerHTML  === "") {
         C2ValoresEnc.innerHTML  = `
-        Disponivel = ${converterParaTempo(Segun.Disponivel)}<br>
-        Trabalhando = ${converterParaTempo(Segun.Trabalhando)}<br>
-        Indisponivel = ${converterParaTempo(Segun.Indisponivel)}
+        <div>Disponivel = ${converterParaTempo(Segun.Disponivel)}</div>
+        <div>Trabalhando = ${converterParaTempo(Segun.Trabalhando)}</div>
+        <div>Indisponivel = ${converterParaTempo(Segun.Indisponivel)}</div>
         `;
       } else {
         C2ValoresEnc.innerHTML  = ""; // Limpa o conteúdo
