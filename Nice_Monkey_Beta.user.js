@@ -2877,20 +2877,21 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function tocarBeep() {
-    const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
-    const oscilador = contextoAudio.createOscillator();
-    const ganho = contextoAudio.createGain();
+  const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+  const oscilador = contextoAudio.createOscillator();
+  const ganho = contextoAudio.createGain();
 
+  oscilador.type = 'sine'; // Tipo de onda
+  oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
+  ganho.gain.setValueAtTime(0.8, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
 
-    oscilador.type = 'sine'; // Tipo de onda: sine, square, triangle, sawtooth
-    oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz (440Hz = nota A)
-    //console.log('Frequencia :', 700);
-    oscilador.connect(ganho);
-    ganho.connect(contextoAudio.destination);
+  oscilador.connect(ganho);
+  ganho.connect(contextoAudio.destination);
 
-    oscilador.start();
-    oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
-  }
+  oscilador.start();
+  oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
+}
+
 
   function RepetirBeep() {
     if (stt.Estouro && CConfig.SomEstouro && !stt.BeepRet) {
