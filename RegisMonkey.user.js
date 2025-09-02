@@ -12,7 +12,7 @@
 // ==/UserScript==
 
 
-(function() {
+(function () {
     'use strict';
 
     var nome = '';
@@ -54,7 +54,7 @@
     }
 
     function adicionarEventos(innerDiv, additionalContent) {
-        innerDiv.addEventListener('click', function() {
+        innerDiv.addEventListener('click', function () {
             if (additionalContent.style.display === 'none') {
                 additionalContent.style.display = 'flex';
             } else {
@@ -82,12 +82,12 @@
 
         adicionarEventos(innerDiv, additionalContent);
 
-                    
+
         var xpath = '/html/body/div[1]/div[5]/div[3]/div/div/nav/ul[1]';
         var tempoInicio = Date.now();
         var tempoLimite = 10000; // 10 segundos
 
-        var intervalo = setInterval(function() {
+        var intervalo = setInterval(function () {
             var resultado = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
             var alvo = resultado.singleNodeValue;
             if (alvo) {
@@ -102,7 +102,7 @@
             }
         }, 500); // Tenta a cada 500 milissegundos
 
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             if (!novoItem.contains(event.target) && !innerDiv.contains(event.target)) {
                 additionalContent.style.display = 'none';
             }
@@ -191,7 +191,7 @@
 
         const linha2 = CriarLinha(2);
 
-        const linha2in = CriarInput(1,'Solicitação');
+        const linha2in = CriarInput(1, 'Solicitação');
         linha2in.value = entrada1;
 
         linha2in.addEventListener('input', () => {
@@ -214,7 +214,7 @@
         contentBox.appendChild(linha3);
 
         const linha4 = CriarLinha(4);
-        const linha4in = CriarInput(1,'Situação');
+        const linha4in = CriarInput(1, 'Situação');
         linha4in.value = entrada2;
         linha4in.addEventListener('input', () => {
             linha4in.style.height = 'auto'; // Reset height
@@ -232,7 +232,7 @@
         contentBox.appendChild(linha5);
 
         const linha6 = CriarLinha(6);
-        const linha6in = CriarInput(1,'Resultado');
+        const linha6in = CriarInput(1, 'Resultado');
         linha6in.value = entrada3;
         linha6in.addEventListener('input', () => {
             linha6in.style.height = 'auto'; // Reset height
@@ -251,7 +251,7 @@
         `;
 
         const botlimpar = CriarBotLimpar();
-        botlimpar.addEventListener('click', function() {
+        botlimpar.addEventListener('click', function () {
             linha1in.value = '';
             linha2in.value = '';
             linha2in.style.height = '25px';
@@ -264,31 +264,31 @@
 
         const copyButton = CriarBotCopiar();
 
-        copyButton.addEventListener('click', function() {
+        copyButton.addEventListener('click', function () {
             var textnome = linha1in.value || linha1in.placeholder;
             var variant1;
-            if(linha4in.value !== ''){
+            if (linha4in.value !== '') {
                 variant1 = linha3T1.textContent + "\n" +
                     linha4in.value + "\n\n";
-            }else{
+            } else {
                 variant1 = '';
             }
             var variant2;
-            if(linha6in.value !== ''){
+            if (linha6in.value !== '') {
                 variant2 = linha5T1.textContent + "\n" +
                     linha6in.value + '.';
-            }else{
+            } else {
                 variant2 = '';
             }
             var textToCopy = linha1T1.textContent + textnome + linha1T2.textContent + "\n" +
                 linha2in.value + "\n\n" +
                 variant1 +
                 variant2
-            ;
+                ;
 
-            navigator.clipboard.writeText(textToCopy).then(function() {
+            navigator.clipboard.writeText(textToCopy).then(function () {
                 console.log('Texto copiado com sucesso.');
-            }, function(err) {
+            }, function (err) {
                 console.error('Erro ao copiar texto: ', err);
             });
 
@@ -301,7 +301,7 @@
         return contentBox;
     }
 
-    function CriarBotCopiar(){
+    function CriarBotCopiar() {
         var a = document.createElement('button');
         a.style.cssText = `
         background-color: rgb(51, 203, 68);
@@ -316,7 +316,7 @@
         return a;
     }
 
-    function CriarBotLimpar(){
+    function CriarBotLimpar() {
         var a = document.createElement('button');
         a.style.cssText = `
         cursor: pointer;
@@ -331,8 +331,8 @@
         return a;
     }
 
-    function CriarInput(textarea,placeholder){
-        var a = textarea ? 'textarea' : 'input' ;
+    function CriarInput(textarea, placeholder) {
+        var a = textarea ? 'textarea' : 'input';
         var b = document.createElement(a);
         b.style.cssText = `
         margin: 0px 5px;
@@ -342,7 +342,7 @@
         text-align: center;
         border-bottom: 2px solid rgb(209, 0, 0);
         `;
-        if(textarea){
+        if (textarea) {
             b.placeholder = placeholder;
             b.style.width = '100%';
             b.style.height = '25px';
@@ -389,17 +389,17 @@
         var TextoTick = document.createElement('p');
         TextoTick.textContent = 'Ticket ';
 
-        botCop5.addEventListener('click', function() {
+        botCop5.addEventListener('click', function () {
             var a = Input5.value || Input5.placeholder;
             var b = TextoTick.textContent + a;
 
-            navigator.clipboard.writeText(b).then(function() {
+            navigator.clipboard.writeText(b).then(function () {
                 console.log('Texto copiado com sucesso.');
-            }, function(err) {
+            }, function (err) {
                 console.error('Erro ao copiar texto: ', err);
             });
         });
-        botlim5.addEventListener('click', function() {
+        botlim5.addEventListener('click', function () {
             Input5.value = '';
         });
 
@@ -441,7 +441,7 @@
         document.body.appendChild(sizer);
 
         // Atualizar largura conforme o texto
-        Input6.addEventListener('input', function() {
+        Input6.addEventListener('input', function () {
             sizer.textContent = Input6.value || Input6.placeholder;
             Input6.style.width = sizer.offsetWidth + 'px';
             Cardhold = Input6.value;
@@ -452,17 +452,17 @@
         sizer.textContent = Input6.placeholder;
         Input6.style.width = sizer.offsetWidth + 'px';
 
-        botCop6.addEventListener('click', function() {
-            var textToCopy = TextoLAss.textContent + Input6.value ;
+        botCop6.addEventListener('click', function () {
+            var textToCopy = TextoLAss.textContent + Input6.value;
 
-            navigator.clipboard.writeText(textToCopy).then(function() {
+            navigator.clipboard.writeText(textToCopy).then(function () {
                 console.log('Texto copiado com sucesso.');
-            }, function(err) {
+            }, function (err) {
                 console.error('Erro ao copiar texto: ', err);
             });
         });
 
-        botlim6.addEventListener('click', function() {
+        botlim6.addEventListener('click', function () {
             Input6.value = '';
             sizer.textContent = Input6.placeholder;
             Input6.style.width = sizer.offsetWidth + 'px';
@@ -491,7 +491,7 @@
         Input7.placeholder = 'ALMAVIVA.XXXXXXX-0300-MCZ';
         Input7.value = Assinatura;
 
-        Input7.addEventListener('input', function() {
+        Input7.addEventListener('input', function () {
             sizer.textContent = Input7.value || Input7.placeholder;
             Input7.style.width = sizer.offsetWidth + 'px';
             Assinatura = Input7.value;
@@ -503,17 +503,17 @@
         Input7.style.width = sizer.offsetWidth + 'px';
 
 
-        botCop7.addEventListener('click', function() {
-            var textToCopy = Input7.value ;
+        botCop7.addEventListener('click', function () {
+            var textToCopy = Input7.value;
 
-            navigator.clipboard.writeText(textToCopy).then(function() {
+            navigator.clipboard.writeText(textToCopy).then(function () {
                 console.log('Texto copiado com sucesso.');
-            }, function(err) {
+            }, function (err) {
                 console.error('Erro ao copiar texto: ', err);
             });
         });
 
-        botlim7.addEventListener('click', function() {
+        botlim7.addEventListener('click', function () {
             Input7.value = '';
             sizer.textContent = Input7.placeholder;
             Input7.style.width = sizer.offsetWidth + 'px';
