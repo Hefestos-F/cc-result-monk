@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      3.5.0.6
+// @version      3.5.0.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -816,13 +816,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         : stt.ErroAtu || x
           ? 'Atualize !!'
           : TMA; // Arredonda para o valor inteiro mais próximo
-      cTMA.style.background =
+      cTMA2.style.background =
         (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) || stt.Busc5s
           ? Ccor.MetaTMA
           : "";
-      cTMA.style.borderRadius = "5px";
-      cTMA.style.padding = " 0px 4px";
-      cTMA.style.margin = "0px -4px";
+      cTMA2.style.borderRadius = "5px";
+      cTMA2.style.padding = " 0px 4px";
+      cTMA2.style.margin = "0px -4px";
     }
   }
 
