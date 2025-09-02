@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      3.5.0
+// @version      3.5.1S
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -791,6 +791,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         // adicionar após a quarta div
         const tma = criarCaixaDCv("c", "TMA");
         divs[2].insertAdjacentElement("afterend", tma);
+        AtualizarTMA(0);
       }
 
       if (!cTMA && divs.length >= 3) {
