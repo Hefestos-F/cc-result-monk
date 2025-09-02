@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      3.5.0.5
+// @version      3.5.0.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -272,7 +272,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     caixa.id = `${n}${titulo}`;
     caixa.innerHTML = `
         <div id="t${titulo}">${titulo}:</div>
-        <div id="v${titulo}">${a}</div>
+        <div id="v${titulo}">...</div>
         `;
         
     return caixa;
@@ -776,7 +776,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function AtualizarTMA(x) {
-    const tTMA = document.getElementById("tTMA");
     const cTMA = document.getElementById("cTMA");
     const SepCVal2 = document.getElementById("SepCVal2");
     const contValores = document.getElementById("contValores");
@@ -805,10 +804,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       }
     }
 
-    if (cTMA) {
+    const cTMA2 = document.getElementById("cTMA");
+    if (cTMA2) {
+      const tTMA = document.getElementById("tTMA");
+      const vTMA = document.getElementById("vTMA");
       let TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
-      let vTMA = document.getElementById("vTMA");
       tTMA.innerHTML = stt.Busc5s ? 'Busca' : 'TMA:';
       vTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
