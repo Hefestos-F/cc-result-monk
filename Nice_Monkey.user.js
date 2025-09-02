@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      3.5.3
+// @version      3.5.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -775,7 +775,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     const cTMA = document.getElementById("cTMA");
     const SepCVal2 = document.getElementById("SepCVal2");
     const contValores = document.getElementById("contValores");
-    let a = 0;
 
     if (CConfig.IgnorarTMA && !stt.Busc5s) {
       if (cTMA) {
@@ -799,10 +798,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         const sep = criarSeparadorCV(2);
         divs[2].insertAdjacentElement("afterend", sep);
       }
-      a = 1;
     }
+    const cTMA2 = document.getElementById("cTMA");
 
-    if (cTMA || a) {
+    if (cTMA2) {
       var TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
       var vTMA = document.getElementById("vTMA");
