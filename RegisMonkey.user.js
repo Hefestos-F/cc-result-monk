@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RegisMonkey
 // @namespace    http://tampermonkey.net/
-// @version      4
+// @version      6
 // @description  try to take over the world!
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
@@ -82,7 +82,8 @@
 
         adicionarEventos(innerDiv, additionalContent);
 
-        var xpath = "/html/body/div[1]/div[8]/div[3]/div/div/nav/ul[1]";
+                    
+        var xpath = '/html/body/div[1]/div[5]/div[3]/div/div/nav/ul[1]';
         var tempoInicio = Date.now();
         var tempoLimite = 10000; // 10 segundos
 
@@ -622,7 +623,7 @@
         var urlAtual = window.location.href;
         var partes = urlAtual.split('/');
         var ultimaParte = partes[partes.length - 1];
-        var valorNumerico = ultimaParte.match(/\d+/);
+        var valorNumerico = ultimaParte.match(/\d+/) || '000';
 
         if (valorNumerico) {
             input5.placeholder = valorNumerico;
