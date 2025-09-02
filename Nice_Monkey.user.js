@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      3.5.0.7
+// @version      3.5.0.8
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1832,7 +1832,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     if (zz === 12) {
       Ccor.Config = Ccor.Varian;
       CaixaConfig.style.backgroundColor = Ccor.Config;
-      CaiDPa.style.backgroundColor = Ccor.Config;
+      if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
     }
     if (zz === 14) {
       CConfig.MostraValorOff = CConfig.MostraOff
