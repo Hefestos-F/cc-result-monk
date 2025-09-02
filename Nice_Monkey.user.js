@@ -262,14 +262,19 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function criarCaixaDCv(n, titulo) {
+    let TMAv = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
+      TMAv = Math.floor(TMAv);
+      let a = titulo === 'TMA' ? TMAv : '...';
+
     var caixa = document.createElement("div");
     caixa.classList.add("info-caixa");
     caixa.style.transition = "all 0.5s ease";
     caixa.id = `${n}${titulo}`;
     caixa.innerHTML = `
         <div id="t${titulo}">${titulo}:</div>
-        <div id="v${titulo}">...</div>
+        <div id="v${titulo}">${a}</div>
         `;
+        
     return caixa;
   }
 
@@ -799,12 +804,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         divs[2].insertAdjacentElement("afterend", sep);
       }
     }
-    const cTMA2 = document.getElementById("cTMA");
 
-    if (cTMA2) {
-      var TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
+    if (cTMA) {
+      let TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
-      var vTMA = document.getElementById("vTMA");
+      let vTMA = document.getElementById("vTMA");
       tTMA.innerHTML = stt.Busc5s ? 'Busca' : 'TMA:';
       vTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
