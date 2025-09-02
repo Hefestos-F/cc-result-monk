@@ -2884,7 +2884,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     oscilador.type = 'sine'; // Tipo de onda
     oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
-    ganho.gain.setValueAtTime(0.8, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
+    ganho.gain.setValueAtTime(0.6, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
 
     oscilador.connect(ganho);
     ganho.connect(contextoAudio.destination);
