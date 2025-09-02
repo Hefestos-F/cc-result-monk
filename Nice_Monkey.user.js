@@ -262,9 +262,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function criarCaixaDCv(n, titulo) {
-    let TMAv = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
-      TMAv = Math.floor(TMAv);
-      let a = titulo === 'TMA' ? TMAv : '...';
 
     var caixa = document.createElement("div");
     caixa.classList.add("info-caixa");
