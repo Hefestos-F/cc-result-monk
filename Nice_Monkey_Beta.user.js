@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.3
+// @version      3.3.6.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -262,6 +262,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function criarCaixaDCv(n, titulo) {
+
     var caixa = document.createElement("div");
     caixa.classList.add("info-caixa");
     caixa.style.transition = "all 0.5s ease";
@@ -270,6 +271,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         <div id="t${titulo}">${titulo}:</div>
         <div id="v${titulo}">...</div>
         `;
+        
     return caixa;
   }
 
@@ -771,7 +773,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function AtualizarTMA(x) {
-    const tTMA = document.getElementById("tTMA");
     const cTMA = document.getElementById("cTMA");
     const SepCVal2 = document.getElementById("SepCVal2");
     const contValores = document.getElementById("contValores");
@@ -800,23 +801,25 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       }
     }
 
-    if (cTMA) {
-      var TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
+    const cTMA2 = document.getElementById("cTMA");
+    if (cTMA2) {
+      const tTMA = document.getElementById("tTMA");
+      const vTMA = document.getElementById("vTMA");
+      let TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
-      var vTMA = document.getElementById("vTMA");
       tTMA.innerHTML = stt.Busc5s ? 'Busca' : 'TMA:';
       vTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
         : stt.ErroAtu || x
           ? 'Atualize !!'
           : TMA; // Arredonda para o valor inteiro mais próximo
-      cTMA.style.background =
+      cTMA2.style.background =
         (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) || stt.Busc5s
           ? Ccor.MetaTMA
           : "";
-      cTMA.style.borderRadius = "5px";
-      cTMA.style.padding = " 0px 4px";
-      cTMA.style.margin = "0px -4px";
+      cTMA2.style.borderRadius = "5px";
+      cTMA2.style.padding = " 0px 4px";
+      cTMA2.style.margin = "0px -4px";
     }
   }
 
@@ -1829,7 +1832,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     if (zz === 12) {
       Ccor.Config = Ccor.Varian;
       CaixaConfig.style.backgroundColor = Ccor.Config;
-      CaiDPa.style.backgroundColor = Ccor.Config;
+      if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
     }
     if (zz === 14) {
       CConfig.MostraValorOff = CConfig.MostraOff
@@ -2884,7 +2887,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     oscilador.type = 'sine'; // Tipo de onda
     oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
-    ganho.gain.setValueAtTime(0.8, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
+    ganho.gain.setValueAtTime(0.6, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
 
     oscilador.connect(ganho);
     ganho.connect(contextoAudio.destination);
@@ -2906,4 +2909,5 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
   // Your code here...
 })();
+
 
