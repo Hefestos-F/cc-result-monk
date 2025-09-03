@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.6
+// @version      3.3.6.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -155,6 +155,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
   RecuperarTVariaveis();
 
+  addAoini();
   const LugarJS = {
     elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
     elementoReferencia2:
@@ -182,15 +183,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   };
 
 
-  function ObservarItem(seletorAlvo, quandoEncontrar, quandoNaoEncontrar) {
+  function ObservarItem(seletorAlvo, quandoEncontrar) {
   const observer = new MutationObserver(() => {
     const elemento = document.querySelector(seletorAlvo);
 
     if (elemento) {
       quandoEncontrar();
-      //observer.disconnect(); // Para a observação após encontrar
-    } else {
-      quandoNaoEncontrar();
+      observer.disconnect(); // Para a observação após encontrar
     }
   });
 
@@ -198,6 +197,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 }
 
 // Uso:
+function addAoini(){
 ObservarItem(LugarJS.abaRelatorio, () => {
   if (!document.getElementById("minhaCaixa") &&
       document.querySelector(LugarJS.elementoReferencia) &&
@@ -212,6 +212,7 @@ ObservarItem(LugarJS.abaRelatorio, () => {
 }, () => {
   // Lógica opcional para quando o elemento não está presente
 });
+}
 
 
   async function RecuperarTVariaveis() {
@@ -2179,6 +2180,7 @@ ObservarItem(LugarJS.abaRelatorio, () => {
     const CCC = document.getElementById("circuloclickCont");
     if (!CCC && !stt.logout) {
       stt.logout = 1;
+      addAoini();
       FimdePausa(stt.StatusANT);
     }
 
