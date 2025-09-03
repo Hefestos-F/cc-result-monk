@@ -271,7 +271,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         <div id="t${titulo}">${titulo}:</div>
         <div id="v${titulo}">...</div>
         `;
-        
+
     return caixa;
   }
 

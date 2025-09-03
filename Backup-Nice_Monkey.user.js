@@ -860,8 +860,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     QualLogouSegundos = LogueManual
       ? converterParaSegundos(ValorLogueManual)
       : modoSalvo
-      ? LogouSegundosSalvo
-      : LogouSegundos;
+        ? LogouSegundosSalvo
+        : LogouSegundos;
     OfflineSegundos = LogouSegundos - QualLogouSegundos;
 
     var vari2 = modoSalvo || LogueManual ? 1 : 0;
@@ -932,8 +932,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     vFalta.innerHTML = HE
       ? FouHFormatado
       : TempoCumprido
-      ? "Cumprido"
-      : FouHFormatado;
+        ? "Cumprido"
+        : FouHFormatado;
 
     var OfflineSegundosFormatado = converterParaTempo(OfflineSegundos);
     var vOffline = document.getElementById("vOffline");
@@ -972,10 +972,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     textCC1.innerHTML = ErroAtu
       ? "Atualizar!!"
       : Atualizando
-      ? "Atualizando..."
-      : a === 2
-      ? "Atualizado"
-      : "Atualizar";
+        ? "Atualizando..."
+        : a === 2
+          ? "Atualizado"
+          : "Atualizar";
 
     if (a === 1) {
       Atualizando = 1;
@@ -1034,8 +1034,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       circuloclick2.style.width = DentrodCC2
         ? "auto"
         : AbaConfig
-        ? "24px"
-        : "17px";
+          ? "24px"
+          : "17px";
       circuloclick2.style.height = DentrodCC2 || AbaConfig ? "24px" : "17px";
       circuloclick2.style.borderRadius = DentrodCC2 || AbaConfig ? "25px" : "";
       circuloclick2.style.transform =
@@ -1070,8 +1070,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         (DentrodMC && CVAtivo) || AbaPausas
           ? "-5px"
           : !AbaPausas && !AbaConfig
-          ? ""
-          : "20px";
+            ? ""
+            : "20px";
     }
 
     function MostarcontValores(x) {
@@ -2160,8 +2160,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           ? "Fechar"
           : "Pausas"
         : AbaPausas
-        ? "F"
-        : "P";
+          ? "F"
+          : "P";
     }
     return caixa;
   }
