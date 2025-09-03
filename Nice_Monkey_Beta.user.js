@@ -181,6 +181,18 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
   };
 
+  ObservarItem(LugarJS.abaRelatorio, () => {
+    if (!document.getElementById("minhaCaixa") &&
+      document.querySelector(LugarJS.elementoReferencia) &&
+      document.querySelector(LugarJS.elementoReferencia2)) {
+      AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
+      addcirculo(LugarJS.elementoReferencia2);
+      stt.NBT = 1;
+      stt.logout = 0;
+      iniciarBusca();
+    }
+  }, () => { });
+
   function ObservarItem(a, d, c) {
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -201,19 +213,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
     observer.observe(document.body, { childList: true, subtree: true });
   }
-
-
-  ObservarItem(LugarJS.abaRelatorio, () => {
-    if (!document.getElementById("minhaCaixa") &&
-      document.querySelector(LugarJS.elementoReferencia) &&
-      document.querySelector(LugarJS.elementoReferencia2)) {
-      AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
-      addcirculo(LugarJS.elementoReferencia2);
-      stt.NBT = 1;
-      stt.logout = 0;
-      iniciarBusca();
-    }
-  }, () => { });
 
   async function RecuperarTVariaveis() {
     try {
