@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      3.5.0.9
+// @version      3.5.0.10
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -49,7 +49,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Vigia: 1,
     MetaTMA: 1,
     ValorAuto: 10,
-    AutoAtivo: 1,
+    AutoAtivo: 0,
     TolerOff: 40,
     MostraOff: 0,
     IgnorarOff: 0,

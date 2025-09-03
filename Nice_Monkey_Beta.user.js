@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.4
+// @version      3.3.6.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -49,7 +49,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Vigia: 1,
     MetaTMA: 1,
     ValorAuto: 10,
-    AutoAtivo: 1,
+    AutoAtivo: 0,
     TolerOff: 40,
     MostraOff: 0,
     IgnorarOff: 0,
@@ -62,22 +62,22 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   };
 
   const Ccor = {
-    Offline: "#c97123",
-    Atualizando: "#c97123",
+    Offline: "#3a82cf",
+    Atualizando: "#c97123ff",
     Erro: "#992e2e",
-    MetaTMA: "#c97123",
-    Principal: "#4a9985",
+    MetaTMA: "#229b8d",
+    Principal: "#4c95bd",
     Config: "#96a8bb",
     Varian: "",
     TVarian: "",
   };
 
   const PCcor = {
-    Offline: "#c97123",
-    Atualizando: "#c97123",
+    Offline: "#3a82cf",
+    Atualizando: "#c97123ff",
     Erro: "#992e2e",
-    MetaTMA: "#c97123",
-    Principal: "#4a9985",
+    MetaTMA: "#229b8d",
+    Principal: "#4c95bd",
     Config: "#96a8bb",
     Varian: "",
     TVarian: "",
@@ -181,37 +181,39 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
   };
 
+  function ObservarItem(a,d,c) {
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      // Sua lógica para lidar com mudanças no DOM
+      const b = document.querySelector(a);
 
-  var maxAttempts = 9000; // Tentativas máximas (10 segundos / 100ms por tentativa)
-  var attempts = 0;
-  var interval = setInterval(function () {
-    var elementoReferencia = document.querySelector(LugarJS.elementoReferencia);
-    var elementoReferencia2 = document.querySelector(
-      LugarJS.elementoReferencia2
-    );
+      if (b) {
+        d();
+        /*const NomeDIt = Object.keys(LugarJS).filter(
+          (chave) => LugarJS[chave] === a);
+  console.log(`NiceMonk -- ${NomeDIt} detectado pelo MutationObserver.`);
+        observer.disconnect();*/
+      }else{
+        c();
+      };
+    });
+  });
 
-    if (
-      elementoReferencia &&
-      elementoReferencia2 &&
-      document.querySelector(LugarJS.abaRelatorio) &&
-      document.querySelector(LugarJS.Status)
-    ) {
-      clearInterval(interval);
-      AdicionarCaixaAtualizada(elementoReferencia);
-      addcirculo(elementoReferencia2);
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+
+ObservarItem(LugarJS.abaRelatorio,() => {
+  if (!document.getElementById("minhaCaixa") &&
+    document.querySelector(LugarJS.elementoReferencia) &&
+  document.querySelector(LugarJS.elementoReferencia2)) {
+    AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
+      addcirculo(LugarJS.elementoReferencia2);
       stt.NBT = 1;
+      stt.logout = 0;
       iniciarBusca();
-    } else {
-      attempts++;
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        seExiste(LugarJS.elementoReferencia);
-        seExiste(LugarJS.elementoReferencia2);
-        seExiste(LugarJS.abaRelatorio);
-        seExiste(LugarJS.Status);
-      }
-    }
-  }, 100); // Tenta a cada 100ms
+  }
+},()=>{});
 
   async function RecuperarTVariaveis() {
     try {
@@ -871,7 +873,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     if (stt.NBT) {
       stt.NBT = 0;
       verificarESalvar(0);
-      setInterval(VerificacoesN1, 1000);
+      let = porseg = setInterval(()=>{
+        VerificacoesN1();
+        if(stt.logout){
+          clearInterval(porseg);
+        }
+      }, 1000);
     }
   }
 
