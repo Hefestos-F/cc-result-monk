@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.5
+// @version      3.3.6.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -181,38 +181,38 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
   };
 
-  ObservarItem(LugarJS.abaRelatorio, () => {
-    if (!document.getElementById("minhaCaixa") &&
+
+  function ObservarItem(seletorAlvo, quandoEncontrar, quandoNaoEncontrar) {
+  const observer = new MutationObserver(() => {
+    const elemento = document.querySelector(seletorAlvo);
+
+    if (elemento) {
+      quandoEncontrar();
+      //observer.disconnect(); // Para a observação após encontrar
+    } else {
+      quandoNaoEncontrar();
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Uso:
+ObservarItem(LugarJS.abaRelatorio, () => {
+  if (!document.getElementById("minhaCaixa") &&
       document.querySelector(LugarJS.elementoReferencia) &&
       document.querySelector(LugarJS.elementoReferencia2)) {
-      AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
-      addcirculo(LugarJS.elementoReferencia2);
-      stt.NBT = 1;
-      stt.logout = 0;
-      iniciarBusca();
-    }
-  }, () => { });
 
-  function ObservarItem(a, d, c) {
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        // Sua lógica para lidar com mudanças no DOM
-        const b = document.querySelector(a);
-
-        if (b) {
-          d();
-          /*const NomeDIt = Object.keys(LugarJS).filter(
-            (chave) => LugarJS[chave] === a);
-    console.log(`NiceMonk -- ${NomeDIt} detectado pelo MutationObserver.`);
-          observer.disconnect();*/
-        } else {
-          c();
-        };
-      });
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
+    AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
+    addcirculo(LugarJS.elementoReferencia2);
+    stt.NBT = 1;
+    stt.logout = 0;
+    iniciarBusca();
   }
+}, () => {
+  // Lógica opcional para quando o elemento não está presente
+});
+
 
   async function RecuperarTVariaveis() {
     try {
