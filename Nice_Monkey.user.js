@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    http://tampermonkey.net/
-// @version      3.5.0.8
+// @version      3.5.0.9
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -62,22 +62,22 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   };
 
   const Ccor = {
-    Offline: "#c97123",
-    Atualizando: "#c97123",
+    Offline: "#3a82cf",
+    Atualizando: "#c97123ff",
     Erro: "#992e2e",
-    MetaTMA: "#c97123",
-    Principal: "#4a9985",
+    MetaTMA: "#229b8d",
+    Principal: "#4c95bd",
     Config: "#96a8bb",
     Varian: "",
     TVarian: "",
   };
 
   const PCcor = {
-    Offline: "#c97123",
-    Atualizando: "#c97123",
+    Offline: "#3a82cf",
+    Atualizando: "#c97123ff",
     Erro: "#992e2e",
-    MetaTMA: "#c97123",
-    Principal: "#4a9985",
+    MetaTMA: "#229b8d",
+    Principal: "#4c95bd",
     Config: "#96a8bb",
     Varian: "",
     TVarian: "",
