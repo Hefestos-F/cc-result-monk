@@ -1,70 +1,45 @@
 
 
-let a = 880;
+const LugarJS = {
+    elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
+    elementoReferencia2:
+      "#cx1_agent_root > main > div > main > header > header > div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-6.MuiGrid-grid-sm-12.MuiGrid-grid-md-12.MuiGrid-grid-lg-6.css-1govgzr > div",
+    Status: "#agent-state-section > div > span > div > div",
 
-function tocarBeep(a) {
-      const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
-      const oscilador = contextoAudio.createOscillator();
-      const ganho = contextoAudio.createGain();
+    abaRelatorio:
+      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-0 > nav > div > div:nth-child(8) > div > div",
+    abaProdutividade:
+      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > section > div > div > div > button:nth-child(1)",
+    abaDesempenho:
+      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > section > div > div > div > button:nth-child(2)",
+    abaHoje:
+      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1hcj1s8 > div > button.MuiButtonBase-root.MuiToggleButton-root.MuiToggleButton-sizeMedium.MuiToggleButton-standard.css-w4b7gv",
 
-      
-      oscilador.type = 'sine'; // Tipo de onda: sine, square, triangle, sawtooth
-      oscilador.frequency.setValueAtTime(a, contextoAudio.currentTime); // Frequência em Hz (440Hz = nota A)
-      console.log('Frequencia :',a);
-      oscilador.connect(ganho);
-      ganho.connect(contextoAudio.destination);
+    lContAtual: "#agent-state-section > div > span > div > div > span > span",
+    lAtendidas:
+      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-3b491n > div > div > table > tbody > tr:nth-child(1) > td:nth-child(2) > span",
+    lDisponibilidade:
+      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(1) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
+    ltrabalhando:
+      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(2) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
+    lIndisponivel:
+      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
+};
 
-      oscilador.start();
-      oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
+function ObservarItem(x){
+  const observer = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    // Sua lógica para lidar com mudanças no DOM
+    if (x) {
+        console.log('Teste -- Aba Reslatorio detectado pelo MutationObserver.');
+      // Execute sua lógica aqui
+      //console.log('Teste -- Elemento detectado pelo MutationObserver.');
+    observer.disconnect();
     }
-    tocarBeep(700);
+  });
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
+}
 
 
-
-    
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function beep(frequency, duration, volume = 100) {
-      return new Promise((resolve) => {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.type = 'sine';
-        oscillator.frequency.value = frequency;
-        gainNode.gain.value = volume / 100;
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + duration / 1000);
-
-        oscillator.onended = resolve;
-      });
-    }
-
-    async function tocarDingDong() {
-      await beep(880, 300); // Ding (nota aguda)
-      await beep(660, 300); // Dong (nota grave)
-    }
-
-
-
-
-        const listaTemposDescanso = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00'];
-        const listaTemposLanche = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '24:00', '24:30', '25:00'];
- 
-        function tocarSom() {
-        var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        var oscilador = audioContext.createOscillator();
-        oscilador.type = 'sine'; // Tipo de onda: 'sine', 'square', 'sawtooth', 'triangle'
-        oscilador.frequency.setValueAtTime(440, audioContext.currentTime); // Frequência em Hz (440 Hz = nota Lá)
-        var gainNode = audioContext.createGain();
-        gainNode.gain.setValueAtTime(0.05, audioContext.currentTime); // Define o volume (0.05 = 10% do volume máximo)
-        oscilador.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscilador.start();
-        setTimeout(function() {
-            oscilador.stop();
-        }, 3000);
-    }
