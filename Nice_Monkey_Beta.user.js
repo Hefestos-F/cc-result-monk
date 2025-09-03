@@ -209,8 +209,6 @@ ObservarItem(LugarJS.abaRelatorio, () => {
     stt.logout = 0;
     iniciarBusca();
   }
-}, () => {
-  // Lógica opcional para quando o elemento não está presente
 });
 }
 
