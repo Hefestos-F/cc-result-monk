@@ -154,8 +154,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   const StoreBD = "NiceMonk";
 
   RecuperarTVariaveis();
-
-  addAoini();
+  
   const LugarJS = {
     elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
     elementoReferencia2:
@@ -182,6 +181,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
   };
 
+  addAoini();
 
   function ObservarItem(seletorAlvo, quandoEncontrar) {
   const observer = new MutationObserver(() => {
