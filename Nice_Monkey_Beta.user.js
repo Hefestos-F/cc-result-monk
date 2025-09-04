@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.11
+// @version      3.3.6.12
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -200,12 +200,13 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     function addAoini() {
         console.log(`Teste -- observer Iniciado`);
         ObservarItem(() => {
-            if (document.querySelector(LugarJS.elementoReferencia) &&
-                document.querySelector(LugarJS.elementoReferencia2) &&
+          let a = document.querySelector(LugarJS.elementoReferencia);
+          let b = document.querySelector(LugarJS.elementoReferencia2);
+            if (a && b &&
                 !document.getElementById("minhaCaixa") &&
                 !document.getElementById("circuloclickCont")) {
-                AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
-                addcirculo(LugarJS.elementoReferencia2);
+                AdicionarCaixaAtualizada(a);
+                addcirculo(b);
                 stt.NBT = 1;
                 stt.observ = 0;
                 stt.logout = 0;
