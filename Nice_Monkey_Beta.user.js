@@ -184,45 +184,38 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
   addAoini();
 
-  function ObservarItem(quandoEncontrar) {
-    const observer = new MutationObserver(() => {
-        quandoEncontrar();
-        /*if(!stt.observ){
-        observer.disconnect();
-        }*/
-    });
+    function ObservarItem(quandoEncontrar) {
+        const observer = new MutationObserver(() => {
+            quandoEncontrar();
+            if (!stt.observ) {
+                observer.disconnect();
+                console.log(`Teste -- observer Desconectado`);
+            }
 
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
+        });
 
-  // Uso:
-  function addAoini() {
-    ObservarItem(() => {
-      if (!document.getElementById("minhaCaixa")){
-console.log(`Teste -- minhaCaixa Falso`);
-      } else {
-        console.log(`Teste -- minhaCaixa Verdadeiro`);
-      }
-      if(document.querySelector(LugarJS.elementoReferencia)){
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
 
-      console.log(`Teste -- elementoReferencia Verdadeiro`);
-      } else {
-        console.log(`Teste -- elementoReferencia Falso`);
-      }
-      if(document.querySelector(LugarJS.elementoReferencia2)) {
-
-        //AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
-        //addcirculo(LugarJS.elementoReferencia2);
-        //stt.NBT = 1;
-        //stt.observ = 0;
-        //stt.logout = 0;
-        //iniciarBusca();
-      console.log(`Teste -- elementoReferencia2 Verdadeiro`);
-      } else {
-        console.log(`Teste -- elementoReferencia2 Falso`);
-      }
-    });
-  }
+    function addAoini() {
+        console.log(`Teste -- observer Iniciado`);
+        ObservarItem(() => {
+            if (document.querySelector(LugarJS.elementoReferencia) &&
+                document.querySelector(LugarJS.elementoReferencia2) &&
+                !document.getElementById("minhaCaixa") &&
+                !document.getElementById("circuloclickCont")) {
+                AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
+                addcirculo(LugarJS.elementoReferencia2);
+                stt.NBT = 1;
+                stt.observ = 0;
+                stt.logout = 0;
+                iniciarBusca();
+                console.log(`Teste -- verificação Verdadeiro`);
+            } else {
+                console.log(`Teste -- verificação Falso`);
+            }
+        });
+    }
 
 
   async function RecuperarTVariaveis() {
