@@ -154,8 +154,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   const nomeBD = "MeuBDNiceMonk";
   const StoreBD = "NiceMonk";
 
-  RecuperarTVariaveis();
-
   const LugarJS = {
     elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
     elementoReferencia2:
@@ -183,6 +181,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   };
 
   addAoini();
+  RecuperarTVariaveis();
 
   function ObservarItem(quandoEncontrar) {
     const observer = new MutationObserver(() => {
@@ -191,7 +190,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         observer.disconnect();
         console.log(`Teste -- observer Desconectado`);
       }
-
     });
 
     observer.observe(document.body, { childList: true, subtree: true });

@@ -54,31 +54,31 @@
                 observer.disconnect();
                 console.log(`Teste -- observer Desconectado`);
             }
-
         });
 
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
     function addAoini() {
-        console.log(`Teste -- observer Iniciado`);
-        ObservarItem(() => {
-            if (document.querySelector(LugarJS.elementoReferencia) &&
-                document.querySelector(LugarJS.elementoReferencia2) &&
-                !document.getElementById("minhaCaixa") &&
-                !document.getElementById("circuloclickCont")) {
-                //AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
-                //addcirculo(LugarJS.elementoReferencia2);
-                //stt.NBT = 1;
-                stt.observ = 0;
-                //stt.logout = 0;
-                //iniciarBusca();
-                console.log(`Teste -- verificação Verdadeiro`);
-            } else {
-                console.log(`Teste -- verificação Falso`);
-            }
-        });
-    }
+    console.log(`Teste -- observer Iniciado`);
+    ObservarItem(() => {
+      let a = document.querySelector(LugarJS.elementoReferencia);
+      let b = document.querySelector(LugarJS.elementoReferencia2);
+      if (a && b &&
+        !document.getElementById("minhaCaixa") &&
+        !document.getElementById("circuloclickCont")) {
+        //AdicionarCaixaAtualizada(a);
+        //addcirculo(b);
+        //stt.NBT = 1;
+        stt.observ = 0;
+        //stt.logout = 0;
+        //iniciarBusca();
+        console.log(`Teste -- verificação Verdadeiro`);
+      } else {
+        console.log(`Teste -- verificação Falso`);
+      }
+    });
+  }
 
 
 })();
