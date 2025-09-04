@@ -12,11 +12,6 @@
 
 // ==/UserScript==
 
-/*O código a seguir realiza o cálculo e a exibição dos valores com base nas informações da aba relatório.
-Se você passar por períodos deslogado, os valores podem ficar incorretos, pois o seu tempo logado foi impactado.
-Os cálculos são sempre atualizados ao clicar no ícone quadrado no cabeçalho do nice.
-Interagir com o nice durante a busca pode resultar em erro, e será necessário realizar uma nova busca.*/
-
 (function () {
   "use strict";
 
