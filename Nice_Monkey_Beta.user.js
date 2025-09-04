@@ -202,19 +202,28 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   // Uso:
   function addAoini() {
     ObservarItem(LugarJS.abaRelatorio, () => {
-      if (!document.getElementById("minhaCaixa") &&
-        document.querySelector(LugarJS.elementoReferencia) &&
-        document.querySelector(LugarJS.elementoReferencia2)) {
-
-        AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
-        addcirculo(LugarJS.elementoReferencia2);
-        stt.NBT = 1;
-        stt.observ = 0;
-        stt.logout = 0;
-        iniciarBusca();
-      console.log(`Teste -- Verdadeiro`);
+      if (!document.getElementById("minhaCaixa")){
+console.log(`Teste -- minhaCaixa Falso`);
       } else {
-        console.log(`Teste -- Falso`);
+        console.log(`Teste -- minhaCaixa Verdadeiro`);
+      }
+      if(document.querySelector(LugarJS.elementoReferencia)){
+
+      console.log(`Teste -- elementoReferencia Verdadeiro`);
+      } else {
+        console.log(`Teste -- elementoReferencia Falso`);
+      }
+      if(document.querySelector(LugarJS.elementoReferencia2)) {
+
+        //AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
+        //addcirculo(LugarJS.elementoReferencia2);
+        //stt.NBT = 1;
+        //stt.observ = 0;
+        //stt.logout = 0;
+        //iniciarBusca();
+      console.log(`Teste -- elementoReferencia2 Verdadeiro`);
+      } else {
+        console.log(`Teste -- elementoReferencia2 Falso`);
       }
     });
   }
