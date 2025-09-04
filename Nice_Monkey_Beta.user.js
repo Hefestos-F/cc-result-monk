@@ -181,6 +181,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   };
 
   addAoini();
+
   RecuperarTVariaveis();
 
   function ObservarItem(quandoEncontrar) {
@@ -200,9 +201,11 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     ObservarItem(() => {
       let a = document.querySelector(LugarJS.elementoReferencia);
       let b = document.querySelector(LugarJS.elementoReferencia2);
-      if (a && b &&
+      if (
+        a && b &&
         !document.getElementById("minhaCaixa") &&
-        !document.getElementById("circuloclickCont")) {
+        !document.getElementById("circuloclickCont")
+      ) {
         AdicionarCaixaAtualizada(a);
         addcirculo(b);
         stt.NBT = 1;
@@ -215,7 +218,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       }
     });
   }
-
 
   async function RecuperarTVariaveis() {
     try {
