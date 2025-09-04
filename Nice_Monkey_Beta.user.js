@@ -129,7 +129,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     intervaloBeep: 1,
     BeepRet: 0,
     logout: 0,
-    observ : 1
+    observ: 1
   };
 
   const BGround = {
@@ -184,39 +184,39 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
   addAoini();
 
-    function ObservarItem(quandoEncontrar) {
-        const observer = new MutationObserver(() => {
-            quandoEncontrar();
-            if (!stt.observ) {
-                observer.disconnect();
-                console.log(`Teste -- observer Desconectado`);
-            }
+  function ObservarItem(quandoEncontrar) {
+    const observer = new MutationObserver(() => {
+      quandoEncontrar();
+      if (!stt.observ) {
+        observer.disconnect();
+        console.log(`Teste -- observer Desconectado`);
+      }
 
-        });
+    });
 
-        observer.observe(document.body, { childList: true, subtree: true });
-    }
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
 
-    function addAoini() {
-        console.log(`Teste -- observer Iniciado`);
-        ObservarItem(() => {
-          let a = document.querySelector(LugarJS.elementoReferencia);
-          let b = document.querySelector(LugarJS.elementoReferencia2);
-            if (a && b &&
-                !document.getElementById("minhaCaixa") &&
-                !document.getElementById("circuloclickCont")) {
-                AdicionarCaixaAtualizada(a);
-                addcirculo(b);
-                stt.NBT = 1;
-                stt.observ = 0;
-                stt.logout = 0;
-                iniciarBusca();
-                console.log(`Teste -- verificação Verdadeiro`);
-            } else {
-                console.log(`Teste -- verificação Falso`);
-            }
-        });
-    }
+  function addAoini() {
+    console.log(`Teste -- observer Iniciado`);
+    ObservarItem(() => {
+      let a = document.querySelector(LugarJS.elementoReferencia);
+      let b = document.querySelector(LugarJS.elementoReferencia2);
+      if (a && b &&
+        !document.getElementById("minhaCaixa") &&
+        !document.getElementById("circuloclickCont")) {
+        AdicionarCaixaAtualizada(a);
+        addcirculo(b);
+        stt.NBT = 1;
+        stt.observ = 0;
+        stt.logout = 0;
+        iniciarBusca();
+        console.log(`Teste -- verificação Verdadeiro`);
+      } else {
+        console.log(`Teste -- verificação Falso`);
+      }
+    });
+  }
 
 
   async function RecuperarTVariaveis() {
