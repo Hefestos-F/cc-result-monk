@@ -184,16 +184,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
   addAoini();
 
-  function ObservarItem(seletorAlvo, quandoEncontrar) {
+  function ObservarItem(quandoEncontrar) {
     const observer = new MutationObserver(() => {
-      const elemento = document.querySelector(seletorAlvo);
-
-      if (elemento) {
         quandoEncontrar();
-        if(!stt.observ){
+        /*if(!stt.observ){
         observer.disconnect();
-        }
-      }
+        }*/
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
@@ -201,7 +197,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
 
   // Uso:
   function addAoini() {
-    ObservarItem(LugarJS.abaRelatorio, () => {
+    ObservarItem(() => {
       if (!document.getElementById("minhaCaixa")){
 console.log(`Teste -- minhaCaixa Falso`);
       } else {

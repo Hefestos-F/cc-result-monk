@@ -15,6 +15,8 @@
 
 (function () {
   "use strict";
+
+  
   const LugarJS = {
     elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
     elementoReferencia2:
@@ -43,14 +45,12 @@
 
   addAoini();
 
-  function ObservarItem(seletorAlvo, quandoEncontrar) {
+  function ObservarItem(quandoEncontrar) {
     const observer = new MutationObserver(() => {
-      const elemento = document.querySelector(seletorAlvo);
-
-      if (elemento) {
         quandoEncontrar();
-        observer.disconnect(); // Para a observação após encontrar
-      }
+        /*if(!stt.observ){
+        observer.disconnect();
+        }*/
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
@@ -58,23 +58,33 @@
 
   // Uso:
   function addAoini() {
-    ObservarItem(LugarJS.abaRelatorio, () => {
-      if (!document.getElementById("minhaCaixa") &&
-        document.querySelector(LugarJS.elementoReferencia) &&
-        document.querySelector(LugarJS.elementoReferencia2)) {
+    ObservarItem(() => {
+      if (!document.getElementById("minhaCaixa")){
+console.log(`Teste -- minhaCaixa Falso`);
+      } else {
+        console.log(`Teste -- minhaCaixa Verdadeiro`);
+      }
+      if(document.querySelector(LugarJS.elementoReferencia)){
+
+      console.log(`Teste -- elementoReferencia Verdadeiro`);
+      } else {
+        console.log(`Teste -- elementoReferencia Falso`);
+      }
+      if(document.querySelector(LugarJS.elementoReferencia2)) {
 
         //AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
-        // addcirculo(LugarJS.elementoReferencia2);
-        //  stt.NBT = 1;
-        // stt.logout = 0;
-        // iniciarBusca();
-        
-        console.log(`Teste -- Verdadeiro`);
+        //addcirculo(LugarJS.elementoReferencia2);
+        //stt.NBT = 1;
+        //stt.observ = 0;
+        //stt.logout = 0;
+        //iniciarBusca();
+      console.log(`Teste -- elementoReferencia2 Verdadeiro`);
       } else {
-        console.log(`Teste -- Falso`);
+        console.log(`Teste -- elementoReferencia2 Falso`);
       }
     });
   }
+
 
 })();
 
