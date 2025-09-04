@@ -60,25 +60,25 @@
     }
 
     function addAoini() {
-    console.log(`Teste -- observer Iniciado`);
-    ObservarItem(() => {
-      let a = document.querySelector(LugarJS.elementoReferencia);
-      let b = document.querySelector(LugarJS.elementoReferencia2);
-      if (a && b &&
-        !document.getElementById("minhaCaixa") &&
-        !document.getElementById("circuloclickCont")) {
-        //AdicionarCaixaAtualizada(a);
-        //addcirculo(b);
-        //stt.NBT = 1;
-        stt.observ = 0;
-        //stt.logout = 0;
-        //iniciarBusca();
-        console.log(`Teste -- verificação Verdadeiro`);
-      } else {
-        console.log(`Teste -- verificação Falso`);
-      }
-    });
-  }
+        console.log(`Teste -- observer Iniciado`);
+        ObservarItem(() => {
+            let a = document.querySelector(LugarJS.elementoReferencia);
+            let b = document.querySelector(LugarJS.elementoReferencia2);
+            if (a && b &&
+                !document.getElementById("minhaCaixa") &&
+                !document.getElementById("circuloclickCont")) {
+                //AdicionarCaixaAtualizada(a);
+                //addcirculo(b);
+                //stt.NBT = 1;
+                stt.observ = 0;
+                //stt.logout = 0;
+                //iniciarBusca();
+                console.log(`Teste -- verificação Verdadeiro`);
+            } else {
+                console.log(`Teste -- verificação Falso`);
+            }
+        });
+    }
 
 
 })();
