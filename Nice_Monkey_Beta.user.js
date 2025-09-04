@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.7
+// @version      3.3.6.8
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -128,7 +128,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Estour1: 0,
     intervaloBeep: 1,
     BeepRet: 0,
-    logout: 0
+    logout: 0,
+    observ : 1
   };
 
   const BGround = {
@@ -154,7 +155,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   const StoreBD = "NiceMonk";
 
   RecuperarTVariaveis();
-  
+
   const LugarJS = {
     elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
     elementoReferencia2:
@@ -184,33 +185,36 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   addAoini();
 
   function ObservarItem(seletorAlvo, quandoEncontrar) {
-  const observer = new MutationObserver(() => {
-    const elemento = document.querySelector(seletorAlvo);
+    const observer = new MutationObserver(() => {
+      const elemento = document.querySelector(seletorAlvo);
 
-    if (elemento) {
-      quandoEncontrar();
-      observer.disconnect(); // Para a observação após encontrar
-    }
-  });
+      if (elemento) {
+        quandoEncontrar();
+        if(!stt.observ){
+        observer.disconnect();
+        }
+      }
+    });
 
-  observer.observe(document.body, { childList: true, subtree: true });
-}
-
-// Uso:
-function addAoini(){
-ObservarItem(LugarJS.abaRelatorio, () => {
-  if (!document.getElementById("minhaCaixa") &&
-      document.querySelector(LugarJS.elementoReferencia) &&
-      document.querySelector(LugarJS.elementoReferencia2)) {
-
-    AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
-    addcirculo(LugarJS.elementoReferencia2);
-    stt.NBT = 1;
-    stt.logout = 0;
-    iniciarBusca();
+    observer.observe(document.body, { childList: true, subtree: true });
   }
-});
-}
+
+  // Uso:
+  function addAoini() {
+    ObservarItem(LugarJS.abaRelatorio, () => {
+      if (!document.getElementById("minhaCaixa") &&
+        document.querySelector(LugarJS.elementoReferencia) &&
+        document.querySelector(LugarJS.elementoReferencia2)) {
+
+        AdicionarCaixaAtualizada(LugarJS.elementoReferencia);
+        addcirculo(LugarJS.elementoReferencia2);
+        stt.NBT = 1;
+        stt.observ = 0;
+        stt.logout = 0;
+        iniciarBusca();
+      }
+    });
+  }
 
 
   async function RecuperarTVariaveis() {
@@ -2178,6 +2182,7 @@ ObservarItem(LugarJS.abaRelatorio, () => {
     const CCC = document.getElementById("circuloclickCont");
     if (!CCC && !stt.logout) {
       stt.logout = 1;
+      stt.observ = 1;
       addAoini();
       FimdePausa(stt.StatusANT);
     }
