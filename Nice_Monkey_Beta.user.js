@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.14
+// @version      3.3.6.15
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -229,19 +229,19 @@
     }
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      console.log("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogue);
+      console.log("NiceMonk Encontrados em dadosPrimLogue:", dadosPrimLogue);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogue:", e);
     }
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      console.log("NiceMonk Encontrados em dadosdePausas:", dadosLogueManu);
+      console.log("NiceMonk Encontrados em dadosLogueManu:", dadosLogueManu);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosLogueManu:", e);
     }
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.log("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogueOnt);
+      console.log("NiceMonk Encontrados em dadosPrimLogueOnt:", dadosPrimLogueOnt);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
     }
@@ -440,10 +440,8 @@
   }
 
   function addcirculo(elementoReferencia2) {
-    // Verifica se o elemento existe
-    if (elementoReferencia2) {
-      //${ContIcon};
-      var ContIcon = document.createElement("div");
+    
+      const ContIcon = document.createElement("div");
       ContIcon.setAttribute("id", "ContIcon");
       ContIcon.style.cssText = `
             height: 16px;
@@ -484,7 +482,7 @@
         `;
 
       // Define o estilo do circuloclick
-      var circuloclick = document.createElement("div");
+      const circuloclick = document.createElement("div");
       circuloclick.setAttribute("id", "circuloclick");
       circuloclick.style.cssText = `
             display: flex;
@@ -499,7 +497,7 @@
             `;
       circuloclick.appendChild(ContIcon);
 
-      var textCC1 = document.createElement("div");
+      const textCC1 = document.createElement("div");
       textCC1.setAttribute("id", "textCC1");
       textCC1.style.cssText = `
             margin-right: 5px;
@@ -511,7 +509,7 @@
       circuloclick.appendChild(textCC1);
 
       // Define o estilo do circuloclick2
-      var circuloclick2 = document.createElement("div");
+      const circuloclick2 = document.createElement("div");
       circuloclick2.setAttribute("id", "circuloclick2");
       circuloclick2.style.cssText = `
             text-align: center;
@@ -532,13 +530,13 @@
             color: white;
             `;
 
-      var textCC2 = document.createElement("div");
+      const textCC2 = document.createElement("div");
       textCC2.setAttribute("id", "textCC2");
       textCC2.style.transform = "rotate(-45deg)";
       circuloclick2.appendChild(textCC2);
 
       // Define o estilo do circuloclickCont
-      var circuloclickCont = document.createElement("div");
+      const circuloclickCont = document.createElement("div");
       circuloclickCont.setAttribute("id", "circuloclickCont");
       circuloclickCont.style.cssText = `
             position: absolute;
@@ -607,9 +605,6 @@
       circuloclick2.addEventListener("click", function () {
         AtualizarConf(15);
       });
-    } else {
-      console.error("NiceMonk Elemento não encontrado. Verifique o seletor.");
-    }
   }
 
   function converterParaTempo(segundos) {
