@@ -440,10 +440,10 @@
   }
 
   function addcirculo(elementoReferencia2) {
-    
-      const ContIcon = document.createElement("div");
-      ContIcon.setAttribute("id", "ContIcon");
-      ContIcon.style.cssText = `
+
+    const ContIcon = document.createElement("div");
+    ContIcon.setAttribute("id", "ContIcon");
+    ContIcon.style.cssText = `
             height: 16px;
             width: 16px;
             border: 2px solid white;
@@ -453,7 +453,7 @@
             transform: rotate(45deg);
             justify-content: center;
             `;
-      ContIcon.innerHTML = `
+    ContIcon.innerHTML = `
         <div style="display: flex; align-items: center; flex-direction: column; transform: rotate(-45deg);">
         <div class="iconec" style="
         height: 7px;
@@ -481,10 +481,10 @@
        </div>
         `;
 
-      // Define o estilo do circuloclick
-      const circuloclick = document.createElement("div");
-      circuloclick.setAttribute("id", "circuloclick");
-      circuloclick.style.cssText = `
+    // Define o estilo do circuloclick
+    const circuloclick = document.createElement("div");
+    circuloclick.setAttribute("id", "circuloclick");
+    circuloclick.style.cssText = `
             display: flex;
             border-radius: 25px;
             height: 26px;
@@ -495,23 +495,23 @@
             border-width: 1px;
             border-color: white;
             `;
-      circuloclick.appendChild(ContIcon);
+    circuloclick.appendChild(ContIcon);
 
-      const textCC1 = document.createElement("div");
-      textCC1.setAttribute("id", "textCC1");
-      textCC1.style.cssText = `
+    const textCC1 = document.createElement("div");
+    textCC1.setAttribute("id", "textCC1");
+    textCC1.style.cssText = `
             margin-right: 5px;
             opacity: 0;
             display: none;
             transition: 0.5s;
             color: white;
             `;
-      circuloclick.appendChild(textCC1);
+    circuloclick.appendChild(textCC1);
 
-      // Define o estilo do circuloclick2
-      const circuloclick2 = document.createElement("div");
-      circuloclick2.setAttribute("id", "circuloclick2");
-      circuloclick2.style.cssText = `
+    // Define o estilo do circuloclick2
+    const circuloclick2 = document.createElement("div");
+    circuloclick2.setAttribute("id", "circuloclick2");
+    circuloclick2.style.cssText = `
             text-align: center;
             padding: 4px;
             display: flex;
@@ -530,15 +530,15 @@
             color: white;
             `;
 
-      const textCC2 = document.createElement("div");
-      textCC2.setAttribute("id", "textCC2");
-      textCC2.style.transform = "rotate(-45deg)";
-      circuloclick2.appendChild(textCC2);
+    const textCC2 = document.createElement("div");
+    textCC2.setAttribute("id", "textCC2");
+    textCC2.style.transform = "rotate(-45deg)";
+    circuloclick2.appendChild(textCC2);
 
-      // Define o estilo do circuloclickCont
-      const circuloclickCont = document.createElement("div");
-      circuloclickCont.setAttribute("id", "circuloclickCont");
-      circuloclickCont.style.cssText = `
+    // Define o estilo do circuloclickCont
+    const circuloclickCont = document.createElement("div");
+    circuloclickCont.setAttribute("id", "circuloclickCont");
+    circuloclickCont.style.cssText = `
             position: absolute;
             font-size: 12px;
             z-index: 1;
@@ -553,58 +553,58 @@
             color: #ffffff;
             `;
 
-      circuloclickCont.appendChild(circuloclick2);
-      circuloclickCont.appendChild(circuloclick);
+    circuloclickCont.appendChild(circuloclick2);
+    circuloclickCont.appendChild(circuloclick);
 
-      // Adiciona o quadrado como o primeiro filho da div
-      elementoReferencia2.insertBefore(
-        circuloclickCont,
-        elementoReferencia2.firstChild
-      );
+    // Adiciona o quadrado como o primeiro filho da div
+    elementoReferencia2.insertBefore(
+      circuloclickCont,
+      elementoReferencia2.firstChild
+    );
 
-      // Adiciona o evento de mouseover ao circuloclick
-      circuloclick.addEventListener("mouseover", function () {
-        stt.DentrodCC1 = 1;
-        ControleFront(4);
-      });
+    // Adiciona o evento de mouseover ao circuloclick
+    circuloclick.addEventListener("mouseover", function () {
+      stt.DentrodCC1 = 1;
+      ControleFront(4);
+    });
 
-      // Adiciona o evento de mouseout ao circuloclick
-      circuloclick.addEventListener("mouseout", function () {
-        stt.DentrodCC1 = 0;
-        ControleFront(4);
-      });
+    // Adiciona o evento de mouseout ao circuloclick
+    circuloclick.addEventListener("mouseout", function () {
+      stt.DentrodCC1 = 0;
+      ControleFront(4);
+    });
 
-      // Adiciona o evento de mouseover ao circuloclick2
-      circuloclick2.addEventListener("mouseover", function () {
-        stt.DentrodCC2 = 1;
-        ControleFront(5);
-      });
+    // Adiciona o evento de mouseover ao circuloclick2
+    circuloclick2.addEventListener("mouseover", function () {
+      stt.DentrodCC2 = 1;
+      ControleFront(5);
+    });
 
-      // Adiciona o evento de mouseout ao circuloclick2
-      circuloclick2.addEventListener("mouseout", function () {
-        stt.DentrodCC2 = 0;
-        ControleFront(5);
-      });
+    // Adiciona o evento de mouseout ao circuloclick2
+    circuloclick2.addEventListener("mouseout", function () {
+      stt.DentrodCC2 = 0;
+      ControleFront(5);
+    });
 
-      // Adiciona o evento de mouseover ao circuloclickCont
-      circuloclickCont.addEventListener("mouseover", function () {
-        stt.DentrodcCC = 1;
-        ControleFront(3);
-      });
+    // Adiciona o evento de mouseover ao circuloclickCont
+    circuloclickCont.addEventListener("mouseover", function () {
+      stt.DentrodcCC = 1;
+      ControleFront(3);
+    });
 
-      // Adiciona o evento de mouseout ao circuloclickCont
-      circuloclickCont.addEventListener("mouseout", function () {
-        stt.DentrodcCC = 0;
-        ControleFront(3);
-      });
+    // Adiciona o evento de mouseout ao circuloclickCont
+    circuloclickCont.addEventListener("mouseout", function () {
+      stt.DentrodcCC = 0;
+      ControleFront(3);
+    });
 
-      circuloclick.addEventListener("click", function () {
-        iniciarBusca();
-      });
+    circuloclick.addEventListener("click", function () {
+      iniciarBusca();
+    });
 
-      circuloclick2.addEventListener("click", function () {
-        AtualizarConf(15);
-      });
+    circuloclick2.addEventListener("click", function () {
+      AtualizarConf(15);
+    });
   }
 
   function converterParaTempo(segundos) {
