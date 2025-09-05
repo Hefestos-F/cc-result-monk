@@ -554,14 +554,14 @@
         exibirSalvo.id = 'message';
         exibirSalvo.style.cssText = `
                 border-radius: 15px;
-    border: none;
-    color: white;
-    padding: 3px 9px;
-    background-color: #33cb44;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
+        border: none;
+        color: white;
+        padding: 3px 9px;
+        background-color: #33cb44;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
             `;
         BDnotas.value = notas;
 
