@@ -184,7 +184,7 @@
       quandoEncontrar();
       if (!stt.observ) {
         observer.disconnect();
-        console.log(`Teste -- observer Desconectado`);
+        console.log(`NiceMonk observer Desconectado`);
       }
     });
 
@@ -192,7 +192,7 @@
   }
 
   function addAoini() {
-    console.log(`Teste -- observer Iniciado`);
+    console.log(`NiceMonk observer Iniciado`);
     ObservarItem(() => {
       let a = document.querySelector(LugarJS.elementoReferencia);
       let b = document.querySelector(LugarJS.elementoReferencia2);
@@ -207,9 +207,9 @@
         stt.observ = 0;
         stt.logout = 0;
         iniciarBusca();
-        console.log(`Teste -- verificação Verdadeiro`);
+        console.log(`NiceMonk verificação Inicial Verdadeiro`);
       } else {
-        console.log(`Teste -- verificação Falso`);
+        console.log(`NiceMonk verificação Inicial Falso`);
       }
     });
   }
@@ -2625,7 +2625,7 @@
           AddOuAtuIindexdb(ChaveConfig, AsVari);
           ondemudar(AsVari);
         } else {
-          console.warn("PCConfig ou PCcor não estão definidos.");
+          console.warn("NiceMonk PCConfig ou PCcor não estão definidos.");
         }
         break;
 
