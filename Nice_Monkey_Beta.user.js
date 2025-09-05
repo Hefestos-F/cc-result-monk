@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.13
+// @version      3.3.6.14
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -834,7 +834,7 @@
     return `${horas}:${minutos}:${segundos}`;
   }
 
-  async function iniciarBusca(x) {
+  async function iniciarBusca() {
     ControleFront(1);
 
     stt.ErroDTI = !(await AtualizarDTI());
@@ -872,7 +872,7 @@
     if (stt.NBT) {
       stt.NBT = 0;
       verificarESalvar(0);
-      let = porseg = setInterval(() => {
+      let porseg = setInterval(() => {
         VerificacoesN1();
         if (stt.logout) {
           clearInterval(porseg);
