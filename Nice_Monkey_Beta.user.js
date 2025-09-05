@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.15
+// @version      3.3.6.16
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -264,7 +264,7 @@
 
   function criarCaixaDCv(n, titulo) {
 
-    var caixa = document.createElement("div");
+    const caixa = document.createElement("div");
     caixa.classList.add("info-caixa");
     caixa.style.transition = "all 0.5s ease";
     caixa.id = `${n}${titulo}`;
@@ -277,7 +277,7 @@
   }
 
   function criarSeparadorCV(x) {
-    var separador = document.createElement("div");
+    const separador = document.createElement("div");
     separador.setAttribute("id", `SepCVal${x}`);
     separador.classList.add("separadorC");
     return separador;
@@ -608,7 +608,7 @@
   }
 
   function converterParaTempo(segundos) {
-    var minutos;
+    let minutos;
     if (segundos < 60) {
       return segundos;
     } else if (segundos < 3600) {
@@ -618,7 +618,7 @@
         .toString()
         .padStart(2, "0")}`;
     } else {
-      var horas = Math.floor(segundos / 3600);
+      const horas = Math.floor(segundos / 3600);
       segundos %= 3600;
       minutos = Math.floor(segundos / 60);
       segundos = segundos % 60;
@@ -629,7 +629,7 @@
   }
 
   function clicarElementoQuerySelector(selector) {
-    var elemento = document.querySelector(selector);
+    const elemento = document.querySelector(selector);
     if (elemento) {
       elemento.click();
       return true;
@@ -677,11 +677,11 @@
 
   function seExiste(seletor) {
     return new Promise((resolve, reject) => {
-      var maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
-      var attempts = 0;
-      var interval = setInterval(function () {
-        var elemento = document.querySelector(seletor);
-        var NomeDIt = Object.keys(LugarJS).filter(
+      const maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
+      let attempts = 0;
+      const interval = setInterval(function () {
+        const elemento = document.querySelector(seletor);
+        const NomeDIt = Object.keys(LugarJS).filter(
           (chave) => LugarJS[chave] === seletor
         );
 
@@ -927,7 +927,7 @@
         : Segun.Logou;
     Segun.Offline = Segun.Logou - Segun.QualLogou;
 
-    var vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
+    let vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
         vari2 &&
@@ -946,13 +946,13 @@
   }
 
   function AtualizarInfo() {
-    var TempoEscalado = converterParaSegundos(CConfig.TempoEscaladoHoras);
-    var vHE;
-    var TempoCumprido = false;
-    var HE = false;
+    let TempoEscalado = converterParaSegundos(CConfig.TempoEscaladoHoras);
+    let vHE;
+    let TempoCumprido = false;
+    let HE = false;
 
-    var LogadoSegundos = Segun.Hora - Segun.QualLogou;
-    var SaidaSegundos = Segun.QualLogou + TempoEscalado;
+    let LogadoSegundos = Segun.Hora - Segun.QualLogou;
+    let SaidaSegundos = Segun.QualLogou + TempoEscalado;
     SaidaSegundos =
       !stt.offForaDToler &&
         !stt.ErroAtu &&
@@ -960,14 +960,14 @@
         !CConfig.IgnorarOff
         ? SaidaSegundos + Segun.Offline
         : SaidaSegundos;
-    var FaltaSegundos = SaidaSegundos - Segun.Hora;
-    var ASaidaSegundos = SaidaSegundos + Segun.Offline;
-    var AFaltaSegundos = FaltaSegundos + Segun.Offline;
-    var dezMinutosSegundos = converterParaSegundos("00:10:00");
+    let FaltaSegundos = SaidaSegundos - Segun.Hora;
+    let ASaidaSegundos = SaidaSegundos + Segun.Offline;
+    let AFaltaSegundos = FaltaSegundos + Segun.Offline;
+    let dezMinutosSegundos = converterParaSegundos("00:10:00");
 
-    var varia1 = CConfig.MostraValorOff ? ASaidaSegundos : SaidaSegundos;
+    let varia1 = CConfig.MostraValorOff ? ASaidaSegundos : SaidaSegundos;
 
-    var varia2 = CConfig.MostraValorOff ? AFaltaSegundos : FaltaSegundos;
+    let varia2 = CConfig.MostraValorOff ? AFaltaSegundos : FaltaSegundos;
 
     if (Segun.Hora > varia1 + dezMinutosSegundos) {
       HE = true;
@@ -976,24 +976,24 @@
       TempoCumprido = true;
     }
 
-    var LogouSegundosFormatado = converterParaTempo(Segun.QualLogou);
-    var vLogou = document.getElementById("vLogou");
+    let LogouSegundosFormatado = converterParaTempo(Segun.QualLogou);
+    let vLogou = document.getElementById("vLogou");
     vLogou.textContent = LogouSegundosFormatado;
 
-    var vari1 = CConfig.MostraValorOff ? Segun.NewLogado : LogadoSegundos;
-    var LogadoSegundosFormatado = converterParaTempo(vari1);
-    var vLogado = document.getElementById("vLogado");
+    let vari1 = CConfig.MostraValorOff ? Segun.NewLogado : LogadoSegundos;
+    let LogadoSegundosFormatado = converterParaTempo(vari1);
+    let vLogado = document.getElementById("vLogado");
     vLogado.textContent = LogadoSegundosFormatado;
 
-    var vari2 = varia1;
-    var SaidaSegundosFormatado = converterParaTempo(vari2);
-    var vSaida = document.getElementById("vSaida");
+    let vari2 = varia1;
+    let SaidaSegundosFormatado = converterParaTempo(vari2);
+    let vSaida = document.getElementById("vSaida");
     vSaida.textContent = SaidaSegundosFormatado;
 
-    var FouH = HE ? vHE : varia2;
-    var FouHFormatado = converterParaTempo(FouH);
-    var vFalta = document.getElementById("vFalta");
-    var tFalta = document.getElementById("tFalta");
+    let FouH = HE ? vHE : varia2;
+    let FouHFormatado = converterParaTempo(FouH);
+    let vFalta = document.getElementById("vFalta");
+    let tFalta = document.getElementById("tFalta");
     tFalta.textContent = HE ? "HE:" : TempoCumprido ? "Tempo" : "Falta:";
     if (!stt.ErroVerif) {
       vFalta.textContent = HE
@@ -1010,9 +1010,9 @@
       stt.Busc5sTem = 5;
     }
 
-    var OfflineSegundosFormatado = converterParaTempo(Segun.Offline);
-    var vOffline = document.getElementById("vOffline");
-    var tOffline = document.getElementById("tOffline");
+    let OfflineSegundosFormatado = converterParaTempo(Segun.Offline);
+    let vOffline = document.getElementById("vOffline");
+    let tOffline = document.getElementById("tOffline");
     vOffline.textContent = OfflineSegundosFormatado;
     tOffline.textContent = CConfig.MostraValorOff ? "Com Offline :" : "Sem Offline :";
 
@@ -1022,18 +1022,18 @@
   }
 
   function ControleFront(a) {
-    var circuloclick = document.getElementById("circuloclick");
-    var circuloclick2 = document.getElementById("circuloclick2");
-    var contValores = document.getElementById("contValores");
-    var ContIcon = document.getElementById("ContIcon");
-    var textCC1 = document.getElementById("textCC1");
-    var textCC2 = document.getElementById("textCC2");
-    var cOffline = document.getElementById("cOffline");
-    var Alinha1 = document.getElementById("Alinha1");
-    var BotPa = document.getElementById("BotPa");
+    const circuloclick = document.getElementById("circuloclick");
+    const circuloclick2 = document.getElementById("circuloclick2");
+    const contValores = document.getElementById("contValores");
+    const ContIcon = document.getElementById("ContIcon");
+    const textCC1 = document.getElementById("textCC1");
+    const textCC2 = document.getElementById("textCC2");
+    const cOffline = document.getElementById("cOffline");
+    const Alinha1 = document.getElementById("Alinha1");
+    const BotPa = document.getElementById("BotPa");
 
     function TodasCores(d) {
-      var b = stt.ErroAtu ? Ccor.Erro : d;
+      let b = stt.ErroAtu ? Ccor.Erro : d;
       document.querySelectorAll(".iconec").forEach((element) => {
         element.style.backgroundColor = b;
       });
@@ -1164,7 +1164,7 @@
 
     cOffline.style.background = Ccor.Offline;
 
-    var vari4 = contValores.style.opacity === "1" ? 1 : 0;
+    let vari4 = contValores.style.opacity === "1" ? 1 : 0;
     Alinha1.style.visibility =
       vari4 && CConfig.MostraOff ? "visible" : "hidden";
     Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
@@ -1175,7 +1175,7 @@
     atualizarComoff("cFalta");
 
     function atualizarComoff(caixa) {
-      var x = document.getElementById(caixa);
+      const x = document.getElementById(caixa);
       if (x) {
         x.style.background = CConfig.MostraValorOff ? Ccor.Offline : "";
         x.style.borderRadius = CConfig.MostraValorOff ? "6px" : "";
@@ -1774,12 +1774,12 @@
   }
 
   function AtualizarConf(zz) {
-    var CaixaConfig = document.getElementById("CaixaConfig");
-    var InputMin = document.getElementById("InputMin");
-    var InputMinX = document.getElementById("InputMinX");
-    var CaiDPa = document.getElementById("CaiDPa");
-    var BotPa = document.getElementById("BotPa");
-    var minhaCaixa = document.getElementById("minhaCaixa");
+    const CaixaConfig = document.getElementById("CaixaConfig");
+    const InputMin = document.getElementById("InputMin");
+    const InputMinX = document.getElementById("InputMinX");
+    const CaiDPa = document.getElementById("CaiDPa");
+    const BotPa = document.getElementById("BotPa");
+    const minhaCaixa = document.getElementById("minhaCaixa");
 
     if (zz === 1) {
       CConfig.ModoSalvo = 0;
@@ -1917,7 +1917,7 @@
       atualizarVisual("Bot6", CConfig.MetaTMA);
       atualizarVisual("Bot3", CConfig.Vigia);
       atualizarVisual("Bot4", CConfig.AutoAtivo);
-      var vari1 = CConfig.Vigia || CConfig.AutoAtivo ? 0 : 1;
+      let vari1 = CConfig.Vigia || CConfig.AutoAtivo ? 0 : 1;
       atualizarVisual("Bot5", vari1);
       atualizarVisual("Bot13", CConfig.LogueManual);
       atualizarVisual("Bot16", CConfig.IgnorarOff);
@@ -1936,7 +1936,7 @@
   }
 
   function atualizarVisual(a, quem) {
-    var x = document.getElementById(a);
+    const x = document.getElementById(a);
     if (!x) {
       console.warn(`NiceMonk Elemento com ID '${a}' não encontrado.`);
       return;
@@ -2182,8 +2182,8 @@
     function FimdePausa(tipo) {
       stt.FPausaS = converterParaSegundos(mostrarHora());
       stt.DPausaS = stt.FPausaS - stt.IPausaS;
-      var DPausaS1 = converterParaTempo(stt.DPausaS);
-      var y = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
+      const DPausaS1 = converterParaTempo(stt.DPausaS);
+      let y = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
 
       if (y === 2)
         console.log(
@@ -2424,7 +2424,7 @@
       request.onsuccess = function (event) {
         const chaves = event.target.result;
 
-        var asta = 0;
+        let asta = 0;
         chaves.forEach((chave) => {
           const reqConteudo = store.get(chave);
 
@@ -2564,7 +2564,7 @@
     ontem.setDate(hoje.getDate() - 1);
     const ontemFormatado = ontem.toISOString().split("T")[0];
 
-    var convert = converterParaTempo(Segun.Logou);
+    const convert = converterParaTempo(Segun.Logou);
     const valorEdata = { valor: convert, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
     if (!dadosPrimLogue || dadosPrimLogue.data !== hojeFormatado) {
