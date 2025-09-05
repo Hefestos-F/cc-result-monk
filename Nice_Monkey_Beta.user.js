@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    http://tampermonkey.net/
-// @version      3.3.6.12
+// @version      3.3.6.13
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1049,7 +1049,7 @@
       circuloclick2.style.color = b;
     }
 
-    textCC1.innerHTML = stt.ErroAtu
+    textCC1.textContent = stt.ErroAtu
       ? "Atualizar!!"
       : stt.Atualizando
         ? "Atualizando..."
