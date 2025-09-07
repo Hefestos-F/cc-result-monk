@@ -1,10 +1,13 @@
 {
   "manifest_version": 3,
   "name": "UserScript Injector",
-  "version": "1.0",
-  "description": "Extensão para injetar scripts personalizados em sites específicos.",
-  "permissions": ["scripting", "activeTab", "storage"],
-  "host_permissions": ["https://google.com/*"],
+  "version": "1.1.0",
+  "description": "Extensão para injetar scripts personalizados automaticamente com base no @destino.",
+  "permissions": ["scripting", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -12,8 +15,5 @@
       "48": "icon.png",
       "128": "icon.png"
     }
-  },
-  "background": {
-    "service_worker": "background.js"
   }
 }

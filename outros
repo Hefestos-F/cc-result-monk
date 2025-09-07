@@ -4,12 +4,9 @@
 // @Descricao    Teste
 // @Autor        Hefestos
 // @destino      https://google.com/*
-// @atualizarURL https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes.user.js
-// @baixarURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes.user.js
 
 // ==/UserScript==
 
 (function () {
-    document.body.style.backgroundColor = "lightblue";
     console.log("Código injetado com sucesso!");
-});
+})();

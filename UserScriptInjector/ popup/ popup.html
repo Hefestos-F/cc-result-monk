@@ -1,26 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Injetar Script</title>
+  <meta charset="utf-8" />
+  <title>Editor de Script</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 12px; width: 360px; }
+    textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, Consolas, Menlo, monospace; }
+    .row { margin-top: 8px; display: flex; gap: 8px; align-items: center; }
+    button { padding: 8px 12px; cursor: pointer; }
+    label { user-select: none; }
+    .muted { color: #666; font-size: 12px; }
+  </style>
 </head>
 <body>
-  <h1>Editor de Script</h1>
-  <textarea id="scriptEditor" rows="10" cols="50">
-// ==UserScript==
-// @Nome         Teste
-// @Versao       1
-// @Descricao    Teste
-// @Autor        Hefestos
-// @Destino      https://google.com/*
-// ==/UserScript==
+  <h1 style="font-size:16px; margin:0 0 8px;">Editor de Script</h1>
 
-(function () {
-    console.log("Código injetado com sucesso!");
-})();
-  </textarea>
-  <br>
-  <button id="save">Salvar Script</button>
-  <button id="inject">Injetar Script</button>
+  <div class="row">
+    <input type="checkbox" id="autoInject" />
+    <label for="autoInject">Injetar automaticamente ao iniciar (quando <code>@destino</code> combinar)</label>
+  </div>
+  <div class="muted">Desligue se quiser bloquear a injeção automática temporariamente.</div>
+
+  <textarea id="scriptEditor" rows="14" placeholder="// Seu UserScript aqui" style="margin-top:8px;"></textarea>
+
+  <div class="row">
+    <button id="save">Salvar Script</button>
+    <button id="loadDefault">Modelo Padrão</button>
+    <button id="runNow" title="Executa agora na aba ativa (se @destino combinar)">Executar agora</button>
+  </div>
+
+  <div id="status" class="muted" style="margin-top:6px;"></div>
+
   popup.js</script>
 </body>
 </html>
