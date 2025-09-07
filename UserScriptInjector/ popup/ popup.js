@@ -1,53 +1,70 @@
+// popup/popup.js
 document.addEventListener('DOMContentLoaded', init);
+
+const AUTOSAVE_DEBOUNCE_MS = 400;
 
 async function init() {
   const editor = document.getElementById('scriptEditor');
   const toggle = document.getElementById('autoInject');
   const status = document.getElementById('status');
 
+  // Carregar estado salvo (não limpar nada automaticamente)
   const { userScript, autoInjectEnabled } = await chrome.storage.local.get([
     'userScript',
     'autoInjectEnabled'
   ]);
 
-  editor.value = userScript || defaultTemplate();
+  // Se existe script salvo, mantém; senão, carrega o modelo só na primeira vez
+  editor.value = (typeof userScript === 'string') ? userScript : defaultTemplate();
   toggle.checked = (autoInjectEnabled !== undefined) ? !!autoInjectEnabled : true;
   renderStatus();
 
-  // Salvar script
+  // ---- Autosave enquanto digita (sem precisar clicar em Salvar) ----
+  let saveTimer;
+  editor.addEventListener('input', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      await chrome.storage.local.set({ userScript: editor.value });
+      setStatus('Salvo automaticamente');
+    }, AUTOSAVE_DEBOUNCE_MS);
+  });
+
+  // ---- Botão Salvar (salva imediato, sem limpar) ----
   document.getElementById('save').addEventListener('click', async () => {
     try {
-      const script = editor.value;
-      await chrome.storage.local.set({ userScript: script });
-      alert('Script salvo com sucesso!');
-      renderStatus();
+      await chrome.storage.local.set({ userScript: editor.value });
+      setStatus('Script salvo com sucesso!');
     } catch (e) {
       console.error(e);
-      alert('Falha ao salvar o script.');
+      setStatus('Falha ao salvar o script.');
     }
   });
 
-  // Modelo padrão
-  document.getElementById('loadDefault').addEventListener('click', () => {
+  // ---- Botão Modelo Padrão (não limpa sem confirmação) ----
+  document.getElementById('loadDefault').addEventListener('click', async () => {
+    if (editor.value.trim()) {
+      const ok = confirm('Substituir o conteúdo atual pelo modelo padrão?');
+      if (!ok) return; // mantém o conteúdo atual
+    }
     editor.value = defaultTemplate();
-    renderStatus();
+    await chrome.storage.local.set({ userScript: editor.value });
+    setStatus('Modelo padrão carregado e salvo.');
   });
 
-  // Alternar injeção automática
+  // ---- Toggle de injeção automática (persistente) ----
   toggle.addEventListener('change', async () => {
     await chrome.storage.local.set({ autoInjectEnabled: toggle.checked });
     renderStatus();
   });
 
-  // Executar agora (opcional)
+  // ---- Executar agora (não altera editor nem toggle) ----
   document.getElementById('runNow').addEventListener('click', async () => {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) return alert('Nenhuma aba ativa encontrada.');
-
+      if (!tab?.id) return setStatus('Nenhuma aba ativa encontrada.');
       const res = await sendMessageAsync({ type: 'injectNow', tabId: tab.id });
       if (res?.ok) {
-        alert('Script injetado na aba atual!');
+        setStatus('Script injetado na aba atual!');
       } else {
         const reason = res?.reason || 'desconhecido';
         let msg = 'Não foi possível injetar agora.';
@@ -56,17 +73,24 @@ async function init() {
         else if (reason === 'empty-script') msg = 'O script está vazio.';
         else if (reason === 'execute-failed') msg = 'Falha ao executar o script.';
         else if (reason === 'no-tab' || reason === 'no-url') msg = 'Aba/URL inválida.';
-        alert(`${msg}\nMotivo: ${reason}`);
+        setStatus(`${msg} (Motivo: ${reason})`);
       }
     } catch (e) {
       console.error(e);
-      alert('Erro ao tentar executar agora.');
+      setStatus('Erro ao tentar executar agora.');
     }
   });
 
   function renderStatus() {
     const enabled = toggle.checked;
     status.textContent = `Injeção automática: ${enabled ? 'Ligada' : 'Desligada'}.`;
+  }
+
+  function setStatus(text) {
+    status.textContent = text;
+    // Limpa a mensagem temporária após 2,5s, mantendo o estado principal
+    clearTimeout(setStatus._t);
+    setStatus._t = setTimeout(renderStatus, 2500);
   }
 }
 

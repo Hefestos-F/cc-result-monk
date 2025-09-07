@@ -4,14 +4,15 @@
   <meta charset="utf-8" />
   <title>Editor de Script</title>
   <style>
-    :root, html, body { margin: 0; padding: 0; }
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
       width: 350px;
       height: 350px;
       box-sizing: border-box;
       font-family: system-ui, Arial, sans-serif;
     }
-    .root {
+    .container {
       width: 100%;
       height: 100%;
       box-sizing: border-box;
@@ -26,15 +27,15 @@
       width: 100%;
       height: 100%;
       box-sizing: border-box;
-      resize: none;
-      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      resize: none; /* evita aumentar o popup */
+      font-family: ui-monospace, Consolas, Menlo, monospace;
     }
     button { padding: 8px 12px; cursor: pointer; }
     .muted { color: #666; font-size: 12px; }
   </style>
 </head>
 <body>
-  <div class="root">
+  <div class="container">
     <h1>Editor de Script</h1>
 
     <div class="row">
@@ -47,7 +48,7 @@
     <div class="row">
       <button id="save">Salvar Script</button>
       <button id="loadDefault">Modelo Padrão</button>
-      <button id="runNow" title="Executa agora na aba ativa">Executar agora</button>
+      <button id="runNow" title="Executa agora na aba ativa (se @destino combinar)">Executar agora</button>
     </div>
 
     <div id="status" class="muted"></div>
