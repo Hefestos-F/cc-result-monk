@@ -4,32 +4,54 @@
   <meta charset="utf-8" />
   <title>Editor de Script</title>
   <style>
-    body { font-family: system-ui, Arial, sans-serif; margin: 12px; width: 360px; }
-    textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, Consolas, Menlo, monospace; }
-    .row { margin-top: 8px; display: flex; gap: 8px; align-items: center; }
+    :root, html, body { margin: 0; padding: 0; }
+    body {
+      width: 350px;
+      height: 350px;
+      box-sizing: border-box;
+      font-family: system-ui, Arial, sans-serif;
+    }
+    .root {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto auto;
+      gap: 8px;
+      padding: 12px;
+    }
+    h1 { font-size: 16px; margin: 0; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    textarea {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      resize: none;
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    }
     button { padding: 8px 12px; cursor: pointer; }
-    label { user-select: none; }
     .muted { color: #666; font-size: 12px; }
   </style>
 </head>
 <body>
-  <h1 style="font-size:16px; margin:0 0 8px;">Editor de Script</h1>
+  <div class="root">
+    <h1>Editor de Script</h1>
 
-  <div class="row">
-    <input type="checkbox" id="autoInject" />
-    <label for="autoInject">Injetar automaticamente ao iniciar (quando <code>@destino</code> combinar)</label>
+    <div class="row">
+      <input type="checkbox" id="autoInject" />
+      <label for="autoInject">Injetar automaticamente ao iniciar (quando <code>@destino</code> combinar)</label>
+    </div>
+
+    <textarea id="scriptEditor" placeholder="// Seu UserScript aqui"></textarea>
+
+    <div class="row">
+      <button id="save">Salvar Script</button>
+      <button id="loadDefault">Modelo Padrão</button>
+      <button id="runNow" title="Executa agora na aba ativa">Executar agora</button>
+    </div>
+
+    <div id="status" class="muted"></div>
   </div>
-  <div class="muted">Desligue se quiser bloquear a injeção automática temporariamente.</div>
-
-  <textarea id="scriptEditor" rows="14" placeholder="// Seu UserScript aqui" style="margin-top:8px;"></textarea>
-
-  <div class="row">
-    <button id="save">Salvar Script</button>
-    <button id="loadDefault">Modelo Padrão</button>
-    <button id="runNow" title="Executa agora na aba ativa (se @destino combinar)">Executar agora</button>
-  </div>
-
-  <div id="status" class="muted" style="margin-top:6px;"></div>
 
   popup.js</script>
 </body>
