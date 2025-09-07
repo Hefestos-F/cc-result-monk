@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Injetor com Atualização e Interface",
-  "version": "1.0",
-  "description": "Injeta código, verifica atualizações e permite configuração via interface",
+  "name": "Gerenciador de UserScripts",
+  "version": "1.1",
+  "description": "Injeta scripts personalizados com atualização automática e interface de configuração",
   "permissions": ["scripting", "storage", "alarms"],
-  "host_permissions": ["https://google.com/*"],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
@@ -18,7 +18,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://google.com/*"],
+      "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
   ]

@@ -7,16 +7,21 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "verificarAtualizacao") {
-    fetch("https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes.user.js")
-      .then(res => res.text())
-      .then(script => {
-        const novaVersao = script.match(/@Versao\s+(\d+)/)?.[1];
-        chrome.storage.local.get(["versaoAtual"], (dados) => {
+    chrome.storage.local.get(["atualizarURL", "versaoAtual"], (dados) => {
+      if (!dados.atualizarURL) return;
+
+      fetch(dados.atualizarURL)
+        .then(res => res.text())
+        .then(script => {
+          const novaVersao = script.match(/@Versao\\s+(\\d+)/)?.[1];
           if (novaVersao && novaVersao !== dados.versaoAtual) {
-            chrome.storage.local.set({ versaoAtual: novaVersao, scriptAtual: script });
+            chrome.storage.local.set({
+              versaoAtual: novaVersao,
+              scriptAtual: script
+            });
             console.log("Nova versão detectada e armazenada.");
           }
         });
-      });
+    });
   }
 });
