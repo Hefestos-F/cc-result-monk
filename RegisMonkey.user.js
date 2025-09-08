@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         RegisMonkey
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/Hefestos-F/cc-result-monk
 // @version      6
-// @description  try to take over the world!
+// @description  that's all folks!
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=zendesk.com

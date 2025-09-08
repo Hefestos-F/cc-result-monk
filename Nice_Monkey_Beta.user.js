@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/Hefestos-F/cc-result-monk
 // @version      3.3.6.16
 // @description  that's all folks!
 // @author       almaviva.fpsilva
