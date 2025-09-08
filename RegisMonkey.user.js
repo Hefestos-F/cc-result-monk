@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RegisMonkey
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      6
+// @version      6.0.1
 // @description  that's all folks!
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
@@ -439,6 +439,8 @@
         sizer.style.fontSize = getComputedStyle(Input6).fontSize;
         sizer.style.fontFamily = getComputedStyle(Input6).fontFamily;
         document.body.appendChild(sizer);
+        sizer.textContent = Cardhold || Input6.placeholder;
+        Input6.style.width = sizer.offsetWidth + 'px';
 
         // Atualizar largura conforme o texto
         Input6.addEventListener('input', function () {
