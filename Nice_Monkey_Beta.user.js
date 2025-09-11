@@ -33,7 +33,7 @@
     IgnorarTMA: 0,
     IgnorarErroNice: 0,
     Estouro: 1,
-    SomEstouro: 1
+    SomEstouro: 1,
   };
 
   const PCConfig = {
@@ -53,7 +53,7 @@
     IgnorarTMA: 0,
     IgnorarErroNice: 0,
     Estouro: 1,
-    SomEstouro: 1
+    SomEstouro: 1,
   };
 
   const Ccor = {
@@ -93,6 +93,12 @@
     QualLogou: 0,
   };
 
+  const time = {
+    Disponivel: 0,
+    Trabalhando: 0,
+    Indisponivel: 0,
+  };
+
   const stt = {
     vAtendidas: "",
     vAtendidasA: 0,
@@ -124,7 +130,14 @@
     intervaloBeep: 1,
     BeepRet: 0,
     logout: 0,
-    observ: 1
+    observ: 1,
+    ClickRelatorios: 0,
+    poud: 0,
+    ClickProdutividade: 0,
+    ClickDesempenho: 0,
+    ClickHoje: 0,
+    DTInaoEnc: 0,
+    AtnnaoEnc: 0,
   };
 
   const BGround = {
@@ -179,9 +192,9 @@
 
   RecuperarTVariaveis();
 
-  function ObservarItem(quandoEncontrar) {
+  function ObservarItem(aoMudar) {
     const observer = new MutationObserver(() => {
-      quandoEncontrar();
+      aoMudar();
       if (!stt.observ) {
         observer.disconnect();
         console.log(`NiceMonk observer Desconectado`);
@@ -197,7 +210,8 @@
       let a = document.querySelector(LugarJS.elementoReferencia);
       let b = document.querySelector(LugarJS.elementoReferencia2);
       if (
-        a && b &&
+        a &&
+        b &&
         !document.getElementById("minhaCaixa") &&
         !document.getElementById("circuloclickCont")
       ) {
@@ -223,7 +237,10 @@
     }
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      console.log("NiceMonk Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
+      console.log(
+        "NiceMonk Encontrados em dadosSalvosConfi:",
+        dadosSalvosConfi
+      );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosSalvosConfi:", e);
     }
@@ -241,7 +258,10 @@
     }
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.log("NiceMonk Encontrados em dadosPrimLogueOnt:", dadosPrimLogueOnt);
+      console.log(
+        "NiceMonk Encontrados em dadosPrimLogueOnt:",
+        dadosPrimLogueOnt
+      );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
     }
@@ -263,7 +283,6 @@
   }
 
   function criarCaixaDCv(n, titulo) {
-
     const caixa = document.createElement("div");
     caixa.classList.add("info-caixa");
     caixa.style.transition = "all 0.5s ease";
@@ -416,8 +435,8 @@
     }
     // Adiciona o contêiner ao contêiner principal
 
-    const Alinha1 = linha('Alinha1');
-    const Alinha2 = linha('Alinha2');
+    const Alinha1 = linha("Alinha1");
+    const Alinha2 = linha("Alinha2");
     Alinha1.appendChild(Offline);
     Alinha2.appendChild(Estouro);
     minhaCaixa.appendChild(Alinha1);
@@ -440,7 +459,6 @@
   }
 
   function addcirculo(elementoReferencia2) {
-
     const ContIcon = document.createElement("div");
     ContIcon.setAttribute("id", "ContIcon");
     ContIcon.style.cssText = `
@@ -741,7 +759,8 @@
   }
 
   async function AtualizarAtendidas() {
-    await caminhoInfo(1); // Caminho Atendidas
+    //await caminhoInfo(1); // Caminho Atendidas
+    await caminhoInfo2(1);
     if (await seExiste(LugarJS.lAtendidas)) {
       stt.vAtendidas = document.querySelector(LugarJS.lAtendidas).textContent;
       return true;
@@ -803,14 +822,15 @@
       const vTMA = document.getElementById("vTMA");
       let TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
-      tTMA.innerHTML = stt.Busc5s ? 'Busca' : 'TMA:';
+      tTMA.innerHTML = stt.Busc5s ? "Busca" : "TMA:";
       vTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
         : stt.ErroAtu || x
-          ? 'Atualize !!'
-          : TMA; // Arredonda para o valor inteiro mais próximo
+        ? "Atualize !!"
+        : TMA; // Arredonda para o valor inteiro mais próximo
       cTMA2.style.background =
-        (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) || stt.Busc5s
+        (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) ||
+        stt.Busc5s
           ? Ccor.MetaTMA
           : "";
       cTMA2.style.borderRadius = "5px";
@@ -923,17 +943,17 @@
     Segun.QualLogou = CConfig.LogueManual
       ? converterParaSegundos(CConfig.ValorLogueManual)
       : CConfig.ModoSalvo
-        ? Segun.LogouSalvo
-        : Segun.Logou;
+      ? Segun.LogouSalvo
+      : Segun.Logou;
     Segun.Offline = Segun.Logou - Segun.QualLogou;
 
     let vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
-        vari2 &&
-        !stt.ErroAtu &&
-        !stt.ErroVerif &&
-        !CConfig.IgnorarOff
+      vari2 &&
+      !stt.ErroAtu &&
+      !stt.ErroVerif &&
+      !CConfig.IgnorarOff
         ? 1
         : 0;
     CConfig.MostraOff = stt.offForaDToler;
@@ -955,9 +975,9 @@
     let SaidaSegundos = Segun.QualLogou + TempoEscalado;
     SaidaSegundos =
       !stt.offForaDToler &&
-        !stt.ErroAtu &&
-        !CConfig.LogueManual &&
-        !CConfig.IgnorarOff
+      !stt.ErroAtu &&
+      !CConfig.LogueManual &&
+      !CConfig.IgnorarOff
         ? SaidaSegundos + Segun.Offline
         : SaidaSegundos;
     let FaltaSegundos = SaidaSegundos - Segun.Hora;
@@ -999,8 +1019,8 @@
       vFalta.textContent = HE
         ? FouHFormatado
         : TempoCumprido
-          ? "Cumprido"
-          : FouHFormatado;
+        ? "Cumprido"
+        : FouHFormatado;
     }
     if (stt.Busc5s) {
       AtualizarTMA(0);
@@ -1014,7 +1034,9 @@
     let vOffline = document.getElementById("vOffline");
     let tOffline = document.getElementById("tOffline");
     vOffline.textContent = OfflineSegundosFormatado;
-    tOffline.textContent = CConfig.MostraValorOff ? "Com Offline :" : "Sem Offline :";
+    tOffline.textContent = CConfig.MostraValorOff
+      ? "Com Offline :"
+      : "Sem Offline :";
 
     if (!stt.Atualizando) {
       ControleFront();
@@ -1047,10 +1069,10 @@
     textCC1.textContent = stt.ErroAtu
       ? "Atualizar!!"
       : stt.Atualizando
-        ? "Atualizando..."
-        : a === 2
-          ? "Atualizado"
-          : "Atualizar";
+      ? "Atualizando..."
+      : a === 2
+      ? "Atualizado"
+      : "Atualizar";
 
     if (a === 1) {
       stt.Atualizando = 1;
@@ -1109,8 +1131,8 @@
       circuloclick2.style.width = stt.DentrodCC2
         ? "auto"
         : stt.AbaConfig
-          ? "24px"
-          : "17px";
+        ? "24px"
+        : "17px";
       circuloclick2.style.height =
         stt.DentrodCC2 || stt.AbaConfig ? "24px" : "17px";
       circuloclick2.style.borderRadius =
@@ -1149,8 +1171,8 @@
         (stt.DentrodMC && stt.CVAtivo) || stt.AbaPausas
           ? "-5px"
           : !stt.AbaPausas && !stt.AbaConfig
-            ? ""
-            : "20px";
+          ? ""
+          : "20px";
     }
 
     function MostarcontValores(x) {
@@ -1637,13 +1659,13 @@
     const CValoresEnc = criarCaixaSeg();
     const tValoresEnc = criarTitulo("Valores Encontrados");
     const C2ValoresEnc = criarCaixaSeg();
-    C2ValoresEnc.style.alignItems = 'center';
+    C2ValoresEnc.style.alignItems = "center";
     tValoresEnc.addEventListener("click", function () {
       if (C2ValoresEnc.innerHTML === "") {
         C2ValoresEnc.innerHTML = `
-        <div>Disponivel = ${converterParaTempo(Segun.Disponivel)}</div>
-        <div>Trabalhando = ${converterParaTempo(Segun.Trabalhando)}</div>
-        <div>Indisponivel = ${converterParaTempo(Segun.Indisponivel)}</div>
+        <div>Disponivel = ${time.Disponivel}</div>
+        <div>Trabalhando = ${time.Trabalhando}</div>
+        <div>Indisponivel = ${time.Indisponivel}</div>
         `;
       } else {
         C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
@@ -1901,7 +1923,6 @@
       } else {
         CConfig.SomEstouro = 0;
       }
-
     }
 
     ControleFront(8);
@@ -2125,15 +2146,15 @@
     VeriEstDPausa();
 
     function VeriEstDPausa() {
-      let a = '00:00:00';
+      let a = "00:00:00";
       let b = 0;
-      let f = '';
+      let f = "";
 
-      if (StatusNOV.includes('Descanso')) {
+      if (StatusNOV.includes("Descanso")) {
         a = "00:10:00";
         f = "Descanso";
         b = 1;
-      } else if (StatusNOV.includes('Lanche')) {
+      } else if (StatusNOV.includes("Lanche")) {
         a = "00:20:00";
         f = "Lanche";
         b = 1;
@@ -2141,7 +2162,6 @@
       let c = converterParaSegundos(a);
 
       if (Segun.ContAtual > c && b) {
-
         stt.Estouro = 1;
         let d = Segun.ContAtual - c;
 
@@ -2346,8 +2366,8 @@
           ? "Fechar"
           : "Pausas"
         : stt.AbaPausas
-          ? "F"
-          : "P";
+        ? "F"
+        : "P";
     }
     return caixa;
   }
@@ -2884,11 +2904,12 @@
   }
 
   function tocarBeep() {
-    const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+    const contextoAudio = new (window.AudioContext ||
+      window.webkitAudioContext)();
     const oscilador = contextoAudio.createOscillator();
     const ganho = contextoAudio.createGain();
 
-    oscilador.type = 'sine'; // Tipo de onda
+    oscilador.type = "sine"; // Tipo de onda
     oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
     ganho.gain.setValueAtTime(0.6, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
 
@@ -2910,7 +2931,427 @@
     }
   }
 
+  function AtualizarDTI2() {
+    function pickLabelFromText(text) {
+      // Pega o texto antes do parênteses: "Disponível (21%)" -> "Disponível"
+      return (text || "").split("(")[0].trim() || null;
+    }
+
+    /*************** Núcleo: por ID do ícone ***************/
+    function getStatusByIconId(iconId, { root = document } = {}) {
+      const svg =
+        (root.getElementById && root.getElementById(iconId)) ||
+        root.querySelector("#" + CSS.escape(iconId));
+      if (!svg) return null;
+
+      // O <p> com "Disponível (21%)" é imediatamente após o <svg>
+      const labelP =
+        (svg.nextElementSibling &&
+          svg.nextElementSibling.tagName === "P" &&
+          svg.nextElementSibling) ||
+        svg.parentElement?.querySelector("p") ||
+        null;
+
+      const labelText = labelP?.textContent?.trim() || null;
+      const label = pickLabelFromText(labelText);
+
+      // O tempo HH:MM:SS fica no "grid" irmão (o próximo <div>) e dentro dele o primeiro <p>
+      const labelGrid =
+        svg.closest(".MuiGrid-root") ||
+        labelP?.closest(".MuiGrid-root") ||
+        svg.parentElement;
+      const timeGrid = labelGrid?.nextElementSibling || null;
+      const timeP = timeGrid?.querySelector("p") || null;
+      const timeText = timeP?.textContent?.trim() || null;
+
+      return { iconId, label, time: timeText, nodes: { svg, labelP, timeP } };
+    }
+
+    /*************** Atalhos ***************/
+    function getDisponivel(root = document) {
+      return getStatusByIconId("availableStatusIconId", { root });
+    }
+    function getTrabalhando(root = document) {
+      return getStatusByIconId("workingDefaultIconId", { root });
+    }
+    function getIndisponivel(root = document) {
+      return getStatusByIconId("unavailableStatusIconId", { root });
+    }
+
+    // Primeiro, pega o objeto completo
+    const DisponivelData = getDisponivel(); // { label, percent, time, seconds, ... }
+    const TrabalhandoData = getTrabalhando();
+    const IndisponivelData = getIndisponivel();
+
+    // Agora define a variável com o valor em segundos
+    Segun.Disponivel = converterParaSegundos(time.Disponivel || 0);
+    Segun.Trabalhando = converterParaSegundos(time.Trabalhando || 0);
+    Segun.Indisponivel = converterParaSegundos(time.Indisponivel || 0);
+
+    if (
+      time.Disponivel === null ||
+      time.Trabalhando === null ||
+      time.Indisponivel === null
+    ) {
+      return false;
+    } else {
+      time.Disponivel = DisponivelData?.time;
+      time.Trabalhando = TrabalhandoData?.time;
+      time.Indisponivel = IndisponivelData?.time;
+      return true;
+    }
+    //console.log('Disponível em segundos:');
+  }
+
+  function caminhoInfo2(poud) {
+    /*************** Configurações por rótulo (PT ↔ EN) ***************/
+    const UI_MAP = {
+      Relatórios: { synonyms: ["Reporting", "Reports"] },
+      Produtividade: { synonyms: ["Productivity"] },
+      Desempenho: { synonyms: ["Performance"] },
+      Hoje: { synonyms: ["Today"], testIds: ["productivity-toggle-today"] },
+    };
+
+    /*************** Helpers ***************/
+    function getRoot(rootId, root = document) {
+      if (!rootId) return root;
+      return (
+        root.getElementById(rootId) ||
+        root.querySelector(`#${CSS.escape(rootId)}`) ||
+        root
+      );
+    }
+
+    function normalizeLabel(s) {
+      if (!s) return "";
+      return s
+        .normalize("NFD") // separa acentos
+        .replace(/[\u0300-\u036f]/g, "") // remove acentos
+        .toLowerCase()
+        .trim();
+    }
+
+    function matchesLabel(actual, wanted) {
+      const a = normalizeLabel(actual);
+      const w = normalizeLabel(wanted);
+      return a === w || a.includes(w) || w.includes(a);
+    }
+
+    function isClickable(el) {
+      if (!el) return false;
+      const role = (el.getAttribute("role") || "").toLowerCase();
+      const tag = el.tagName;
+      return (
+        tag === "BUTTON" ||
+        (tag === "A" && !!el.getAttribute("href")) ||
+        role === "button" ||
+        role === "menuitem" ||
+        role === "tab" ||
+        typeof el.onclick === "function"
+      );
+    }
+
+    /*************** Localizador genérico ***************/
+    function findUIItem({
+      label, // "Relatórios" | "Produtividade" | "Desempenho" | "Hoje"
+      rootId,
+      root = document,
+      extraSynonyms = [], // você pode passar mais sinônimos se precisar
+      extraTestIds = [], // você pode passar mais data-testids se souber
+    } = {}) {
+      const ctx = getRoot(rootId, root);
+      const conf = UI_MAP[label] || {};
+      const labelsToTry = [
+        label,
+        ...(conf.synonyms || []),
+        ...extraSynonyms,
+      ].filter(Boolean);
+      const testIdsToTry = [...(conf.testIds || []), ...extraTestIds];
+
+      // 0) Por data-testid conhecido (ex.: "Hoje" → productivity-toggle-today)
+      for (const id of testIdsToTry) {
+        const el = ctx.querySelector(`[data-testid="${id}"]`);
+        if (el) return el;
+      }
+
+      // 1) Match direto por aria-label em tabs/menu/botão
+      for (const w of labelsToTry) {
+        const el =
+          ctx.querySelector(
+            `[role="tab"][aria-label="${w}"], button[role="tab"][aria-label="${w}"]`
+          ) ||
+          ctx.querySelector(
+            `[data-testid="list-item"][role="button"][aria-label="${w}"]`
+          ) ||
+          ctx.querySelector(
+            `[data-testid="list-item"][role="menuitem"][aria-label="${w}"]`
+          ) ||
+          ctx.querySelector(
+            `button[aria-label="${w}"], [role="button"][aria-label="${w}"], [role="menuitem"][aria-label="${w}"]`
+          );
+        if (el) return el;
+      }
+
+      // 2) Por texto visível (tabs, botões e list-items clicáveis)
+      const candidates = ctx.querySelectorAll(
+        `[role="tab"], button, [data-testid="list-item"][role], [role="button"], [role="menuitem"]`
+      );
+      for (const el of candidates) {
+        if (!isClickable(el)) continue;
+        const text = (el.textContent || "").trim();
+        for (const w of labelsToTry) {
+          if (matchesLabel(text, w)) return el;
+        }
+      }
+
+      // 3) Tooltip em portal: procurar tooltip global e achar o "trigger" via aria-describedby
+      // (MUI costuma montar tooltip fora do container com id no <body>)
+      const tooltips = document.querySelectorAll(
+        `[data-testid="tooltip"], [role="tooltip"]`
+      );
+      for (const tip of tooltips) {
+        const tipText =
+          tip.getAttribute("aria-label") || (tip.textContent || "").trim();
+        for (const w of labelsToTry) {
+          if (!matchesLabel(tipText, w)) continue;
+
+          // Se o botão estiver dentro do container de tooltip
+          const inside = tip.querySelector(
+            'button, [role="button"], [role="menuitem"], [role="tab"]'
+          );
+          if (inside && isClickable(inside)) return inside;
+
+          // Se o tooltip é portal, procure o trigger por aria-describedby
+          const id = tip.id;
+          if (id) {
+            const trigger = document.querySelector(
+              `[aria-describedby~="${CSS.escape(id)}"]`
+            );
+            const target = trigger?.closest(
+              'button, [role="button"], [role="menuitem"], [role="tab"]'
+            );
+            if (target && isClickable(target)) return target;
+          }
+        }
+      }
+
+      // 4) Último fallback: qualquer coisa com aria-label que combine e seja clicável
+      for (const w of labelsToTry) {
+        const els = ctx.querySelectorAll(`[aria-label]`);
+        for (const el of els) {
+          if (
+            matchesLabel(el.getAttribute("aria-label") || "", w) &&
+            isClickable(el)
+          ) {
+            return el;
+          }
+        }
+      }
+
+      return null;
+    }
+
+    /*************** API principal ***************/
+    function existsUIItem(label, opts = {}) {
+      return !!findUIItem({ label, ...opts });
+    }
+
+    function clickUIItem(label, opts = {}) {
+      const el = findUIItem({ label, ...opts });
+      if (!el) return false;
+      el.scrollIntoView?.({ block: "center", inline: "center" });
+      el.focus?.();
+      try {
+        el.click();
+      } catch {}
+      return true;
+    }
+
+    /*************** (Opcional) Debug ***************/
+    function listClickableItems({ rootId, root = document } = {}) {
+      const ctx = getRoot(rootId, root);
+      const els = ctx.querySelectorAll(
+        'button, [role="button"], [role="menuitem"], [role="tab"], [data-testid="list-item"]'
+      );
+      return [...els].map((el, i) => ({
+        i,
+        tag: el.tagName.toLowerCase(),
+        role: el.getAttribute("role"),
+        testid: el.getAttribute("data-testid"),
+        aria: el.getAttribute("aria-label"),
+        text: (el.textContent || "").trim(),
+      }));
+    }
+
+    // Se tudo está dentro do container raiz:
+    const opts = { rootId: "cx1_agent_root" };
+
+    const interval = setInterval(function () {
+      clearInterval(interval);
+      stt.observ = 0;
+    }, 10000); // Tenta a cada 50ms
+
+    console.log(`NiceMonk observer Iniciado`);
+    ObservarItem(() => {
+      if (existsUIItem("Relatórios", opts)) {
+        if (!stt.ClickRelatorios) {
+          stt.ClickRelatorios = 1;
+          clickUIItem("Relatórios", opts);
+        }
+        if (!poud) {
+          if (!stt.ClickProdutividade && existsUIItem("Produtividade", opts)) {
+            stt.ClickProdutividade = 1;
+            clickUIItem("Produtividade", opts);
+          }
+        } else {
+          if (!stt.ClickDesempenho && existsUIItem("Desempenho", opts)) {
+            stt.ClickDesempenho = 1;
+            clickUIItem("Desempenho", opts);
+          }
+        }
+        if (!stt.ClickHoje && existsUIItem("Hoje", opts)) {
+          stt.ClickHoje = 1;
+          clickUIItem("Hoje", opts);
+        }
+        if (!poud) {
+          if (stt.ClickHoje && AtualizarDTI2()) {
+            stt.observ = 0;
+            stt.ClickRelatorios = 0;
+            stt.ClickProdutividade = 0;
+            stt.ClickDesempenho = 0;
+            stt.ClickHoje = 0;
+          }
+        } else {
+          if (stt.ClickHoje && AtuAtendidas2()) {
+            stt.observ = 0;
+            stt.ClickRelatorios = 0;
+            stt.ClickProdutividade = 0;
+            stt.ClickDesempenho = 0;
+            stt.ClickHoje = 0;
+          }
+        }
+      }
+    });
+  }
+
+  function AtuAtendidas2() {
+    /*************** Utils ***************/
+    function getRoot(rootId, root = document) {
+      if (!rootId) return root;
+      return (
+        root.getElementById(rootId) ||
+        root.querySelector(`#${CSS.escape(rootId)}`) ||
+        root
+      );
+    }
+
+    function toNumberOrText(text) {
+      if (text == null) return null;
+      const t = String(text).trim();
+      if (/^-?\d+([.,]\d+)?$/.test(t)) return Number(t.replace(",", ".")); // 14, 1284, 1.5, etc
+      return t; // "1%" ou outros textos
+    }
+
+    /*************** Pegar a TR pelo rótulo ***************/
+    function getRowByLabel(label, { rootId, root = document } = {}) {
+      const ctx = getRoot(rootId, root);
+      const rows = ctx.querySelectorAll("tbody tr");
+      const wanted = label.trim().toLowerCase();
+
+      for (const tr of rows) {
+        // Preferir [aria-label="Entrada"]
+        if (tr.querySelector(`[aria-label="${label}"]`)) return tr;
+
+        // Fallback por texto exato em algum nó da primeira célula
+        const firstTd = tr.querySelector("td");
+        if (!firstTd) continue;
+        const texts = Array.from(firstTd.querySelectorAll("*"))
+          .map((n) => (n.textContent || "").trim().toLowerCase())
+          .filter(Boolean);
+
+        if (texts.includes(wanted)) return tr;
+      }
+      return null;
+    }
+
+    /*************** Extrair os valores das colunas ***************/
+    function getRowValues(tr, { preferAria = true } = {}) {
+      if (!tr) return null;
+      const tds = tr.querySelectorAll("td");
+      const out = [];
+
+      // Começa do índice 1 (colunas à direita do rótulo)
+      for (let i = 1; i < tds.length; i++) {
+        const td = tds[i];
+        const span = td.querySelector("[aria-label]");
+
+        let text =
+          (preferAria && span?.getAttribute("aria-label")) ||
+          (span?.textContent ?? td.textContent);
+
+        text = (text || "").trim();
+        out.push(text);
+      }
+
+      return out; // ex.: ["14", "1284", "1%"]
+    }
+
+    /*************** Atalho: valores da linha "Entrada" ***************/
+    function getEntradaData(opts = {}) {
+      const tr = getRowByLabel("Entrada", opts);
+      if (!tr) return null;
+
+      const vals = getRowValues(tr) || [];
+      const col1 = vals[0] ?? null;
+      const col2 = vals[1] ?? null;
+      const col3 = vals[2] ?? null;
+
+      return {
+        label: "Entrada",
+        // conversões úteis
+        first: toNumberOrText(col1), // 14
+        second: toNumberOrText(col2), // 1284
+        row: tr,
+        raw: vals,
+      };
+    }
+
+    /*************** Atalhos para "Saída" e "Geral" (se precisar) ***************/
+    function getLinhaDataPorRotulo(label, opts = {}) {
+      const tr = getRowByLabel(label, opts);
+      if (!tr) return null;
+      const vals = getRowValues(tr) || [];
+      return {
+        label,
+        first: toNumberOrText(vals[0] ?? null),
+        second: toNumberOrText(vals[1] ?? null),
+        percentText: vals[2] ?? null,
+        row: tr,
+        raw: vals,
+      };
+    }
+
+    /*************** Exemplos de uso ***************/
+    // 1) “O valor ao lado de Entrada” (primeira coluna numérica após o rótulo):
+    const entrada = getEntradaData({
+      /* rootId: 'cx1_agent_root' */
+    });
+
+    let valorAoLadoDeEntrada = entrada?.first; // deve ser 14 no seu HTML
+    console.log("Valor ao lado de Entrada:", valorAoLadoDeEntrada);
+
+    // 2) Outros valores se você precisar:
+    console.log("Entrada (objeto completo):", entrada);
+    // console.log('Saída:', getLinhaDataPorRotulo('Saída'));
+    // console.log('Geral:', getLinhaDataPorRotulo('Geral'));
+
+    if (valorAoLadoDeEntrada === null) {
+      return false;
+    } else {
+      stt.vAtendidas = valorAoLadoDeEntrada;
+      return true;
+    }
+  }
+
   // Your code here...
 })();
-
-
