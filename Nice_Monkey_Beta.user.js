@@ -136,8 +136,8 @@
     ClickProdutividade: 0,
     ClickDesempenho: 0,
     ClickHoje: 0,
-    DTInaoEnc: 0,
-    AtnnaoEnc: 0,
+    CaminhoDTI: 0,
+    CaminhoAtn: 0,
   };
 
   const BGround = {
@@ -852,6 +852,64 @@
   async function iniciarBusca() {
     ControleFront(1);
 
+    caminhoInfo2(0);
+    let esp = 1000;
+    for (let a = 0; stt.CaminhoDTI && a < 3; a++) {
+        await esperar(esp);
+        //caminhoInfo2(0);
+    }
+    stt.ErroDTI = !AtualizarDTI2();
+
+    for (let a = 0; stt.ErroDTI && a < 3; a++) {
+      stt.ErroDTI = !AtualizarDTI2();
+    }
+
+    await VerificacoesN1();
+
+    for (let b = 0; stt.ErroVerif && b < 3; b++) {
+      AtualizarDTI2();
+      await VerificacoesN1();
+      if (stt.ErroVerif) {
+        await esperar(esp);
+      }
+    }
+
+    stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
+
+    if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
+        caminhoInfo2(1);
+        for (let a = 0; stt.CaminhoAtn && a < 3; a++) {
+            await esperar(esp);
+            //caminhoInfo2(1);
+    }
+    TentAtend();
+      for (let c = 0; stt.ErroTMA && c < 3; c++) {
+        TentAtend();
+        if (stt.ErroTMA) {
+          await esperar(esp);
+        }
+      }
+    }
+    AtualizarTMA(stt.ErroAten);
+
+    await VerificacoesN1();
+    ControleFront(2);
+
+    if (stt.NBT) {
+      stt.NBT = 0;
+      verificarESalvar(0);
+      let porseg = setInterval(() => {
+        VerificacoesN1();
+        if (stt.logout) {
+          clearInterval(porseg);
+        }
+      }, 1000);
+    }
+  }
+
+  async function iniciarBusca1() {
+    ControleFront(1);
+
     stt.ErroDTI = !(await AtualizarDTI());
 
     for (let a = 0; stt.ErroDTI && a < 3; a++) {
@@ -896,8 +954,8 @@
     }
   }
 
-  async function TentAtend() {
-    stt.ErroAten = !(await AtualizarAtendidas());
+function TentAtend() {
+    stt.ErroAten = !AtuAtendidas2();
     if (
       stt.vAtendidas <= stt.vAtendidasA &&
       Segun.Trabalhando > Segun.TrabalhandoA
@@ -2932,6 +2990,7 @@
   }
 
   function AtualizarDTI2() {
+    
     function pickLabelFromText(text) {
       // Pega o texto antes do parênteses: "Disponível (21%)" -> "Disponível"
       return (text || "").split("(")[0].trim() || null;
@@ -3209,27 +3268,21 @@
             clickUIItem("Desempenho", opts);
           }
         }
-        if (!stt.ClickHoje && existsUIItem("Hoje", opts)) {
-          stt.ClickHoje = 1;
+        if (existsUIItem("Hoje", opts)) {
           clickUIItem("Hoje", opts);
-        }
-        if (!poud) {
-          if (stt.ClickHoje && AtualizarDTI2()) {
-            stt.observ = 0;
+          stt.observ = 0;
             stt.ClickRelatorios = 0;
             stt.ClickProdutividade = 0;
             stt.ClickDesempenho = 0;
-            stt.ClickHoje = 0;
-          }
-        } else {
-          if (stt.ClickHoje && AtuAtendidas2()) {
-            stt.observ = 0;
-            stt.ClickRelatorios = 0;
-            stt.ClickProdutividade = 0;
-            stt.ClickDesempenho = 0;
-            stt.ClickHoje = 0;
-          }
+            if(!poud){
+                stt.CaminhoDTI = 1;
+            }else{
+                stt.CaminhoAtn = 1;
+            }
         }
+      }else{
+        stt.observ = 0;
+        stt.ErroDTI = 1;
       }
     });
   }
@@ -3338,12 +3391,6 @@
     });
 
     let valorAoLadoDeEntrada = entrada?.first; // deve ser 14 no seu HTML
-    console.log("Valor ao lado de Entrada:", valorAoLadoDeEntrada);
-
-    // 2) Outros valores se você precisar:
-    console.log("Entrada (objeto completo):", entrada);
-    // console.log('Saída:', getLinhaDataPorRotulo('Saída'));
-    // console.log('Geral:', getLinhaDataPorRotulo('Geral'));
 
     if (valorAoLadoDeEntrada === null) {
       return false;
