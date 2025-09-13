@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.6.16
+// @version      3.3.6.17
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -3270,16 +3270,28 @@ function TentAtend() {
         }
         if (existsUIItem("Hoje", opts)) {
           clickUIItem("Hoje", opts);
-          stt.observ = 0;
-            stt.ClickRelatorios = 0;
-            stt.ClickProdutividade = 0;
-            stt.ClickDesempenho = 0;
-            if(!poud){
-                stt.CaminhoDTI = 1;
-            }else{
-                stt.CaminhoAtn = 1;
+          stt.ClickHoje = 1;
+        }
+        if(stt.ClickHoje){
+
+          let a = 0;
+          if(!poud && AtualizarDTI2()){
+                a = 1;
+            }
+            if(poud && AtuAtendidas2()){
+                a = 1;
+            }
+            if (a) {
+              stt.observ = 0;
+              stt.ClickHoje = 0;
+              stt.ClickRelatorios = 0;
+              stt.ClickProdutividade = 0;
+              stt.ClickDesempenho = 0;
             }
         }
+          
+            
+        
       }else{
         stt.observ = 0;
         stt.ErroDTI = 1;
