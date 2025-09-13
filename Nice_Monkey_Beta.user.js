@@ -851,23 +851,22 @@
 
   async function iniciarBusca() {
     ControleFront(1);
+    stt.CaminhoDTI = 0;
+    stt.CaminhoAtn = 0;
 
     caminhoInfo2(0);
     let esp = 1000;
-    for (let a = 0; stt.CaminhoDTI && a < 3; a++) {
+    for (let a = 0; !stt.CaminhoDTI && a < 3; a++) {
         await esperar(esp);
-        //caminhoInfo2(0);
     }
-    stt.ErroDTI = !AtualizarDTI2();
-
-    for (let a = 0; stt.ErroDTI && a < 3; a++) {
-      stt.ErroDTI = !AtualizarDTI2();
+    stt.ErroDTI = !stt.CaminhoDTI;
+    if(stt.ErroDTI){
+      caminhoInfo2(0);
     }
 
     await VerificacoesN1();
 
-    for (let b = 0; stt.ErroVerif && b < 3; b++) {
-      AtualizarDTI2();
+    for (let b = 0; !stt.CaminhoDTI && b < 3; b++) {
       await VerificacoesN1();
       if (stt.ErroVerif) {
         await esperar(esp);
@@ -878,9 +877,8 @@
 
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
         caminhoInfo2(1);
-        for (let a = 0; stt.CaminhoAtn && a < 3; a++) {
+        for (let a = 0; !stt.CaminhoAtn && a < 3; a++) {
             await esperar(esp);
-            //caminhoInfo2(1);
     }
     TentAtend();
       for (let c = 0; stt.ErroTMA && c < 3; c++) {
@@ -3276,9 +3274,11 @@ function TentAtend() {
 
           let a = 0;
           if(!poud && AtualizarDTI2()){
+            stt.CaminhoDTI = 1;
                 a = 1;
             }
             if(poud && AtuAtendidas2()){
+              stt.CaminhoAtn = 1;
                 a = 1;
             }
             if (a) {
