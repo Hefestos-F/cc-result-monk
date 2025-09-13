@@ -646,53 +646,6 @@
     }
   }
 
-  function clicarElementoQuerySelector(selector) {
-    const elemento = document.querySelector(selector);
-    if (elemento) {
-      elemento.click();
-      return true;
-    }
-    return false;
-  }
-
-  async function caminhoInfo(A) {
-    if (await seExiste(LugarJS.abaRelatorio)) {
-      await clicarElementoQuerySelector(LugarJS.abaRelatorio);
-      if (!A) {
-        if (await seExiste(LugarJS.abaProdutividade)) {
-          await clicarElementoQuerySelector(LugarJS.abaProdutividade);
-        } else {
-          console.error(
-            "NiceMonk Erro ao clicar no último elemento: abaProdutividade"
-          );
-          return false;
-        }
-      } else {
-        if (await seExiste(LugarJS.abaDesempenho)) {
-          await clicarElementoQuerySelector(LugarJS.abaDesempenho);
-        } else {
-          console.error(
-            "NiceMonk Erro ao clicar no último elemento: abaDesempenho"
-          );
-          return false;
-        }
-      }
-      if (await seExiste(LugarJS.abaHoje)) {
-        if (await clicarElementoQuerySelector(LugarJS.abaHoje)) {
-          return true;
-        }
-      } else {
-        console.error("NiceMonk Erro ao clicar no último elemento: abaHoje");
-        return false;
-      }
-    } else {
-      console.error(
-        "NiceMonk Erro ao clicar no primeiro elemento: abaRelatorio"
-      );
-      return false;
-    }
-  }
-
   function seExiste(seletor) {
     return new Promise((resolve, reject) => {
       const maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
@@ -758,35 +711,6 @@
     }
   }
 
-  async function AtualizarAtendidas() {
-    //await caminhoInfo(1); // Caminho Atendidas
-    await caminhoInfo2(1);
-    if (await seExiste(LugarJS.lAtendidas)) {
-      stt.vAtendidas = document.querySelector(LugarJS.lAtendidas).textContent;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  async function AtualizarDTI() {
-    //await caminhoInfo(0); // Caminho logado
-    if ((await caminhoInfo(0)) && (await seExiste(LugarJS.lDisponibilidade))) {
-      Segun.Disponivel = converterParaSegundos(
-        document.querySelector(LugarJS.lDisponibilidade).textContent
-      );
-      Segun.Trabalhando = converterParaSegundos(
-        document.querySelector(LugarJS.ltrabalhando).textContent
-      );
-      Segun.Indisponivel = converterParaSegundos(
-        document.querySelector(LugarJS.lIndisponivel).textContent
-      );
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   function AtualizarTMA(x) {
     const cTMA = document.getElementById("cTMA");
     const SepCVal2 = document.getElementById("SepCVal2");
@@ -820,7 +744,7 @@
     if (cTMA2) {
       const tTMA = document.getElementById("tTMA");
       const vTMA = document.getElementById("vTMA");
-      let TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
+      let TMA = stt.vAtendidas === 0 ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
       tTMA.innerHTML = stt.Busc5s ? "Busca" : "TMA:";
       vTMA.innerHTML = stt.Busc5s
@@ -854,14 +778,15 @@
     stt.CaminhoDTI = 0;
     stt.CaminhoAtn = 0;
 
-    caminhoInfo2(0);
+    caminhoInfo(0);
     let esp = 1000;
     for (let a = 0; !stt.CaminhoDTI && a < 3; a++) {
-        await esperar(esp);
+      await esperar(esp);
     }
     stt.ErroDTI = !stt.CaminhoDTI;
-    if(stt.ErroDTI){
-      caminhoInfo2(0);
+
+    if (stt.ErroDTI) {
+      caminhoInfo(0);
     }
 
     await VerificacoesN1();
@@ -876,19 +801,18 @@
     stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
 
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
-        caminhoInfo2(1);
-        for (let a = 0; !stt.CaminhoAtn && a < 3; a++) {
-            await esperar(esp);
-    }
-    TentAtend();
-      for (let c = 0; stt.ErroTMA && c < 3; c++) {
-        TentAtend();
-        if (stt.ErroTMA) {
+      caminhoInfo(1);
+      for (let a = 0; !stt.CaminhoAtn && a < 3; a++) {
+        await esperar(esp);
+      }
+      ErVerifAten();
+      for (let c = 0; ErVerifAten() && c < 3; c++) {
+        if (ErVerifAten()) {
           await esperar(esp);
         }
       }
     }
-    AtualizarTMA(stt.ErroAten);
+    AtualizarTMA(!stt.CaminhoAtn);
 
     await VerificacoesN1();
     ControleFront(2);
@@ -905,64 +829,17 @@
     }
   }
 
-  async function iniciarBusca1() {
-    ControleFront(1);
-
-    stt.ErroDTI = !(await AtualizarDTI());
-
-    for (let a = 0; stt.ErroDTI && a < 3; a++) {
-      stt.ErroDTI = !(await AtualizarDTI());
-    }
-
-    await VerificacoesN1();
-
-    for (let b = 0; stt.ErroVerif && b < 3; b++) {
-      await AtualizarDTI();
-      await VerificacoesN1();
-      if (stt.ErroVerif) {
-        await esperar(1000);
-      }
-    }
-
-    stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
-
-    if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
-      await TentAtend();
-      for (let c = 0; stt.ErroTMA && c < 3; c++) {
-        await TentAtend();
-        if (stt.ErroTMA) {
-          await esperar(1000);
-        }
-      }
-    }
-    AtualizarTMA(stt.ErroAten);
-
-    await VerificacoesN1();
-    ControleFront(2);
-
-    if (stt.NBT) {
-      stt.NBT = 0;
-      verificarESalvar(0);
-      let porseg = setInterval(() => {
-        VerificacoesN1();
-        if (stt.logout) {
-          clearInterval(porseg);
-        }
-      }, 1000);
-    }
-  }
-
-function TentAtend() {
-    stt.ErroAten = !AtuAtendidas2();
+  function ErVerifAten() {
     if (
       stt.vAtendidas <= stt.vAtendidasA &&
       Segun.Trabalhando > Segun.TrabalhandoA
     ) {
-      stt.ErroTMA = 1;
+      return true;
     } else {
       stt.ErroTMA = 0;
       stt.vAtendidasA = stt.vAtendidas;
       Segun.TrabalhandoA = Segun.Trabalhando;
+      return false;
     }
   }
 
@@ -2987,8 +2864,7 @@ function TentAtend() {
     }
   }
 
-  function AtualizarDTI2() {
-    
+  function AtualizarDTI() {
     function pickLabelFromText(text) {
       // Pega o texto antes do parênteses: "Disponível (21%)" -> "Disponível"
       return (text || "").split("(")[0].trim() || null;
@@ -3040,266 +2916,193 @@ function TentAtend() {
     const TrabalhandoData = getTrabalhando();
     const IndisponivelData = getIndisponivel();
 
-    // Agora define a variável com o valor em segundos
-    Segun.Disponivel = converterParaSegundos(time.Disponivel || 0);
-    Segun.Trabalhando = converterParaSegundos(time.Trabalhando || 0);
-    Segun.Indisponivel = converterParaSegundos(time.Indisponivel || 0);
-
     if (
-      time.Disponivel === null ||
-      time.Trabalhando === null ||
-      time.Indisponivel === null
+      DisponivelData?.time === null ||
+      TrabalhandoData?.time === null ||
+      IndisponivelData?.time === null
     ) {
       return false;
     } else {
       time.Disponivel = DisponivelData?.time;
       time.Trabalhando = TrabalhandoData?.time;
       time.Indisponivel = IndisponivelData?.time;
+      // Agora define a variável com o valor em segundos
+      Segun.Disponivel = converterParaSegundos(time.Disponivel || 0);
+      Segun.Trabalhando = converterParaSegundos(time.Trabalhando || 0);
+      Segun.Indisponivel = converterParaSegundos(time.Indisponivel || 0);
+
       return true;
     }
     //console.log('Disponível em segundos:');
   }
 
-  function caminhoInfo2(poud) {
-    /*************** Configurações por rótulo (PT ↔ EN) ***************/
-    const UI_MAP = {
-      Relatórios: { synonyms: ["Reporting", "Reports"] },
-      Produtividade: { synonyms: ["Productivity"] },
-      Desempenho: { synonyms: ["Performance"] },
-      Hoje: { synonyms: ["Today"], testIds: ["productivity-toggle-today"] },
-    };
-
-    /*************** Helpers ***************/
-    function getRoot(rootId, root = document) {
-      if (!rootId) return root;
-      return (
-        root.getElementById(rootId) ||
-        root.querySelector(`#${CSS.escape(rootId)}`) ||
-        root
-      );
-    }
-
-    function normalizeLabel(s) {
-      if (!s) return "";
-      return s
-        .normalize("NFD") // separa acentos
-        .replace(/[\u0300-\u036f]/g, "") // remove acentos
-        .toLowerCase()
-        .trim();
-    }
-
-    function matchesLabel(actual, wanted) {
-      const a = normalizeLabel(actual);
-      const w = normalizeLabel(wanted);
-      return a === w || a.includes(w) || w.includes(a);
-    }
-
-    function isClickable(el) {
-      if (!el) return false;
-      const role = (el.getAttribute("role") || "").toLowerCase();
-      const tag = el.tagName;
-      return (
-        tag === "BUTTON" ||
-        (tag === "A" && !!el.getAttribute("href")) ||
-        role === "button" ||
-        role === "menuitem" ||
-        role === "tab" ||
-        typeof el.onclick === "function"
-      );
-    }
-
-    /*************** Localizador genérico ***************/
-    function findUIItem({
-      label, // "Relatórios" | "Produtividade" | "Desempenho" | "Hoje"
-      rootId,
-      root = document,
-      extraSynonyms = [], // você pode passar mais sinônimos se precisar
-      extraTestIds = [], // você pode passar mais data-testids se souber
-    } = {}) {
-      const ctx = getRoot(rootId, root);
-      const conf = UI_MAP[label] || {};
-      const labelsToTry = [
-        label,
-        ...(conf.synonyms || []),
-        ...extraSynonyms,
-      ].filter(Boolean);
-      const testIdsToTry = [...(conf.testIds || []), ...extraTestIds];
-
-      // 0) Por data-testid conhecido (ex.: "Hoje" → productivity-toggle-today)
-      for (const id of testIdsToTry) {
-        const el = ctx.querySelector(`[data-testid="${id}"]`);
-        if (el) return el;
-      }
-
-      // 1) Match direto por aria-label em tabs/menu/botão
-      for (const w of labelsToTry) {
-        const el =
-          ctx.querySelector(
-            `[role="tab"][aria-label="${w}"], button[role="tab"][aria-label="${w}"]`
-          ) ||
-          ctx.querySelector(
-            `[data-testid="list-item"][role="button"][aria-label="${w}"]`
-          ) ||
-          ctx.querySelector(
-            `[data-testid="list-item"][role="menuitem"][aria-label="${w}"]`
-          ) ||
-          ctx.querySelector(
-            `button[aria-label="${w}"], [role="button"][aria-label="${w}"], [role="menuitem"][aria-label="${w}"]`
-          );
-        if (el) return el;
-      }
-
-      // 2) Por texto visível (tabs, botões e list-items clicáveis)
-      const candidates = ctx.querySelectorAll(
-        `[role="tab"], button, [data-testid="list-item"][role], [role="button"], [role="menuitem"]`
-      );
-      for (const el of candidates) {
-        if (!isClickable(el)) continue;
-        const text = (el.textContent || "").trim();
-        for (const w of labelsToTry) {
-          if (matchesLabel(text, w)) return el;
-        }
-      }
-
-      // 3) Tooltip em portal: procurar tooltip global e achar o "trigger" via aria-describedby
-      // (MUI costuma montar tooltip fora do container com id no <body>)
-      const tooltips = document.querySelectorAll(
-        `[data-testid="tooltip"], [role="tooltip"]`
-      );
-      for (const tip of tooltips) {
-        const tipText =
-          tip.getAttribute("aria-label") || (tip.textContent || "").trim();
-        for (const w of labelsToTry) {
-          if (!matchesLabel(tipText, w)) continue;
-
-          // Se o botão estiver dentro do container de tooltip
-          const inside = tip.querySelector(
-            'button, [role="button"], [role="menuitem"], [role="tab"]'
-          );
-          if (inside && isClickable(inside)) return inside;
-
-          // Se o tooltip é portal, procure o trigger por aria-describedby
-          const id = tip.id;
-          if (id) {
-            const trigger = document.querySelector(
-              `[aria-describedby~="${CSS.escape(id)}"]`
-            );
-            const target = trigger?.closest(
-              'button, [role="button"], [role="menuitem"], [role="tab"]'
-            );
-            if (target && isClickable(target)) return target;
-          }
-        }
-      }
-
-      // 4) Último fallback: qualquer coisa com aria-label que combine e seja clicável
-      for (const w of labelsToTry) {
-        const els = ctx.querySelectorAll(`[aria-label]`);
-        for (const el of els) {
-          if (
-            matchesLabel(el.getAttribute("aria-label") || "", w) &&
-            isClickable(el)
-          ) {
-            return el;
-          }
-        }
-      }
-
-      return null;
-    }
-
-    /*************** API principal ***************/
-    function existsUIItem(label, opts = {}) {
-      return !!findUIItem({ label, ...opts });
-    }
-
-    function clickUIItem(label, opts = {}) {
-      const el = findUIItem({ label, ...opts });
-      if (!el) return false;
-      el.scrollIntoView?.({ block: "center", inline: "center" });
-      el.focus?.();
-      try {
-        el.click();
-      } catch {}
-      return true;
-    }
-
-    /*************** (Opcional) Debug ***************/
-    function listClickableItems({ rootId, root = document } = {}) {
-      const ctx = getRoot(rootId, root);
-      const els = ctx.querySelectorAll(
-        'button, [role="button"], [role="menuitem"], [role="tab"], [data-testid="list-item"]'
-      );
-      return [...els].map((el, i) => ({
-        i,
-        tag: el.tagName.toLowerCase(),
-        role: el.getAttribute("role"),
-        testid: el.getAttribute("data-testid"),
-        aria: el.getAttribute("aria-label"),
-        text: (el.textContent || "").trim(),
-      }));
-    }
-
-    // Se tudo está dentro do container raiz:
-    const opts = { rootId: "cx1_agent_root" };
-
+  function caminhoInfo(poud) {
     const interval = setInterval(function () {
       clearInterval(interval);
       stt.observ = 0;
-    }, 10000); // Tenta a cada 50ms
+      console.log("NiceMonk Fim do Tempo observ.");
+    }, 5000); // Tenta a cada 50ms
 
     console.log(`NiceMonk observer Iniciado`);
+
+    // Captura erros síncronos e assíncronos (promises)
+    window.__lastError = null;
+    window.__lastRejection = null;
+
+    window.addEventListener("error", (e) => {
+      console.group("%c[window.error]", "color:#f33");
+      console.log("message:", e.message);
+      console.log("error:", e.error);
+      console.log("filename:line:col", e.filename, e.lineno, e.colno);
+      console.groupEnd();
+      window.__lastError = e.error || e.message;
+    });
+
+    window.addEventListener("unhandledrejection", (e) => {
+      console.group("%c[unhandledrejection]", "color:#f90");
+      console.log("reason:", e.reason);
+      console.groupEnd();
+      window.__lastRejection = e.reason;
+    });
+
+    // Se seus elementos vivem dentro de #cx1_agent_root:
+    const opts = { rootId: "cx1_agent_root" };
+
     ObservarItem(() => {
-      if (existsUIItem("Relatórios", opts)) {
+      if (
+        !!findItemComSinonimos("Relatórios", {
+          ...opts,
+          synonyms: ["Reporting", "Reports"],
+        })
+      ) {
         if (!stt.ClickRelatorios) {
           stt.ClickRelatorios = 1;
-          clickUIItem("Relatórios", opts);
+          clickItemComSinonimos("Relatórios", {
+            ...opts,
+            synonyms: ["Reporting", "Reports"],
+          });
         }
         if (!poud) {
-          if (!stt.ClickProdutividade && existsUIItem("Produtividade", opts)) {
+          if (!stt.ClickProdutividade && !!findItem("Produtividade", opts)) {
             stt.ClickProdutividade = 1;
-            clickUIItem("Produtividade", opts);
+            clickItem("Produtividade", opts);
           }
         } else {
-          if (!stt.ClickDesempenho && existsUIItem("Desempenho", opts)) {
+          if (
+            !stt.ClickDesempenho &&
+            !!findItemComSinonimos("Desempenho", { synonyms: ["Performance"] })
+          ) {
             stt.ClickDesempenho = 1;
-            clickUIItem("Desempenho", opts);
+            clickItemComSinonimos("Desempenho", {
+              ...opts,
+              synonyms: ["Performance"],
+            });
           }
         }
-        if (existsUIItem("Hoje", opts)) {
-          clickUIItem("Hoje", opts);
+        if (!!findItemComSinonimos("Hoje", { ...opts, synonyms: ["Today"] })) {
           stt.ClickHoje = 1;
+          clickItemComSinonimos("Hoje", { ...opts, synonyms: ["Today"] });
         }
-        if(stt.ClickHoje){
-
+        if (stt.ClickHoje) {
           let a = 0;
-          if(!poud && AtualizarDTI2()){
+          if (!poud && AtualizarDTI()) {
             stt.CaminhoDTI = 1;
-                a = 1;
-            }
-            if(poud && AtuAtendidas2()){
-              stt.CaminhoAtn = 1;
-                a = 1;
-            }
-            if (a) {
-              stt.observ = 0;
-              stt.ClickHoje = 0;
-              stt.ClickRelatorios = 0;
-              stt.ClickProdutividade = 0;
-              stt.ClickDesempenho = 0;
-            }
+            a = 1;
+          }
+          if (poud && AtuAtendidas()) {
+            stt.CaminhoAtn = 1;
+            a = 1;
+          }
+          if (a) {
+            stt.observ = 0;
+            stt.ClickHoje = 0;
+            stt.ClickRelatorios = 0;
+            stt.ClickProdutividade = 0;
+            stt.ClickDesempenho = 0;
+            console.log("NiceMonk Fim do Caminho.");
+          }
         }
-          
-            
-        
-      }else{
+      } else {
         stt.observ = 0;
         stt.ErroDTI = 1;
+        console.log("NiceMonk Relatórios Não Encontrado.");
       }
     });
   }
 
-  function AtuAtendidas2() {
+  function getRoot(rootId, root = document) {
+    if (!rootId) return root;
+    return (
+      root.getElementById(rootId) ||
+      root.querySelector(`#${CSS.escape(rootId)}`) ||
+      root
+    );
+  }
+
+  function findItem(label, { rootId, root = document } = {}) {
+    const ctx = getRoot(rootId, root);
+
+    // Caso especial "Hoje": há um data-testid específico
+    if (label === "Hoje") {
+      const byTestId = ctx.querySelector(
+        '[data-testid="productivity-toggle-today"]'
+      );
+      if (byTestId) return byTestId;
+    }
+
+    // Botões com aria-label (com/sem role)
+    return (
+      ctx.querySelector(`button[aria-label="${label}"]`) || // <button aria-label="...">
+      ctx.querySelector(`[role="button"][aria-label="${label}"]`) || // qualquer [role="button"]
+      ctx.querySelector(`[role="tab"][aria-label="${label}"]`) || // abas <button role="tab">
+      ctx.querySelector(
+        `[data-testid="list-item"][role="button"][aria-label="${label}"]`
+      ) // menu MUI
+    );
+  }
+
+  function clickItem(label, opts = {}) {
+    const el = findItem(label, opts);
+    if (!el) return false;
+    el.scrollIntoView?.({ block: "center", inline: "center" });
+    el.focus?.();
+    try {
+      el.click();
+    } catch {}
+    return true;
+  }
+
+  function findItemComSinonimos(
+    label,
+    { synonyms = [], rootId, root = document } = {}
+  ) {
+    // Tenta o label principal
+    let el = findItem(label, { rootId, root });
+    if (el) return el;
+
+    // Tenta sinônimos
+    for (const s of synonyms) {
+      el = findItem(s, { rootId, root });
+      if (el) return el;
+    }
+    return null;
+  }
+
+  function clickItemComSinonimos(
+    label,
+    { synonyms = [], rootId, root = document } = {}
+  ) {
+    const el = findItemComSinonimos(label, { synonyms, rootId, root });
+    if (!el) return false;
+    el.scrollIntoView?.({ block: "center", inline: "center" });
+    el.focus?.();
+    try {
+      el.click();
+    } catch {}
+    return true;
+  }
+
+  function AtuAtendidas() {
     /*************** Utils ***************/
     function getRoot(rootId, root = document) {
       if (!rootId) return root;
@@ -3405,9 +3208,13 @@ function TentAtend() {
     let valorAoLadoDeEntrada = entrada?.first; // deve ser 14 no seu HTML
 
     if (valorAoLadoDeEntrada === null) {
+
+      console.log('NiceMonk false valorAoLadoDeEntrada :',valorAoLadoDeEntrada);
       return false;
+      
     } else {
       stt.vAtendidas = valorAoLadoDeEntrada;
+      console.log('NiceMonk true valorAoLadoDeEntrada :',valorAoLadoDeEntrada);
       return true;
     }
   }
