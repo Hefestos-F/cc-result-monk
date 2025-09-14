@@ -15,49 +15,126 @@
 (function () {
   "use strict";
 
-  // Função para encontrar o item pelo aria-label
-  function findItem(label) {
-    return document.querySelector(
-      `button[role="button"][aria-label="${label}"]`
-    );
+  const Lugar = {
+    relatorio: '[role="button"][aria-label="Reporting"]',
+    produtividade: '[type="button"][aria-label="Produtividade"]',
+    desempenho: '[type="button"][aria-label="Desempenho"]',
+    hoje: '[type="button"][aria-label="Hoje"]',
+  };
+
+  function encontrarItem(item1, callback) {
+    let encontrado = false;
+
+    const observer = new MutationObserver(() => {
+      const item = document.querySelector(item1);
+      if (item) {
+        encontrado = true;
+        observer.disconnect();
+        callback(item);
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    setTimeout(() => {
+      if (!encontrado) {
+        observer.disconnect();
+        console.log("NiceMonk Item não encontrado após 5 segundos.");
+      }
+    }, 5000);
   }
 
-  function findItemComSinonimos(label, { root = document, synonyms = [] } = {}) {
-  // tenta o label principal
-  let el = findItem(label, { root });
-  if (el) return el;
+  encontrarItem(Lugar.relatorio,() => {
+    console.log("NiceMonk Encontrado");
+  });
 
-  // tenta sinônimos
-  for (const s of synonyms) {
-    el = findItem(s, { root });
-    if (el) return el;
+  function clicarNoItem(item1) {
+    encontrarItem(item1,(item) => {
+      item.click();
+      console.log("Item clicado com sucesso.");
+    });
   }
-  return null;
+
+  clicarNoItem(Lugar.relatorio);
+  clicarNoItem(Lugar.produtividade);
+  clicarNoItem(Lugar.hoje);
+
+
+  
+  /* * * * * * * * * * * * * * * * * * * * */
+
+
+  const Lugar = {
+  relatorio: '[role="button"][aria-label="Reporting"]',
+  produtividade: '[type="button"][aria-label="Produtividade"]',
+  desempenho: '[type="button"][aria-label="Desempenho"]',
+  hoje: '[type="button"][aria-label="Hoje"]',
+};
+
+// Função que retorna uma Promise para aguardar o item aparecer
+function encontrarItemAsync(seletor) {
+  return new Promise((resolve, reject) => {
+    let encontrado = false;
+
+    const observer = new MutationObserver(() => {
+      const item = document.querySelector(seletor);
+      if (item) {
+        encontrado = true;
+        observer.disconnect();
+        resolve(item);
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    setTimeout(() => {
+      if (!encontrado) {
+        observer.disconnect();
+        reject(`Item ${seletor} não encontrado após 5 segundos.`);
+      }
+    }, 5000);
+  });
 }
 
-// Uso:
-console.log(findItemComSinonimos('Relatórios', { synonyms: ['Reporting', 'Reports'] }));
-console.log(findItemComSinonimos('Produtividade', { synonyms: ['Productivity'] }));
-console.log(findItemComSinonimos('Desempenho', { synonyms: ['Performance'] }));
-console.log(findItemComSinonimos('Hoje', { synonyms: ['Today'] }));
-
-
-  // Função para clicar no item
-  function clickItem(label) {
-    const el = findItem(label);
-    if (!el) {
-      console.log(`Item "${label}" não encontrado`);
-      return false;
-    }
-    el.scrollIntoView({ block: "center", inline: "center" });
-    el.focus();
-    el.click();
+// Função para clicar no item após encontrá-lo
+async function clicarNoItem(seletor) {
+  try {
+    const item = await encontrarItemAsync(seletor);
+    item.click();
+    console.log(`✅ Clicado: ${seletor}`);
     return true;
+  } catch (erro) {
+    console.error(`❌ Erro ao clicar em ${seletor}:`, erro);
+    return false;
   }
-  // Clicar
-  clickItem("Reporting");
-  clickItem("Produtividade");
-  clickItem("Desempenho");
-  clickItem("Hoje");
-  
+}
+
+// Função principal para executar os cliques em sequência
+async function executarSequencia() {
+  const ordem = [
+    Lugar.relatorio,
+    Lugar.produtividade,
+    Lugar.desempenho,
+    Lugar.hoje,
+  ];
+
+  for (const seletor of ordem) {
+    const sucesso = await clicarNoItem(seletor);
+    if (!sucesso) break; // Para a sequência se algum item falhar
+    await new Promise(resolve => setTimeout(resolve, 500)); // Espera opcional entre cliques
+  }
+
+  console.log("✅ Sequência finalizada.");
+}
+
+// Inicia a sequência
+executarSequencia();
+
+
 })();

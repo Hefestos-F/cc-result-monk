@@ -2124,14 +2124,6 @@
       Alinha2.style.marginBottom = e ? "" : "-18px";
     }
 
-    const CCC = document.getElementById("circuloclickCont");
-    if (!CCC && !stt.logout) {
-      stt.logout = 1;
-      stt.observ = 1;
-      addAoini();
-      FimdePausa(stt.StatusANT);
-    }
-
     function FimdePausa(tipo) {
       stt.FPausaS = converterParaSegundos(mostrarHora());
       stt.DPausaS = stt.FPausaS - stt.IPausaS;
@@ -2935,36 +2927,18 @@
     }
     //console.log('Disponível em segundos:');
   }
-
   function caminhoInfo(poud) {
+    /*
     const interval = setInterval(function () {
       clearInterval(interval);
       stt.observ = 0;
       console.log("NiceMonk Fim do Tempo observ.");
     }, 5000); // Tenta a cada 50ms
 
+    
+
+   */
     console.log(`NiceMonk observer Iniciado`);
-
-    // Captura erros síncronos e assíncronos (promises)
-    window.__lastError = null;
-    window.__lastRejection = null;
-
-    window.addEventListener("error", (e) => {
-      console.group("%c[window.error]", "color:#f33");
-      console.log("message:", e.message);
-      console.log("error:", e.error);
-      console.log("filename:line:col", e.filename, e.lineno, e.colno);
-      console.groupEnd();
-      window.__lastError = e.error || e.message;
-    });
-
-    window.addEventListener("unhandledrejection", (e) => {
-      console.group("%c[unhandledrejection]", "color:#f90");
-      console.log("reason:", e.reason);
-      console.groupEnd();
-      window.__lastRejection = e.reason;
-    });
-
     // Se seus elementos vivem dentro de #cx1_agent_root:
     const opts = { rootId: "cx1_agent_root" };
 
@@ -3075,7 +3049,7 @@
   function findItemComSinonimos(
     label,
     { synonyms = [], rootId, root = document } = {}
-  ) {
+     ) {
     // Tenta o label principal
     let el = findItem(label, { rootId, root });
     if (el) return el;
@@ -3207,14 +3181,15 @@
 
     let valorAoLadoDeEntrada = entrada?.first; // deve ser 14 no seu HTML
 
-    if (valorAoLadoDeEntrada === null) {
-
-      console.log('NiceMonk false valorAoLadoDeEntrada :',valorAoLadoDeEntrada);
+    if (valorAoLadoDeEntrada === null || valorAoLadoDeEntrada === undefined) {
+      console.log(
+        "NiceMonk false valorAoLadoDeEntrada :",
+        valorAoLadoDeEntrada
+      );
       return false;
-      
     } else {
       stt.vAtendidas = valorAoLadoDeEntrada;
-      console.log('NiceMonk true valorAoLadoDeEntrada :',valorAoLadoDeEntrada);
+      console.log("NiceMonk true valorAoLadoDeEntrada :", valorAoLadoDeEntrada);
       return true;
     }
   }
