@@ -804,8 +804,9 @@
 
     stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
 
+    let plin = 0;
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
-      let plin = 0;
+      
       for (let a = 0; !plin && a < 3; a++) {
         plin = await executarSequencia(1);
       }
@@ -3105,9 +3106,9 @@
     for (const seletor of as) {
       const sucesso = await clicarNoItem(seletor);
       if (!sucesso) {
-        console.log(`NiceMonk Sequência Falhou em ${seletor}.`);
+        console.log(`NiceMonk click Falhou em ${seletor}.`);
         return false;
-      } else {
+      } else if(seletor === Lugar.hoje){
         let umt = 0;
         for (let a = 0; !umt && a < 3; a++) {
           umt = await verificarQualRetornaTrue(ordem);
