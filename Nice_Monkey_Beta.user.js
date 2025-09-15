@@ -188,6 +188,13 @@
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
   };
 
+  const Lugar = {
+    relatorio: '[role="button"][aria-label="Reporting"]',
+    produtividade: '[type="button"][aria-label="Produtividade"]',
+    desempenho: '[type="button"][aria-label="Desempenho"]',
+    hoje: '[type="button"][aria-label="Hoje"]',
+  };
+
   addAoini();
 
   RecuperarTVariaveis();
@@ -775,24 +782,21 @@
 
   async function iniciarBusca() {
     ControleFront(1);
-    stt.CaminhoDTI = 0;
-    stt.CaminhoAtn = 0;
 
-    caminhoInfo(0);
     let esp = 1000;
-    for (let a = 0; !stt.CaminhoDTI && a < 3; a++) {
-      await esperar(esp);
+    let trin = 0;
+    for (let a = 0; !trin && a < 3; a++) {
+      trin = await executarSequencia(0);
     }
-    stt.ErroDTI = !stt.CaminhoDTI;
-
-    if (stt.ErroDTI) {
-      caminhoInfo(0);
-    }
+    stt.ErroDTI = !trin;
 
     await VerificacoesN1();
 
-    for (let b = 0; !stt.CaminhoDTI && b < 3; b++) {
+    trin = await AtualizarDTI();
+
+    for (let b = 0; !trin && b < 3; b++) {
       await VerificacoesN1();
+      trin = await AtualizarDTI();
       if (stt.ErroVerif) {
         await esperar(esp);
       }
@@ -801,20 +805,23 @@
     stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
 
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
-      caminhoInfo(1);
-      for (let a = 0; !stt.CaminhoAtn && a < 3; a++) {
-        await esperar(esp);
+      let plin = 0;
+      for (let a = 0; !plin && a < 3; a++) {
+        plin = await executarSequencia(1);
       }
-      ErVerifAten();
-      for (let c = 0; ErVerifAten() && c < 3; c++) {
-        if (ErVerifAten()) {
+      let alf = ErVerifAten();
+      for (let c = 0; alf && c < 3; c++) {
+        plin = await executarSequencia(1);
+        alf = await ErVerifAten();
+        if (alf) {
           await esperar(esp);
         }
       }
     }
-    AtualizarTMA(!stt.CaminhoAtn);
+    AtualizarTMA(!plin);
 
     await VerificacoesN1();
+
     ControleFront(2);
 
     if (stt.NBT) {
@@ -2927,154 +2934,6 @@
     }
     //console.log('Disponível em segundos:');
   }
-  function caminhoInfo(poud) {
-    /*
-    const interval = setInterval(function () {
-      clearInterval(interval);
-      stt.observ = 0;
-      console.log("NiceMonk Fim do Tempo observ.");
-    }, 5000); // Tenta a cada 50ms
-
-    
-
-   */
-    console.log(`NiceMonk observer Iniciado`);
-    // Se seus elementos vivem dentro de #cx1_agent_root:
-    const opts = { rootId: "cx1_agent_root" };
-
-    ObservarItem(() => {
-      if (
-        !!findItemComSinonimos("Relatórios", {
-          ...opts,
-          synonyms: ["Reporting", "Reports"],
-        })
-      ) {
-        if (!stt.ClickRelatorios) {
-          stt.ClickRelatorios = 1;
-          clickItemComSinonimos("Relatórios", {
-            ...opts,
-            synonyms: ["Reporting", "Reports"],
-          });
-        }
-        if (!poud) {
-          if (!stt.ClickProdutividade && !!findItem("Produtividade", opts)) {
-            stt.ClickProdutividade = 1;
-            clickItem("Produtividade", opts);
-          }
-        } else {
-          if (
-            !stt.ClickDesempenho &&
-            !!findItemComSinonimos("Desempenho", { synonyms: ["Performance"] })
-          ) {
-            stt.ClickDesempenho = 1;
-            clickItemComSinonimos("Desempenho", {
-              ...opts,
-              synonyms: ["Performance"],
-            });
-          }
-        }
-        if (!!findItemComSinonimos("Hoje", { ...opts, synonyms: ["Today"] })) {
-          stt.ClickHoje = 1;
-          clickItemComSinonimos("Hoje", { ...opts, synonyms: ["Today"] });
-        }
-        if (stt.ClickHoje) {
-          let a = 0;
-          if (!poud && AtualizarDTI()) {
-            stt.CaminhoDTI = 1;
-            a = 1;
-          }
-          if (poud && AtuAtendidas()) {
-            stt.CaminhoAtn = 1;
-            a = 1;
-          }
-          if (a) {
-            stt.observ = 0;
-            stt.ClickHoje = 0;
-            stt.ClickRelatorios = 0;
-            stt.ClickProdutividade = 0;
-            stt.ClickDesempenho = 0;
-            console.log("NiceMonk Fim do Caminho.");
-          }
-        }
-      } else {
-        stt.observ = 0;
-        stt.ErroDTI = 1;
-        console.log("NiceMonk Relatórios Não Encontrado.");
-      }
-    });
-  }
-
-  function getRoot(rootId, root = document) {
-    if (!rootId) return root;
-    return (
-      root.getElementById(rootId) ||
-      root.querySelector(`#${CSS.escape(rootId)}`) ||
-      root
-    );
-  }
-
-  function findItem(label, { rootId, root = document } = {}) {
-    const ctx = getRoot(rootId, root);
-
-    // Caso especial "Hoje": há um data-testid específico
-    if (label === "Hoje") {
-      const byTestId = ctx.querySelector(
-        '[data-testid="productivity-toggle-today"]'
-      );
-      if (byTestId) return byTestId;
-    }
-
-    // Botões com aria-label (com/sem role)
-    return (
-      ctx.querySelector(`button[aria-label="${label}"]`) || // <button aria-label="...">
-      ctx.querySelector(`[role="button"][aria-label="${label}"]`) || // qualquer [role="button"]
-      ctx.querySelector(`[role="tab"][aria-label="${label}"]`) || // abas <button role="tab">
-      ctx.querySelector(
-        `[data-testid="list-item"][role="button"][aria-label="${label}"]`
-      ) // menu MUI
-    );
-  }
-
-  function clickItem(label, opts = {}) {
-    const el = findItem(label, opts);
-    if (!el) return false;
-    el.scrollIntoView?.({ block: "center", inline: "center" });
-    el.focus?.();
-    try {
-      el.click();
-    } catch {}
-    return true;
-  }
-
-  function findItemComSinonimos(
-    label,
-    { synonyms = [], rootId, root = document } = {}
-     ) {
-    // Tenta o label principal
-    let el = findItem(label, { rootId, root });
-    if (el) return el;
-
-    // Tenta sinônimos
-    for (const s of synonyms) {
-      el = findItem(s, { rootId, root });
-      if (el) return el;
-    }
-    return null;
-  }
-
-  function clickItemComSinonimos(
-    label,
-    { synonyms = [], rootId, root = document } = {}
-  ) {
-    const el = findItemComSinonimos(label, { synonyms, rootId, root });
-    if (!el) return false;
-    el.scrollIntoView?.({ block: "center", inline: "center" });
-    el.focus?.();
-    try {
-      el.click();
-    } catch {}
-    return true;
-  }
 
   function AtuAtendidas() {
     /*************** Utils ***************/
@@ -3193,6 +3052,82 @@
       return true;
     }
   }
+  
+  // Função que retorna uma Promise para aguardar o item aparecer
+  function encontrarItemAsync(seletor, objeto) {
+    return new Promise((resolve, reject) => {
+      let encontrado = false;
 
+      const observer = new MutationObserver(() => {
+        let item;
+        if (seletor !== "MuM") {
+          item = document.querySelector(seletor);
+        } else {
+          if (objeto) {
+            item = AtualizarDTI();
+          } else {
+            item = AtuAtendidas();
+          }
+        }
+        if (item) {
+          encontrado = true;
+          observer.disconnect();
+          resolve(item);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      setTimeout(() => {
+        if (!encontrado) {
+          observer.disconnect();
+          reject(`NiceMonk Item ${seletor} não encontrado após 5 segundos.`);
+        }
+      }, 5000);
+    });
+  }
+
+  // Função para clicar no item após encontrá-lo
+  async function clicarNoItem(seletor) {
+    try {
+      const item = await encontrarItemAsync(seletor, 0);
+      item.click();
+      console.log(`NiceMonk Clicado: ${seletor}`);
+      return true;
+    } catch (erro) {
+      console.error(`NiceMonk Erro ao clicar em ${seletor}:`, erro);
+      return false;
+    }
+  }
+
+  // Função principal para executar os cliques em sequência
+  async function executarSequencia(ordem) {
+    const ordem1 = [Lugar.relatorio, Lugar.produtividade, Lugar.hoje];
+
+    const ordem2 = [Lugar.relatorio, Lugar.desempenho, Lugar.hoje];
+    let as = ordem ? ordem2 : ordem1;
+
+    for (const seletor of as) {
+      const sucesso = await clicarNoItem(seletor);
+      if (!sucesso) {
+        console.log(`NiceMonk Sequência Falhou em ${seletor}.`);
+        break; // Para a sequência se algum item falhar
+        return false;
+      } else {
+        let umt = 0;
+        for (let a = 0; !umt && a < 3; a++) {
+          umt = await encontrarItemAsync("MuM", ordem);
+        }
+        if (!umt) return false;
+      }
+      //await new Promise(resolve => setTimeout(resolve, 500)); // Espera opcional entre cliques
+    }
+
+    console.log("NiceMonk Sequência finalizada.");
+    return true;
+  }
   // Your code here...
 })();
