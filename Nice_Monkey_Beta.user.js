@@ -3054,21 +3054,13 @@
   }
 
   // Função que retorna uma Promise para aguardar o item aparecer
-  function encontrarItemAsync(seletor, objeto) {
+  function encontrarItemAsync(seletor) {
     return new Promise((resolve, reject) => {
       let encontrado = false;
 
       const observer = new MutationObserver(() => {
-        let item;
-        if (seletor !== "MuM") {
-          item = document.querySelector(seletor);
-        } else {
-          if (objeto) {
-            item = AtualizarDTI();
-          } else {
-            item = AtuAtendidas();
-          }
-        }
+        let item = document.querySelector(seletor);
+
         if (item) {
           encontrado = true;
           observer.disconnect();
@@ -3093,7 +3085,7 @@
   // Função para clicar no item após encontrá-lo
   async function clicarNoItem(seletor) {
     try {
-      const item = await encontrarItemAsync(seletor, 0);
+      const item = await encontrarItemAsync(seletor);
       item.click();
       console.log(`NiceMonk Clicado: ${seletor}`);
       return true;
@@ -3118,8 +3110,9 @@
       } else {
         let umt = 0;
         for (let a = 0; !umt && a < 3; a++) {
-          umt = await encontrarItemAsync("MuM", ordem);
+          umt = await verificarQualRetornaTrue(ordem);
         }
+        if (!umt) console.log("NiceMonk Sequência Falhou.");
         if (!umt) return false;
       }
       //await new Promise(resolve => setTimeout(resolve, 500)); // Espera opcional entre cliques
@@ -3128,5 +3121,32 @@
     console.log("NiceMonk Sequência finalizada.");
     return true;
   }
+
+  function verificarQualRetornaTrue(objeto) {
+    return new Promise((resolve) => {
+      let resultado = false;
+
+      const observer = new MutationObserver(() => {
+        const retorno = objeto ? AtualizarDTI() : AtuAtendidas();
+
+        if (retorno === true) {
+          resultado = true;
+          observer.disconnect();
+          resolve(true);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      setTimeout(() => {
+        observer.disconnect();
+        resolve(resultado); // Retorna true se encontrou, false se não
+      }, 5000);
+    });
+  }
+
   // Your code here...
 })();
