@@ -3052,7 +3052,7 @@
       return true;
     }
   }
-  
+
   // Função que retorna uma Promise para aguardar o item aparecer
   function encontrarItemAsync(seletor, objeto) {
     return new Promise((resolve, reject) => {
@@ -3114,7 +3114,6 @@
       const sucesso = await clicarNoItem(seletor);
       if (!sucesso) {
         console.log(`NiceMonk Sequência Falhou em ${seletor}.`);
-        break; // Para a sequência se algum item falhar
         return false;
       } else {
         let umt = 0;
