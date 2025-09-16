@@ -817,7 +817,7 @@
         if (!stt.CaminhoAtn || alf) await esperar(esp);
       }
     }
-    AtualizarTMA(!stt.ErroAtu);
+    AtualizarTMA(stt.ErroAtu);
 
     await VerificacoesN1();
 
