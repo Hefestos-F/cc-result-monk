@@ -806,7 +806,6 @@
 
     let plin = 0;
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
-      
       for (let a = 0; !plin && a < 3; a++) {
         plin = await executarSequencia(1);
       }
@@ -3108,7 +3107,7 @@
       if (!sucesso) {
         console.log(`NiceMonk click Falhou em ${seletor}.`);
         return false;
-      } else if(seletor === Lugar.hoje){
+      } else if (seletor === Lugar.hoje) {
         let umt = 0;
         for (let a = 0; !umt && a < 3; a++) {
           umt = await verificarQualRetornaTrue(ordem);
@@ -3128,7 +3127,7 @@
       let resultado = false;
 
       const observer = new MutationObserver(() => {
-        const retorno = objeto ? AtualizarDTI() : AtuAtendidas();
+        const retorno = objeto ? AtuAtendidas() : AtualizarDTI();
 
         if (retorno === true) {
           resultado = true;
