@@ -783,42 +783,41 @@
   async function iniciarBusca() {
     ControleFront(1);
 
+    stt.CaminhoDTI = 0;
+    stt.CaminhoAtn = 0;
+
     let esp = 1000;
-    let trin = 0;
-    for (let a = 0; !trin && a < 3; a++) {
-      trin = await executarSequencia(0);
+
+    for (let a = 0; !stt.CaminhoDTI && a < 3; a++) {
+      stt.CaminhoDTI = await executarSequencia(0);
+      if (!stt.CaminhoDTI) await esperar(esp);
     }
-    stt.ErroDTI = !trin;
 
     await VerificacoesN1();
 
-    trin = await AtualizarDTI();
-
-    for (let b = 0; !trin && b < 3; b++) {
+    for (let b = 0; stt.ErroVerif && b < 3; b++) {
+      stt.CaminhoDTI = await executarSequencia(0);
       await VerificacoesN1();
-      trin = await AtualizarDTI();
-      if (stt.ErroVerif) {
-        await esperar(esp);
-      }
+      if (stt.ErroVerif) await esperar(esp);
     }
+
+    stt.ErroDTI = !stt.CaminhoDTI;
 
     stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
 
-    let plin = 0;
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
-      for (let a = 0; !plin && a < 3; a++) {
-        plin = await executarSequencia(1);
+      for (let a = 0; !stt.CaminhoAtn && a < 3; a++) {
+        stt.CaminhoAtn = await executarSequencia(1);
+        if (!stt.CaminhoAtn) await esperar(esp);
       }
-      let alf = ErVerifAten();
-      for (let c = 0; alf && c < 3; c++) {
-        plin = await executarSequencia(1);
+      let alf = 0;
+      for (let c = 0; stt.CaminhoAtn && !alf && c < 3; c++) {
+        stt.CaminhoAtn = await executarSequencia(1);
         alf = await ErVerifAten();
-        if (alf) {
-          await esperar(esp);
-        }
+        if (!stt.CaminhoAtn || alf) await esperar(esp);
       }
     }
-    AtualizarTMA(!plin);
+    AtualizarTMA(!stt.ErroAtu);
 
     await VerificacoesN1();
 
@@ -3041,14 +3040,14 @@
     let valorAoLadoDeEntrada = entrada?.first; // deve ser 14 no seu HTML
 
     if (valorAoLadoDeEntrada === null || valorAoLadoDeEntrada === undefined) {
-      console.log(
+      /*console.log(
         "NiceMonk false valorAoLadoDeEntrada :",
         valorAoLadoDeEntrada
-      );
+      );*/
       return false;
     } else {
       stt.vAtendidas = valorAoLadoDeEntrada;
-      console.log("NiceMonk true valorAoLadoDeEntrada :", valorAoLadoDeEntrada);
+      //console.log("NiceMonk true valorAoLadoDeEntrada :", valorAoLadoDeEntrada);
       return true;
     }
   }
@@ -3078,7 +3077,7 @@
           observer.disconnect();
           reject(`NiceMonk Item ${seletor} não encontrado após 5 segundos.`);
         }
-      }, 5000);
+      }, 4000);
     });
   }
 
@@ -3144,7 +3143,7 @@
       setTimeout(() => {
         observer.disconnect();
         resolve(resultado); // Retorna true se encontrou, false se não
-      }, 5000);
+      }, 4000);
     });
   }
 
