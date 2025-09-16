@@ -93,6 +93,12 @@
     QualLogou: 0,
   };
 
+  const time = {
+    Disponivel: 0,
+    Trabalhando: 0,
+    Indisponivel: 0,
+  };
+
   const stt = {
     vAtendidas: "",
     vAtendidasA: 0,
@@ -124,7 +130,14 @@
     intervaloBeep: 1,
     BeepRet: 0,
     logout: 0,
-    observ: 0,
+    observ: 1,
+    ClickRelatorios: 0,
+    poud: 0,
+    ClickProdutividade: 0,
+    ClickDesempenho: 0,
+    ClickHoje: 0,
+    CaminhoDTI: 0,
+    CaminhoAtn: 0,
   };
 
   const BGround = {
@@ -154,12 +167,6 @@
     elementoReferencia2:
       "#cx1_agent_root > main > div > main > header > header > div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-6.MuiGrid-grid-sm-12.MuiGrid-grid-md-12.MuiGrid-grid-lg-6.css-1govgzr > div",
     Status: "#agent-state-section > div > span > div > div",
-
-    abaRelatorio: '[role="button"][aria-label="Reporting"]',
-    abaProdutividade: '[type="button"][aria-label="Produtividade"]',
-    abaDesempenho: '[type="button"][aria-label="Desempenho"]',
-    abaHoje: '[type="button"][aria-label="Hoje"]',
-
     lContAtual: "#agent-state-section > div > span > div > div > span > span",
     lAtendidas:
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-3b491n > div > div > table > tbody > tr:nth-child(1) > td:nth-child(2) > span",
@@ -169,6 +176,13 @@
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(2) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
     lIndisponivel:
       "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
+  };
+
+  const Lugar = {
+    relatorio: '[role="button"][aria-label="Reporting"]',
+    produtividade: '[type="button"][aria-label="Produtividade"]',
+    desempenho: '[type="button"][aria-label="Desempenho"]',
+    hoje: '[type="button"][aria-label="Hoje"]',
   };
 
   addAoini();
@@ -229,19 +243,22 @@
     }
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      console.log("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogue);
+      console.log("NiceMonk Encontrados em dadosPrimLogue:", dadosPrimLogue);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogue:", e);
     }
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      console.log("NiceMonk Encontrados em dadosdePausas:", dadosLogueManu);
+      console.log("NiceMonk Encontrados em dadosLogueManu:", dadosLogueManu);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosLogueManu:", e);
     }
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.log("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogueOnt);
+      console.log(
+        "NiceMonk Encontrados em dadosPrimLogueOnt:",
+        dadosPrimLogueOnt
+      );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
     }
@@ -263,7 +280,7 @@
   }
 
   function criarCaixaDCv(n, titulo) {
-    var caixa = document.createElement("div");
+    const caixa = document.createElement("div");
     caixa.classList.add("info-caixa");
     caixa.style.transition = "all 0.5s ease";
     caixa.id = `${n}${titulo}`;
@@ -276,7 +293,7 @@
   }
 
   function criarSeparadorCV(x) {
-    var separador = document.createElement("div");
+    const separador = document.createElement("div");
     separador.setAttribute("id", `SepCVal${x}`);
     separador.classList.add("separadorC");
     return separador;
@@ -439,12 +456,9 @@
   }
 
   function addcirculo(elementoReferencia2) {
-    // Verifica se o elemento existe
-    if (elementoReferencia2) {
-      //${ContIcon};
-      var ContIcon = document.createElement("div");
-      ContIcon.setAttribute("id", "ContIcon");
-      ContIcon.style.cssText = `
+    const ContIcon = document.createElement("div");
+    ContIcon.setAttribute("id", "ContIcon");
+    ContIcon.style.cssText = `
             height: 16px;
             width: 16px;
             border: 2px solid white;
@@ -454,7 +468,7 @@
             transform: rotate(45deg);
             justify-content: center;
             `;
-      ContIcon.innerHTML = `
+    ContIcon.innerHTML = `
         <div style="display: flex; align-items: center; flex-direction: column; transform: rotate(-45deg);">
         <div class="iconec" style="
         height: 7px;
@@ -482,10 +496,10 @@
        </div>
         `;
 
-      // Define o estilo do circuloclick
-      var circuloclick = document.createElement("div");
-      circuloclick.setAttribute("id", "circuloclick");
-      circuloclick.style.cssText = `
+    // Define o estilo do circuloclick
+    const circuloclick = document.createElement("div");
+    circuloclick.setAttribute("id", "circuloclick");
+    circuloclick.style.cssText = `
             display: flex;
             border-radius: 25px;
             height: 26px;
@@ -496,23 +510,23 @@
             border-width: 1px;
             border-color: white;
             `;
-      circuloclick.appendChild(ContIcon);
+    circuloclick.appendChild(ContIcon);
 
-      var textCC1 = document.createElement("div");
-      textCC1.setAttribute("id", "textCC1");
-      textCC1.style.cssText = `
+    const textCC1 = document.createElement("div");
+    textCC1.setAttribute("id", "textCC1");
+    textCC1.style.cssText = `
             margin-right: 5px;
             opacity: 0;
             display: none;
             transition: 0.5s;
             color: white;
             `;
-      circuloclick.appendChild(textCC1);
+    circuloclick.appendChild(textCC1);
 
-      // Define o estilo do circuloclick2
-      var circuloclick2 = document.createElement("div");
-      circuloclick2.setAttribute("id", "circuloclick2");
-      circuloclick2.style.cssText = `
+    // Define o estilo do circuloclick2
+    const circuloclick2 = document.createElement("div");
+    circuloclick2.setAttribute("id", "circuloclick2");
+    circuloclick2.style.cssText = `
             text-align: center;
             padding: 4px;
             display: flex;
@@ -531,15 +545,15 @@
             color: white;
             `;
 
-      var textCC2 = document.createElement("div");
-      textCC2.setAttribute("id", "textCC2");
-      textCC2.style.transform = "rotate(-45deg)";
-      circuloclick2.appendChild(textCC2);
+    const textCC2 = document.createElement("div");
+    textCC2.setAttribute("id", "textCC2");
+    textCC2.style.transform = "rotate(-45deg)";
+    circuloclick2.appendChild(textCC2);
 
-      // Define o estilo do circuloclickCont
-      var circuloclickCont = document.createElement("div");
-      circuloclickCont.setAttribute("id", "circuloclickCont");
-      circuloclickCont.style.cssText = `
+    // Define o estilo do circuloclickCont
+    const circuloclickCont = document.createElement("div");
+    circuloclickCont.setAttribute("id", "circuloclickCont");
+    circuloclickCont.style.cssText = `
             position: absolute;
             font-size: 12px;
             z-index: 1;
@@ -554,65 +568,62 @@
             color: #ffffff;
             `;
 
-      circuloclickCont.appendChild(circuloclick2);
-      circuloclickCont.appendChild(circuloclick);
+    circuloclickCont.appendChild(circuloclick2);
+    circuloclickCont.appendChild(circuloclick);
 
-      // Adiciona o quadrado como o primeiro filho da div
-      elementoReferencia2.insertBefore(
-        circuloclickCont,
-        elementoReferencia2.firstChild
-      );
+    // Adiciona o quadrado como o primeiro filho da div
+    elementoReferencia2.insertBefore(
+      circuloclickCont,
+      elementoReferencia2.firstChild
+    );
 
-      // Adiciona o evento de mouseover ao circuloclick
-      circuloclick.addEventListener("mouseover", function () {
-        stt.DentrodCC1 = 1;
-        ControleFront(4);
-      });
+    // Adiciona o evento de mouseover ao circuloclick
+    circuloclick.addEventListener("mouseover", function () {
+      stt.DentrodCC1 = 1;
+      ControleFront(4);
+    });
 
-      // Adiciona o evento de mouseout ao circuloclick
-      circuloclick.addEventListener("mouseout", function () {
-        stt.DentrodCC1 = 0;
-        ControleFront(4);
-      });
+    // Adiciona o evento de mouseout ao circuloclick
+    circuloclick.addEventListener("mouseout", function () {
+      stt.DentrodCC1 = 0;
+      ControleFront(4);
+    });
 
-      // Adiciona o evento de mouseover ao circuloclick2
-      circuloclick2.addEventListener("mouseover", function () {
-        stt.DentrodCC2 = 1;
-        ControleFront(5);
-      });
+    // Adiciona o evento de mouseover ao circuloclick2
+    circuloclick2.addEventListener("mouseover", function () {
+      stt.DentrodCC2 = 1;
+      ControleFront(5);
+    });
 
-      // Adiciona o evento de mouseout ao circuloclick2
-      circuloclick2.addEventListener("mouseout", function () {
-        stt.DentrodCC2 = 0;
-        ControleFront(5);
-      });
+    // Adiciona o evento de mouseout ao circuloclick2
+    circuloclick2.addEventListener("mouseout", function () {
+      stt.DentrodCC2 = 0;
+      ControleFront(5);
+    });
 
-      // Adiciona o evento de mouseover ao circuloclickCont
-      circuloclickCont.addEventListener("mouseover", function () {
-        stt.DentrodcCC = 1;
-        ControleFront(3);
-      });
+    // Adiciona o evento de mouseover ao circuloclickCont
+    circuloclickCont.addEventListener("mouseover", function () {
+      stt.DentrodcCC = 1;
+      ControleFront(3);
+    });
 
-      // Adiciona o evento de mouseout ao circuloclickCont
-      circuloclickCont.addEventListener("mouseout", function () {
-        stt.DentrodcCC = 0;
-        ControleFront(3);
-      });
+    // Adiciona o evento de mouseout ao circuloclickCont
+    circuloclickCont.addEventListener("mouseout", function () {
+      stt.DentrodcCC = 0;
+      ControleFront(3);
+    });
 
-      circuloclick.addEventListener("click", function () {
-        iniciarBusca();
-      });
+    circuloclick.addEventListener("click", function () {
+      iniciarBusca();
+    });
 
-      circuloclick2.addEventListener("click", function () {
-        AtualizarConf(15);
-      });
-    } else {
-      console.error("NiceMonk Elemento não encontrado. Verifique o seletor.");
-    }
+    circuloclick2.addEventListener("click", function () {
+      AtualizarConf(15);
+    });
   }
 
   function converterParaTempo(segundos) {
-    var minutos;
+    let minutos;
     if (segundos < 60) {
       return segundos;
     } else if (segundos < 3600) {
@@ -622,7 +633,7 @@
         .toString()
         .padStart(2, "0")}`;
     } else {
-      var horas = Math.floor(segundos / 3600);
+      const horas = Math.floor(segundos / 3600);
       segundos %= 3600;
       minutos = Math.floor(segundos / 60);
       segundos = segundos % 60;
@@ -632,60 +643,13 @@
     }
   }
 
-  function clicarElementoQuerySelector(selector) {
-    var elemento = document.querySelector(selector);
-    if (elemento) {
-      elemento.click();
-      return true;
-    }
-    return false;
-  }
-
-  async function caminhoInfo(A) {
-    if (await seExiste(LugarJS.abaRelatorio)) {
-      await clicarElementoQuerySelector(LugarJS.abaRelatorio);
-      if (!A) {
-        if (await seExiste(LugarJS.abaProdutividade)) {
-          await clicarElementoQuerySelector(LugarJS.abaProdutividade);
-        } else {
-          console.error(
-            "NiceMonk Erro ao clicar no último elemento: abaProdutividade"
-          );
-          return false;
-        }
-      } else {
-        if (await seExiste(LugarJS.abaDesempenho)) {
-          await clicarElementoQuerySelector(LugarJS.abaDesempenho);
-        } else {
-          console.error(
-            "NiceMonk Erro ao clicar no último elemento: abaDesempenho"
-          );
-          return false;
-        }
-      }
-      if (await seExiste(LugarJS.abaHoje)) {
-        if (await clicarElementoQuerySelector(LugarJS.abaHoje)) {
-          return true;
-        }
-      } else {
-        console.error("NiceMonk Erro ao clicar no último elemento: abaHoje");
-        return false;
-      }
-    } else {
-      console.error(
-        "NiceMonk Erro ao clicar no primeiro elemento: abaRelatorio"
-      );
-      return false;
-    }
-  }
-
   function seExiste(seletor) {
     return new Promise((resolve, reject) => {
-      var maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
-      var attempts = 0;
-      var interval = setInterval(function () {
-        var elemento = document.querySelector(seletor);
-        var NomeDIt = Object.keys(LugarJS).filter(
+      const maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
+      let attempts = 0;
+      const interval = setInterval(function () {
+        const elemento = document.querySelector(seletor);
+        const NomeDIt = Object.keys(LugarJS).filter(
           (chave) => LugarJS[chave] === seletor
         );
 
@@ -744,34 +708,6 @@
     }
   }
 
-  async function AtualizarAtendidas() {
-    await caminhoInfo(1); // Caminho Atendidas
-    if (await seExiste(LugarJS.lAtendidas)) {
-      stt.vAtendidas = document.querySelector(LugarJS.lAtendidas).textContent;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  async function AtualizarDTI() {
-    //await caminhoInfo(0); // Caminho logado
-    if ((await caminhoInfo(0)) && (await seExiste(LugarJS.lDisponibilidade))) {
-      Segun.Disponivel = converterParaSegundos(
-        document.querySelector(LugarJS.lDisponibilidade).textContent
-      );
-      Segun.Trabalhando = converterParaSegundos(
-        document.querySelector(LugarJS.ltrabalhando).textContent
-      );
-      Segun.Indisponivel = converterParaSegundos(
-        document.querySelector(LugarJS.lIndisponivel).textContent
-      );
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   function AtualizarTMA(x) {
     const cTMA = document.getElementById("cTMA");
     const SepCVal2 = document.getElementById("SepCVal2");
@@ -805,7 +741,7 @@
     if (cTMA2) {
       const tTMA = document.getElementById("tTMA");
       const vTMA = document.getElementById("vTMA");
-      let TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
+      let TMA = stt.vAtendidas === 0 ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
       tTMA.innerHTML = stt.Busc5s ? "Busca" : "TMA:";
       vTMA.innerHTML = stt.Busc5s
@@ -837,56 +773,69 @@
   async function iniciarBusca() {
     ControleFront(1);
 
-    stt.ErroDTI = !(await AtualizarDTI());
+    stt.CaminhoDTI = 0;
+    stt.CaminhoAtn = 0;
 
-    for (let a = 0; stt.ErroDTI && a < 3; a++) {
-      stt.ErroDTI = !(await AtualizarDTI());
+    let esp = 1000;
+
+    for (let a = 0; !stt.CaminhoDTI && a < 3; a++) {
+      stt.CaminhoDTI = await executarSequencia(0);
+      if (!stt.CaminhoDTI) await esperar(esp);
     }
 
     await VerificacoesN1();
 
     for (let b = 0; stt.ErroVerif && b < 3; b++) {
-      await AtualizarDTI();
+      stt.CaminhoDTI = await executarSequencia(0);
       await VerificacoesN1();
-      if (stt.ErroVerif) {
-        await esperar(1000);
-      }
+      if (stt.ErroVerif) await esperar(esp);
     }
+
+    stt.ErroDTI = !stt.CaminhoDTI;
 
     stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
 
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
-      await TentAtend();
-      for (let c = 0; stt.ErroTMA && c < 3; c++) {
-        await TentAtend();
-        if (stt.ErroTMA) {
-          await esperar(1000);
-        }
+      for (let a = 0; !stt.CaminhoAtn && a < 3; a++) {
+        stt.CaminhoAtn = await executarSequencia(1);
+        if (!stt.CaminhoAtn) await esperar(esp);
+      }
+      let alf = 0;
+      for (let c = 0; stt.CaminhoAtn && !alf && c < 3; c++) {
+        stt.CaminhoAtn = await executarSequencia(1);
+        alf = await ErVerifAten();
+        if (!stt.CaminhoAtn || alf) await esperar(esp);
       }
     }
-    AtualizarTMA(stt.ErroAten);
+    AtualizarTMA(stt.ErroAtu);
 
     await VerificacoesN1();
+
     ControleFront(2);
 
     if (stt.NBT) {
       stt.NBT = 0;
       verificarESalvar(0);
-      setInterval(VerificacoesN1, 1000);
+      let porseg = setInterval(() => {
+        VerificacoesN1();
+        if (stt.logout) {
+          clearInterval(porseg);
+        }
+      }, 1000);
     }
   }
 
-  async function TentAtend() {
-    stt.ErroAten = !(await AtualizarAtendidas());
+  function ErVerifAten() {
     if (
       stt.vAtendidas <= stt.vAtendidasA &&
       Segun.Trabalhando > Segun.TrabalhandoA
     ) {
-      stt.ErroTMA = 1;
+      return true;
     } else {
       stt.ErroTMA = 0;
       stt.vAtendidasA = stt.vAtendidas;
       Segun.TrabalhandoA = Segun.Trabalhando;
+      return false;
     }
   }
 
@@ -927,7 +876,7 @@
       : Segun.Logou;
     Segun.Offline = Segun.Logou - Segun.QualLogou;
 
-    var vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
+    let vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
       vari2 &&
@@ -946,13 +895,13 @@
   }
 
   function AtualizarInfo() {
-    var TempoEscalado = converterParaSegundos(CConfig.TempoEscaladoHoras);
-    var vHE;
-    var TempoCumprido = false;
-    var HE = false;
+    let TempoEscalado = converterParaSegundos(CConfig.TempoEscaladoHoras);
+    let vHE;
+    let TempoCumprido = false;
+    let HE = false;
 
-    var LogadoSegundos = Segun.Hora - Segun.QualLogou;
-    var SaidaSegundos = Segun.QualLogou + TempoEscalado;
+    let LogadoSegundos = Segun.Hora - Segun.QualLogou;
+    let SaidaSegundos = Segun.QualLogou + TempoEscalado;
     SaidaSegundos =
       !stt.offForaDToler &&
       !stt.ErroAtu &&
@@ -960,14 +909,14 @@
       !CConfig.IgnorarOff
         ? SaidaSegundos + Segun.Offline
         : SaidaSegundos;
-    var FaltaSegundos = SaidaSegundos - Segun.Hora;
-    var ASaidaSegundos = SaidaSegundos + Segun.Offline;
-    var AFaltaSegundos = FaltaSegundos + Segun.Offline;
-    var dezMinutosSegundos = converterParaSegundos("00:10:00");
+    let FaltaSegundos = SaidaSegundos - Segun.Hora;
+    let ASaidaSegundos = SaidaSegundos + Segun.Offline;
+    let AFaltaSegundos = FaltaSegundos + Segun.Offline;
+    let dezMinutosSegundos = converterParaSegundos("00:10:00");
 
-    var varia1 = CConfig.MostraValorOff ? ASaidaSegundos : SaidaSegundos;
+    let varia1 = CConfig.MostraValorOff ? ASaidaSegundos : SaidaSegundos;
 
-    var varia2 = CConfig.MostraValorOff ? AFaltaSegundos : FaltaSegundos;
+    let varia2 = CConfig.MostraValorOff ? AFaltaSegundos : FaltaSegundos;
 
     if (Segun.Hora > varia1 + dezMinutosSegundos) {
       HE = true;
@@ -976,24 +925,24 @@
       TempoCumprido = true;
     }
 
-    var LogouSegundosFormatado = converterParaTempo(Segun.QualLogou);
-    var vLogou = document.getElementById("vLogou");
+    let LogouSegundosFormatado = converterParaTempo(Segun.QualLogou);
+    let vLogou = document.getElementById("vLogou");
     vLogou.textContent = LogouSegundosFormatado;
 
-    var vari1 = CConfig.MostraValorOff ? Segun.NewLogado : LogadoSegundos;
-    var LogadoSegundosFormatado = converterParaTempo(vari1);
-    var vLogado = document.getElementById("vLogado");
+    let vari1 = CConfig.MostraValorOff ? Segun.NewLogado : LogadoSegundos;
+    let LogadoSegundosFormatado = converterParaTempo(vari1);
+    let vLogado = document.getElementById("vLogado");
     vLogado.textContent = LogadoSegundosFormatado;
 
-    var vari2 = varia1;
-    var SaidaSegundosFormatado = converterParaTempo(vari2);
-    var vSaida = document.getElementById("vSaida");
+    let vari2 = varia1;
+    let SaidaSegundosFormatado = converterParaTempo(vari2);
+    let vSaida = document.getElementById("vSaida");
     vSaida.textContent = SaidaSegundosFormatado;
 
-    var FouH = HE ? vHE : varia2;
-    var FouHFormatado = converterParaTempo(FouH);
-    var vFalta = document.getElementById("vFalta");
-    var tFalta = document.getElementById("tFalta");
+    let FouH = HE ? vHE : varia2;
+    let FouHFormatado = converterParaTempo(FouH);
+    let vFalta = document.getElementById("vFalta");
+    let tFalta = document.getElementById("tFalta");
     tFalta.textContent = HE ? "HE:" : TempoCumprido ? "Tempo" : "Falta:";
     if (!stt.ErroVerif) {
       vFalta.textContent = HE
@@ -1010,9 +959,9 @@
       stt.Busc5sTem = 5;
     }
 
-    var OfflineSegundosFormatado = converterParaTempo(Segun.Offline);
-    var vOffline = document.getElementById("vOffline");
-    var tOffline = document.getElementById("tOffline");
+    let OfflineSegundosFormatado = converterParaTempo(Segun.Offline);
+    let vOffline = document.getElementById("vOffline");
+    let tOffline = document.getElementById("tOffline");
     vOffline.textContent = OfflineSegundosFormatado;
     tOffline.textContent = CConfig.MostraValorOff
       ? "Com Offline :"
@@ -1024,18 +973,18 @@
   }
 
   function ControleFront(a) {
-    var circuloclick = document.getElementById("circuloclick");
-    var circuloclick2 = document.getElementById("circuloclick2");
-    var contValores = document.getElementById("contValores");
-    var ContIcon = document.getElementById("ContIcon");
-    var textCC1 = document.getElementById("textCC1");
-    var textCC2 = document.getElementById("textCC2");
-    var cOffline = document.getElementById("cOffline");
-    var Alinha1 = document.getElementById("Alinha1");
-    var BotPa = document.getElementById("BotPa");
+    const circuloclick = document.getElementById("circuloclick");
+    const circuloclick2 = document.getElementById("circuloclick2");
+    const contValores = document.getElementById("contValores");
+    const ContIcon = document.getElementById("ContIcon");
+    const textCC1 = document.getElementById("textCC1");
+    const textCC2 = document.getElementById("textCC2");
+    const cOffline = document.getElementById("cOffline");
+    const Alinha1 = document.getElementById("Alinha1");
+    const BotPa = document.getElementById("BotPa");
 
     function TodasCores(d) {
-      var b = stt.ErroAtu ? Ccor.Erro : d;
+      let b = stt.ErroAtu ? Ccor.Erro : d;
       document.querySelectorAll(".iconec").forEach((element) => {
         element.style.backgroundColor = b;
       });
@@ -1046,7 +995,7 @@
       circuloclick2.style.color = b;
     }
 
-    textCC1.innerHTML = stt.ErroAtu
+    textCC1.textContent = stt.ErroAtu
       ? "Atualizar!!"
       : stt.Atualizando
       ? "Atualizando..."
@@ -1166,7 +1115,7 @@
 
     cOffline.style.background = Ccor.Offline;
 
-    var vari4 = contValores.style.opacity === "1" ? 1 : 0;
+    let vari4 = contValores.style.opacity === "1" ? 1 : 0;
     Alinha1.style.visibility =
       vari4 && CConfig.MostraOff ? "visible" : "hidden";
     Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
@@ -1177,7 +1126,7 @@
     atualizarComoff("cFalta");
 
     function atualizarComoff(caixa) {
-      var x = document.getElementById(caixa);
+      const x = document.getElementById(caixa);
       if (x) {
         x.style.background = CConfig.MostraValorOff ? Ccor.Offline : "";
         x.style.borderRadius = CConfig.MostraValorOff ? "6px" : "";
@@ -1643,9 +1592,9 @@
     tValoresEnc.addEventListener("click", function () {
       if (C2ValoresEnc.innerHTML === "") {
         C2ValoresEnc.innerHTML = `
-        <div>Disponivel = ${converterParaTempo(Segun.Disponivel)}</div>
-        <div>Trabalhando = ${converterParaTempo(Segun.Trabalhando)}</div>
-        <div>Indisponivel = ${converterParaTempo(Segun.Indisponivel)}</div>
+        <div>Disponivel = ${time.Disponivel}</div>
+        <div>Trabalhando = ${time.Trabalhando}</div>
+        <div>Indisponivel = ${time.Indisponivel}</div>
         `;
       } else {
         C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
@@ -1776,12 +1725,12 @@
   }
 
   function AtualizarConf(zz) {
-    var CaixaConfig = document.getElementById("CaixaConfig");
-    var InputMin = document.getElementById("InputMin");
-    var InputMinX = document.getElementById("InputMinX");
-    var CaiDPa = document.getElementById("CaiDPa");
-    var BotPa = document.getElementById("BotPa");
-    var minhaCaixa = document.getElementById("minhaCaixa");
+    const CaixaConfig = document.getElementById("CaixaConfig");
+    const InputMin = document.getElementById("InputMin");
+    const InputMinX = document.getElementById("InputMinX");
+    const CaiDPa = document.getElementById("CaiDPa");
+    const BotPa = document.getElementById("BotPa");
+    const minhaCaixa = document.getElementById("minhaCaixa");
 
     if (zz === 1) {
       CConfig.ModoSalvo = 0;
@@ -1918,7 +1867,7 @@
       atualizarVisual("Bot6", CConfig.MetaTMA);
       atualizarVisual("Bot3", CConfig.Vigia);
       atualizarVisual("Bot4", CConfig.AutoAtivo);
-      var vari1 = CConfig.Vigia || CConfig.AutoAtivo ? 0 : 1;
+      let vari1 = CConfig.Vigia || CConfig.AutoAtivo ? 0 : 1;
       atualizarVisual("Bot5", vari1);
       atualizarVisual("Bot13", CConfig.LogueManual);
       atualizarVisual("Bot16", CConfig.IgnorarOff);
@@ -1937,7 +1886,7 @@
   }
 
   function atualizarVisual(a, quem) {
-    var x = document.getElementById(a);
+    const x = document.getElementById(a);
     if (!x) {
       console.warn(`NiceMonk Elemento com ID '${a}' não encontrado.`);
       return;
@@ -2171,17 +2120,11 @@
       Alinha2.style.marginBottom = e ? "" : "-18px";
     }
 
-    const CCC = document.getElementById("circuloclickCont");
-    if (!CCC && !stt.logout) {
-      stt.logout = 1;
-      FimdePausa(stt.StatusANT);
-    }
-
     function FimdePausa(tipo) {
       stt.FPausaS = converterParaSegundos(mostrarHora());
       stt.DPausaS = stt.FPausaS - stt.IPausaS;
-      var DPausaS1 = converterParaTempo(stt.DPausaS);
-      var y = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
+      const DPausaS1 = converterParaTempo(stt.DPausaS);
+      let y = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
 
       if (y === 2)
         console.log(
@@ -2422,7 +2365,7 @@
       request.onsuccess = function (event) {
         const chaves = event.target.result;
 
-        var asta = 0;
+        let asta = 0;
         chaves.forEach((chave) => {
           const reqConteudo = store.get(chave);
 
@@ -2562,7 +2505,7 @@
     ontem.setDate(hoje.getDate() - 1);
     const ontemFormatado = ontem.toISOString().split("T")[0];
 
-    var convert = converterParaTempo(Segun.Logou);
+    const convert = converterParaTempo(Segun.Logou);
     const valorEdata = { valor: convert, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
     if (!dadosPrimLogue || dadosPrimLogue.data !== hojeFormatado) {
@@ -2618,7 +2561,7 @@
           AddOuAtuIindexdb(ChaveConfig, AsVari);
           ondemudar(AsVari);
         } else {
-          console.warn("PCConfig ou PCcor não estão definidos.");
+          console.warn("NiceMonk PCConfig ou PCcor não estão definidos.");
         }
         break;
 
@@ -2909,6 +2852,290 @@
     }
   }
 
+  function AtualizarDTI() {
+    function pickLabelFromText(text) {
+      // Pega o texto antes do parênteses: "Disponível (21%)" -> "Disponível"
+      return (text || "").split("(")[0].trim() || null;
+    }
+
+    /*************** Núcleo: por ID do ícone ***************/
+    function getStatusByIconId(iconId, { root = document } = {}) {
+      const svg =
+        (root.getElementById && root.getElementById(iconId)) ||
+        root.querySelector("#" + CSS.escape(iconId));
+      if (!svg) return null;
+
+      // O <p> com "Disponível (21%)" é imediatamente após o <svg>
+      const labelP =
+        (svg.nextElementSibling &&
+          svg.nextElementSibling.tagName === "P" &&
+          svg.nextElementSibling) ||
+        svg.parentElement?.querySelector("p") ||
+        null;
+
+      const labelText = labelP?.textContent?.trim() || null;
+      const label = pickLabelFromText(labelText);
+
+      // O tempo HH:MM:SS fica no "grid" irmão (o próximo <div>) e dentro dele o primeiro <p>
+      const labelGrid =
+        svg.closest(".MuiGrid-root") ||
+        labelP?.closest(".MuiGrid-root") ||
+        svg.parentElement;
+      const timeGrid = labelGrid?.nextElementSibling || null;
+      const timeP = timeGrid?.querySelector("p") || null;
+      const timeText = timeP?.textContent?.trim() || null;
+
+      return { iconId, label, time: timeText, nodes: { svg, labelP, timeP } };
+    }
+
+    /*************** Atalhos ***************/
+    function getDisponivel(root = document) {
+      return getStatusByIconId("availableStatusIconId", { root });
+    }
+    function getTrabalhando(root = document) {
+      return getStatusByIconId("workingDefaultIconId", { root });
+    }
+    function getIndisponivel(root = document) {
+      return getStatusByIconId("unavailableStatusIconId", { root });
+    }
+
+    // Primeiro, pega o objeto completo
+    const DisponivelData = getDisponivel(); // { label, percent, time, seconds, ... }
+    const TrabalhandoData = getTrabalhando();
+    const IndisponivelData = getIndisponivel();
+
+    if (
+      DisponivelData?.time === null ||
+      TrabalhandoData?.time === null ||
+      IndisponivelData?.time === null
+    ) {
+      return false;
+    } else {
+      time.Disponivel = DisponivelData?.time;
+      time.Trabalhando = TrabalhandoData?.time;
+      time.Indisponivel = IndisponivelData?.time;
+      // Agora define a variável com o valor em segundos
+      Segun.Disponivel = converterParaSegundos(time.Disponivel || 0);
+      Segun.Trabalhando = converterParaSegundos(time.Trabalhando || 0);
+      Segun.Indisponivel = converterParaSegundos(time.Indisponivel || 0);
+
+      return true;
+    }
+    //console.log('Disponível em segundos:');
+  }
+
+  function AtuAtendidas() {
+    /*************** Utils ***************/
+    function getRoot(rootId, root = document) {
+      if (!rootId) return root;
+      return (
+        root.getElementById(rootId) ||
+        root.querySelector(`#${CSS.escape(rootId)}`) ||
+        root
+      );
+    }
+
+    function toNumberOrText(text) {
+      if (text == null) return null;
+      const t = String(text).trim();
+      if (/^-?\d+([.,]\d+)?$/.test(t)) return Number(t.replace(",", ".")); // 14, 1284, 1.5, etc
+      return t; // "1%" ou outros textos
+    }
+
+    /*************** Pegar a TR pelo rótulo ***************/
+    function getRowByLabel(label, { rootId, root = document } = {}) {
+      const ctx = getRoot(rootId, root);
+      const rows = ctx.querySelectorAll("tbody tr");
+      const wanted = label.trim().toLowerCase();
+
+      for (const tr of rows) {
+        // Preferir [aria-label="Entrada"]
+        if (tr.querySelector(`[aria-label="${label}"]`)) return tr;
+
+        // Fallback por texto exato em algum nó da primeira célula
+        const firstTd = tr.querySelector("td");
+        if (!firstTd) continue;
+        const texts = Array.from(firstTd.querySelectorAll("*"))
+          .map((n) => (n.textContent || "").trim().toLowerCase())
+          .filter(Boolean);
+
+        if (texts.includes(wanted)) return tr;
+      }
+      return null;
+    }
+
+    /*************** Extrair os valores das colunas ***************/
+    function getRowValues(tr, { preferAria = true } = {}) {
+      if (!tr) return null;
+      const tds = tr.querySelectorAll("td");
+      const out = [];
+
+      // Começa do índice 1 (colunas à direita do rótulo)
+      for (let i = 1; i < tds.length; i++) {
+        const td = tds[i];
+        const span = td.querySelector("[aria-label]");
+
+        let text =
+          (preferAria && span?.getAttribute("aria-label")) ||
+          (span?.textContent ?? td.textContent);
+
+        text = (text || "").trim();
+        out.push(text);
+      }
+
+      return out; // ex.: ["14", "1284", "1%"]
+    }
+
+    /*************** Atalho: valores da linha "Entrada" ***************/
+    function getEntradaData(opts = {}) {
+      const tr = getRowByLabel("Entrada", opts);
+      if (!tr) return null;
+
+      const vals = getRowValues(tr) || [];
+      const col1 = vals[0] ?? null;
+      const col2 = vals[1] ?? null;
+      const col3 = vals[2] ?? null;
+
+      return {
+        label: "Entrada",
+        // conversões úteis
+        first: toNumberOrText(col1), // 14
+        second: toNumberOrText(col2), // 1284
+        row: tr,
+        raw: vals,
+      };
+    }
+
+    /*************** Atalhos para "Saída" e "Geral" (se precisar) ***************/
+    function getLinhaDataPorRotulo(label, opts = {}) {
+      const tr = getRowByLabel(label, opts);
+      if (!tr) return null;
+      const vals = getRowValues(tr) || [];
+      return {
+        label,
+        first: toNumberOrText(vals[0] ?? null),
+        second: toNumberOrText(vals[1] ?? null),
+        percentText: vals[2] ?? null,
+        row: tr,
+        raw: vals,
+      };
+    }
+
+    /*************** Exemplos de uso ***************/
+    // 1) “O valor ao lado de Entrada” (primeira coluna numérica após o rótulo):
+    const entrada = getEntradaData({
+      /* rootId: 'cx1_agent_root' */
+    });
+
+    let valorAoLadoDeEntrada = entrada?.first; // deve ser 14 no seu HTML
+
+    if (valorAoLadoDeEntrada === null || valorAoLadoDeEntrada === undefined) {
+      /*console.log(
+        "NiceMonk false valorAoLadoDeEntrada :",
+        valorAoLadoDeEntrada
+      );*/
+      return false;
+    } else {
+      stt.vAtendidas = valorAoLadoDeEntrada;
+      //console.log("NiceMonk true valorAoLadoDeEntrada :", valorAoLadoDeEntrada);
+      return true;
+    }
+  }
+
+  // Função que retorna uma Promise para aguardar o item aparecer
+  function encontrarItemAsync(seletor) {
+    return new Promise((resolve, reject) => {
+      let encontrado = false;
+
+      const observer = new MutationObserver(() => {
+        let item = document.querySelector(seletor);
+
+        if (item) {
+          encontrado = true;
+          observer.disconnect();
+          resolve(item);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      setTimeout(() => {
+        if (!encontrado) {
+          observer.disconnect();
+          reject(`NiceMonk Item ${seletor} não encontrado após 5 segundos.`);
+        }
+      }, 4000);
+    });
+  }
+
+  // Função para clicar no item após encontrá-lo
+  async function clicarNoItem(seletor) {
+    try {
+      const item = await encontrarItemAsync(seletor);
+      item.click();
+      console.log(`NiceMonk Clicado: ${seletor}`);
+      return true;
+    } catch (erro) {
+      console.error(`NiceMonk Erro ao clicar em ${seletor}:`, erro);
+      return false;
+    }
+  }
+
+  // Função principal para executar os cliques em sequência
+  async function executarSequencia(ordem) {
+    const ordem1 = [Lugar.relatorio, Lugar.produtividade, Lugar.hoje];
+
+    const ordem2 = [Lugar.relatorio, Lugar.desempenho, Lugar.hoje];
+    let as = ordem ? ordem2 : ordem1;
+
+    for (const seletor of as) {
+      const sucesso = await clicarNoItem(seletor);
+      if (!sucesso) {
+        console.log(`NiceMonk click Falhou em ${seletor}.`);
+        return false;
+      } else if (seletor === Lugar.hoje) {
+        let umt = 0;
+        for (let a = 0; !umt && a < 3; a++) {
+          umt = await verificarQualRetornaTrue(ordem);
+        }
+        if (!umt) console.log("NiceMonk Sequência Falhou.");
+        if (!umt) return false;
+      }
+      //await new Promise(resolve => setTimeout(resolve, 500)); // Espera opcional entre cliques
+    }
+
+    console.log("NiceMonk Sequência finalizada.");
+    return true;
+  }
+
+  function verificarQualRetornaTrue(objeto) {
+    return new Promise((resolve) => {
+      let resultado = false;
+
+      const observer = new MutationObserver(() => {
+        const retorno = objeto ? AtuAtendidas() : AtualizarDTI();
+
+        if (retorno === true) {
+          resultado = true;
+          observer.disconnect();
+          resolve(true);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      setTimeout(() => {
+        observer.disconnect();
+        resolve(resultado); // Retorna true se encontrou, false se não
+      }, 4000);
+    });
+  }
+
   // Your code here...
 })();
-
