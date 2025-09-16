@@ -124,7 +124,7 @@
     intervaloBeep: 1,
     BeepRet: 0,
     logout: 0,
-    observ: 0,
+    observ: 1,
   };
 
   const BGround = {
@@ -132,6 +132,12 @@
     ContIcon: "",
     circuloclick: "",
     circuloclick2: "",
+  };
+
+  const Htime = {
+    Disponivel: 0,
+    Trabalhando: 0,
+    Indisponivel: 0,
   };
 
   const ChavePausas = "DadosDePausas";
@@ -745,8 +751,10 @@
   }
 
   async function AtualizarAtendidas() {
-    await caminhoInfo(1); // Caminho Atendidas
-    if (await seExiste(LugarJS.lAtendidas)) {
+    const a = await caminhoInfo(1); // Caminho Atendidas
+    //const b = await seExiste2(1);
+    const b = await seExiste(LugarJS.lAtendidas);
+    if (a && b) {
       stt.vAtendidas = document.querySelector(LugarJS.lAtendidas).textContent;
       return true;
     } else {
@@ -756,7 +764,10 @@
 
   async function AtualizarDTI() {
     //await caminhoInfo(0); // Caminho logado
-    if ((await caminhoInfo(0)) && (await seExiste(LugarJS.lDisponibilidade))) {
+    const a = await caminhoInfo(0);
+    //const b = await seExiste2(0);
+    const b = await seExiste(LugarJS.lDisponibilidade);
+    if (a && b) {
       Segun.Disponivel = converterParaSegundos(
         document.querySelector(LugarJS.lDisponibilidade).textContent
       );
@@ -770,6 +781,222 @@
     } else {
       return false;
     }
+  }
+
+  function AtuAtendidas() {
+    /*************** Utils ***************/
+    function getRoot(rootId, root = document) {
+      if (!rootId) return root;
+      return (
+        root.getElementById(rootId) ||
+        root.querySelector(`#${CSS.escape(rootId)}`) ||
+        root
+      );
+    }
+
+    function toNumberOrText(text) {
+      if (text == null) return null;
+      const t = String(text).trim();
+      if (/^-?\d+([.,]\d+)?$/.test(t)) return Number(t.replace(",", ".")); // 14, 1284, 1.5, etc
+      return t; // "1%" ou outros textos
+    }
+
+    /*************** Pegar a TR pelo rótulo ***************/
+    function getRowByLabel(label, { rootId, root = document } = {}) {
+      const ctx = getRoot(rootId, root);
+      const rows = ctx.querySelectorAll("tbody tr");
+      const wanted = label.trim().toLowerCase();
+
+      for (const tr of rows) {
+        // Preferir [aria-label="Entrada"]
+        if (tr.querySelector(`[aria-label="${label}"]`)) return tr;
+
+        // Fallback por texto exato em algum nó da primeira célula
+        const firstTd = tr.querySelector("td");
+        if (!firstTd) continue;
+        const texts = Array.from(firstTd.querySelectorAll("*"))
+          .map((n) => (n.textContent || "").trim().toLowerCase())
+          .filter(Boolean);
+
+        if (texts.includes(wanted)) return tr;
+      }
+      return null;
+    }
+
+    /*************** Extrair os valores das colunas ***************/
+    function getRowValues(tr, { preferAria = true } = {}) {
+      if (!tr) return null;
+      const tds = tr.querySelectorAll("td");
+      const out = [];
+
+      // Começa do índice 1 (colunas à direita do rótulo)
+      for (let i = 1; i < tds.length; i++) {
+        const td = tds[i];
+        const span = td.querySelector("[aria-label]");
+
+        let text =
+          (preferAria && span?.getAttribute("aria-label")) ||
+          (span?.textContent ?? td.textContent);
+
+        text = (text || "").trim();
+        out.push(text);
+      }
+
+      return out; // ex.: ["14", "1284", "1%"]
+    }
+
+    /*************** Atalho: valores da linha "Entrada" ***************/
+    function getEntradaData(opts = {}) {
+      const tr = getRowByLabel("Entrada", opts);
+      if (!tr) return null;
+
+      const vals = getRowValues(tr) || [];
+      const col1 = vals[0] ?? null;
+      const col2 = vals[1] ?? null;
+      const col3 = vals[2] ?? null;
+
+      return {
+        label: "Entrada",
+        // conversões úteis
+        first: toNumberOrText(col1), // 14
+        second: toNumberOrText(col2), // 1284
+        row: tr,
+        raw: vals,
+      };
+    }
+
+    /*************** Atalhos para "Saída" e "Geral" (se precisar) ***************/
+    function getLinhaDataPorRotulo(label, opts = {}) {
+      const tr = getRowByLabel(label, opts);
+      if (!tr) return null;
+      const vals = getRowValues(tr) || [];
+      return {
+        label,
+        first: toNumberOrText(vals[0] ?? null),
+        second: toNumberOrText(vals[1] ?? null),
+        percentText: vals[2] ?? null,
+        row: tr,
+        raw: vals,
+      };
+    }
+
+    /*************** Exemplos de uso ***************/
+    // 1) “O valor ao lado de Entrada” (primeira coluna numérica após o rótulo):
+    const entrada = getEntradaData({
+      /* rootId: 'cx1_agent_root' */
+    });
+
+    let valorAoLadoDeEntrada = entrada?.first; // deve ser 14 no seu HTML
+
+    if (valorAoLadoDeEntrada === null || valorAoLadoDeEntrada === undefined) {
+      /*console.log(
+        "NiceMonk false valorAoLadoDeEntrada :",
+        valorAoLadoDeEntrada
+      );*/
+      return false;
+    } else {
+      stt.vAtendidas = valorAoLadoDeEntrada;
+      //console.log("NiceMonk true valorAoLadoDeEntrada :", valorAoLadoDeEntrada);
+      return true;
+    }
+  }
+
+  async function AtualizarDTI2() {
+    function pickLabelFromText(text) {
+      // Pega o texto antes do parênteses: "Disponível (21%)" -> "Disponível"
+      return (text || "").split("(")[0].trim() || null;
+    }
+
+    /*************** Núcleo: por ID do ícone ***************/
+    function getStatusByIconId(iconId, { root = document } = {}) {
+      const svg =
+        (root.getElementById && root.getElementById(iconId)) ||
+        root.querySelector("#" + CSS.escape(iconId));
+      if (!svg) return null;
+
+      // O <p> com "Disponível (21%)" é imediatamente após o <svg>
+      const labelP =
+        (svg.nextElementSibling &&
+          svg.nextElementSibling.tagName === "P" &&
+          svg.nextElementSibling) ||
+        svg.parentElement?.querySelector("p") ||
+        null;
+
+      const labelText = labelP?.textContent?.trim() || null;
+      const label = pickLabelFromText(labelText);
+
+      // O tempo HH:MM:SS fica no "grid" irmão (o próximo <div>) e dentro dele o primeiro <p>
+      const labelGrid =
+        svg.closest(".MuiGrid-root") ||
+        labelP?.closest(".MuiGrid-root") ||
+        svg.parentElement;
+      const timeGrid = labelGrid?.nextElementSibling || null;
+      const timeP = timeGrid?.querySelector("p") || null;
+      const timeText = timeP?.textContent?.trim() || null;
+
+      return { iconId, label, time: timeText, nodes: { svg, labelP, timeP } };
+    }
+
+    /*************** Atalhos ***************/
+    function getDisponivel(root = document) {
+      return getStatusByIconId("availableStatusIconId", { root });
+    }
+    function getTrabalhando(root = document) {
+      return getStatusByIconId("workingDefaultIconId", { root });
+    }
+    function getIndisponivel(root = document) {
+      return getStatusByIconId("unavailableStatusIconId", { root });
+    }
+
+    // Primeiro, pega o objeto completo
+    const DisponivelData = getDisponivel(); // { label, percent, time, seconds, ... }
+    const TrabalhandoData = getTrabalhando();
+    const IndisponivelData = getIndisponivel();
+
+    if (
+      DisponivelData?.time === null ||
+      TrabalhandoData?.time === null ||
+      IndisponivelData?.time === null
+    ) {
+      return false;
+    } else {
+      Htime.Disponivel = DisponivelData?.time;
+      Htime.Trabalhando = TrabalhandoData?.time;
+      Htime.Indisponivel = IndisponivelData?.time;
+      // Agora define a variável com o valor em segundos
+      Segun.Disponivel = converterParaSegundos(Htime.Disponivel || 0);
+      Segun.Trabalhando = converterParaSegundos(Htime.Trabalhando || 0);
+      Segun.Indisponivel = converterParaSegundos(Htime.Indisponivel || 0);
+
+      return true;
+    }
+    //console.log('Disponível em segundos:');
+  }
+
+  function seExiste2(objeto) {
+    return new Promise((resolve, reject) => {
+      var maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
+      var attempts = 0;
+      let resultado = false;
+      var interval = setInterval(function () {
+        const retorno = objeto ? AtuAtendidas() : AtualizarDTI2();
+
+        let objeto2 = objeto ? 'Atendidas':'Tempos';
+        if (retorno === true) {
+          resultado = true;
+          resolve(true);
+        } else {
+          attempts++;
+          if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.error(
+              `NiceMonk ${objeto2} Não Encontrado.`
+            );
+            resolve(resultado);
+          }
+        }
+      }, 50); // Tenta a cada 50ms
+    });
   }
 
   function AtualizarTMA(x) {
@@ -1643,9 +1870,9 @@
     tValoresEnc.addEventListener("click", function () {
       if (C2ValoresEnc.innerHTML === "") {
         C2ValoresEnc.innerHTML = `
-        <div>Disponivel = ${converterParaTempo(Segun.Disponivel)}</div>
-        <div>Trabalhando = ${converterParaTempo(Segun.Trabalhando)}</div>
-        <div>Indisponivel = ${converterParaTempo(Segun.Indisponivel)}</div>
+        <div>Disponivel = ${Htime.Disponivel}</div>
+        <div>Trabalhando = ${Htime.Trabalhando}</div>
+        <div>Indisponivel = ${Htime.Indisponivel}</div>
         `;
       } else {
         C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
