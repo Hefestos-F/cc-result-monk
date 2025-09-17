@@ -965,7 +965,7 @@
       for (let c = 0; stt.ErroTMA && c < 3; c++) {
         await TentAtend();
         if (stt.ErroTMA) {
-          await esperar(1000);
+          await esperar(1500);
         }
       }
     }
@@ -982,7 +982,7 @@
   }
 
   async function TentAtend() {
-    stt.ErroAten = !(await AtualizarAtendidas());
+    stt.ErroAten = !await AtualizarAtendidas();
     if (
       stt.vAtendidas <= stt.vAtendidasA &&
       Segun.Trabalhando > Segun.TrabalhandoA
