@@ -158,7 +158,7 @@
   const LugarJS = {
     elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
     elementoReferencia2:
-      "#cx1_agent_root > main > div > main > header > header > div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-6.MuiGrid-grid-sm-12.MuiGrid-grid-md-12.MuiGrid-grid-lg-6.css-1govgzr > div",
+      'a[aria-label="Ajuda"][href*="help.nice-incontact.com"]',
     Status: "#agent-state-section > div > span > div > div",
 
     abaRelatorio: '[role="button"][aria-label="Reporting"]',
@@ -555,11 +555,8 @@
       circuloclickCont.appendChild(circuloclick2);
       circuloclickCont.appendChild(circuloclick);
 
-      // Adiciona o quadrado como o primeiro filho da div
-      elementoReferencia2.insertBefore(
-        circuloclickCont,
-        elementoReferencia2.firstChild
-      );
+      const pai = elementoReferencia2.parentNode;
+      pai.insertBefore(circuloclickCont, pai.firstChild);
 
       // Adiciona o evento de mouseover ao circuloclick
       circuloclick.addEventListener("mouseover", function () {
@@ -705,6 +702,31 @@
     });
   }
 
+  function seExiste2(objeto) {
+    return new Promise((resolve, reject) => {
+      var maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
+      var attempts = 0;
+      let resultado = false;
+      var interval = setInterval(function () {
+        const retorno = objeto ? AtuAtendidas() : AtualizarDTI2();
+
+        let objeto2 = objeto ? "Atendidas" : "Tempos";
+        if (retorno === true) {
+          clearInterval(interval);
+          resultado = true;
+          resolve(true);
+        } else {
+          attempts++;
+          if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.error(`NiceMonk ${objeto2} Não Encontrado.`);
+            resolve(resultado);
+          }
+        }
+      }, 50); // Tenta a cada 50ms
+    });
+  }
+
   function formatTime(time) {
     if (!time) {
       console.error("NiceMonk Tempo inválido.");
@@ -829,7 +851,9 @@
 
       if (tempoEncontrado) {
         resultados[nomeStatus] = tempoEncontrado;
-        console.log(`NiceMonk Status: ${nomeStatus} → Tempo: ${tempoEncontrado}`);
+        console.log(
+          `NiceMonk Status: ${nomeStatus} → Tempo: ${tempoEncontrado}`
+        );
         if (nomeStatus === "Disponível") {
           Htime.Disponivel = tempoEncontrado;
           Segun.Disponivel = converterParaSegundos(Htime.Disponivel);
@@ -845,35 +869,12 @@
 
     const encontrou = Object.keys(resultados).length > 0;
     if (!encontrou) {
-      console.warn("NiceMonk Nenhum tempo encontrado usando os IDs dos ícones.");
+      console.warn(
+        "NiceMonk Nenhum tempo encontrado usando os IDs dos ícones."
+      );
     }
 
     return encontrou;
-  }
-
-  function seExiste2(objeto) {
-    return new Promise((resolve, reject) => {
-      var maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
-      var attempts = 0;
-      let resultado = false;
-      var interval = setInterval(function () {
-        const retorno = objeto ? AtuAtendidas() : AtualizarDTI2();
-
-        let objeto2 = objeto ? "Atendidas" : "Tempos";
-        if (retorno === true) {
-          clearInterval(interval);
-          resultado = true;
-          resolve(true);
-        } else {
-          attempts++;
-          if (attempts >= maxAttempts) {
-            clearInterval(interval);
-            console.error(`NiceMonk ${objeto2} Não Encontrado.`);
-            resolve(resultado);
-          }
-        }
-      }, 50); // Tenta a cada 50ms
-    });
   }
 
   function AtualizarTMA(x) {
