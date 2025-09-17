@@ -167,14 +167,6 @@
     abaHoje: '[type="button"][aria-label="Hoje"]',
 
     lContAtual: "#agent-state-section > div > span > div > div > span > span",
-    lAtendidas:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-3b491n > div > div > table > tbody > tr:nth-child(1) > td:nth-child(2) > span",
-    lDisponibilidade:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(1) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
-    ltrabalhando:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(2) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
-    lIndisponivel:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
   };
 
   addAoini();
@@ -751,11 +743,9 @@
   }
 
   async function AtualizarAtendidas() {
-    const a = await caminhoInfo(1); // Caminho Atendidas
-    //const b = await seExiste2(1);
-    const b = await seExiste(LugarJS.lAtendidas);
+    const a = await caminhoInfo(1);
+    const b = await seExiste2(1);
     if (a && b) {
-      stt.vAtendidas = document.querySelector(LugarJS.lAtendidas).textContent;
       return true;
     } else {
       return false;
@@ -763,20 +753,10 @@
   }
 
   async function AtualizarDTI() {
-    //await caminhoInfo(0); // Caminho logado
     const a = await caminhoInfo(0);
-    //const b = await seExiste2(0);
-    const b = await seExiste(LugarJS.lDisponibilidade);
+    const b = await seExiste2(0);
+
     if (a && b) {
-      Segun.Disponivel = converterParaSegundos(
-        document.querySelector(LugarJS.lDisponibilidade).textContent
-      );
-      Segun.Trabalhando = converterParaSegundos(
-        document.querySelector(LugarJS.ltrabalhando).textContent
-      );
-      Segun.Indisponivel = converterParaSegundos(
-        document.querySelector(LugarJS.lIndisponivel).textContent
-      );
       return true;
     } else {
       return false;
@@ -784,193 +764,91 @@
   }
 
   function AtuAtendidas() {
-    /*************** Utils ***************/
-    function getRoot(rootId, root = document) {
-      if (!rootId) return root;
-      return (
-        root.getElementById(rootId) ||
-        root.querySelector(`#${CSS.escape(rootId)}`) ||
-        root
-      );
-    }
+    let encontrou = false;
 
-    function toNumberOrText(text) {
-      if (text == null) return null;
-      const t = String(text).trim();
-      if (/^-?\d+([.,]\d+)?$/.test(t)) return Number(t.replace(",", ".")); // 14, 1284, 1.5, etc
-      return t; // "1%" ou outros textos
-    }
+    // Seleciona todas as linhas da tabela
+    const linhas = document.querySelectorAll("tbody tr");
 
-    /*************** Pegar a TR pelo rótulo ***************/
-    function getRowByLabel(label, { rootId, root = document } = {}) {
-      const ctx = getRoot(rootId, root);
-      const rows = ctx.querySelectorAll("tbody tr");
-      const wanted = label.trim().toLowerCase();
+    let a = 0;
+    linhas.forEach((linha) => {
+      const celulas = linha.querySelectorAll("td");
+      celulas.forEach((celula) => {
+        const geralEl = celula.querySelector('[aria-label="Geral"]');
+        if (geralEl) {
+          // Encontrou a célula com "Geral"
+          const valores = linha.querySelectorAll("[aria-label]");
+          valores.forEach((valorEl) => {
+            const texto = valorEl.getAttribute("aria-label");
 
-      for (const tr of rows) {
-        // Preferir [aria-label="Entrada"]
-        if (tr.querySelector(`[aria-label="${label}"]`)) return tr;
-
-        // Fallback por texto exato em algum nó da primeira célula
-        const firstTd = tr.querySelector("td");
-        if (!firstTd) continue;
-        const texts = Array.from(firstTd.querySelectorAll("*"))
-          .map((n) => (n.textContent || "").trim().toLowerCase())
-          .filter(Boolean);
-
-        if (texts.includes(wanted)) return tr;
-      }
-      return null;
-    }
-
-    /*************** Extrair os valores das colunas ***************/
-    function getRowValues(tr, { preferAria = true } = {}) {
-      if (!tr) return null;
-      const tds = tr.querySelectorAll("td");
-      const out = [];
-
-      // Começa do índice 1 (colunas à direita do rótulo)
-      for (let i = 1; i < tds.length; i++) {
-        const td = tds[i];
-        const span = td.querySelector("[aria-label]");
-
-        let text =
-          (preferAria && span?.getAttribute("aria-label")) ||
-          (span?.textContent ?? td.textContent);
-
-        text = (text || "").trim();
-        out.push(text);
-      }
-
-      return out; // ex.: ["14", "1284", "1%"]
-    }
-
-    /*************** Atalho: valores da linha "Entrada" ***************/
-    function getEntradaData(opts = {}) {
-      const tr = getRowByLabel("Entrada", opts);
-      if (!tr) return null;
-
-      const vals = getRowValues(tr) || [];
-      const col1 = vals[0] ?? null;
-      const col2 = vals[1] ?? null;
-      const col3 = vals[2] ?? null;
-
-      return {
-        label: "Entrada",
-        // conversões úteis
-        first: toNumberOrText(col1), // 14
-        second: toNumberOrText(col2), // 1284
-        row: tr,
-        raw: vals,
-      };
-    }
-
-    /*************** Atalhos para "Saída" e "Geral" (se precisar) ***************/
-    function getLinhaDataPorRotulo(label, opts = {}) {
-      const tr = getRowByLabel(label, opts);
-      if (!tr) return null;
-      const vals = getRowValues(tr) || [];
-      return {
-        label,
-        first: toNumberOrText(vals[0] ?? null),
-        second: toNumberOrText(vals[1] ?? null),
-        percentText: vals[2] ?? null,
-        row: tr,
-        raw: vals,
-      };
-    }
-
-    /*************** Exemplos de uso ***************/
-    // 1) “O valor ao lado de Entrada” (primeira coluna numérica após o rótulo):
-    const entrada = getEntradaData({
-      /* rootId: 'cx1_agent_root' */
+            if (!a && texto && texto !== "Geral") {
+              a = 1;
+              stt.vAtendidas = texto;
+              console.log(`NiceMonk Valor ao lado de "Geral": ${texto}`);
+              encontrou = true;
+            }
+          });
+        }
+      });
     });
 
-    let valorAoLadoDeEntrada = entrada?.first; // deve ser 14 no seu HTML
-
-    if (valorAoLadoDeEntrada === null || valorAoLadoDeEntrada === undefined) {
-      /*console.log(
-        "NiceMonk false valorAoLadoDeEntrada :",
-        valorAoLadoDeEntrada
-      );*/
-      return false;
-    } else {
-      stt.vAtendidas = valorAoLadoDeEntrada;
-      //console.log("NiceMonk true valorAoLadoDeEntrada :", valorAoLadoDeEntrada);
-      return true;
+    if (!encontrou) {
+      console.warn('NiceMonk Valor ao lado de "Geral" não encontrado.');
     }
+
+    return encontrou;
   }
 
-  async function AtualizarDTI2() {
-    function pickLabelFromText(text) {
-      // Pega o texto antes do parênteses: "Disponível (21%)" -> "Disponível"
-      return (text || "").split("(")[0].trim() || null;
+  function AtualizarDTI2() {
+    const iconesStatus = {
+      availableStatusIconId: "Disponível",
+      workingDefaultIconId: "Trabalhando",
+      unavailableStatusIconId: "Indisponível",
+    };
+
+    const resultados = {};
+
+    Object.entries(iconesStatus).forEach(([id, nomeStatus]) => {
+      const icon = document.getElementById(id);
+      if (!icon) return;
+
+      // Sobe até o bloco principal do status
+      const blocoStatus = icon.closest('div[class*="MuiBox-root"]');
+      if (!blocoStatus) return;
+
+      // Procura o tempo dentro do mesmo bloco
+      const tempoEl = blocoStatus.querySelector("p");
+      let tempoEncontrado = null;
+
+      // Verifica se há algum tempo no formato HH:MM:SS ou HHH:MM:SS
+      blocoStatus.querySelectorAll("p").forEach((p) => {
+        const texto = p.textContent.trim();
+        if (/^\d{2,3}:\d{2}:\d{2}$/.test(texto)) {
+          tempoEncontrado = texto;
+        }
+      });
+
+      if (tempoEncontrado) {
+        resultados[nomeStatus] = tempoEncontrado;
+        console.log(`NiceMonk Status: ${nomeStatus} → Tempo: ${tempoEncontrado}`);
+        if (nomeStatus === "Disponível") {
+          Htime.Disponivel = tempoEncontrado;
+          Segun.Disponivel = converterParaSegundos(Htime.Disponivel);
+        } else if (nomeStatus === "Trabalhando") {
+          Htime.Trabalhando = tempoEncontrado;
+          Segun.Trabalhando = converterParaSegundos(Htime.Trabalhando);
+        } else if (nomeStatus === "Indisponível") {
+          Htime.Indisponivel = tempoEncontrado;
+          Segun.Indisponivel = converterParaSegundos(Htime.Indisponivel);
+        }
+      }
+    });
+
+    const encontrou = Object.keys(resultados).length > 0;
+    if (!encontrou) {
+      console.warn("NiceMonk Nenhum tempo encontrado usando os IDs dos ícones.");
     }
 
-    /*************** Núcleo: por ID do ícone ***************/
-    function getStatusByIconId(iconId, { root = document } = {}) {
-      const svg =
-        (root.getElementById && root.getElementById(iconId)) ||
-        root.querySelector("#" + CSS.escape(iconId));
-      if (!svg) return null;
-
-      // O <p> com "Disponível (21%)" é imediatamente após o <svg>
-      const labelP =
-        (svg.nextElementSibling &&
-          svg.nextElementSibling.tagName === "P" &&
-          svg.nextElementSibling) ||
-        svg.parentElement?.querySelector("p") ||
-        null;
-
-      const labelText = labelP?.textContent?.trim() || null;
-      const label = pickLabelFromText(labelText);
-
-      // O tempo HH:MM:SS fica no "grid" irmão (o próximo <div>) e dentro dele o primeiro <p>
-      const labelGrid =
-        svg.closest(".MuiGrid-root") ||
-        labelP?.closest(".MuiGrid-root") ||
-        svg.parentElement;
-      const timeGrid = labelGrid?.nextElementSibling || null;
-      const timeP = timeGrid?.querySelector("p") || null;
-      const timeText = timeP?.textContent?.trim() || null;
-
-      return { iconId, label, time: timeText, nodes: { svg, labelP, timeP } };
-    }
-
-    /*************** Atalhos ***************/
-    function getDisponivel(root = document) {
-      return getStatusByIconId("availableStatusIconId", { root });
-    }
-    function getTrabalhando(root = document) {
-      return getStatusByIconId("workingDefaultIconId", { root });
-    }
-    function getIndisponivel(root = document) {
-      return getStatusByIconId("unavailableStatusIconId", { root });
-    }
-
-    // Primeiro, pega o objeto completo
-    const DisponivelData = getDisponivel(); // { label, percent, time, seconds, ... }
-    const TrabalhandoData = getTrabalhando();
-    const IndisponivelData = getIndisponivel();
-
-    if (
-      DisponivelData?.time === null ||
-      TrabalhandoData?.time === null ||
-      IndisponivelData?.time === null
-    ) {
-      return false;
-    } else {
-      Htime.Disponivel = DisponivelData?.time;
-      Htime.Trabalhando = TrabalhandoData?.time;
-      Htime.Indisponivel = IndisponivelData?.time;
-      // Agora define a variável com o valor em segundos
-      Segun.Disponivel = converterParaSegundos(Htime.Disponivel || 0);
-      Segun.Trabalhando = converterParaSegundos(Htime.Trabalhando || 0);
-      Segun.Indisponivel = converterParaSegundos(Htime.Indisponivel || 0);
-
-      return true;
-    }
-    //console.log('Disponível em segundos:');
+    return encontrou;
   }
 
   function seExiste2(objeto) {
@@ -981,17 +859,16 @@
       var interval = setInterval(function () {
         const retorno = objeto ? AtuAtendidas() : AtualizarDTI2();
 
-        let objeto2 = objeto ? 'Atendidas':'Tempos';
+        let objeto2 = objeto ? "Atendidas" : "Tempos";
         if (retorno === true) {
+          clearInterval(interval);
           resultado = true;
           resolve(true);
         } else {
           attempts++;
           if (attempts >= maxAttempts) {
             clearInterval(interval);
-            console.error(
-              `NiceMonk ${objeto2} Não Encontrado.`
-            );
+            console.error(`NiceMonk ${objeto2} Não Encontrado.`);
             resolve(resultado);
           }
         }
@@ -1873,6 +1750,7 @@
         <div>Disponivel = ${Htime.Disponivel}</div>
         <div>Trabalhando = ${Htime.Trabalhando}</div>
         <div>Indisponivel = ${Htime.Indisponivel}</div>
+        <div>Atendidas = ${stt.vAtendidas}</div>
         `;
       } else {
         C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
