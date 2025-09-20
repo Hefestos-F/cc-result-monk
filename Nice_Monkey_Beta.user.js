@@ -702,31 +702,6 @@
     });
   }
 
-  function seExiste2(objeto) {
-    return new Promise((resolve, reject) => {
-      var maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
-      var attempts = 0;
-      let resultado = false;
-      var interval = setInterval(function () {
-        const retorno = objeto ? AtuAtendidas() : AtualizarDTI2();
-
-        let objeto2 = objeto ? "Atendidas" : "Tempos";
-        if (retorno === true) {
-          clearInterval(interval);
-          resultado = true;
-          resolve(true);
-        } else {
-          attempts++;
-          if (attempts >= maxAttempts) {
-            clearInterval(interval);
-            console.error(`NiceMonk ${objeto2} Não Encontrado.`);
-            resolve(resultado);
-          }
-        }
-      }, 50); // Tenta a cada 50ms
-    });
-  }
-
   function seExiste3(objeto) {
     console.log('NiceMonk seExiste3 iniciado.');
     return new Promise((resolve) => {
