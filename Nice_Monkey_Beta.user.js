@@ -703,12 +703,11 @@
   }
 
   function seExiste3(objeto) {
-    console.log('NiceMonk seExiste3 iniciado.');
+    console.log("NiceMonk seExiste3 iniciado.");
     return new Promise((resolve) => {
       let resultado = false;
 
       const observer = new MutationObserver(() => {
-
         const retorno = objeto ? AtuAtendidas() : AtualizarDTI2();
 
         let objeto2 = objeto ? "Atendidas" : "Tempos";
@@ -728,7 +727,7 @@
 
       setTimeout(() => {
         observer.disconnect();
-        console.log('NiceMonk seExiste3 nada encontrado.');
+        console.log("NiceMonk seExiste3 nada encontrado.");
         resolve(resultado); // Retorna true se encontrou, false se não
       }, 6000);
     });
@@ -989,7 +988,7 @@
   }
 
   async function TentAtend() {
-    stt.ErroAten = !await AtualizarAtendidas();
+    stt.ErroAten = !(await AtualizarAtendidas());
     if (
       stt.vAtendidas <= stt.vAtendidasA &&
       Segun.Trabalhando > Segun.TrabalhandoA

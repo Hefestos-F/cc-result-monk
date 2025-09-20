@@ -1,372 +1,194 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <title>Monitor Exaustor</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-      body {
-        font-family: Arial;
-        background: #121212;
-        color: #fff;
-        text-align: center;
-        margin: 0;
-        padding: 0;
-      }
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#121212" />
+    <title>Exaustor Monitor (Simulação Local)</title>
 
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        background: #1e1e1e;
-      }
-
-      .btn {
-        padding: 5px 10px;
-        background: #4caf50;
-        border: none;
-        border-radius: 5px;
-        color: white;
-        cursor: pointer;
-        height: auto;
-        width: auto;
-      }
-
-      .btn:hover {
-        background: #45a049;
-      }
-
-      .card {
-        background: #1e1e1e;
-        padding: 20px;
-        margin: 20px auto;
-        width: 90%;
-        max-width: 500px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
-      }
-
-      .chart-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-      }
-
-      .chart-box {
-        flex: 1 1 300px;
-        margin: 10px;
-        background: #2c2c2c;
-        padding: 10px;
-        border-radius: 10px;
-      }
-
-      .config-panel {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.9);
-        padding-top: 50px;
-        overflow: auto;
-      }
-
-      .config-content {
-        background: #1e1e1e;
-        margin: auto;
-        padding: 20px;
-        width: 90%;
-        max-width: 350px;
-        border-radius: 10px;
-      }
-
-      input,
-      button,
-      label {
-        width: 90%;
-        padding: 10px;
-        margin: 8px 0;
-        border: none;
-        border-radius: 5px;
-      }
-
-      input[type="text"],
-      input[type="password"],
-      input[type="number"] {
-        background: #2c2c2c;
-        color: #fff;
-      }
-
-      .tab {
-        cursor: pointer;
-        padding: 10px;
-        display: inline-block;
-        background: #2c2c2c;
-        margin-right: 2px;
-        border-radius: 5px;
-      }
-
-      .tab.active {
-        background: #4caf50;
-      }
-
-      .tab-content {
-        display: none;
-        margin-top: 10px;
-      }
-
-      .tab-content.active {
-        display: block;
-      }
-
-      .alert {
-        color: red;
-        font-weight: bold;
-      }
-    </style>
   </head>
 
   <body>
-    <div class="header">
-      <h2>Exaustor Monitor</h2>
-      <button class="btn" onclick="toggleConfig()">⚙️ Config</button>
-    </div>
-
-    <div class="card">
-      <h3>Status LED</h3>
-      <p id="led">--</p>
-      <button class="btn" onclick="toggleLED()">Alternar LED</button>
-    </div>
-
-    <div class="card">
-      <h3>Alertas</h3>
-      <p id="tempAlert" class="alert">--</p>
-      <p id="fanAlert" class="alert">--</p>
-    </div>
-
-    <div class="chart-container">
-      <div class="chart-box"><canvas id="tempChart" height="150"></canvas></div>
-      <div class="chart-box"><canvas id="humChart" height="150"></canvas></div>
-      <div class="chart-box"><canvas id="fanChart" height="150"></canvas></div>
-    </div>
-
-    <div id="config" class="config-panel">
-      <div class="config-content">
-        <div>
-          <span class="tab active" onclick="showTab('wifi')">WiFi</span>
-          <span class="tab" onclick="showTab('notificacoes')"
-            >Notificações</span
-          >
-        </div>
-
-        <div id="wifi" class="tab-content active">
-          <h3>Configuração AP</h3>
-          <input id="ap_ssid" type="text" placeholder="SSID AP" />
-          <input id="ap_pass" type="password" placeholder="Senha AP" />
-          <button onclick="saveAP()">Salvar AP</button>
-          <hr />
-          <h3>Configuração Cliente</h3>
-          <input id="sta_ssid" type="text" placeholder="SSID WiFi" />
-          <input id="sta_pass" type="password" placeholder="Senha WiFi" />
-          <input
-            id="sta_site"
-            type="text"
-            placeholder="Site (ex: meusite.casa)"
-          />
-          <button onclick="saveSTA()">Salvar STA</button>
-        </div>
-
-        <div id="notificacoes" class="tab-content">
-          <h3>Notificações</h3>
-          <label
-            ><input type="checkbox" id="tempNotif" /> Ativar notificação de
-            temperatura</label
-          >
-          <input
-            id="tempLimite"
-            type="number"
-            placeholder="Temperatura limite (°C)"
-          />
-          <label><input type="checkbox" id="tempBip" /> Bip</label>
-          <label><input type="checkbox" id="tempLed" /> LED</label>
-          <hr />
-          <label
-            ><input type="checkbox" id="fanNotif" /> Notificar exaustor
-            parado</label
-          >
-          <label><input type="checkbox" id="fanBip" /> Bip</label>
-          <label><input type="checkbox" id="fanLed" /> LED</label>
-          <button onclick="saveNotif()">Salvar Notificações</button>
-        </div>
-
-        <hr />
-        <button onclick="toggleConfig()">Fechar</button>
+    <header class="header">
+      <div class="title"><span aria-hidden="true">🌀</span><span>Exaustor Monitor • <small class="muted">Simulação Local</small></span></div>
+      <div class="actions">
+        <div id="connDot" class="conn-dot is-ok" title="Status: simulação local"></div>
+        <button class="btn btn-icon" id="btnTheme" aria-label="Alternar tema">
+          <span class="theme-icon" id="iconSun" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79L3.17 4.84l1.79 1.79 1.8-1.79zm10.48 0l1.79-1.79 1.79 1.79-1.79 1.79-1.79-1.79zM12 2h0a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zm0 17a5 5 0 100-10 5 5 0 000 10zm8 2a1 1 0 100-2h-2a1 1 0 100 2h2zM4 21a1 1 0 100-2H2a1 1 0 100 2h2zm15.24-3.84l1.79 1.79 1.79-1.79-1.79-1.79-1.79 1.79zM4.84 6.63L3.05 4.84 1.26 6.63l1.79 1.79 1.79-1.79zM12 19a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1z"/></svg>
+          </span>
+          <span class="theme-icon hide" id="iconMoon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/></svg>
+          </span>
+          <span id="themeLabel">Tema</span>
+        </button>
+        <button class="btn" id="btnConfig" aria-controls="config" aria-expanded="false">⚙️ Config</button>
       </div>
-    </div>
+    </header>
 
-    <script>
-      var ws = new WebSocket("ws://" + location.hostname + ":81/");
-      var tempData = [],
-        humData = [],
-        fanData = [],
-        labels = [];
-      var maxPoints = 30;
+    <main>
+      <section class="cards" aria-label="Status e alertas">
+        <article class="card">
+          <h2>Status LED</h2>
+          <div class="status-row">
+            <div id="led" aria-live="polite">--</div>
+            <button class="btn" id="btnToggleLED">Alternar LED</button>
+          </div>
+          <p class="muted" id="networkInfo"></p>
+        </article>
 
-      var ctxTemp = document.getElementById("tempChart").getContext("2d");
-      var tempChart = new Chart(ctxTemp, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Temperatura (°C)",
-              data: tempData,
-              borderColor: "red",
-              fill: false,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          animation: false,
-          scales: { y: { beginAtZero: true } },
-        },
-      });
-      var ctxHum = document.getElementById("humChart").getContext("2d");
-      var humChart = new Chart(ctxHum, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Umidade (%)",
-              data: humData,
-              borderColor: "blue",
-              fill: false,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          animation: false,
-          scales: { y: { beginAtZero: true, max: 100 } },
-        },
-      });
-      var ctxFan = document.getElementById("fanChart").getContext("2d");
-      var fanChart = new Chart(ctxFan, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Velocidade (RPM)",
-              data: fanData,
-              borderColor: "green",
-              fill: false,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          animation: false,
-          scales: { y: { beginAtZero: true } },
-        },
-      });
+        <article class="card">
+          <h2>Alertas</h2>
+          <p id="tempAlert" class="alert">--</p>
+          <p id="fanAlert" class="alert">--</p>
+        </article>
+      </section>
 
-      ws.onopen = () => console.log("WebSocket conectado");
-      ws.onmessage = (evt) => {
-        try {
-          let data = JSON.parse(evt.data);
-          document.getElementById("led").innerText = data.led || "--";
+      <section class="chart-grid" aria-label="Gráficos">
+        <div class="chart-box"><canvas id="tempChart" height="180"></canvas></div>
+        <div class="chart-box"><canvas id="humChart"  height="180"></canvas></div>
+        <div class="chart-box"><canvas id="fanChart"  height="180"></canvas></div>
+      </section>
+    </main>
 
-          // Alertas
-          document.getElementById("tempAlert").innerText = data.tempAlert
-            ? "⚠️ Temperatura alta!"
-            : "";
-          document.getElementById("fanAlert").innerText = data.fanAlert
-            ? "⚠️ Exaustor parado!"
-            : "";
+    <!-- Painel de Configuração -->
+    <aside id="config" class="config-panel" role="dialog" aria-modal="true" aria-labelledby="configTitle" hidden>
+      <div class="config-content" role="document">
+        <div class="config-header">
+          <h2 id="configTitle" style="margin:0;">Configurações</h2>
+          <button class="btn btn--ghost" id="closeConfig" aria-label="Fechar configurações">✖</button>
+        </div>
 
-          let now = new Date().toLocaleTimeString();
-          labels.push(now);
-          if (labels.length > maxPoints) {
-            labels.shift();
-            tempData.shift();
-            humData.shift();
-            fanData.shift();
-          }
+        <nav class="tabs" role="tablist" aria-label="Abas de configuração">
+          <button class="tab" role="tab" aria-selected="true"  aria-controls="tab-wifi"          id="tabbtn-wifi"          data-tab="wifi">Wi‑Fi</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="tab-notificacoes" id="tabbtn-notificacoes" data-tab="notificacoes">Notificações</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="tab-visual"       id="tabbtn-visual"       data-tab="visual">Exibição</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="tab-fan"          id="tabbtn-fan"          data-tab="fan">Ventilação</button>
+        </nav>
 
-          if (data.temp !== undefined) tempData.push(data.temp);
-          if (data.hum !== undefined) humData.push(data.hum);
-          if (data.fan !== undefined) fanData.push(data.fan);
+        <section id="tab-wifi" class="tab-content active" role="tabpanel" aria-labelledby="tabbtn-wifi">
+          <fieldset>
+            <legend>Configuração AP</legend>
+            <div class="row">
+              <label for="ap_ssid">SSID do AP</label>
+              <input id="ap_ssid" type="text" placeholder="EXAUSTOR_AP" maxlength="32" />
+              <label for="ap_pass">Senha do AP</label>
+              <input id="ap_pass" type="password" placeholder="8–63 caracteres" minlength="8" maxlength="63" />
+            </div>
+            <div class="form-actions">
+              <button class="btn" id="saveAP">Salvar AP</button>
+            </div>
+          </fieldset>
 
-          tempChart.update();
-          humChart.update();
-          fanChart.update();
-        } catch (e) {
-          console.log("Erro JSON:", evt.data);
-        }
-      };
-      ws.onclose = () => {
-        console.log("WebSocket desconectado");
-        setTimeout(() => location.reload(), 2000);
-      };
+          <fieldset>
+            <legend>Configuração Cliente</legend>
+            <div class="row">
+              <label for="sta_ssid">SSID Wi‑Fi</label>
+              <input id="sta_ssid" type="text" placeholder="Nome da rede" maxlength="32" />
+              <label for="sta_pass">Senha Wi‑Fi</label>
+              <input id="sta_pass" type="password" placeholder="8–63 caracteres" minlength="8" maxlength="63" />
+              <label for="sta_site">Site (opcional)</label>
+              <input id="sta_site" type="text" placeholder="meusite.casa" inputmode="url" />
+            </div>
+            <div class="form-actions">
+              <button class="btn" id="saveSTA">Salvar STA</button>
+            </div>
+          </fieldset>
+        </section>
 
-      function toggleConfig() {
-        document.getElementById("config").style.display =
-          document.getElementById("config").style.display === "block"
-            ? "none"
-            : "block";
-      }
-      function showTab(tab) {
-        document
-          .querySelectorAll(".tab-content")
-          .forEach((t) => t.classList.remove("active"));
-        document
-          .querySelectorAll(".tab")
-          .forEach((tb) => tb.classList.remove("active"));
-        document.getElementById(tab).classList.add("active");
-        event.target.classList.add("active");
-      }
-      function saveAP() {
-        ws.send(
-          JSON.stringify({
-            type: "ap",
-            ssid: document.getElementById("ap_ssid").value,
-            pass: document.getElementById("ap_pass").value,
-          })
-        );
-      }
-      function saveSTA() {
-        ws.send(
-          JSON.stringify({
-            type: "sta",
-            ssid: document.getElementById("sta_ssid").value,
-            pass: document.getElementById("sta_pass").value,
-            site: document.getElementById("sta_site").value,
-          })
-        );
-      }
-      function toggleLED() {
-        ws.send(JSON.stringify({ type: "led" }));
-      }
-      function saveNotif() {
-        ws.send(
-          JSON.stringify({
-            type: "notif",
-            tempNotif: document.getElementById("tempNotif").checked,
-            tempLimite: Number(document.getElementById("tempLimite").value),
-            tempBip: document.getElementById("tempBip").checked,
-            tempLed: document.getElementById("tempLed").checked,
-            fanNotif: document.getElementById("fanNotif").checked,
-            fanBip: document.getElementById("fanBip").checked,
-            fanLed: document.getElementById("fanLed").checked,
-          })
-        );
-        alert("Configurações de notificação enviadas!");
-      }
-    </script>
+        <section id="tab-notificacoes" class="tab-content" role="tabpanel" aria-labelledby="tabbtn-notificacoes">
+          <fieldset>
+            <legend>Temperatura</legend>
+            <label><input type="checkbox" id="tempNotif" /> Ativar notificação</label>
+            <label for="tempLimite">Temperatura limite (°C)</label>
+            <input id="tempLimite" type="number" step="0.5" min="-40" max="125" placeholder="Ex: 60" />
+            <label><input type="checkbox" id="tempBip" /> Bip</label>
+            <label><input type="checkbox" id="tempLed" /> LED</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Exaustor</legend>
+            <label><input type="checkbox" id="fanNotif" /> Notificar exaustor parado</label>
+            <label><input type="checkbox" id="fanBip" /> Bip</label>
+            <label><input type="checkbox" id="fanLed" /> LED</label>
+          </fieldset>
+
+          <div class="dialog-actions">
+            <button class="btn" id="saveNotif">Salvar Notificações</button>
+          </div>
+        </section>
+
+        <section id="tab-visual" class="tab-content" role="tabpanel" aria-labelledby="tabbtn-visual">
+          <fieldset>
+            <legend>Tema</legend>
+            <div class="row-3">
+              <label><input type="radio" name="theme" value="auto"  id="theme_auto"  /> Sistema</label>
+              <label><input type="radio" name="theme" value="light" id="theme_light" /> Claro</label>
+              <label><input type="radio" name="theme" value="dark"  id="theme_dark"  /> Escuro</label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Gráficos</legend>
+            <div class="row-2">
+              <label><input type="checkbox" id="ch_points" /> Mostrar pontos</label>
+              <label><input type="checkbox" id="ch_fill" /> Preencher área</label>
+              <label><input type="checkbox" id="ch_gridx" checked /> Grade eixo X</label>
+              <label><input type="checkbox" id="ch_gridy" checked /> Grade eixo Y</label>
+              <label><input type="checkbox" id="ch_legend" checked /> Mostrar legenda</label>
+              <label><input type="checkbox" id="ch_decimation" checked /> Decimation</label>
+            </div>
+            <div class="row-2" style="margin-top:.6rem;">
+              <div>
+                <label for="rng_tension">Suavização (0–0.4)</label>
+                <input type="range" id="rng_tension" min="0" max="0.4" step="0.05" />
+              </div>
+              <div>
+                <label for="num_maxPoints">Limite de pontos (10–120)</label>
+                <input type="number" id="num_maxPoints" min="10" max="120" step="5" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn--ghost" id="resetVisual">Restaurar padrão</button>
+              <button class="btn" id="applyVisual">Aplicar</button>
+            </div>
+          </fieldset>
+        </section>
+
+        <section id="tab-fan" class="tab-content" role="tabpanel" aria-labelledby="tabbtn-fan">
+          <fieldset>
+            <legend>Controle do Cooler</legend>
+            <label for="fanDuty">Duty do PWM (%)</label>
+            <input id="fanDuty" type="range" min="0" max="100" step="1" />
+            <div class="muted">Valor: <b><span id="fanDutyVal">--</span>%</b></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Parâmetros de RPM</legend>
+            <div class="row-2">
+              <div>
+                <label for="fanPulses">Pulsos por volta (1–12)</label>
+                <input id="fanPulses" type="number" min="1" max="12" step="1" />
+              </div>
+              <div>
+                <label for="rpmAlertMin">RPM mínimo p/ alerta</label>
+                <input id="rpmAlertMin" type="number" min="0" max="20000" step="10" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn" id="saveFanCfg">Salvar parâmetros</button>
+            </div>
+          </fieldset>
+        </section>
+
+        <div class="dialog-actions">
+          <button class="btn btn--ghost" id="closeConfig2">Fechar</button>
+        </div>
+      </div>
+    </aside>
+    <!-- Toast container -->
+    <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+
+
   </body>
 </html>
