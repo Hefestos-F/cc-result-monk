@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.6.19
+// @version      3.3.6.20
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -727,6 +727,35 @@
     });
   }
 
+  function seExiste3(objeto) {
+    return new Promise((resolve) => {
+      let resultado = false;
+
+      const observer = new MutationObserver(() => {
+
+        const retorno = objeto ? AtuAtendidas() : AtualizarDTI2();
+
+        let objeto2 = objeto ? "Atendidas" : "Tempos";
+
+        if (retorno === true) {
+          observer.disconnect();
+          resultado = true;
+          resolve(true);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      setTimeout(() => {
+        observer.disconnect();
+        resolve(resultado); // Retorna true se encontrou, false se não
+      }, 6000);
+    });
+  }
+
   function formatTime(time) {
     if (!time) {
       console.error("NiceMonk Tempo inválido.");
@@ -766,7 +795,7 @@
 
   async function AtualizarAtendidas() {
     const a = await caminhoInfo(1);
-    const b = await seExiste2(1);
+    const b = await seExiste3(1);
     if (a && b) {
       return true;
     } else {
@@ -776,7 +805,7 @@
 
   async function AtualizarDTI() {
     const a = await caminhoInfo(0);
-    const b = await seExiste2(0);
+    const b = await seExiste3(0);
 
     if (a && b) {
       return true;
