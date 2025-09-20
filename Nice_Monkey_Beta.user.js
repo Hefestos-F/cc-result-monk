@@ -728,6 +728,7 @@
   }
 
   function seExiste3(objeto) {
+    console.log('NiceMonk seExiste3 iniciado.');
     return new Promise((resolve) => {
       let resultado = false;
 
@@ -739,6 +740,7 @@
 
         if (retorno === true) {
           observer.disconnect();
+          console.log(`NiceMonk seExiste3 ${objeto2} encontrado.`);
           resultado = true;
           resolve(true);
         }
@@ -751,6 +753,7 @@
 
       setTimeout(() => {
         observer.disconnect();
+        console.log('NiceMonk seExiste3 nada encontrado.');
         resolve(resultado); // Retorna true se encontrou, false se não
       }, 6000);
     });
