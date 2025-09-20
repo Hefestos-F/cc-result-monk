@@ -727,7 +727,7 @@
 
       setTimeout(() => {
         observer.disconnect();
-        console.log("NiceMonk seExiste3 nada encontrado.");
+        console.log('NiceMonk seExiste3 nada encontrado.');
         resolve(resultado); // Retorna true se encontrou, false se não
       }, 6000);
     });
