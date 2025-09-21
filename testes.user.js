@@ -261,6 +261,10 @@
 
     const botlimpar = CriarBotLimpar();
     botlimpar.addEventListener("click", function () {
+      nome = '';
+      entrada1 = '';
+      entrada2 = '';
+      entrada3 = '';
       linha1in.value = "";
       linha2in.value = "";
       linha2in.style.height = "25px";
@@ -481,6 +485,7 @@
 
     botlim6.addEventListener("click", function () {
       Input6.value = "";
+      Cardhold = '';
       sizer.textContent = Input6.placeholder;
       Input6.style.width = sizer.offsetWidth + "px";
     });
@@ -534,6 +539,7 @@
 
     botlim7.addEventListener("click", function () {
       Input7.value = "";
+      Assinatura = '';
       sizer.textContent = Input7.placeholder;
       Input7.style.width = sizer.offsetWidth + "px";
     });
