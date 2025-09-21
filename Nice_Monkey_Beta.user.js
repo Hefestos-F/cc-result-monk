@@ -999,7 +999,7 @@
   }
 
   async function TentAtend() {
-    stt.ErroAten = !(await AtualizarAtendidas());
+    stt.ErroAten = !await AtualizarAtendidas();
     if (
       stt.vAtendidas <= stt.vAtendidasA &&
       Segun.Trabalhando > Segun.TrabalhandoA
