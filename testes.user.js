@@ -8,7 +8,8 @@
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes.user.js
 // @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes.user.js
-// @grant        none
+// @grant        GM_openInTab
+// @run-at       document-idle
 
 // ==/UserScript==
 
@@ -452,8 +453,6 @@
     sizer.style.fontSize = getComputedStyle(Input6).fontSize;
     sizer.style.fontFamily = getComputedStyle(Input6).fontFamily;
     document.body.appendChild(sizer);
-    sizer.textContent = Cardhold || Input6.placeholder;
-    Input6.style.width = sizer.offsetWidth + "px";
 
     // Atualizar largura conforme o texto
     Input6.addEventListener("input", function () {
@@ -463,8 +462,8 @@
       SalvarVari(1);
     });
 
-    // Inicializar com o placeholder
-    sizer.textContent = Input6.placeholder;
+    // Inicializar com o placeholder 
+    sizer.textContent = Input6.value || Input6.placeholder;
     Input6.style.width = sizer.offsetWidth + "px";
 
     botCop6.addEventListener("click", function () {
