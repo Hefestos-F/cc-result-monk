@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.0
+// @version      3.3.7.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -123,7 +123,7 @@
     Estour1: 0,
     intervaloBeep: 1,
     BeepRet: 0,
-    logout: 0,
+    logout: 1,
     observ: 1,
   };
 
@@ -207,6 +207,15 @@
         console.log(`NiceMonk verificação Inicial Falso`);
       }
     });
+  }
+
+  function deslogou() {
+    let a = document.querySelector(LugarJS.elementoReferencia);
+    let b = document.querySelector(LugarJS.elementoReferencia2);
+    if (!a && !b && !stt.logout) {
+      stt.logout = 1;
+      addAoini();
+    }
   }
 
   async function RecuperarTVariaveis() {
@@ -727,7 +736,7 @@
 
       setTimeout(() => {
         observer.disconnect();
-        console.log('NiceMonk seExiste3 nada encontrado.');
+        console.log("NiceMonk seExiste3 nada encontrado.");
         resolve(resultado); // Retorna true se encontrou, false se não
       }, 6000);
     });
@@ -983,6 +992,7 @@
     if (stt.NBT) {
       stt.NBT = 0;
       verificarESalvar(0);
+      deslogou();
       setInterval(VerificacoesN1, 1000);
     }
   }
@@ -2281,12 +2291,6 @@
       Alinha2.style.visibility = e ? "visible" : "hidden";
       Alinha2.style.opacity = e ? "1" : "0";
       Alinha2.style.marginBottom = e ? "" : "-18px";
-    }
-
-    const CCC = document.getElementById("circuloclickCont");
-    if (!CCC && !stt.logout) {
-      stt.logout = 1;
-      FimdePausa(stt.StatusANT);
     }
 
     function FimdePausa(tipo) {
