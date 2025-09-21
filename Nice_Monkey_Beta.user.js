@@ -736,9 +736,11 @@
       });
 
       setTimeout(() => {
-        observer.disconnect();
-        console.log("NiceMonk seExiste3 nada encontrado.");
-        resolve(resultado); // Retorna true se encontrou, false se não
+        if (!resultado) {
+          observer.disconnect();
+          console.log("NiceMonk seExiste3 nada encontrado.");
+          resolve(resultado); // Retorna true se encontrou, false se não
+        }
       }, 6000);
     });
   }
@@ -999,7 +1001,7 @@
   }
 
   async function TentAtend() {
-    stt.ErroAten = !await AtualizarAtendidas();
+    stt.ErroAten = !(await AtualizarAtendidas());
     if (
       stt.vAtendidas <= stt.vAtendidasA &&
       Segun.Trabalhando > Segun.TrabalhandoA
