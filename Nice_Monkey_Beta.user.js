@@ -214,6 +214,7 @@
     let b = document.querySelector(LugarJS.elementoReferencia2);
     if (!a && !b && !stt.logout) {
       stt.logout = 1;
+      console.log(`NiceMonk Nice deslogou.`);
       addAoini();
     }
   }
