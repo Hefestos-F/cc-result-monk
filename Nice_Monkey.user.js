@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.5.0.10
+// @version      3.5.1.0
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -11,11 +11,6 @@
 // @grant        none
 
 // ==/UserScript==
-
-/*O código a seguir realiza o cálculo e a exibição dos valores com base nas informações da aba relatório.
-Se você passar por períodos deslogado, os valores podem ficar incorretos, pois o seu tempo logado foi impactado.
-Os cálculos são sempre atualizados ao clicar no ícone quadrado no cabeçalho do nice.
-Interagir com o nice durante a busca pode resultar em erro, e será necessário realizar uma nova busca.*/
 
 (function () {
   "use strict";
@@ -38,7 +33,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     IgnorarTMA: 0,
     IgnorarErroNice: 0,
     Estouro: 1,
-    SomEstouro: 1
+    SomEstouro: 1,
   };
 
   const PCConfig = {
@@ -58,7 +53,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     IgnorarTMA: 0,
     IgnorarErroNice: 0,
     Estouro: 1,
-    SomEstouro: 1
+    SomEstouro: 1,
   };
 
   const Ccor = {
@@ -128,7 +123,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Estour1: 0,
     intervaloBeep: 1,
     BeepRet: 0,
-    logout: 0
+    logout: 1,
+    observ: 1,
   };
 
   const BGround = {
@@ -136,6 +132,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     ContIcon: "",
     circuloclick: "",
     circuloclick2: "",
+  };
+
+  const Htime = {
+    Disponivel: 0,
+    Trabalhando: 0,
+    Indisponivel: 0,
   };
 
   const ChavePausas = "DadosDePausas";
@@ -153,65 +155,69 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   const nomeBD = "MeuBDNiceMonk";
   const StoreBD = "NiceMonk";
 
-  RecuperarTVariaveis();
-
   const LugarJS = {
     elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
     elementoReferencia2:
-      "#cx1_agent_root > main > div > main > header > header > div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-6.MuiGrid-grid-sm-12.MuiGrid-grid-md-12.MuiGrid-grid-lg-6.css-1govgzr > div",
+      'a[aria-label="Ajuda"][href*="help.nice-incontact.com"]',
     Status: "#agent-state-section > div > span > div > div",
 
-    abaRelatorio:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-0 > nav > div > div:nth-child(8) > div > div",
-    abaProdutividade:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > section > div > div > div > button:nth-child(1)",
-    abaDesempenho:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > section > div > div > div > button:nth-child(2)",
-    abaHoje:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1hcj1s8 > div > button.MuiButtonBase-root.MuiToggleButton-root.MuiToggleButton-sizeMedium.MuiToggleButton-standard.css-w4b7gv",
+    abaRelatorio: '[role="button"][aria-label="Reporting"]',
+    abaProdutividade: '[type="button"][aria-label="Produtividade"]',
+    abaDesempenho: '[type="button"][aria-label="Desempenho"]',
+    abaHoje: '[type="button"][aria-label="Hoje"]',
 
     lContAtual: "#agent-state-section > div > span > div > div > span > span",
-    lAtendidas:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-3b491n > div > div > table > tbody > tr:nth-child(1) > td:nth-child(2) > span",
-    lDisponibilidade:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(1) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
-    ltrabalhando:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(2) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
-    lIndisponivel:
-      "#cx1_agent_root > div.MuiBox-root.css-ermjec > div.MuiBox-root.css-13dfkjh > div > div.MuiGrid-root.MuiGrid-container.css-1hu6jpd > div > div > div > div > div.MuiBox-root.css-2ud311 > div.MuiBox-root.css-1soorb9 > div:nth-child(3) > div:nth-child(1) > div.MuiGrid-root.MuiGrid-grid-xs-6.MuiGrid-grid-lg-8.css-gfarnj > p",
   };
 
+  addAoini();
 
-  var maxAttempts = 9000; // Tentativas máximas (10 segundos / 100ms por tentativa)
-  var attempts = 0;
-  var interval = setInterval(function () {
-    var elementoReferencia = document.querySelector(LugarJS.elementoReferencia);
-    var elementoReferencia2 = document.querySelector(
-      LugarJS.elementoReferencia2
-    );
+  RecuperarTVariaveis();
 
-    if (
-      elementoReferencia &&
-      elementoReferencia2 &&
-      document.querySelector(LugarJS.abaRelatorio) &&
-      document.querySelector(LugarJS.Status)
-    ) {
-      clearInterval(interval);
-      AdicionarCaixaAtualizada(elementoReferencia);
-      addcirculo(elementoReferencia2);
-      stt.NBT = 1;
-      iniciarBusca();
-    } else {
-      attempts++;
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        seExiste(LugarJS.elementoReferencia);
-        seExiste(LugarJS.elementoReferencia2);
-        seExiste(LugarJS.abaRelatorio);
-        seExiste(LugarJS.Status);
+  function ObservarItem(aoMudar) {
+    const observer = new MutationObserver(() => {
+      aoMudar();
+      if (!stt.observ) {
+        observer.disconnect();
+        console.log(`NiceMonk observer Desconectado`);
       }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  function addAoini() {
+    console.log(`NiceMonk observer Iniciado`);
+    ObservarItem(() => {
+      let a = document.querySelector(LugarJS.elementoReferencia);
+      let b = document.querySelector(LugarJS.elementoReferencia2);
+      if (
+        a &&
+        b &&
+        !document.getElementById("minhaCaixa") &&
+        !document.getElementById("circuloclickCont")
+      ) {
+        AdicionarCaixaAtualizada(a);
+        addcirculo(b);
+        stt.NBT = 1;
+        stt.observ = 0;
+        stt.logout = 0;
+        iniciarBusca();
+        console.log(`NiceMonk verificação Inicial Verdadeiro`);
+      } else {
+        console.log(`NiceMonk verificação Inicial Falso`);
+      }
+    });
+  }
+
+  function deslogou() {
+    let a = document.querySelector(LugarJS.elementoReferencia);
+    let b = document.querySelector(LugarJS.elementoReferencia2);
+    if (!a && !b && !stt.logout) {
+      stt.logout = 1;
+      console.log(`NiceMonk Nice deslogou.`);
+      addAoini();
     }
-  }, 100); // Tenta a cada 100ms
+  }
 
   async function RecuperarTVariaveis() {
     try {
@@ -222,7 +228,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      console.log("NiceMonk Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
+      console.log(
+        "NiceMonk Encontrados em dadosSalvosConfi:",
+        dadosSalvosConfi
+      );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosSalvosConfi:", e);
     }
@@ -262,7 +271,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function criarCaixaDCv(n, titulo) {
-
     var caixa = document.createElement("div");
     caixa.classList.add("info-caixa");
     caixa.style.transition = "all 0.5s ease";
@@ -415,8 +423,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     }
     // Adiciona o contêiner ao contêiner principal
 
-    const Alinha1 = linha('Alinha1');
-    const Alinha2 = linha('Alinha2');
+    const Alinha1 = linha("Alinha1");
+    const Alinha2 = linha("Alinha2");
     Alinha1.appendChild(Offline);
     Alinha2.appendChild(Estouro);
     minhaCaixa.appendChild(Alinha1);
@@ -557,11 +565,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       circuloclickCont.appendChild(circuloclick2);
       circuloclickCont.appendChild(circuloclick);
 
-      // Adiciona o quadrado como o primeiro filho da div
-      elementoReferencia2.insertBefore(
-        circuloclickCont,
-        elementoReferencia2.firstChild
-      );
+      const pai = elementoReferencia2.parentNode;
+      pai.insertBefore(circuloclickCont, pai.firstChild);
 
       // Adiciona o evento de mouseover ao circuloclick
       circuloclick.addEventListener("mouseover", function () {
@@ -707,6 +712,39 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     });
   }
 
+  function seExiste3(objeto) {
+    console.log("NiceMonk seExiste3 iniciado.");
+    return new Promise((resolve) => {
+      let resultado = false;
+
+      const observer = new MutationObserver(() => {
+        const retorno = objeto ? AtuAtendidas() : AtualizarDTI2();
+
+        let objeto2 = objeto ? "Atendidas" : "Tempos";
+
+        if (retorno === true) {
+          observer.disconnect();
+          console.log(`NiceMonk seExiste3 ${objeto2} encontrado.`);
+          resultado = true;
+          resolve(true);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      setTimeout(() => {
+        if (!resultado) {
+          observer.disconnect();
+          console.log("NiceMonk seExiste3 nada encontrado.");
+          resolve(resultado); // Retorna true se encontrou, false se não
+        }
+      }, 6000);
+    });
+  }
+
   function formatTime(time) {
     if (!time) {
       console.error("NiceMonk Tempo inválido.");
@@ -745,9 +783,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   async function AtualizarAtendidas() {
-    await caminhoInfo(1); // Caminho Atendidas
-    if (await seExiste(LugarJS.lAtendidas)) {
-      stt.vAtendidas = document.querySelector(LugarJS.lAtendidas).textContent;
+    const a = await caminhoInfo(1);
+    const b = await seExiste3(1);
+    if (a && b) {
       return true;
     } else {
       return false;
@@ -755,21 +793,106 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   async function AtualizarDTI() {
-    //await caminhoInfo(0); // Caminho logado
-    if ((await caminhoInfo(0)) && (await seExiste(LugarJS.lDisponibilidade))) {
-      Segun.Disponivel = converterParaSegundos(
-        document.querySelector(LugarJS.lDisponibilidade).textContent
-      );
-      Segun.Trabalhando = converterParaSegundos(
-        document.querySelector(LugarJS.ltrabalhando).textContent
-      );
-      Segun.Indisponivel = converterParaSegundos(
-        document.querySelector(LugarJS.lIndisponivel).textContent
-      );
+    const a = await caminhoInfo(0);
+    const b = await seExiste3(0);
+
+    if (a && b) {
       return true;
     } else {
       return false;
     }
+  }
+
+  function AtuAtendidas() {
+    let encontrou = false;
+
+    // Seleciona todas as linhas da tabela
+    const linhas = document.querySelectorAll("tbody tr");
+
+    let a = 0;
+    linhas.forEach((linha) => {
+      const celulas = linha.querySelectorAll("td");
+      celulas.forEach((celula) => {
+        const geralEl = celula.querySelector('[aria-label="Geral"]');
+        if (geralEl) {
+          // Encontrou a célula com "Geral"
+          const valores = linha.querySelectorAll("[aria-label]");
+          valores.forEach((valorEl) => {
+            const texto = valorEl.getAttribute("aria-label");
+
+            if (!a && texto && texto !== "Geral") {
+              a = 1;
+              stt.vAtendidas = texto;
+              console.log(`NiceMonk Valor ao lado de "Geral": ${texto}`);
+              encontrou = true;
+            }
+          });
+        }
+      });
+    });
+
+    if (!encontrou) {
+      console.warn('NiceMonk Valor ao lado de "Geral" não encontrado.');
+    }
+
+    return encontrou;
+  }
+
+  function AtualizarDTI2() {
+    const iconesStatus = {
+      availableStatusIconId: "Disponível",
+      workingDefaultIconId: "Trabalhando",
+      unavailableStatusIconId: "Indisponível",
+    };
+
+    const resultados = {};
+
+    Object.entries(iconesStatus).forEach(([id, nomeStatus]) => {
+      const icon = document.getElementById(id);
+      if (!icon) return;
+
+      // Sobe até o bloco principal do status
+      const blocoStatus = icon.closest('div[class*="MuiBox-root"]');
+      if (!blocoStatus) return;
+
+      // Procura o tempo dentro do mesmo bloco
+      const tempoEl = blocoStatus.querySelector("p");
+      let tempoEncontrado = null;
+
+      // Verifica se há algum tempo no formato HH:MM:SS ou HHH:MM:SS
+      blocoStatus.querySelectorAll("p").forEach((p) => {
+        const texto = p.textContent.trim();
+        if (/^\d{2,3}:\d{2}:\d{2}$/.test(texto)) {
+          tempoEncontrado = texto;
+        }
+      });
+
+      if (tempoEncontrado) {
+        resultados[nomeStatus] = tempoEncontrado;
+        console.log(
+          `NiceMonk Status: ${nomeStatus} → Tempo: ${tempoEncontrado}`
+        );
+        if (nomeStatus === "Disponível") {
+          Htime.Disponivel = tempoEncontrado;
+          Segun.Disponivel = converterParaSegundos(Htime.Disponivel);
+        } else if (nomeStatus === "Trabalhando") {
+          Htime.Trabalhando = tempoEncontrado;
+          Segun.Trabalhando = converterParaSegundos(Htime.Trabalhando);
+        } else if (nomeStatus === "Indisponível") {
+          Htime.Indisponivel = tempoEncontrado;
+          Segun.Indisponivel = converterParaSegundos(Htime.Indisponivel);
+        }
+      }
+    });
+
+    const encontrou = Object.keys(resultados).length > 0;
+    if (!encontrou) {
+      console.warn(
+        "NiceMonk Nenhum tempo encontrado usando os IDs dos ícones."
+      );
+    }
+
+    return encontrou;
   }
 
   function AtualizarTMA(x) {
@@ -807,14 +930,15 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       const vTMA = document.getElementById("vTMA");
       let TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
       TMA = Math.floor(TMA);
-      tTMA.innerHTML = stt.Busc5s ? 'Busca' : 'TMA:';
+      tTMA.innerHTML = stt.Busc5s ? "Busca" : "TMA:";
       vTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
         : stt.ErroAtu || x
-          ? 'Atualize !!'
-          : TMA; // Arredonda para o valor inteiro mais próximo
+        ? "Atualize !!"
+        : TMA; // Arredonda para o valor inteiro mais próximo
       cTMA2.style.background =
-        (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) || stt.Busc5s
+        (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) ||
+        stt.Busc5s
           ? Ccor.MetaTMA
           : "";
       cTMA2.style.borderRadius = "5px";
@@ -833,7 +957,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     return `${horas}:${minutos}:${segundos}`;
   }
 
-  async function iniciarBusca(x) {
+  async function iniciarBusca() {
     ControleFront(1);
 
     stt.ErroDTI = !(await AtualizarDTI());
@@ -859,7 +983,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       for (let c = 0; stt.ErroTMA && c < 3; c++) {
         await TentAtend();
         if (stt.ErroTMA) {
-          await esperar(1000);
+          await esperar(1500);
         }
       }
     }
@@ -871,6 +995,7 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     if (stt.NBT) {
       stt.NBT = 0;
       verificarESalvar(0);
+      deslogou();
       setInterval(VerificacoesN1, 1000);
     }
   }
@@ -922,17 +1047,17 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     Segun.QualLogou = CConfig.LogueManual
       ? converterParaSegundos(CConfig.ValorLogueManual)
       : CConfig.ModoSalvo
-        ? Segun.LogouSalvo
-        : Segun.Logou;
+      ? Segun.LogouSalvo
+      : Segun.Logou;
     Segun.Offline = Segun.Logou - Segun.QualLogou;
 
     var vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
-        vari2 &&
-        !stt.ErroAtu &&
-        !stt.ErroVerif &&
-        !CConfig.IgnorarOff
+      vari2 &&
+      !stt.ErroAtu &&
+      !stt.ErroVerif &&
+      !CConfig.IgnorarOff
         ? 1
         : 0;
     CConfig.MostraOff = stt.offForaDToler;
@@ -954,9 +1079,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var SaidaSegundos = Segun.QualLogou + TempoEscalado;
     SaidaSegundos =
       !stt.offForaDToler &&
-        !stt.ErroAtu &&
-        !CConfig.LogueManual &&
-        !CConfig.IgnorarOff
+      !stt.ErroAtu &&
+      !CConfig.LogueManual &&
+      !CConfig.IgnorarOff
         ? SaidaSegundos + Segun.Offline
         : SaidaSegundos;
     var FaltaSegundos = SaidaSegundos - Segun.Hora;
@@ -998,8 +1123,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       vFalta.textContent = HE
         ? FouHFormatado
         : TempoCumprido
-          ? "Cumprido"
-          : FouHFormatado;
+        ? "Cumprido"
+        : FouHFormatado;
     }
     if (stt.Busc5s) {
       AtualizarTMA(0);
@@ -1013,7 +1138,9 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     var vOffline = document.getElementById("vOffline");
     var tOffline = document.getElementById("tOffline");
     vOffline.textContent = OfflineSegundosFormatado;
-    tOffline.textContent = CConfig.MostraValorOff ? "Com Offline :" : "Sem Offline :";
+    tOffline.textContent = CConfig.MostraValorOff
+      ? "Com Offline :"
+      : "Sem Offline :";
 
     if (!stt.Atualizando) {
       ControleFront();
@@ -1046,10 +1173,10 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     textCC1.innerHTML = stt.ErroAtu
       ? "Atualizar!!"
       : stt.Atualizando
-        ? "Atualizando..."
-        : a === 2
-          ? "Atualizado"
-          : "Atualizar";
+      ? "Atualizando..."
+      : a === 2
+      ? "Atualizado"
+      : "Atualizar";
 
     if (a === 1) {
       stt.Atualizando = 1;
@@ -1108,8 +1235,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       circuloclick2.style.width = stt.DentrodCC2
         ? "auto"
         : stt.AbaConfig
-          ? "24px"
-          : "17px";
+        ? "24px"
+        : "17px";
       circuloclick2.style.height =
         stt.DentrodCC2 || stt.AbaConfig ? "24px" : "17px";
       circuloclick2.style.borderRadius =
@@ -1148,8 +1275,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
         (stt.DentrodMC && stt.CVAtivo) || stt.AbaPausas
           ? "-5px"
           : !stt.AbaPausas && !stt.AbaConfig
-            ? ""
-            : "20px";
+          ? ""
+          : "20px";
     }
 
     function MostarcontValores(x) {
@@ -1636,13 +1763,14 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     const CValoresEnc = criarCaixaSeg();
     const tValoresEnc = criarTitulo("Valores Encontrados");
     const C2ValoresEnc = criarCaixaSeg();
-    C2ValoresEnc.style.alignItems = 'center';
+    C2ValoresEnc.style.alignItems = "center";
     tValoresEnc.addEventListener("click", function () {
       if (C2ValoresEnc.innerHTML === "") {
         C2ValoresEnc.innerHTML = `
-        <div>Disponivel = ${converterParaTempo(Segun.Disponivel)}</div>
-        <div>Trabalhando = ${converterParaTempo(Segun.Trabalhando)}</div>
-        <div>Indisponivel = ${converterParaTempo(Segun.Indisponivel)}</div>
+        <div>Disponivel = ${Htime.Disponivel}</div>
+        <div>Trabalhando = ${Htime.Trabalhando}</div>
+        <div>Indisponivel = ${Htime.Indisponivel}</div>
+        <div>Atendidas = ${stt.vAtendidas}</div>
         `;
       } else {
         C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
@@ -1900,7 +2028,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       } else {
         CConfig.SomEstouro = 0;
       }
-
     }
 
     ControleFront(8);
@@ -2124,15 +2251,15 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
     VeriEstDPausa();
 
     function VeriEstDPausa() {
-      let a = '00:00:00';
+      let a = "00:00:00";
       let b = 0;
-      let f = '';
+      let f = "";
 
-      if (StatusNOV.includes('Descanso')) {
+      if (StatusNOV.includes("Descanso")) {
         a = "00:10:00";
         f = "Descanso";
         b = 1;
-      } else if (StatusNOV.includes('Lanche')) {
+      } else if (StatusNOV.includes("Lanche")) {
         a = "00:20:00";
         f = "Lanche";
         b = 1;
@@ -2140,7 +2267,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       let c = converterParaSegundos(a);
 
       if (Segun.ContAtual > c && b) {
-
         stt.Estouro = 1;
         let d = Segun.ContAtual - c;
 
@@ -2168,12 +2294,6 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
       Alinha2.style.visibility = e ? "visible" : "hidden";
       Alinha2.style.opacity = e ? "1" : "0";
       Alinha2.style.marginBottom = e ? "" : "-18px";
-    }
-
-    const CCC = document.getElementById("circuloclickCont");
-    if (!CCC && !stt.logout) {
-      stt.logout = 1;
-      FimdePausa(stt.StatusANT);
     }
 
     function FimdePausa(tipo) {
@@ -2343,8 +2463,8 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
           ? "Fechar"
           : "Pausas"
         : stt.AbaPausas
-          ? "F"
-          : "P";
+        ? "F"
+        : "P";
     }
     return caixa;
   }
@@ -2881,11 +3001,12 @@ Interagir com o nice durante a busca pode resultar em erro, e será necessário 
   }
 
   function tocarBeep() {
-    const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
+    const contextoAudio = new (window.AudioContext ||
+      window.webkitAudioContext)();
     const oscilador = contextoAudio.createOscillator();
     const ganho = contextoAudio.createGain();
 
-    oscilador.type = 'sine'; // Tipo de onda
+    oscilador.type = "sine"; // Tipo de onda
     oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
     ganho.gain.setValueAtTime(0.6, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
 
