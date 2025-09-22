@@ -1102,14 +1102,12 @@
     var vFalta = document.getElementById("vFalta");
     var tFalta = document.getElementById("tFalta");
     tFalta.textContent = HE ? "HE:" : TempoCumprido ? "Tempo" : "Falta:";
-    if (CConfig.ModoSalvo && stt.ErroVerif) {
-    } else {
-      vFalta.textContent = HE
-        ? FouHFormatado
-        : TempoCumprido
-        ? "Cumprido"
-        : FouHFormatado;
-    }
+    vFalta.textContent = HE
+      ? FouHFormatado
+      : TempoCumprido
+      ? "Cumprido"
+      : FouHFormatado;
+
     if (stt.Busc5s) {
       AtualizarTMA(0);
       stt.Busc5sTem = stt.Busc5sTem - 1;
