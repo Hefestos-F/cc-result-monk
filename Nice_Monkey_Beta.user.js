@@ -983,6 +983,16 @@
     AtualizarTMA(stt.ErroAten);
 
     await VerificacoesN1();
+
+    stt.offForaDToler =
+      Segun.Offline > CConfig.TolerOff &&
+      vari2 &&
+      !stt.ErroAtu &&
+      !stt.ErroVerif &&
+      !CConfig.IgnorarOff
+        ? 1
+        : 0;
+
     ControleFront(2);
 
     if (stt.NBT) {
@@ -1035,14 +1045,7 @@
     Segun.Offline = Segun.Logou - Segun.QualLogou;
 
     var vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
-    stt.offForaDToler =
-      Segun.Offline > CConfig.TolerOff &&
-      vari2 &&
-      !stt.ErroAtu &&
-      !stt.ErroVerif &&
-      !CConfig.IgnorarOff
-        ? 1
-        : 0;
+
     CConfig.MostraOff = stt.offForaDToler;
     if (!CConfig.MostraOff && !stt.ErroVerif) {
       CConfig.MostraValorOff = 0;
