@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.4
+// @version      3.3.7.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -984,14 +984,7 @@
 
     await VerificacoesN1();
 
-    stt.offForaDToler =
-      Segun.Offline > CConfig.TolerOff &&
-      (CConfig.ModoSalvo || CConfig.LogueManual) &&
-      !stt.ErroAtu &&
-      !stt.ErroVerif &&
-      !CConfig.IgnorarOff
-        ? 1
-        : 0;
+    
 
     ControleFront(2);
 
@@ -1046,6 +1039,15 @@
 
     var vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
 
+    stt.offForaDToler =
+      Segun.Offline > CConfig.TolerOff &&
+      vari2 &&
+      !stt.ErroAtu &&
+      !stt.ErroVerif &&
+      !CConfig.IgnorarOff
+        ? 1
+        : 0;
+
     CConfig.MostraOff = stt.offForaDToler;
     if (!CConfig.MostraOff && !stt.ErroVerif) {
       CConfig.MostraValorOff = 0;
@@ -1067,7 +1069,8 @@
       !stt.offForaDToler &&
       !stt.ErroAtu &&
       !CConfig.LogueManual &&
-      !CConfig.IgnorarOff
+      !CConfig.IgnorarOff &&
+      !stt.ErroVerif
         ? SaidaSegundos + Segun.Offline
         : SaidaSegundos;
     var FaltaSegundos = SaidaSegundos - Segun.Hora;
@@ -1599,7 +1602,7 @@
     const InputMin = document.createElement("input");
     InputMin.className = "placeholderPerso";
     InputMin.id = "InputMin";
-    InputMin.setAttribute("placeholder", "10");
+    InputMin.placeholder = CConfig.ValorAuto;
     InputMin.type = "number";
     InputMin.min = "1";
     InputMin.max = "99";
@@ -1613,6 +1616,7 @@
         `;
     InputMin.addEventListener("input", function () {
       CConfig.ValorAuto = InputMin.value || 1;
+      InputMin.placeholder = InputMin.value || 1;
     });
 
     const textoMinu = document.createElement("div");
