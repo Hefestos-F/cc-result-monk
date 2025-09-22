@@ -986,7 +986,7 @@
 
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
-      vari2 &&
+      (CConfig.ModoSalvo || CConfig.LogueManual) &&
       !stt.ErroAtu &&
       !stt.ErroVerif &&
       !CConfig.IgnorarOff
@@ -1275,7 +1275,10 @@
 
     cOffline.style.background = Ccor.Offline;
 
-    var vari4 = contValores.style.opacity === "1" ? 1 : 0;
+    var vari4 =
+      contValores.style.opacity === "1" && Segun.Offline > CConfig.TolerOff
+        ? 1
+        : 0;
     Alinha1.style.visibility =
       vari4 && CConfig.MostraOff ? "visible" : "hidden";
     Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
