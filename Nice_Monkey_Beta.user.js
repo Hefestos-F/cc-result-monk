@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.3
+// @version      3.3.7.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1102,7 +1102,8 @@
     var vFalta = document.getElementById("vFalta");
     var tFalta = document.getElementById("tFalta");
     tFalta.textContent = HE ? "HE:" : TempoCumprido ? "Tempo" : "Falta:";
-    if (!stt.ErroVerif) {
+    if (CConfig.ModoSalvo && stt.ErroVerif) {
+    } else {
       vFalta.textContent = HE
         ? FouHFormatado
         : TempoCumprido
