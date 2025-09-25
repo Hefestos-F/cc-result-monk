@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.6
+// @version      3.3.7.6.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -96,8 +96,6 @@
   const stt = {
     vAtendidas: "",
     vAtendidasA: 0,
-    ErroAtu: 0,
-    ErroAten: "",
     Atualizando: 0,
     LoopAA: 0, // Atualizar auto Ativo
     AbaConfig: 0,
@@ -107,9 +105,12 @@
     DentrodCC1: "",
     DentrodcCC: "",
     DentrodMC: "",
-    ErroDTI: "",
     offForaDToler: 0,
     ErroVerif: 0,
+    ErroTMA: 0,
+    ErroDTI: 0,
+    ErroAtu: 0,
+    ErroAten: 0,
     CVAtivo: "",
     StatusANT: "",
     Ndpausas: 2,
@@ -787,11 +788,11 @@
       stt.vAtendidas <= stt.vAtendidasA &&
       Segun.Trabalhando > Segun.TrabalhandoA
     ) {
-      stt.ErroTMA = 1;
+      return true;
     } else {
-      stt.ErroTMA = 0;
       stt.vAtendidasA = stt.vAtendidas;
       Segun.TrabalhandoA = Segun.Trabalhando;
+      return false;
     }
   }
 
@@ -993,9 +994,9 @@
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
       stt.ErroAten = 1;
       for (let c = 0; stt.ErroAten && c < 3; c++) {
-        await TentAtend();
+        stt.ErroTMA = await TentAtend();
         for (let c = 0; stt.ErroTMA && c < 3; c++) {
-          await TentAtend();
+          stt.ErroTMA = await TentAtend();
           await esperar(1000);
         }
       }
