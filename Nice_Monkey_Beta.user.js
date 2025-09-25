@@ -1060,11 +1060,12 @@
       : Segun.Logou;
     Segun.Offline = Segun.Logou - Segun.QualLogou;
 
-    var vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
+    let vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
 
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
       vari2 &&
+      (CConfig.Vigia || stt.Atualizando) &&
       !stt.ErroAtu &&
       !stt.ErroVerif &&
       !CConfig.IgnorarOff
@@ -1072,7 +1073,8 @@
         : 0;
 
     CConfig.MostraOff = stt.offForaDToler;
-    if (!CConfig.MostraOff && !stt.ErroVerif) {
+
+    if (!CConfig.MostraOff) {
       CConfig.MostraValorOff = 0;
     }
 
