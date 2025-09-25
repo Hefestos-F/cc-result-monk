@@ -1060,8 +1060,6 @@
       : Segun.Logou;
     Segun.Offline = Segun.Logou - Segun.QualLogou;
 
-    let vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
-
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
       (CConfig.ModoSalvo || CConfig.LogueManual) &&

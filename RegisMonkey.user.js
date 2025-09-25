@@ -613,42 +613,39 @@
    *  =========================== */
   const CONFIG = {
     // Onde escrever o NOME encontrado
-    input1Selector: "#input1", // input do nome (primeira palavra)
-    input1Mode: "placeholder", // "placeholder" ou "value"
+    input1Selector: "#input1",
+    // "placeholder" | "value" | "valueIfEmpty"
+    input1Mode: "valueIfEmpty",
 
     // Onde escrever o NÚMERO DO TICKET encontrado na URL
-    input5Selector: "#input5", // input do ticket
-    input5Mode: "placeholder", // "placeholder" ou "value"
+    input5Selector: "#input5",
+    // "placeholder" | "value" | "valueIfEmpty"
+    input5Mode: "placeholder",
 
-    // Destaque visual dos elementos encontrados
+    // Destaque visual
     highlight: true,
 
-    // Debounce entre reexecuções após mutações do DOM
+    // Debounce de observação
     debounceMs: 300,
 
-    // Tempo máximo de espera (ms) para o Ticket aparecer no DOM deste contexto
+    // Tempo máximo para aguardar o ticket no DOM
     waitTimeoutMs: 15000,
 
-    // Regex para detectar o texto do ticket nos elementos do <nav>
+    // Gerador de regex do texto do ticket ("Ticket #<n>")
     ticketRegexText: (n) =>
       new RegExp(
         `Ticket\\s*#\\s*${String(n).replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}`,
         "i"
       ),
 
-    // Log de depuração
+    // Logs de depuração
     debug: false,
   };
 
   const LOG_PREFIX = "[TM encontrarNome]";
   const normalize = (s) => (s || "").replace(/\s+/g, " ").trim();
-
-  function log(...args) {
-    if (CONFIG.debug) console.log(LOG_PREFIX, ...args);
-  }
-  function warn(...args) {
-    console.warn(LOG_PREFIX, ...args);
-  }
+  const log = (...args) => CONFIG.debug && console.log(LOG_PREFIX, ...args);
+  const warn = (...args) => console.warn(LOG_PREFIX, ...args);
 
   /** ===========================
    *  EXTRAIR TICKET DA URL
@@ -659,33 +656,33 @@
     try {
       const url = new URL(href);
 
-      // 1) Segmentos do path (último que contenha dígitos)
+      // 1) Segmentos do path (pega o último que contenha dígitos)
       const pathSegs = url.pathname.split("/").filter(Boolean);
       for (let i = pathSegs.length - 1; i >= 0 && !numero; i--) {
         const m = pathSegs[i].match(/\d+/);
         if (m) numero = m[0];
       }
 
-      // 2) Padrão explícito /ticket(s)/<n>
+      // 2) /ticket(s)/<n>
       if (!numero) {
         const m = href.match(/\/tickets?\/(\d+)/i);
         if (m) numero = m[1];
       }
 
-      // 3) Hash com dígitos
+      // 3) Hash
       if (!numero && url.hash) {
         const m = url.hash.match(/\d+/);
         if (m) numero = m[0];
       }
 
-      // 4) Query string (ex.: ?ticket_id=123456 ou ?id=123456)
+      // 4) Query (?ticket_id=<n> ou ?id=<n>)
       if (!numero) {
         const qp =
           url.searchParams.get("ticket_id") || url.searchParams.get("id");
         if (qp && /^\d+$/.test(qp)) numero = qp;
       }
-    } catch (e) {
-      // Fallback: último grupo de dígitos da URL
+    } catch {
+      // Fallback: último grupo de dígitos na URL
       const m = (href || "").match(/(\d+)(?!.*\d)/);
       if (m) numero = m[1];
     }
@@ -717,7 +714,7 @@
         const text = normalize(el.textContent);
         if (!text || !needle.test(text)) continue;
 
-        // Sobe ao contêiner <span> mais externo que contenha o texto
+        // Sobe ao <span> contêiner mais externo que contém o texto
         let container = el;
         while (
           container.parentElement &&
@@ -771,11 +768,7 @@
         tryFind();
       });
       try {
-        mo.observe(doc, {
-          subtree: true,
-          childList: true,
-          characterData: true,
-        });
+        mo.observe(doc, { subtree: true, childList: true, characterData: true });
       } catch {}
 
       const interval = setInterval(() => {
@@ -792,14 +785,20 @@
     });
   }
 
-  /** Aplica texto ao input alvo (placeholder/value) */
-  function applyToInput(doc, selector, mode, text) {
+  /**
+   * Aplica texto ao input alvo.
+   * mode:
+   *  - "placeholder": sempre escreve placeholder
+   *  - "value": sempre escreve value
+   *  - "valueIfEmpty": escreve em value apenas se estiver vazio; caso contrário, preserva o value e opcionalmente define placeholder
+   */
+  function applyToInput(doc, selector, mode, text, { setPlaceholderWhenHasValue = true } = {}) {
     const elHere = doc.querySelector(selector);
     const elTop = document.querySelector(selector);
     const input = elHere || elTop;
     if (!input) {
       warn(`Input não encontrado: ${selector}`);
-      return { input: null, applied: null };
+      return { input: null, applied: null, used: null };
     }
 
     const words = normalize(text || "").split(" ");
@@ -810,11 +809,32 @@
         : first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
 
     try {
-      input[mode] = value;
-    } catch {}
-    return { input, applied: value };
+      if (mode === "value") {
+        input.value = value;
+        return { input, applied: value, used: "value" };
+      }
+      if (mode === "placeholder") {
+        input.placeholder = value;
+        return { input, applied: value, used: "placeholder" };
+      }
+      // valueIfEmpty
+      const current = (input.value ?? "").trim();
+      if (!current) {
+        input.value = value;
+        return { input, applied: value, used: "valueIfEmpty(value)" };
+      } else {
+        if (setPlaceholderWhenHasValue && !input.placeholder) {
+          input.placeholder = value;
+        }
+        return { input, applied: null, used: "valueIfEmpty(skip)" };
+      }
+    } catch (e) {
+      warn("Falha ao aplicar no input:", e);
+      return { input, applied: null, used: "error" };
+    }
   }
 
+  /** Destaque visual opcional */
   function highlightEls(ticketEl, nameEl) {
     if (!CONFIG.highlight) return;
     try {
@@ -829,13 +849,12 @@
   async function encontrarNome(ticketNumber) {
     const ticketStr = ticketNumber == null ? "" : String(ticketNumber).trim();
     if (!ticketStr) {
-      // Sem número => aplica "Anônimo" no input1
+      // Sem número => aplica "Anônimo" conforme regra do input1
       applyToInput(document, CONFIG.input1Selector, CONFIG.input1Mode, "");
       warn("Nenhum número de ticket fornecido a encontrarNome().");
       return null;
     }
 
-    // Espera o ticket aparecer neste contexto
     const found = await waitForTicketInThisDoc(
       document,
       ticketStr,
@@ -867,12 +886,16 @@
     highlightEls(container, nameEl);
 
     log(
-      `Ticket #${ticketStr} | Nome: "${nameText}" | Aplicado: ${res.applied}`
+      `Ticket #${ticketStr} | Nome: "${nameText}" | Aplicado:`,
+      res.applied,
+      "| modo:",
+      res.used
     );
     return {
       ticket: ticketStr,
       nomeCompleto: nameText,
       aplicado: res.applied,
+      modeUsed: res.used,
       elements: { ticket: container, nome: nameEl },
     };
   }
@@ -880,29 +903,48 @@
   /** ===========================
    *  API: encontrarTk()
    *  - Extrai número do ticket da URL do contexto atual
-   *  - Preenche #input5
+   *  - Preenche #input5 conforme CONFIG.input5Mode (inclui valueIfEmpty)
    *  - Chama encontrarNome(numero)
    *  =========================== */
   async function encontrarTk() {
     const href = window.location.href || "";
     const numero = extrairTicketDaURL(href);
-
-    // Preencher input5
     const nToApply = numero || "000000";
-    const input5 =
-      document.querySelector(CONFIG.input5Selector) ||
-      document.querySelector(CONFIG.input5Selector, document);
-    if (input5) {
+
+    // Preencher input5 respeitando o modo (inclui valueIfEmpty)
+    (function applyTicketToInput5() {
+      const elHere = document.querySelector(CONFIG.input5Selector);
+      const elTop = document.querySelector(CONFIG.input5Selector);
+      const input5 = elHere || elTop;
+
+      if (!input5) {
+        warn(`Input do ticket não encontrado: ${CONFIG.input5Selector}`);
+        return;
+      }
+
       try {
-        input5[CONFIG.input5Mode] = nToApply;
-      } catch {}
-    } else {
-      warn(`Input do ticket não encontrado: ${CONFIG.input5Selector}`);
-    }
+        const mode = CONFIG.input5Mode;
+        if (mode === "value") {
+          input5.value = nToApply;
+        } else if (mode === "placeholder") {
+          input5.placeholder = nToApply;
+        } else if (mode === "valueIfEmpty") {
+          const current = (input5.value ?? "").trim();
+          if (!current) {
+            input5.value = nToApply;
+          } else if (!input5.placeholder) {
+            // opcional: deixa um placeholder de apoio
+            input5.placeholder = nToApply;
+          }
+        }
+      } catch (e) {
+        warn("Falha ao aplicar no input5:", e);
+      }
+    })();
 
     if (!numero) {
       log("Nenhum número de ticket encontrado na URL.");
-      // Ainda aplica "Anônimo" no input1
+      // Ainda aplica "Anônimo" no input1 conforme regra definida
       applyToInput(document, CONFIG.input1Selector, CONFIG.input1Mode, "");
       return null;
     }
@@ -944,14 +986,10 @@
     // Observar DOM
     const mo = new MutationObserver(runDebounced);
     try {
-      mo.observe(document, {
-        subtree: true,
-        childList: true,
-        characterData: true,
-      });
+      mo.observe(document, { subtree: true, childList: true, characterData: true });
     } catch {}
 
-    // Observar mudanças de URL em SPA
+    // Observar mudanças de URL (SPA)
     try {
       if (!window.__tm_loc_hooked__) {
         const fire = () => window.dispatchEvent(new Event("locationchange"));
@@ -975,7 +1013,7 @@
       log("Hook de history indisponível:", e);
     }
 
-    // Expor helpers no console deste contexto
+    // Expor helpers para o console (opcional)
     try {
       window.encontrarTk = encontrarTk;
       window.encontrarNome = encontrarNome;
@@ -984,6 +1022,8 @@
 
   // Início
   setupAutoRun();
+
+
 
   // Your code here...
 })();
