@@ -1064,7 +1064,7 @@
 
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
-      vari2 &&
+      (CConfig.ModoSalvo || CConfig.LogueManual) &&
       (CConfig.Vigia || stt.Atualizando) &&
       !stt.ErroAtu &&
       !stt.ErroVerif &&
