@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.5
+// @version      3.3.7.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -81,6 +81,7 @@
   const Segun = {
     Disponivel: 0,
     Trabalhando: 0,
+    TrabalhandoA: 0,
     Indisponivel: 0,
     ContAtual: 0,
     Hora: "",
@@ -94,6 +95,7 @@
 
   const stt = {
     vAtendidas: "",
+    vAtendidasA: 0,
     ErroAtu: 0,
     ErroAten: "",
     Atualizando: 0,
@@ -779,6 +781,20 @@
     }
   }
 
+  async function TentAtend() {
+    stt.ErroAten = !(await AtualizarAtendidas());
+    if (
+      stt.vAtendidas <= stt.vAtendidasA &&
+      Segun.Trabalhando > Segun.TrabalhandoA
+    ) {
+      stt.ErroTMA = 1;
+    } else {
+      stt.ErroTMA = 0;
+      stt.vAtendidasA = stt.vAtendidas;
+      Segun.TrabalhandoA = Segun.Trabalhando;
+    }
+  }
+
   async function AtualizarAtendidas() {
     const a = await caminhoInfo(1);
     const b = await seExiste3(1);
@@ -976,15 +992,21 @@
 
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
       stt.ErroAten = 1;
-      for (let c = 0; stt.ErroAten && c < 4; c++) {
-        stt.ErroAten = !(await AtualizarAtendidas());
+      for (let c = 0; stt.ErroAten && c < 3; c++) {
+        await TentAtend();
+        for (let c = 0; stt.ErroTMA && c < 3; c++) {
+          await TentAtend();
+          await esperar(1000);
+        }
+      }
+      if (!stt.ErroAten) {
+        stt.vAtendidasA = stt.vAtendidas;
+        Segun.TrabalhandoA = Segun.Trabalhando;
       }
     }
     AtualizarTMA(stt.ErroAten);
 
     await VerificacoesN1();
-
-    
 
     ControleFront(2);
 
