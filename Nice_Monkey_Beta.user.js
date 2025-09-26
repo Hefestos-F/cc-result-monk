@@ -209,16 +209,6 @@
     });
   }
 
-  function deslogou() {
-    let a = document.querySelector(LugarJS.elementoReferencia);
-    let b = document.querySelector(LugarJS.elementoReferencia2);
-    if (!a && !b && !stt.logout) {
-      stt.logout = 1;
-      console.log(`NiceMonk Nice deslogou.`);
-      addAoini();
-    }
-  }
-
   async function RecuperarTVariaveis() {
     try {
       dadosdePausas = await RecDadosindexdb(ChavePausas);
@@ -974,22 +964,22 @@
   async function iniciarBusca() {
     ControleFront(1);
 
-    stt.ErroDTI = !(await AtualizarDTI());
+    stt.ErroDTI = 1;
     for (let a = 0; stt.ErroDTI && a < 4; a++) {
       stt.ErroDTI = !(await AtualizarDTI());
     }
 
     await VerificacoesN1();
 
-    for (let b = 0; stt.ErroVerif && b < 3; b++) {
+    for (let b = 0; stt.ErroVerif && b < 4; b++) {
       stt.ErroDTI = !(await AtualizarDTI());
       await VerificacoesN1();
       if (stt.ErroVerif) {
-        await esperar(1000);
+        await esperar(1500);
       }
     }
 
-    stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
+    stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroDTI || stt.ErroVerif;
 
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
       stt.ErroAten = 1;
@@ -1014,7 +1004,6 @@
     if (stt.NBT) {
       stt.NBT = 0;
       verificarESalvar(0);
-      deslogou();
       setInterval(() => {
         if (!stt.Atualizando) {
           VerificacoesN1();
