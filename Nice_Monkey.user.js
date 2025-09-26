@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.5.1.0
+// @version      3.5.1.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -156,8 +156,8 @@
   const StoreBD = "NiceMonk";
 
   const LugarJS = {
-    elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
-    elementoReferencia2:
+    elementoReferencia: "#cx1_agent_root > main > div > div > header > div > header",
+   elementoReferencia2:
       'a[aria-label="Ajuda"][href*="help.nice-incontact.com"]',
     Status: "#agent-state-section > div > span > div > div",
 
