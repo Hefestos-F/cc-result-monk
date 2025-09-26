@@ -981,8 +981,8 @@
 
     stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroDTI || stt.ErroVerif;
 
+    stt.ErroAten = 1;
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
-      stt.ErroAten = 1;
       for (let c = 0; stt.ErroAten && c < 3; c++) {
         stt.ErroTMA = await TentAtend();
         for (let c = 0; stt.ErroTMA && c < 3; c++) {
