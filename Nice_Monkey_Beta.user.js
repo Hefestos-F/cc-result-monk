@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.7
+// @version      3.3.7.8
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -156,7 +156,7 @@
   const StoreBD = "NiceMonk";
 
   const LugarJS = {
-    elementoReferencia: '[data-testid="bg-color"]',
+    elementoReferencia: '[data-testid="bg-color"].MuiAppBar-root',
     elementoReferencia2:
       'a[aria-label="Ajuda"][href*="help.nice-incontact.com"]',
     Status: "#agent-state-section > div > span > div > div",
@@ -982,7 +982,7 @@
     await VerificacoesN1();
 
     for (let b = 0; stt.ErroVerif && b < 3; b++) {
-      await AtualizarDTI();
+      stt.ErroDTI = !(await AtualizarDTI());
       await VerificacoesN1();
       if (stt.ErroVerif) {
         await esperar(1000);
