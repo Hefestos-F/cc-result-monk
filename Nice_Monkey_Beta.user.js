@@ -974,7 +974,7 @@
   async function iniciarBusca() {
     ControleFront(1);
 
-    stt.ErroDTI = 1;
+    stt.ErroDTI = !(await AtualizarDTI());
     for (let a = 0; stt.ErroDTI && a < 4; a++) {
       stt.ErroDTI = !(await AtualizarDTI());
     }
