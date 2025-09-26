@@ -156,7 +156,7 @@
   const StoreBD = "NiceMonk";
 
   const LugarJS = {
-    elementoReferencia: "#cx1_agent_root > main > div > main > header > header",
+    elementoReferencia: '[data-testid="bg-color"]',
     elementoReferencia2:
       'a[aria-label="Ajuda"][href*="help.nice-incontact.com"]',
     Status: "#agent-state-section > div > span > div > div",
