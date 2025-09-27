@@ -1989,12 +1989,12 @@
       if (stt.AbaConfig) {
         if (stt.AbaPausas) {
           stt.AbaPausas = 0;
-          CaiDPa.remove();
+          if(CaiDPa)CaiDPa.remove();
         }
         minhaCaixa.appendChild(criarC());
         AtualizarConf();
       } else {
-        CaixaConfig.remove();
+        if(CaixaConfig)CaixaConfig.remove();
       }
     }
     if (zz === 16) {
