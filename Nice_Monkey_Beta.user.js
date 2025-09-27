@@ -1869,7 +1869,7 @@
       const textoDiv = document.createElement("div");
       textoDiv.textContent = b;
 
-      const botao = criarBotSalv(a, "Salvar");
+      const botao = criarBotSalv(a, "Aplicar");
 
       botao.addEventListener("click", function () {
         Ccor.Varian = inputCor.value;
