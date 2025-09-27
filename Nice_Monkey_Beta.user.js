@@ -1610,7 +1610,7 @@
 
     const ContTempEsc = criarCaixaSeg();
     const ttTempEsc = criarTitulo("Tempo Escalado");
-    ttTempEsc.style.cursor = pointer;
+    ttTempEsc.style.cursor = 'pointer';
 
     ttTempEsc.addEventListener("click", function () {
       const inputEscala = document.getElementById("inputEscala");
