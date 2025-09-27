@@ -1517,6 +1517,7 @@
         justify-content: center;
         align-items: center;
         `;
+    horaInputCai.id = "inputEscala";
     const SalvarHora = criarBotSalv(13, "Salvar");
     SalvarHora.style.marginLeft = "5px";
     SalvarHora.addEventListener("click", function () {
@@ -1608,8 +1609,19 @@
     );
 
     const ContTempEsc = criarCaixaSeg();
+    const ttTempEsc = criarTitulo("Tempo Escalado");
+    ttTempEsc.style.cursor = pointer;
 
-    ContTempEsc.append(criarTitulo("Tempo Escalado"), horaInputCai);
+    ttTempEsc.addEventListener("click", function () {
+      const inputEscala = document.getElementById("inputEscala");
+      if (!inputEscala) {
+        ContTempEsc.append(horaInputCai);
+      } else {
+        inputEscala.remove();
+      }
+    });
+
+    ContTempEsc.append(ttTempEsc);
 
     const InputMin = document.createElement("input");
     InputMin.className = "placeholderPerso";
