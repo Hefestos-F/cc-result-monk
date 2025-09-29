@@ -1402,38 +1402,24 @@
     CmodoCalculo.id = "CmodoCalculo";
     CmodoCalculo.append(recalculando, primeiroLogue);
 
-    
-    
-    const modoCalculo = criarCaixaSeg();
-    //modoCalculo.append(TitulomodoCalculo);
-    CaixaDeOcultar("Modo de Calculo", CmodoCalculo, modoCalculo);
-    /*
-    const TitulomodoCalculo = criarTitulo("Modo de Calculo");
-    TitulomodoCalculo.style.cursor = "pointer";
-    TitulomodoCalculo.addEventListener("click", function () {
-      const a = document.getElementById("CmodoCalculo");
-      if (!a) {
-        modoCalculo.append(CmodoCalculo);
-      } else {
-        a.remove();
-      }
-    });*/
+    const modoCalculo = CaixaDeOcultar("Modo de Calculo", CmodoCalculo);
 
-    function CaixaDeOcultar(titulo, objeto, destino) {
+    function CaixaDeOcultar(titulo, objeto) {
       const Titulofeito = criarTitulo(titulo);
+      const CaixaPrincipal = criarCaixaSeg();
       Titulofeito.style.cursor = "pointer";
       Titulofeito.addEventListener("click", function () {
         const a = document.getElementById(objeto.id);
         if (!a) {
-          destino.append(a);
+          CaixaPrincipal.append(objeto);
         } else {
           a.remove();
         }
+        //AtualizarConf();
       });
-      destino.append(Titulofeito);
+      CaixaPrincipal.append(Titulofeito);
+      return CaixaPrincipal;
     }
-
-    
 
     const quanContZero = criarLinhaTextoComBot(3, "Automático");
 
@@ -1560,6 +1546,8 @@
     });
     horaInputCai.append(horaInputCaiHM, SalvarHora);
 
+    const ContTempEsc = CaixaDeOcultar("Tempo Escalado", horaInputCai);
+
     const InputCailogueManual = document.createElement("div");
     InputCailogueManual.style.cssText = `display: flex; align-items: center;`;
 
@@ -1625,10 +1613,6 @@
         margin-left: 6px;
         `;
 
-    const ContlogueManual = criarCaixaSeg();
-    const ttLogueManual = criarTitulo("Logue Manual");
-    ttLogueManual.style.cursor = "pointer";
-
     const horaInputCailogueManual = document.createElement("div");
     horaInputCailogueManual.style.cssText = `
         display: flex;
@@ -1639,31 +1623,10 @@
 
     horaInputCailogueManual.append(logueManualC);
 
-    ttLogueManual.addEventListener("click", function () {
-      const a = document.getElementById("CinputLogueManual");
-      if (!a) {
-        ContlogueManual.append(horaInputCailogueManual);
-      } else {
-        a.remove();
-      }
-    });
-
-    ContlogueManual.append(ttLogueManual);
-
-    const ContTempEsc = criarCaixaSeg();
-    const ttTempEsc = criarTitulo("Tempo Escalado");
-    ttTempEsc.style.cursor = "pointer";
-
-    ttTempEsc.addEventListener("click", function () {
-      const inputEscala = document.getElementById("inputEscala");
-      if (!inputEscala) {
-        ContTempEsc.append(horaInputCai);
-      } else {
-        inputEscala.remove();
-      }
-    });
-
-    ContTempEsc.append(ttTempEsc);
+    const ContlogueManual = CaixaDeOcultar(
+      "Logue Manual",
+      horaInputCailogueManual
+    );
 
     const InputMin = document.createElement("input");
     InputMin.className = "placeholderPerso";
@@ -1717,23 +1680,12 @@
 
     const manual = criarLinhaTextoComBot(5, "Manual");
 
-    const modoBusca = criarCaixaSeg();
     const CmodoBusca = criarCaixaSeg();
     CmodoBusca.id = "CmodoBusca";
-    const TitulomodoBusca = criarTitulo("Modo de Busca");
-    TitulomodoBusca.style.cursor = "pointer";
 
-    TitulomodoBusca.addEventListener("click", function () {
-      const a = document.getElementById("CmodoBusca");
-      if (!a) {
-        modoBusca.append(CmodoBusca);
-      } else {
-        CmodoBusca.remove();
-      }
-    });
-
-    modoBusca.append(TitulomodoBusca);
     CmodoBusca.append(quanContZero, aCada, manual);
+
+    const modoBusca = CaixaDeOcultar("Modo de Busca", CmodoBusca);
 
     function criarSeparador() {
       const separador = document.createElement("div");
@@ -1787,40 +1739,17 @@
     const IgErro = criarLinhaTextoComBot(20, "Ignorar Erro Nice");
     CIgErro.append(IgErro);
 
-    const CIgEst = criarCaixaSeg();
+    criarCaixaSeg();
 
     const IgEst = criarLinhaTextoComBot(22, "Notificar Estouro");
     const IgEstSom = criarLinhaTextoComBot(23, "Som");
-    const tEstPausa = criarTitulo("Estouro de Pausa");
-    tEstPausa.style.cursor = "pointer";
 
     const CigEstDep = criarCaixaSeg();
     CigEstDep.id = "idcaixaEstouro";
 
     CigEstDep.append(IgEst, IgEstSom);
 
-    tEstPausa.addEventListener("click", function () {
-      const a = document.getElementById("idcaixaEstouro");
-      if (!a) {
-        CIgEst.append(CigEstDep);
-      } else {
-        CigEstDep.remove();
-      }
-    });
-
-    CIgEst.append(tEstPausa);
-
-    const Cbotavan = criarCaixaSeg();
-    const botavan = criarBotSalv(21, "Avançado");
-    botavan.addEventListener("click", function () {
-      const CavancadoV = document.getElementById("Cavancado");
-      if (!CavancadoV) {
-        caixa.append(Cavancado);
-      } else {
-        CavancadoV.remove();
-      }
-    });
-    Cbotavan.append(botavan);
+    const CIgEst = CaixaDeOcultar("Estouro de Pausa", CigEstDep);
 
     const CBBancDa = criarCaixaSeg();
     const BBancDa = criarTitulo("Banco de Dados");
@@ -1844,9 +1773,6 @@
     CBancDa.id = "CBancDa";
 
     CBBancDa.append(CBancDa);
-
-    const Cavancado = criarCaixaSeg();
-    Cavancado.id = "Cavancado";
 
     const CValoresEnc = criarCaixaSeg();
     const tValoresEnc = criarTitulo("Valores Encontrados");
@@ -1874,23 +1800,43 @@
     CValoresEnc.append(tValoresEnc);
     CValoresEnc.append(C2ValoresEnc);
 
+    const Cavancado = criarCaixaSeg();
+    Cavancado.id = "Cavancado";
     Cavancado.append(CBBancDa);
     Cavancado.append(criarSeparador());
     Cavancado.append(CValoresEnc);
 
+    const Cbotavan = C1aixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
+
+    function C1aixaDeOcultar(titulo, objeto) {
+      const Titulofeito = titulo;
+      const CaixaPrincipal = criarCaixaSeg();
+      Titulofeito.style.cursor = "pointer";
+      Titulofeito.addEventListener("click", function () {
+        const a = document.getElementById(objeto.id);
+        if (!a) {
+          CaixaPrincipal.append(objeto);
+        } else {
+          a.remove();
+        }
+      });
+      CaixaPrincipal.append(Titulofeito);
+      return CaixaPrincipal;
+    }
+
     caixa.append(
-      ContTempEsc,
-      criarSeparador(),
-      ContlogueManual,
-      criarSeparador(),
       CFixaValor,
       CIgOffline,
       CIgTMA,
       CIgErro,
       criarSeparador(),
-      CIgEst,
-      criarSeparador(),
       ContTMA,
+      criarSeparador(),
+      ContTempEsc,
+      criarSeparador(),
+      ContlogueManual,
+      criarSeparador(),
+      CIgEst,
       criarSeparador(),
       modoBusca,
       criarSeparador(),
@@ -1988,7 +1934,7 @@
     return Botao;
   }
 
-  function AtualizarConf(zz) {
+  function AtualizarConf() {
     var CaixaConfig = document.getElementById("CaixaConfig");
     var InputMin = document.getElementById("InputMin");
     var InputMinX = document.getElementById("InputMinX");
