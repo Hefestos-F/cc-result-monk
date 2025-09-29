@@ -1395,12 +1395,26 @@
       return caixa;
     }
 
-    const TitulomodoCalculo = criarTitulo("Modo de Calculo");
     const recalculando = criarLinhaTextoComBot(1, "Recalculando");
     const primeiroLogue = criarLinhaTextoComBot(2, "Primeiro Logue");
 
+    const CmodoCalculo = criarCaixaSeg();
+    CmodoCalculo.id = "CmodoCalculo";
+    CmodoCalculo.append(recalculando, primeiroLogue);
+
+    const TitulomodoCalculo = criarTitulo("Modo de Calculo");
+    TitulomodoCalculo.style.cursor = "pointer";
+    TitulomodoCalculo.addEventListener("click", function () {
+      const a = document.getElementById("CmodoCalculo");
+      if (!a) {
+        modoCalculo.append(CmodoCalculo);
+      } else {
+        a.remove();
+      }
+    });
+
     const modoCalculo = criarCaixaSeg();
-    modoCalculo.append(TitulomodoCalculo, recalculando, primeiroLogue);
+    modoCalculo.append(TitulomodoCalculo);
 
     const quanContZero = criarLinhaTextoComBot(3, "Automático");
 
@@ -1592,25 +1606,34 @@
         margin-left: 6px;
         `;
 
+    const ContlogueManual = criarCaixaSeg();
+    const ttLogueManual = criarTitulo("Logue Manual");
+    ttLogueManual.style.cursor = "pointer";
+
     const horaInputCailogueManual = document.createElement("div");
     horaInputCailogueManual.style.cssText = `
         display: flex;
         justify-content: center;
         align-items: center;
         `;
+    horaInputCailogueManual.id = "CinputLogueManual";
 
     horaInputCailogueManual.append(logueManualC);
 
-    const ContlogueManual = criarCaixaSeg();
+    ttLogueManual.addEventListener("click", function () {
+      const a = document.getElementById("CinputLogueManual");
+      if (!a) {
+        ContlogueManual.append(horaInputCailogueManual);
+      } else {
+        a.remove();
+      }
+    });
 
-    ContlogueManual.append(
-      criarTitulo("Logue Manual"),
-      horaInputCailogueManual
-    );
+    ContlogueManual.append(ttLogueManual);
 
     const ContTempEsc = criarCaixaSeg();
     const ttTempEsc = criarTitulo("Tempo Escalado");
-    ttTempEsc.style.cursor = 'pointer';
+    ttTempEsc.style.cursor = "pointer";
 
     ttTempEsc.addEventListener("click", function () {
       const inputEscala = document.getElementById("inputEscala");
@@ -1676,7 +1699,22 @@
     const manual = criarLinhaTextoComBot(5, "Manual");
 
     const modoBusca = criarCaixaSeg();
-    modoBusca.append(criarTitulo("Modo de Busca"), quanContZero, aCada, manual);
+    const CmodoBusca = criarCaixaSeg();
+    CmodoBusca.id = "CmodoBusca";
+    const TitulomodoBusca = criarTitulo("Modo de Busca");
+    TitulomodoBusca.style.cursor = "pointer";
+
+    TitulomodoBusca.addEventListener("click", function () {
+      const a = document.getElementById("CmodoBusca");
+      if (!a) {
+        modoBusca.append(CmodoBusca);
+      } else {
+        CmodoBusca.remove();
+      }
+    });
+
+    modoBusca.append(TitulomodoBusca);
+    CmodoBusca.append(quanContZero, aCada, manual);
 
     function criarSeparador() {
       const separador = document.createElement("div");
@@ -1734,9 +1772,24 @@
 
     const IgEst = criarLinhaTextoComBot(22, "Notificar Estouro");
     const IgEstSom = criarLinhaTextoComBot(23, "Som");
-    CIgEst.append(criarTitulo("Estouro de Pausa"));
-    CIgEst.append(IgEst);
-    CIgEst.append(IgEstSom);
+    const tEstPausa = criarTitulo("Estouro de Pausa");
+    tEstPausa.style.cursor = "pointer";
+
+    const CigEstDep = criarCaixaSeg();
+    CigEstDep.id = "idcaixaEstouro";
+
+    CigEstDep.append(IgEst, IgEstSom);
+
+    tEstPausa.addEventListener("click", function () {
+      const a = document.getElementById("idcaixaEstouro");
+      if (!a) {
+        CIgEst.append(CigEstDep);
+      } else {
+        CigEstDep.remove();
+      }
+    });
+
+    CIgEst.append(tEstPausa);
 
     const Cbotavan = criarCaixaSeg();
     const botavan = criarBotSalv(21, "Avançado");
@@ -1989,12 +2042,12 @@
       if (stt.AbaConfig) {
         if (stt.AbaPausas) {
           stt.AbaPausas = 0;
-          if(CaiDPa)CaiDPa.remove();
+          if (CaiDPa) CaiDPa.remove();
         }
         minhaCaixa.appendChild(criarC());
         AtualizarConf();
       } else {
-        if(CaixaConfig)CaixaConfig.remove();
+        if (CaixaConfig) CaixaConfig.remove();
       }
     }
     if (zz === 16) {
