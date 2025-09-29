@@ -1399,11 +1399,14 @@
     const primeiroLogue = criarLinhaTextoComBot(2, "Primeiro Logue");
 
     const CmodoCalculo = criarCaixaSeg();
+    CmodoCalculo.id = "CmodoCalculo";
     CmodoCalculo.append(recalculando, primeiroLogue);
 
+    
+    
     const modoCalculo = criarCaixaSeg();
     //modoCalculo.append(TitulomodoCalculo);
-    CaixaDeOcultar("Modo de Calculo", "CmodoCalculo", modoCalculo);
+    CaixaDeOcultar("Modo de Calculo", CmodoCalculo, modoCalculo);
     /*
     const TitulomodoCalculo = criarTitulo("Modo de Calculo");
     TitulomodoCalculo.style.cursor = "pointer";
@@ -1416,11 +1419,11 @@
       }
     });*/
 
-    function CaixaDeOcultar(titulo, IDobjeto, destino) {
+    function CaixaDeOcultar(titulo, objeto, destino) {
       const Titulofeito = criarTitulo(titulo);
       Titulofeito.style.cursor = "pointer";
       Titulofeito.addEventListener("click", function () {
-        const a = document.getElementById(IDobjeto);
+        const a = document.getElementById(objeto.id);
         if (!a) {
           destino.append(a);
         } else {
@@ -1429,6 +1432,8 @@
       });
       destino.append(Titulofeito);
     }
+
+    
 
     const quanContZero = criarLinhaTextoComBot(3, "Automático");
 
