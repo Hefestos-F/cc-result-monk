@@ -1402,6 +1402,10 @@
     CmodoCalculo.id = "CmodoCalculo";
     CmodoCalculo.append(recalculando, primeiroLogue);
 
+    
+    
+    CaixaDeOcultar("Modo de Calculo", CmodoCalculo, modoCalculo);
+    /*
     const TitulomodoCalculo = criarTitulo("Modo de Calculo");
     TitulomodoCalculo.style.cursor = "pointer";
     TitulomodoCalculo.addEventListener("click", function () {
@@ -1411,10 +1415,23 @@
       } else {
         a.remove();
       }
-    });
+    });*/
+
+    function CaixaDeOcultar(titulo, objeto, destino) {
+      const Titulofeito = criarTitulo(titulo);
+      Titulofeito.style.cursor = "pointer";
+      Titulofeito.addEventListener("click", function () {
+        if (!objeto) {
+          destino.append(objeto);
+        } else {
+          objeto.remove();
+        }
+      });
+      destino.append(Titulofeito);
+    }
 
     const modoCalculo = criarCaixaSeg();
-    modoCalculo.append(TitulomodoCalculo);
+    //modoCalculo.append(TitulomodoCalculo);
 
     const quanContZero = criarLinhaTextoComBot(3, "Automático");
 
