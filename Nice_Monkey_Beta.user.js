@@ -1404,6 +1404,8 @@
 
     
     
+    const modoCalculo = criarCaixaSeg();
+    //modoCalculo.append(TitulomodoCalculo);
     CaixaDeOcultar("Modo de Calculo", CmodoCalculo, modoCalculo);
     /*
     const TitulomodoCalculo = criarTitulo("Modo de Calculo");
@@ -1430,8 +1432,7 @@
       destino.append(Titulofeito);
     }
 
-    const modoCalculo = criarCaixaSeg();
-    //modoCalculo.append(TitulomodoCalculo);
+    
 
     const quanContZero = criarLinhaTextoComBot(3, "Automático");
 
