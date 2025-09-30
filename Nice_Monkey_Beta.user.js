@@ -1350,10 +1350,10 @@
       const titulo = document.createElement("div");
       titulo.textContent = `${x}`;
       titulo.style.cssText = `
-            text-decoration: underline;
             font-size: 13px;
             margin: auto;
             margin-bottom: 5px;
+            border-bottom: 1px white solid;
             `;
       return titulo;
     }
@@ -1402,10 +1402,13 @@
     CmodoCalculo.id = "CmodoCalculo";
     CmodoCalculo.append(recalculando, primeiroLogue);
 
-    const modoCalculo = CaixaDeOcultar(0,"Modo de Calculo", CmodoCalculo);
+    const modoCalculo = CaixaDeOcultar(
+      criarBotSalv(29, "Modo de Calculo"),
+      CmodoCalculo
+    );
 
-    function CaixaDeOcultar(Bt,titulo, objeto) {
-      const Titulofeito = Bt ? titulo : criarTitulo(titulo);
+    function CaixaDeOcultar(titulo, objeto) {
+      const Titulofeito = titulo;
       const CaixaPrincipal = criarCaixaSeg();
       Titulofeito.style.cursor = "pointer";
       Titulofeito.addEventListener("click", function () {
@@ -1446,6 +1449,9 @@
 
     const MetaTMAC = criarLinhaTextoComBot(6, "Meta TMA");
 
+    /*criarBotaoSlide2(6, () => {});
+
+    */
     const InputTMABot = document.createElement("div");
     InputTMABot.style.cssText = `display: flex; align-items: center;`;
 
@@ -1546,7 +1552,10 @@
     });
     horaInputCai.append(horaInputCaiHM, SalvarHora);
 
-    const ContTempEsc = CaixaDeOcultar(0,"Tempo Escalado", horaInputCai);
+    const ContTempEsc = CaixaDeOcultar(
+      criarBotSalv(28, "Tempo Escalado"),
+      horaInputCai
+    );
 
     const InputCailogueManual = document.createElement("div");
     InputCailogueManual.style.cssText = `display: flex; align-items: center;`;
@@ -1594,7 +1603,6 @@
     const logueManualC = criarBotaoSlide2(13, () => {
       CConfig.LogueManual = !CConfig.LogueManual;
       if (CConfig.LogueManual) {
-        horaInputCailogueManual.prepend(InputCailogueManual);
         const [horasIm, minutosIm, segundosIm] = converterParaTempo(
           Segun.QualLogou
         )
@@ -1603,7 +1611,6 @@
         horaInputlogueManual.value = String(horasIm).padStart(2, "0");
         minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
       } else {
-        InputCailogueManual.remove();
         iniciarBusca();
       }
       SalvarLogueManual(1);
@@ -1621,10 +1628,10 @@
         `;
     horaInputCailogueManual.id = "CinputLogueManual";
 
-    horaInputCailogueManual.append(logueManualC);
+    horaInputCailogueManual.append(InputCailogueManual, logueManualC);
 
-    const ContlogueManual = CaixaDeOcultar(0,
-      "Logue Manual",
+    const ContlogueManual = CaixaDeOcultar(
+      criarBotSalv(27, "Logue Manual"),
       horaInputCailogueManual
     );
 
@@ -1685,7 +1692,10 @@
 
     CmodoBusca.append(quanContZero, aCada, manual);
 
-    const modoBusca = CaixaDeOcultar(0,"Modo de Busca", CmodoBusca);
+    const modoBusca = CaixaDeOcultar(
+      criarBotSalv(26, "Modo de Busca"),
+      CmodoBusca
+    );
 
     function criarSeparador() {
       const separador = document.createElement("div");
@@ -1712,9 +1722,9 @@
 
     caixaDeBotres.append(BotaoResetT);
 
-    const caixaDeCor = criarCaixaSeg();
-    caixaDeCor.append(
-      criarTitulo("Cores"),
+    const c1aixaDeCor = criarCaixaSeg();
+    c1aixaDeCor.id = "c1aixaDeCor";
+    c1aixaDeCor.append(
       LinhaSelCor(7, "Principal", Ccor.Principal),
       LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
       LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
@@ -1722,6 +1732,8 @@
       LinhaSelCor(11, "Offline", Ccor.Offline),
       LinhaSelCor(12, "Config", Ccor.Config)
     );
+
+    const caixaDeCor = CaixaDeOcultar(criarBotSalv(25, "Cores"), c1aixaDeCor);
 
     const CIgOffline = criarCaixaSeg();
     const IgOffline = criarLinhaTextoComBot(16, "Ignorar Offline");
@@ -1749,7 +1761,10 @@
 
     CigEstDep.append(IgEst, IgEstSom);
 
-    const CIgEst = CaixaDeOcultar(0,"Estouro de Pausa", CigEstDep);
+    const CIgEst = CaixaDeOcultar(
+      criarBotSalv(24, "Estouro de Pausa"),
+      CigEstDep
+    );
 
     const CBBancDa = criarCaixaSeg();
     const BBancDa = criarTitulo("Banco de Dados");
@@ -1802,13 +1817,20 @@
 
     const Cavancado = criarCaixaSeg();
     Cavancado.id = "Cavancado";
-    Cavancado.append(CBBancDa);
-    Cavancado.append(criarSeparador());
-    Cavancado.append(CValoresEnc);
+    Cavancado.append(criarSeparador(),
+    CBBancDa,
+    criarSeparador(),
+    CValoresEnc,
+    criarSeparador(),
+    caixaDeBotres
+  );
 
-    const Cbotavan = CaixaDeOcultar(1,criarBotSalv(21, "Avançado"), Cavancado);
+
+    const Cbotavan = CaixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
 
     caixa.append(
+      caixaDeCor,
+      criarSeparador(),
       CFixaValor,
       CIgOffline,
       CIgTMA,
@@ -1826,12 +1848,7 @@
       criarSeparador(),
       modoCalculo,
       criarSeparador(),
-      caixaDeCor,
-      criarSeparador(),
-      caixaDeBotres,
-      criarSeparador(),
-      Cbotavan,
-      criarSeparador()
+      Cbotavan
     );
 
     document.body.appendChild(caixa);
@@ -1903,7 +1920,19 @@
   function criarBotSalv(a1, a2) {
     const Botao = document.createElement("button");
     Botao.id = `Botao${a1}`;
-    Botao.style.cssText = `
+    if (a2 === "Salvar" || a2 === "Aplicar") {
+      Botao.style.cssText = `
+            padding: 1px 3px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-size: 10px;
+            height: 22px;
+            `;
+    } else {
+      Botao.style.cssText = `
             padding: 2px;
             border-radius: 8px;
             border: 1px solid;
@@ -1912,7 +1941,10 @@
             color: white;
             font-size: 12px;
             height: 22px;
+            margin-bottom: 4px;
             `;
+    }
+
     Botao.textContent = `${a2}`;
 
     return Botao;
