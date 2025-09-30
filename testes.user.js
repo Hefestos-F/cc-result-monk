@@ -986,5 +986,9 @@
   // Início
   setupAutoRun();
 
+//posso chamar
+AtualizarConf();
+
+
   // Your code here...
 })();

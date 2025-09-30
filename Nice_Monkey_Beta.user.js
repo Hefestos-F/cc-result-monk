@@ -1402,10 +1402,10 @@
     CmodoCalculo.id = "CmodoCalculo";
     CmodoCalculo.append(recalculando, primeiroLogue);
 
-    const modoCalculo = CaixaDeOcultar("Modo de Calculo", CmodoCalculo);
+    const modoCalculo = CaixaDeOcultar(0,"Modo de Calculo", CmodoCalculo);
 
-    function CaixaDeOcultar(titulo, objeto) {
-      const Titulofeito = criarTitulo(titulo);
+    function CaixaDeOcultar(Bt,titulo, objeto) {
+      const Titulofeito = Bt ? titulo : criarTitulo(titulo);
       const CaixaPrincipal = criarCaixaSeg();
       Titulofeito.style.cursor = "pointer";
       Titulofeito.addEventListener("click", function () {
@@ -1415,7 +1415,7 @@
         } else {
           a.remove();
         }
-        //AtualizarConf();
+        AtualizarConf();
       });
       CaixaPrincipal.append(Titulofeito);
       return CaixaPrincipal;
@@ -1546,7 +1546,7 @@
     });
     horaInputCai.append(horaInputCaiHM, SalvarHora);
 
-    const ContTempEsc = CaixaDeOcultar("Tempo Escalado", horaInputCai);
+    const ContTempEsc = CaixaDeOcultar(0,"Tempo Escalado", horaInputCai);
 
     const InputCailogueManual = document.createElement("div");
     InputCailogueManual.style.cssText = `display: flex; align-items: center;`;
@@ -1623,7 +1623,7 @@
 
     horaInputCailogueManual.append(logueManualC);
 
-    const ContlogueManual = CaixaDeOcultar(
+    const ContlogueManual = CaixaDeOcultar(0,
       "Logue Manual",
       horaInputCailogueManual
     );
@@ -1685,7 +1685,7 @@
 
     CmodoBusca.append(quanContZero, aCada, manual);
 
-    const modoBusca = CaixaDeOcultar("Modo de Busca", CmodoBusca);
+    const modoBusca = CaixaDeOcultar(0,"Modo de Busca", CmodoBusca);
 
     function criarSeparador() {
       const separador = document.createElement("div");
@@ -1749,7 +1749,7 @@
 
     CigEstDep.append(IgEst, IgEstSom);
 
-    const CIgEst = CaixaDeOcultar("Estouro de Pausa", CigEstDep);
+    const CIgEst = CaixaDeOcultar(0,"Estouro de Pausa", CigEstDep);
 
     const CBBancDa = criarCaixaSeg();
     const BBancDa = criarTitulo("Banco de Dados");
@@ -1806,23 +1806,7 @@
     Cavancado.append(criarSeparador());
     Cavancado.append(CValoresEnc);
 
-    const Cbotavan = C1aixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
-
-    function C1aixaDeOcultar(titulo, objeto) {
-      const Titulofeito = titulo;
-      const CaixaPrincipal = criarCaixaSeg();
-      Titulofeito.style.cursor = "pointer";
-      Titulofeito.addEventListener("click", function () {
-        const a = document.getElementById(objeto.id);
-        if (!a) {
-          CaixaPrincipal.append(objeto);
-        } else {
-          a.remove();
-        }
-      });
-      CaixaPrincipal.append(Titulofeito);
-      return CaixaPrincipal;
-    }
+    const Cbotavan = CaixaDeOcultar(1,criarBotSalv(21, "Avançado"), Cavancado);
 
     caixa.append(
       CFixaValor,
@@ -1934,7 +1918,7 @@
     return Botao;
   }
 
-  function AtualizarConf() {
+  function AtualizarConf(zz = 0) {
     var CaixaConfig = document.getElementById("CaixaConfig");
     var InputMin = document.getElementById("InputMin");
     var InputMinX = document.getElementById("InputMinX");
