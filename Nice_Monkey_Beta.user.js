@@ -1831,6 +1831,7 @@
 
     const Cavancado = criarCaixaSeg();
     Cavancado.id = "Cavancado";
+    Cavancado.style.padding = "0px 8px";
     Cavancado.append(
       criarSeparador(),
       CBBancDa,
