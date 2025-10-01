@@ -1767,7 +1767,7 @@
     );
 
     const CBBancDa = criarCaixaSeg();
-    const BBancDa = criarTitulo("Banco de Dados");
+    const BBancDa = criarBotSalv(31, "Banco de Dados");
     BBancDa.addEventListener("click", function () {
       if (CBancDa.innerHTML === "") {
         listarChavesEConteudos(); // Preenche o conteúdo
@@ -1776,12 +1776,6 @@
       }
     });
 
-    BBancDa.style.cssText = `
-        cursor: pointer;
-        text-decoration: underline;
-        font-size: 13px;
-        margin: auto auto 5px;
-        `;
     CBBancDa.append(BBancDa);
 
     const CBancDa = criarCaixaSeg();
@@ -1790,7 +1784,7 @@
     CBBancDa.append(CBancDa);
 
     const CValoresEnc = criarCaixaSeg();
-    const tValoresEnc = criarTitulo("Valores Encontrados");
+    const tValoresEnc = criarBotSalv(30, "Valores Encontrados");
     const C2ValoresEnc = criarCaixaSeg();
     C2ValoresEnc.style.alignItems = "center";
     tValoresEnc.addEventListener("click", function () {
@@ -1805,12 +1799,7 @@
         C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
       }
     });
-    tValoresEnc.style.cssText = `
-        cursor: pointer;
-        text-decoration: underline;
-        font-size: 13px;
-        margin: auto auto 5px;
-        `;
+
 
     CValoresEnc.append(tValoresEnc);
     CValoresEnc.append(C2ValoresEnc);
@@ -1827,6 +1816,14 @@
 
 
     const Cbotavan = CaixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
+
+    Cbotavan.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    background: #ff000a3d;
+    border-radius: 10px;
+    `;
 
     caixa.append(
       caixaDeCor,
