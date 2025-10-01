@@ -1403,21 +1403,32 @@
     CmodoCalculo.append(recalculando, primeiroLogue);
 
     const modoCalculo = CaixaDeOcultar(
-      criarBotSalv(29, "Modo de Calculo"),
+      c1riarBotSalv(29, "Modo de Calculo"),
       CmodoCalculo
     );
 
     function CaixaDeOcultar(titulo, objeto) {
       const Titulofeito = titulo;
       const CaixaPrincipal = criarCaixaSeg();
-      Titulofeito.style.cursor = "pointer";
+      Titulofeito.style.cssText = `
+            padding: 2px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-size: 12px;
+            height: 22px;
+            `;
       Titulofeito.addEventListener("click", function () {
         const a = document.getElementById(objeto.id);
+        const b = document.getElementById(Titulofeito.id);
         if (!a) {
           CaixaPrincipal.append(objeto);
         } else {
           a.remove();
         }
+        b.style.marginBottom = a ? "0px" : "6px";
         AtualizarConf();
       });
       CaixaPrincipal.append(Titulofeito);
@@ -1693,7 +1704,7 @@
     CmodoBusca.append(quanContZero, aCada, manual);
 
     const modoBusca = CaixaDeOcultar(
-      criarBotSalv(26, "Modo de Busca"),
+      c1riarBotSalv(26, "Modo de Busca"),
       CmodoBusca
     );
 
@@ -1709,7 +1720,7 @@
 
     const caixaDeBotres = criarCaixaSeg();
 
-    const BotaoResetT = criarBotSalv(15, "Restaurar Config");
+    const BotaoResetT = c1riarBotSalv(15, "Restaurar Config");
 
     BotaoResetT.addEventListener("click", function () {
       caixa.appendChild(
@@ -1766,8 +1777,23 @@
       CigEstDep
     );
 
+    function c1riarBotSalv(a, b) {
+      const c = criarBotSalv(a, b);
+      c.style.cssText = `
+            padding: 2px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-size: 12px;
+            height: 22px;
+            `;
+      return c;
+    }
+
     const CBBancDa = criarCaixaSeg();
-    const BBancDa = criarBotSalv(31, "Banco de Dados");
+    const BBancDa = c1riarBotSalv(31, "Banco de Dados");
     BBancDa.addEventListener("click", function () {
       if (CBancDa.innerHTML === "") {
         listarChavesEConteudos(); // Preenche o conteúdo
@@ -1784,7 +1810,7 @@
     CBBancDa.append(CBancDa);
 
     const CValoresEnc = criarCaixaSeg();
-    const tValoresEnc = criarBotSalv(30, "Valores Encontrados");
+    const tValoresEnc = c1riarBotSalv(30, "Valores Encontrados");
     const C2ValoresEnc = criarCaixaSeg();
     C2ValoresEnc.style.alignItems = "center";
     tValoresEnc.addEventListener("click", function () {
@@ -1800,20 +1826,19 @@
       }
     });
 
-
     CValoresEnc.append(tValoresEnc);
     CValoresEnc.append(C2ValoresEnc);
 
     const Cavancado = criarCaixaSeg();
     Cavancado.id = "Cavancado";
-    Cavancado.append(criarSeparador(),
-    CBBancDa,
-    criarSeparador(),
-    CValoresEnc,
-    criarSeparador(),
-    caixaDeBotres
-  );
-
+    Cavancado.append(
+      criarSeparador(),
+      CBBancDa,
+      criarSeparador(),
+      CValoresEnc,
+      criarSeparador(),
+      caixaDeBotres
+    );
 
     const Cbotavan = CaixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
 
@@ -1917,8 +1942,7 @@
   function criarBotSalv(a1, a2) {
     const Botao = document.createElement("button");
     Botao.id = `Botao${a1}`;
-    if (a2 === "Salvar" || a2 === "Aplicar") {
-      Botao.style.cssText = `
+    Botao.style.cssText = `
             padding: 1px 3px;
             border-radius: 8px;
             border: 1px solid;
@@ -1928,19 +1952,6 @@
             font-size: 10px;
             height: 22px;
             `;
-    } else {
-      Botao.style.cssText = `
-            padding: 2px;
-            border-radius: 8px;
-            border: 1px solid;
-            cursor: pointer;
-            background-color: transparent;
-            color: white;
-            font-size: 12px;
-            height: 22px;
-            margin-bottom: 4px;
-            `;
-    }
 
     Botao.textContent = `${a2}`;
 
