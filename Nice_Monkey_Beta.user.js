@@ -1061,7 +1061,7 @@
 
     CConfig.MostraOff = stt.offForaDToler;
 
-    if (!CConfig.MostraOff) {
+    if (!CConfig.MostraOff && !stt.Atualizando) {
       CConfig.MostraValorOff = 0;
     }
 
