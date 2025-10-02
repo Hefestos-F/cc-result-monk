@@ -1346,17 +1346,6 @@
   }
 
   function criarC() {
-    function criarTitulo(x) {
-      const titulo = document.createElement("div");
-      titulo.textContent = `${x}`;
-      titulo.style.cssText = `
-            font-size: 13px;
-            margin: auto;
-            margin-bottom: 5px;
-            border-bottom: 1px white solid;
-            `;
-      return titulo;
-    }
 
     const style = document.createElement("style");
     style.textContent = `

@@ -11,7 +11,6 @@
 // @grant        none
 // ==/UserScript==
 
-
 (function () {
   "use strict";
 
@@ -23,9 +22,21 @@
   var Assinatura = "";
   var notas = "";
 
+  const alvo = '[data-garden-id="chrome.nav_list"]';
+
   SalvarVari(0);
 
-  criarNovoItem();
+  Veriinicial();
+
+
+
+  async function Veriinicial() {
+    
+    const a = await seExiste3(alvo);
+    if (a) {
+      criarNovoItem(alvo);
+    }
+  }
 
   function SalvarVari(x) {
     const DS = JSON.parse(localStorage.getItem("DadosSalvosRegis"));
@@ -63,7 +74,8 @@
     });
   }
 
-  function criarNovoItem() {
+  function criarNovoItem(alvo) {
+    const a = document.querySelector(alvo);
     var novoItem = document.createElement("div");
     novoItem.id = "novoItem";
     novoItem.className = "StyledNavListItem-sc-18cj2v7-0 bbgdDD";
@@ -82,31 +94,6 @@
 
     adicionarEventos(innerDiv, additionalContent);
 
-    var xpath = "/html/body/div[1]/div[5]/div[3]/div/div/nav/ul[1]";
-    var tempoInicio = Date.now();
-    var tempoLimite = 10000; // 10 segundos
-
-    var intervalo = setInterval(function () {
-      var resultado = document.evaluate(
-        xpath,
-        document,
-        null,
-        XPathResult.FIRST_ORDERED_NODE_TYPE,
-        null
-      );
-      var alvo = resultado.singleNodeValue;
-      if (alvo) {
-        alvo.appendChild(novoItem);
-        console.log("Seletor encontrado.");
-        clearInterval(intervalo);
-      } else if (Date.now() - tempoInicio > tempoLimite) {
-        console.log("Tempo limite atingido. Seletor não encontrado.");
-        clearInterval(intervalo);
-      } else {
-        console.log("Tentando novamente...");
-      }
-    }, 500); // Tenta a cada 500 milissegundos
-
     document.addEventListener("click", function (event) {
       if (
         !novoItem.contains(event.target) &&
@@ -115,6 +102,37 @@
         additionalContent.style.display = "none";
       }
       encontrarTk();
+    });
+    a.appendChild(novoItem);
+  }
+
+  function seExiste3(w) {
+    console.log("RegisMonk seExiste3 iniciado.");
+    return new Promise((resolve) => {
+      let resultado = false;
+
+      const observer = new MutationObserver(() => {
+        const a = document.querySelector(w);
+        if (a) {
+          observer.disconnect();
+          console.log(`RegisMonk seExiste3 encontrado item inicial.`);
+          resultado = true;
+          resolve(true);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      setTimeout(() => {
+        if (!resultado) {
+          observer.disconnect();
+          console.log("RegisMonk seExiste3 não encontrou item inicial.");
+          resolve(resultado); // Retorna true se encontrou, false se não
+        }
+      }, 600000);
     });
   }
 
@@ -260,10 +278,10 @@
 
     const botlimpar = CriarBotLimpar();
     botlimpar.addEventListener("click", function () {
-      nome = '';
-      entrada1 = '';
-      entrada2 = '';
-      entrada3 = '';
+      nome = "";
+      entrada1 = "";
+      entrada2 = "";
+      entrada3 = "";
       linha1in.value = "";
       linha2in.value = "";
       linha2in.style.height = "25px";
@@ -465,7 +483,7 @@
       SalvarVari(1);
     });
 
-    // Inicializar com o placeholder 
+    // Inicializar com o placeholder
     sizer.textContent = Input6.value || Input6.placeholder;
     Input6.style.width = sizer.offsetWidth + "px";
 
@@ -484,7 +502,7 @@
 
     botlim6.addEventListener("click", function () {
       Input6.value = "";
-      Cardhold = '';
+      Cardhold = "";
       sizer.textContent = Input6.placeholder;
       Input6.style.width = sizer.offsetWidth + "px";
     });
@@ -538,7 +556,7 @@
 
     botlim7.addEventListener("click", function () {
       Input7.value = "";
-      Assinatura = '';
+      Assinatura = "";
       sizer.textContent = Input7.placeholder;
       Input7.style.width = sizer.offsetWidth + "px";
     });
@@ -768,7 +786,11 @@
         tryFind();
       });
       try {
-        mo.observe(doc, { subtree: true, childList: true, characterData: true });
+        mo.observe(doc, {
+          subtree: true,
+          childList: true,
+          characterData: true,
+        });
       } catch {}
 
       const interval = setInterval(() => {
@@ -792,7 +814,13 @@
    *  - "value": sempre escreve value
    *  - "valueIfEmpty": escreve em value apenas se estiver vazio; caso contrário, preserva o value e opcionalmente define placeholder
    */
-  function applyToInput(doc, selector, mode, text, { setPlaceholderWhenHasValue = true } = {}) {
+  function applyToInput(
+    doc,
+    selector,
+    mode,
+    text,
+    { setPlaceholderWhenHasValue = true } = {}
+  ) {
     const elHere = doc.querySelector(selector);
     const elTop = document.querySelector(selector);
     const input = elHere || elTop;
@@ -986,7 +1014,11 @@
     // Observar DOM
     const mo = new MutationObserver(runDebounced);
     try {
-      mo.observe(document, { subtree: true, childList: true, characterData: true });
+      mo.observe(document, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      });
     } catch {}
 
     // Observar mudanças de URL (SPA)
@@ -1022,8 +1054,6 @@
 
   // Início
   setupAutoRun();
-
-
 
   // Your code here...
 })();
