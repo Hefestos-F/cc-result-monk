@@ -132,7 +132,7 @@
           console.log("RegisMonk seExiste3 não encontrou item inicial.");
           resolve(resultado); // Retorna true se encontrou, false se não
         }
-      }, 600000);
+      }, 900000);
     });
   }
 
