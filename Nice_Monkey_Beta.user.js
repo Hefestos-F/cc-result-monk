@@ -34,6 +34,8 @@
     IgnorarErroNice: 0,
     Estouro: 1,
     SomEstouro: 1,
+    temOcul: 0,
+    tempoPOcul: 3,
   };
 
   const PCConfig = {
@@ -54,6 +56,8 @@
     IgnorarErroNice: 0,
     Estouro: 1,
     SomEstouro: 1,
+    temOcul: 0,
+    tempoPOcul: 3,
   };
 
   const Ccor = {
@@ -1717,10 +1721,6 @@
     const IgOffline = criarLinhaTextoComBot(16, "Ignorar Offline");
     CIgOffline.append(IgOffline);
 
-    const CFixaValor = criarCaixaSeg();
-    const FixaValor = criarLinhaTextoComBot(18, "Faixa Fixa");
-    CFixaValor.append(FixaValor);
-
     const CIgTMA = criarCaixaSeg();
     const IgTMA = criarLinhaTextoComBot(19, "Ignorar TMA");
     CIgTMA.append(IgTMA);
@@ -1733,7 +1733,7 @@
     const IgEstSom = criarLinhaTextoComBot(23, "Som");
 
     const CigEstDep = criarCaixaSeg();
-    
+
     CigEstDep.id = "idcaixaEstouro";
 
     CigEstDep.append(IgEst, IgEstSom);
@@ -1833,10 +1833,54 @@
       return a;
     }
 
+    function Faixa() {
+      const b = criarCaixaSeg();
+
+      const fixar = criarLinhaTextoComBot(18, "Faixar Valor");
+
+      const ocultar = document.createElement("div");
+      textoMinu.textContent = "Ocultar em ";
+
+      const c = criarCaixaSeg();
+
+      const InputMin = document.createElement("input");
+      InputMin.className = "placeholderPerso";
+      InputMin.placeholder = CConfig.tempoPOcul;
+      InputMin.type = "number";
+      InputMin.min = "3";
+      InputMin.max = "99";
+      InputMin.style.cssText = `
+        width: 40px;
+        height: 16px;
+        color: white;
+        background: #ffffff00;
+        border: solid 1px white;
+        margin: 0px 3px;
+        `;
+
+      c.append(ocultar);
+      c.append(InputMin);
+      const d = BotaoSlideFun(() => {
+        CConfig.temOcul = !CConfig.temOcul;
+
+        if (CConfig.temOcul) CConfig.tempoPOcul = InputMin.value || 3;
+
+        arabe(CConfig.temOcul, d);
+      });
+      c.append(d);
+
+      b.append(fixar);
+      b.append(c);
+
+      const a = CaixaDeOcultar(criarBotSalv(32, "Faixa"), b);
+
+      return a;
+    }
+
     caixa.append(
       caixaDeCor(),
+      Faixa(),
       criarSeparador(),
-      CFixaValor,
       CIgOffline,
       CIgTMA,
       CIgErro,
@@ -2107,16 +2151,19 @@
     if (!x) {
       return;
     }
+    arabe(a, x);
+  }
 
-    if (quem) {
-      if (!x.classList.contains("active")) {
-        x.classList.add("active");
-        x.style.backgroundColor = Ccor.Principal;
+  function arabe(a, b) {
+    if (a) {
+      if (!b.classList.contains("active")) {
+        b.classList.add("active");
+        b.style.backgroundColor = Ccor.Principal;
       }
     } else {
-      if (x.classList.contains("active")) {
-        x.classList.remove("active");
-        x.style.backgroundColor = "#ccc";
+      if (b.classList.contains("active")) {
+        b.classList.remove("active");
+        b.style.backgroundColor = "#ccc";
       }
     }
   }
@@ -2175,6 +2222,74 @@
     const slider = document.createElement("div");
     slider.className = "slider-button27";
     slider.id = `Bot${IdBot}`;
+
+    const circle = document.createElement("div");
+    circle.className = "slider-circle";
+
+    slider.appendChild(circle);
+    toggleContainer.appendChild(slider);
+
+    slider.addEventListener("click", () => {
+      funcao();
+    });
+
+    return toggleContainer;
+  }
+
+  function BotaoSlideFun(funcao) {
+    // Adiciona estilos apenas uma vez
+    if (!document.getElementById("estilo-slide")) {
+      const style = document.createElement("style");
+      style.id = "estilo-slide";
+      style.textContent = `
+          .slider-button27 {
+            position: relative;
+            width: 26px;
+            height: 14px;
+            background-color: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+          }
+
+          .slider-circle {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 12px;
+            height: 12px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+          }
+
+          .slider-button27.active {
+            background-color: ${Ccor.Principal};
+          }
+
+          .slider-button27.active .slider-circle {
+            transform: translateX(12px);
+          }
+
+          .status {
+            margin-left: 10px;
+            font-size: 16px;
+          }
+
+          .toggle-container {
+            display: flex;
+            align-items: center;
+          }
+        `;
+      document.getElementsByTagName("head")[0].appendChild(style);
+    }
+
+    const toggleContainer = document.createElement("div");
+    toggleContainer.className = "toggle-container";
+
+    const slider = document.createElement("div");
+    slider.className = "slider-button27";
+    //slider.id = `Bot${IdBot}`;
 
     const circle = document.createElement("div");
     circle.className = "slider-circle";
