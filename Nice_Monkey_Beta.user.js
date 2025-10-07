@@ -2100,6 +2100,8 @@
       AtualizarTMA(0);
       if (CConfig.IgnorarErroNice) {
         AtualizarConf(5);
+      }else{
+        AtualizarConf(3);
       }
     }
     if (zz === 22) {
