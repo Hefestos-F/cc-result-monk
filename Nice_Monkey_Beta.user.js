@@ -1209,7 +1209,12 @@
           circuloclick2.style.borderColor = "";
           circuloclick2.style.color = "";
           ControleFront();
-        }, 2000);
+        }, 1000);
+      }
+      if (CConfig.temOcul && !stt.AbaConfig && !stt.AbaPausas) {
+        setTimeout(function () {
+          ControleFront(7);
+        }, CConfig.tempoPOcul * 1000);
       }
       stt.Atualizando = 0;
       MostarcontValores(1);
@@ -1843,6 +1848,9 @@
       ocultar.textContent = "Ocultar em ";
 
       const c = criarCaixaSeg();
+      c.id = "C2ontFaixa";
+      c.style.flexDirection = "";
+      c.style.justifyContent = "space-between";
 
       const InputMin = document.createElement("input");
       InputMin.className = "placeholderPerso";
@@ -1858,16 +1866,20 @@
         border: solid 1px white;
         margin: 0px 3px;
         `;
+      InputMin.addEventListener("input", function () {
+        CConfig.tempoPOcul = InputMin.value || 3;
+      });
 
       c.append(ocultar);
       c.append(InputMin);
-      const d = BotaoSlideFun(() => {
+      const d = criarBotaoSlide2(33, () => {
         CConfig.temOcul = !CConfig.temOcul;
-
-        if (CConfig.temOcul) CConfig.tempoPOcul = InputMin.value || 3;
-
-        arabe(CConfig.temOcul, d);
+        if (CConfig.temOcul) CConfig.FaixaFixa = 0;
+        AtualizarConf();
       });
+      const text = document.createElement("div");
+      text.textContent = "seg";
+      c.append(text);
       c.append(d);
 
       b.append(fixar);
@@ -2089,6 +2101,8 @@
     }
     if (zz === 18) {
       CConfig.FaixaFixa = !CConfig.FaixaFixa;
+
+      if (CConfig.FaixaFixa) CConfig.temOcul = 0;
     }
     if (zz === 19) {
       CConfig.IgnorarTMA = !CConfig.IgnorarTMA;
@@ -2141,6 +2155,7 @@
       atualizarVisual("Bot20", CConfig.IgnorarErroNice);
       atualizarVisual("Bot22", CConfig.Estouro);
       atualizarVisual("Bot23", CConfig.SomEstouro);
+      atualizarVisual("Bot33", CConfig.temOcul);
     }
 
     if (zz > 0 && zz !== 14) {
@@ -2150,24 +2165,20 @@
     ControleFront();
   }
 
-  function atualizarVisual(a, quem) {
-    var x = document.getElementById(a);
+  function atualizarVisual(qual, controle) {
+    var x = document.getElementById(qual);
     if (!x) {
       return;
     }
-    arabe(a, x);
-  }
-
-  function arabe(a, b) {
-    if (a) {
-      if (!b.classList.contains("active")) {
-        b.classList.add("active");
-        b.style.backgroundColor = Ccor.Principal;
+    if (controle) {
+      if (!x.classList.contains("active")) {
+        x.classList.add("active");
+        x.style.backgroundColor = Ccor.Principal;
       }
     } else {
-      if (b.classList.contains("active")) {
-        b.classList.remove("active");
-        b.style.backgroundColor = "#ccc";
+      if (x.classList.contains("active")) {
+        x.classList.remove("active");
+        x.style.backgroundColor = "#ccc";
       }
     }
   }
