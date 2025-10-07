@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.5.1.1
+// @version      3.5.1.2
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -34,6 +34,8 @@
     IgnorarErroNice: 0,
     Estouro: 1,
     SomEstouro: 1,
+    temOcul: 0,
+    tempoPOcul: 3,
   };
 
   const PCConfig = {
@@ -54,6 +56,8 @@
     IgnorarErroNice: 0,
     Estouro: 1,
     SomEstouro: 1,
+    temOcul: 0,
+    tempoPOcul: 3,
   };
 
   const Ccor = {
@@ -96,9 +100,6 @@
   const stt = {
     vAtendidas: "",
     vAtendidasA: 0,
-    ErroAtu: 0,
-    ErroAten: "",
-    ErroTMA: "",
     Atualizando: 0,
     LoopAA: 0, // Atualizar auto Ativo
     AbaConfig: 0,
@@ -108,9 +109,12 @@
     DentrodCC1: "",
     DentrodcCC: "",
     DentrodMC: "",
-    ErroDTI: "",
     offForaDToler: 0,
     ErroVerif: 0,
+    ErroTMA: 0,
+    ErroDTI: 0,
+    ErroAtu: 0,
+    ErroAten: 0,
     CVAtivo: "",
     StatusANT: "",
     Ndpausas: 2,
@@ -156,8 +160,8 @@
   const StoreBD = "NiceMonk";
 
   const LugarJS = {
-    elementoReferencia: "#cx1_agent_root > main > div > div > header > div > header",
-   elementoReferencia2:
+    elementoReferencia: '[data-testid="bg-color"].MuiAppBar-root',
+    elementoReferencia2:
       'a[aria-label="Ajuda"][href*="help.nice-incontact.com"]',
     Status: "#agent-state-section > div > span > div > div",
 
@@ -207,16 +211,6 @@
         console.log(`NiceMonk verificação Inicial Falso`);
       }
     });
-  }
-
-  function deslogou() {
-    let a = document.querySelector(LugarJS.elementoReferencia);
-    let b = document.querySelector(LugarJS.elementoReferencia2);
-    if (!a && !b && !stt.logout) {
-      stt.logout = 1;
-      console.log(`NiceMonk Nice deslogou.`);
-      addAoini();
-    }
   }
 
   async function RecuperarTVariaveis() {
@@ -782,6 +776,20 @@
     }
   }
 
+  async function TentAtend() {
+    stt.ErroAten = !(await AtualizarAtendidas());
+    if (
+      stt.vAtendidas <= stt.vAtendidasA &&
+      Segun.Trabalhando > Segun.TrabalhandoA
+    ) {
+      return true;
+    } else {
+      stt.vAtendidasA = stt.vAtendidas;
+      Segun.TrabalhandoA = Segun.Trabalhando;
+      return false;
+    }
+  }
+
   async function AtualizarAtendidas() {
     const a = await caminhoInfo(1);
     const b = await seExiste3(1);
@@ -960,57 +968,51 @@
   async function iniciarBusca() {
     ControleFront(1);
 
-    stt.ErroDTI = !(await AtualizarDTI());
-
-    for (let a = 0; stt.ErroDTI && a < 3; a++) {
+    stt.ErroDTI = 1;
+    for (let a = 0; stt.ErroDTI && a < 4; a++) {
       stt.ErroDTI = !(await AtualizarDTI());
     }
 
     await VerificacoesN1();
 
-    for (let b = 0; stt.ErroVerif && b < 3; b++) {
-      await AtualizarDTI();
+    for (let b = 0; stt.ErroVerif && b < 4; b++) {
+      stt.ErroDTI = !(await AtualizarDTI());
       await VerificacoesN1();
       if (stt.ErroVerif) {
-        await esperar(1000);
+        await esperar(1500);
       }
     }
 
-    stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroVerif;
+    stt.ErroAtu = CConfig.IgnorarErroNice ? 0 : stt.ErroDTI || stt.ErroVerif;
 
+    stt.ErroAten = 1;
     if (!stt.ErroDTI && !stt.ErroAtu && !CConfig.IgnorarTMA) {
-      await TentAtend();
-      for (let c = 0; stt.ErroTMA && c < 3; c++) {
-        await TentAtend();
-        if (stt.ErroTMA) {
-          await esperar(1500);
+      for (let c = 0; stt.ErroAten && c < 3; c++) {
+        stt.ErroTMA = await TentAtend();
+        for (let c = 0; stt.ErroTMA && c < 3; c++) {
+          stt.ErroTMA = await TentAtend();
+          await esperar(1000);
         }
+      }
+      if (!stt.ErroAten) {
+        stt.vAtendidasA = stt.vAtendidas;
+        Segun.TrabalhandoA = Segun.Trabalhando;
       }
     }
     AtualizarTMA(stt.ErroAten);
 
     await VerificacoesN1();
+
     ControleFront(2);
 
     if (stt.NBT) {
       stt.NBT = 0;
       verificarESalvar(0);
-      deslogou();
-      setInterval(VerificacoesN1, 1000);
-    }
-  }
-
-  async function TentAtend() {
-    stt.ErroAten = !(await AtualizarAtendidas());
-    if (
-      stt.vAtendidas <= stt.vAtendidasA &&
-      Segun.Trabalhando > Segun.TrabalhandoA
-    ) {
-      stt.ErroTMA = 1;
-    } else {
-      stt.ErroTMA = 0;
-      stt.vAtendidasA = stt.vAtendidas;
-      Segun.TrabalhandoA = Segun.Trabalhando;
+      setInterval(() => {
+        if (!stt.Atualizando) {
+          VerificacoesN1();
+        }
+      }, 1000);
     }
   }
 
@@ -1051,17 +1053,19 @@
       : Segun.Logou;
     Segun.Offline = Segun.Logou - Segun.QualLogou;
 
-    var vari2 = CConfig.ModoSalvo || CConfig.LogueManual ? 1 : 0;
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
-      vari2 &&
+      (CConfig.ModoSalvo || CConfig.LogueManual) &&
+      (CConfig.Vigia || stt.Atualizando) &&
       !stt.ErroAtu &&
       !stt.ErroVerif &&
       !CConfig.IgnorarOff
         ? 1
         : 0;
+
     CConfig.MostraOff = stt.offForaDToler;
-    if (!CConfig.MostraOff && !stt.ErroVerif) {
+
+    if (!CConfig.MostraOff && !stt.Atualizando) {
       CConfig.MostraValorOff = 0;
     }
 
@@ -1081,7 +1085,8 @@
       !stt.offForaDToler &&
       !stt.ErroAtu &&
       !CConfig.LogueManual &&
-      !CConfig.IgnorarOff
+      !CConfig.IgnorarOff &&
+      !stt.ErroVerif
         ? SaidaSegundos + Segun.Offline
         : SaidaSegundos;
     var FaltaSegundos = SaidaSegundos - Segun.Hora;
@@ -1119,13 +1124,12 @@
     var vFalta = document.getElementById("vFalta");
     var tFalta = document.getElementById("tFalta");
     tFalta.textContent = HE ? "HE:" : TempoCumprido ? "Tempo" : "Falta:";
-    if (!stt.ErroVerif) {
-      vFalta.textContent = HE
-        ? FouHFormatado
-        : TempoCumprido
-        ? "Cumprido"
-        : FouHFormatado;
-    }
+    vFalta.textContent = HE
+      ? FouHFormatado
+      : TempoCumprido
+      ? "Cumprido"
+      : FouHFormatado;
+
     if (stt.Busc5s) {
       AtualizarTMA(0);
       stt.Busc5sTem = stt.Busc5sTem - 1;
@@ -1290,7 +1294,10 @@
 
     cOffline.style.background = Ccor.Offline;
 
-    var vari4 = contValores.style.opacity === "1" ? 1 : 0;
+    var vari4 =
+      contValores.style.opacity === "1" && Segun.Offline > CConfig.TolerOff
+        ? 1
+        : 0;
     Alinha1.style.visibility =
       vari4 && CConfig.MostraOff ? "visible" : "hidden";
     Alinha1.style.opacity = vari4 && CConfig.MostraOff ? "1" : "0";
@@ -1343,18 +1350,6 @@
   }
 
   function criarC() {
-    function criarTitulo(x) {
-      const titulo = document.createElement("div");
-      titulo.textContent = `${x}`;
-      titulo.style.cssText = `
-            text-decoration: underline;
-            font-size: 13px;
-            margin: auto;
-            margin-bottom: 5px;
-            `;
-      return titulo;
-    }
-
     const style = document.createElement("style");
     style.textContent = `
         .placeholderPerso::placeholder {
@@ -1392,28 +1387,64 @@
       return caixa;
     }
 
-    const TitulomodoCalculo = criarTitulo("Modo de Calculo");
-    const recalculando = criarLinhaTextoComBot(1, "Recalculando");
-    const primeiroLogue = criarLinhaTextoComBot(2, "Primeiro Logue");
+    function modoCalculo() {
+      const recalculando = criarLinhaTextoComBot(1, "Recalculando");
+      const primeiroLogue = criarLinhaTextoComBot(2, "Primeiro Logue");
+      const CmodoCalculo = criarCaixaSeg();
+      CmodoCalculo.id = "CmodoCalculo";
+      CmodoCalculo.append(recalculando, primeiroLogue);
+      const a = CaixaDeOcultar(
+        c1riarBotSalv(29, "Modo de Calculo"),
+        CmodoCalculo
+      );
+      return a;
+    }
 
-    const modoCalculo = criarCaixaSeg();
-    modoCalculo.append(TitulomodoCalculo, recalculando, primeiroLogue);
+    function CaixaDeOcultar(titulo, objeto) {
+      const Titulofeito = titulo;
+      const CaixaPrincipal = criarCaixaSeg();
+      Titulofeito.style.cssText = `
+            padding: 2px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-size: 12px;
+            height: 22px;
+            `;
+      Titulofeito.addEventListener("click", function () {
+        const a = document.getElementById(objeto.id);
+        const b = document.getElementById(Titulofeito.id);
+        if (!a) {
+          CaixaPrincipal.append(objeto);
+        } else {
+          a.remove();
+        }
+        b.style.marginBottom = a ? "0px" : "6px";
+        AtualizarConf();
+      });
+      CaixaPrincipal.append(Titulofeito);
+      return CaixaPrincipal;
+    }
 
-    const quanContZero = criarLinhaTextoComBot(3, "Automático");
-
-    const ContTMA = document.createElement("div");
-    ContTMA.style.cssText = `
+    function ContTMA() {
+      const a = document.createElement("div");
+      a.style.cssText = `
         display: flex;
         flex-direction: column;
         align-items: center;
         width: 100%;
         `;
+      const MetaTMAC = criarLinhaTextoComBot(6, "Meta TMA");
+      const InputTMABot = document.createElement("div");
+      InputTMABot.style.cssText = `display: flex; align-items: center;`;
 
-    const inputTMA = document.createElement("input");
-    inputTMA.className = "placeholderPerso";
-    inputTMA.setAttribute("placeholder", CConfig.ValorMetaTMA);
-    inputTMA.type = "number";
-    inputTMA.style.cssText = `
+      const inputTMA = document.createElement("input");
+      inputTMA.className = "placeholderPerso";
+      inputTMA.setAttribute("placeholder", CConfig.ValorMetaTMA);
+      inputTMA.type = "number";
+      inputTMA.style.cssText = `
         height: 16px;
         color: white;
         background-color: transparent;
@@ -1421,26 +1452,22 @@
         width: 50px;
         font-size: 12px;
         `;
+      const SalvarTMA = criarBotSalv(14, "Salvar");
+      SalvarTMA.style.marginLeft = "5px";
+      SalvarTMA.addEventListener("click", function () {
+        const valorinputtma = inputTMA.value || inputTMA.placeholder;
+        CConfig.ValorMetaTMA = valorinputtma;
+        inputTMA.placeholder = valorinputtma;
+        inputTMA.value = "";
+        AtualizarTMA();
+        ControleFront();
+        SalvandoVari(1);
+      });
 
-    const MetaTMAC = criarLinhaTextoComBot(6, "Meta TMA");
-
-    const InputTMABot = document.createElement("div");
-    InputTMABot.style.cssText = `display: flex; align-items: center;`;
-
-    const SalvarTMA = criarBotSalv(14, "Salvar");
-    SalvarTMA.style.marginLeft = "5px";
-    SalvarTMA.addEventListener("click", function () {
-      const valorinputtma = inputTMA.value || inputTMA.placeholder;
-      CConfig.ValorMetaTMA = valorinputtma;
-      inputTMA.placeholder = valorinputtma;
-      inputTMA.value = "";
-      AtualizarTMA();
-      ControleFront();
-      SalvandoVari(1);
-    });
-
-    InputTMABot.append(inputTMA, SalvarTMA);
-    ContTMA.append(MetaTMAC, InputTMABot);
+      InputTMABot.append(inputTMA, SalvarTMA);
+      a.append(MetaTMAC, InputTMABot);
+      return a;
+    }
 
     function entradatempo(idV, houm, placeholderV) {
       const input = document.createElement("input");
@@ -1459,7 +1486,6 @@
             `;
       return input;
     }
-
     // Criar separador visual ":"
     function doispontos() {
       const DoisP = document.createElement("span");
@@ -1471,83 +1497,63 @@
             `;
       return DoisP;
     }
-    const [horasS, minutosS, segundosS] =
-      CConfig.TempoEscaladoHoras.split(":").map(Number);
-    const horaInputTE = entradatempo(
-      "HoraEsc",
-      1,
-      String(horasS).padStart(2, "0")
-    );
-    const minuInputTE = entradatempo(
-      "MinuEsc",
-      0,
-      String(minutosS).padStart(2, "0")
-    );
 
-    const horaInputCaiHM = document.createElement("div");
-    horaInputCaiHM.style.cssText = `display: flex; align-items: center;`;
-
-    horaInputCaiHM.append(horaInputTE, doispontos(), minuInputTE);
-
-    function salvarHorario() {
-      const hora = parseInt(horaInputTE.value) || horasS;
-      const minuto = parseInt(minuInputTE.value) || minutosS;
-
-      const horaFormatada = String(hora).padStart(2, "0");
-      const minutoFormatado = String(minuto).padStart(2, "0");
-      const segundos = "00";
-
-      const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
-
-      // Salva na variável
-      CConfig.TempoEscaladoHoras = horarioFormatado;
-
-      horaInputTE.value = "";
-      minuInputTE.value = "";
-      horaInputTE.placeholder = horaFormatada;
-      minuInputTE.placeholder = minutoFormatado;
-    }
-
-    const horaInputCai = document.createElement("div");
-    horaInputCai.style.cssText = `
+    function ContTempEsc() {
+      const horaInputCai = document.createElement("div");
+      horaInputCai.style.cssText = `
         display: flex;
         justify-content: center;
         align-items: center;
         `;
-    const SalvarHora = criarBotSalv(13, "Salvar");
-    SalvarHora.style.marginLeft = "5px";
-    SalvarHora.addEventListener("click", function () {
-      salvarHorario();
-      ControleFront();
-      SalvandoVari(1);
-    });
-    horaInputCai.append(horaInputCaiHM, SalvarHora);
+      horaInputCai.id = "inputEscala";
+      const SalvarHora = criarBotSalv(13, "Salvar");
+      SalvarHora.style.marginLeft = "5px";
+      SalvarHora.addEventListener("click", function () {
+        salvarHorario();
+        ControleFront();
+        SalvandoVari(1);
+      });
+      const horaInputCaiHM = document.createElement("div");
+      horaInputCaiHM.style.cssText = `display: flex; align-items: center;`;
+      const [horasS, minutosS, segundosS] =
+        CConfig.TempoEscaladoHoras.split(":").map(Number);
+      const horaInputTE = entradatempo(
+        "HoraEsc",
+        1,
+        String(horasS).padStart(2, "0")
+      );
+      const minuInputTE = entradatempo(
+        "MinuEsc",
+        0,
+        String(minutosS).padStart(2, "0")
+      );
 
-    const InputCailogueManual = document.createElement("div");
-    InputCailogueManual.style.cssText = `display: flex; align-items: center;`;
+      function salvarHorario() {
+        const hora = parseInt(horaInputTE.value) || horasS;
+        const minuto = parseInt(minuInputTE.value) || minutosS;
 
-    const horaInputlogueManual = entradatempo(
-      "HLManual",
-      1,
-      String("0").padStart(2, "0")
-    );
-    horaInputlogueManual.addEventListener("input", function () {
-      salvarHorariologueManual();
-    });
-    const minuInputlogueManual = entradatempo(
-      "MLManual",
-      0,
-      String("0").padStart(2, "0")
-    );
-    minuInputlogueManual.addEventListener("input", function () {
-      salvarHorariologueManual();
-    });
+        const horaFormatada = String(hora).padStart(2, "0");
+        const minutoFormatado = String(minuto).padStart(2, "0");
+        const segundos = "00";
 
-    InputCailogueManual.append(
-      horaInputlogueManual,
-      doispontos(),
-      minuInputlogueManual
-    );
+        const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
+
+        // Salva na variável
+        CConfig.TempoEscaladoHoras = horarioFormatado;
+
+        horaInputTE.value = "";
+        minuInputTE.value = "";
+        horaInputTE.placeholder = horaFormatada;
+        minuInputTE.placeholder = minutoFormatado;
+      }
+      horaInputCaiHM.append(horaInputTE, doispontos(), minuInputTE);
+      horaInputCai.append(horaInputCaiHM, SalvarHora);
+      const a = CaixaDeOcultar(
+        criarBotSalv(28, "Tempo Escalado"),
+        horaInputCai
+      );
+      return a;
+    }
 
     function salvarHorariologueManual() {
       const hora = parseInt(
@@ -1566,56 +1572,94 @@
       SalvarLogueManual(1);
     }
 
-    const logueManualC = criarBotaoSlide2(13, () => {
-      CConfig.LogueManual = !CConfig.LogueManual;
-      if (CConfig.LogueManual) {
-        horaInputCailogueManual.prepend(InputCailogueManual);
-        const [horasIm, minutosIm, segundosIm] = converterParaTempo(
-          Segun.QualLogou
-        )
-          .split(":")
-          .map(Number);
-        horaInputlogueManual.value = String(horasIm).padStart(2, "0");
-        minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
-      } else {
-        InputCailogueManual.remove();
-        iniciarBusca();
-      }
-      SalvarLogueManual(1);
-      AtualizarConf();
-    });
-    logueManualC.style.cssText = `
-        margin-left: 6px;
-        `;
+    function ContlogueManual() {
+      const InputCailogueManual = document.createElement("div");
+      InputCailogueManual.style.cssText = `display: flex; align-items: center;`;
+      const horaInputlogueManual = entradatempo(
+        "HLManual",
+        1,
+        String("0").padStart(2, "0")
+      );
+      horaInputlogueManual.addEventListener("input", function () {
+        salvarHorariologueManual();
+      });
+      const minuInputlogueManual = entradatempo(
+        "MLManual",
+        0,
+        String("0").padStart(2, "0")
+      );
+      minuInputlogueManual.addEventListener("input", function () {
+        salvarHorariologueManual();
+      });
+      InputCailogueManual.append(
+        horaInputlogueManual,
+        doispontos(),
+        minuInputlogueManual
+      );
 
-    const horaInputCailogueManual = document.createElement("div");
-    horaInputCailogueManual.style.cssText = `
+      const horaInputCailogueManual = document.createElement("div");
+      horaInputCailogueManual.style.cssText = `
         display: flex;
         justify-content: center;
         align-items: center;
         `;
+      horaInputCailogueManual.id = "CinputLogueManual";
+      const logueManualC = criarBotaoSlide2(13, () => {
+        CConfig.LogueManual = !CConfig.LogueManual;
+        if (CConfig.LogueManual) {
+          const [horasIm, minutosIm, segundosIm] = converterParaTempo(
+            Segun.QualLogou
+          )
+            .split(":")
+            .map(Number);
+          horaInputlogueManual.value = String(horasIm).padStart(2, "0");
+          minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
+        } else {
+          iniciarBusca();
+        }
+        SalvarLogueManual(1);
+        AtualizarConf();
+      });
+      logueManualC.style.cssText = `
+        margin-left: 6px;
+        `;
 
-    horaInputCailogueManual.append(logueManualC);
+      horaInputCailogueManual.append(InputCailogueManual, logueManualC);
+      const a = CaixaDeOcultar(
+        criarBotSalv(27, "Logue Manual"),
+        horaInputCailogueManual
+      );
+      return a;
+    }
 
-    const ContlogueManual = criarCaixaSeg();
+    function modoBusca() {
+      const CmodoBusca = criarCaixaSeg();
+      CmodoBusca.id = "CmodoBusca";
 
-    ContlogueManual.append(
-      criarTitulo("Logue Manual"),
-      horaInputCailogueManual
-    );
+      const quanContZero = criarLinhaTextoComBot(3, "Automático");
 
-    const ContTempEsc = criarCaixaSeg();
-
-    ContTempEsc.append(criarTitulo("Tempo Escalado"), horaInputCai);
-
-    const InputMin = document.createElement("input");
-    InputMin.className = "placeholderPerso";
-    InputMin.id = "InputMin";
-    InputMin.setAttribute("placeholder", "10");
-    InputMin.type = "number";
-    InputMin.min = "1";
-    InputMin.max = "99";
-    InputMin.style.cssText = `
+      const aCada = document.createElement("div");
+      aCada.style.cssText = `
+        display: flex;
+        align-items: center;
+        margin: 3px 0px;
+        justify-content: space-between;
+        width: 100%;
+        `;
+      const aCada1 = document.createElement("div");
+      aCada1.style.cssText = `
+        display: flex;
+        `;
+      const textoACada = document.createElement("div");
+      textoACada.textContent = "A Cada";
+      const InputMin = document.createElement("input");
+      InputMin.className = "placeholderPerso";
+      InputMin.id = "InputMin";
+      InputMin.placeholder = CConfig.ValorAuto;
+      InputMin.type = "number";
+      InputMin.min = "1";
+      InputMin.max = "99";
+      InputMin.style.cssText = `
         width: 40px;
         height: 16px;
         color: white;
@@ -1623,44 +1667,29 @@
         border: solid 1px white;
         margin: 0px 3px;
         `;
-    InputMin.addEventListener("input", function () {
-      CConfig.ValorAuto = InputMin.value || 1;
-    });
+      InputMin.addEventListener("input", function () {
+        CConfig.ValorAuto = InputMin.value || 1;
+        InputMin.placeholder = InputMin.value || 1;
+      });
+      const MostX = document.createElement("div");
+      MostX.id = "InputMinX";
+      MostX.textContent = "X";
+      MostX.style.cssText = `margin: 0px 3px;`;
 
-    const textoMinu = document.createElement("div");
-    textoMinu.textContent = "Minutos";
+      const textoMinu = document.createElement("div");
+      textoMinu.textContent = "Minutos";
 
-    const MostX = document.createElement("div");
-    MostX.id = "InputMinX";
-    MostX.textContent = "X";
-    MostX.style.cssText = `margin: 0px 3px;`;
+      aCada1.append(textoACada, InputMin, MostX, textoMinu);
+      const bolaMinu = criarBotaoSlide(4);
+      aCada.append(aCada1, bolaMinu);
 
-    const bolaMinu = criarBotaoSlide(4);
+      const manual = criarLinhaTextoComBot(5, "Manual");
 
-    const aCada = document.createElement("div");
-    aCada.style.cssText = `
-        display: flex;
-        align-items: center;
-        margin: 3px 0px;
-        justify-content: space-between;
-        width: 100%;
-        `;
+      CmodoBusca.append(quanContZero, aCada, manual);
 
-    const textoACada = document.createElement("div");
-    textoACada.textContent = "A Cada";
-
-    const aCada1 = document.createElement("div");
-    aCada1.style.cssText = `
-        display: flex;
-        `;
-
-    aCada1.append(textoACada, InputMin, MostX, textoMinu);
-    aCada.append(aCada1, bolaMinu);
-
-    const manual = criarLinhaTextoComBot(5, "Manual");
-
-    const modoBusca = criarCaixaSeg();
-    modoBusca.append(criarTitulo("Modo de Busca"), quanContZero, aCada, manual);
+      const a = CaixaDeOcultar(c1riarBotSalv(26, "Modo de Busca"), CmodoBusca);
+      return a;
+    }
 
     function criarSeparador() {
       const separador = document.createElement("div");
@@ -1672,39 +1701,25 @@
       return separador;
     }
 
-    const caixaDeBotres = criarCaixaSeg();
-
-    const BotaoResetT = criarBotSalv(15, "Restaurar Config");
-
-    BotaoResetT.addEventListener("click", function () {
-      caixa.appendChild(
-        ADDCaixaDAviso("Restaurar Config", () => {
-          SalvandoVari(2);
-          iniciarBusca();
-        })
+    function caixaDeCor() {
+      const c1aixaDeCor = criarCaixaSeg();
+      c1aixaDeCor.id = "c1aixaDeCor";
+      c1aixaDeCor.append(
+        LinhaSelCor(7, "Principal", Ccor.Principal),
+        LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
+        LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
+        LinhaSelCor(10, "Erro", Ccor.Erro),
+        LinhaSelCor(11, "Offline", Ccor.Offline),
+        LinhaSelCor(12, "Config", Ccor.Config)
       );
-    });
 
-    caixaDeBotres.append(BotaoResetT);
-
-    const caixaDeCor = criarCaixaSeg();
-    caixaDeCor.append(
-      criarTitulo("Cores"),
-      LinhaSelCor(7, "Principal", Ccor.Principal),
-      LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
-      LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
-      LinhaSelCor(10, "Erro", Ccor.Erro),
-      LinhaSelCor(11, "Offline", Ccor.Offline),
-      LinhaSelCor(12, "Config", Ccor.Config)
-    );
+      const a = CaixaDeOcultar(criarBotSalv(25, "Cores"), c1aixaDeCor);
+      return a;
+    }
 
     const CIgOffline = criarCaixaSeg();
     const IgOffline = criarLinhaTextoComBot(16, "Ignorar Offline");
     CIgOffline.append(IgOffline);
-
-    const CFixaValor = criarCaixaSeg();
-    const FixaValor = criarLinhaTextoComBot(18, "Faixa Fixa");
-    CFixaValor.append(FixaValor);
 
     const CIgTMA = criarCaixaSeg();
     const IgTMA = criarLinhaTextoComBot(19, "Ignorar TMA");
@@ -1714,106 +1729,175 @@
     const IgErro = criarLinhaTextoComBot(20, "Ignorar Erro Nice");
     CIgErro.append(IgErro);
 
-    const CIgEst = criarCaixaSeg();
-
     const IgEst = criarLinhaTextoComBot(22, "Notificar Estouro");
     const IgEstSom = criarLinhaTextoComBot(23, "Som");
-    CIgEst.append(criarTitulo("Estouro de Pausa"));
-    CIgEst.append(IgEst);
-    CIgEst.append(IgEstSom);
 
-    const Cbotavan = criarCaixaSeg();
-    const botavan = criarBotSalv(21, "Avançado");
-    botavan.addEventListener("click", function () {
-      const CavancadoV = document.getElementById("Cavancado");
-      if (!CavancadoV) {
-        caixa.append(Cavancado);
-      } else {
-        CavancadoV.remove();
-      }
-    });
-    Cbotavan.append(botavan);
+    const CigEstDep = criarCaixaSeg();
 
-    const CBBancDa = criarCaixaSeg();
-    const BBancDa = criarTitulo("Banco de Dados");
-    BBancDa.addEventListener("click", function () {
-      if (CBancDa.innerHTML === "") {
-        listarChavesEConteudos(); // Preenche o conteúdo
-      } else {
-        CBancDa.innerHTML = ""; // Limpa o conteúdo
-      }
-    });
+    CigEstDep.id = "idcaixaEstouro";
 
-    BBancDa.style.cssText = `
-        cursor: pointer;
-        text-decoration: underline;
-        font-size: 13px;
-        margin: auto auto 5px;
-        `;
-    CBBancDa.append(BBancDa);
+    CigEstDep.append(IgEst, IgEstSom);
 
-    const CBancDa = criarCaixaSeg();
-    CBancDa.id = "CBancDa";
+    const CIgEst = CaixaDeOcultar(
+      criarBotSalv(24, "Estouro de Pausa"),
+      CigEstDep
+    );
 
-    CBBancDa.append(CBancDa);
+    function c1riarBotSalv(a, b) {
+      const c = criarBotSalv(a, b);
+      c.style.cssText = `
+            padding: 2px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-size: 12px;
+            height: 22px;
+            `;
+      return c;
+    }
 
-    const Cavancado = criarCaixaSeg();
-    Cavancado.id = "Cavancado";
+    function Cbotavan() {
+      const CBancDa = criarCaixaSeg();
+      CBancDa.id = "CBancDa";
 
-    const CValoresEnc = criarCaixaSeg();
-    const tValoresEnc = criarTitulo("Valores Encontrados");
-    const C2ValoresEnc = criarCaixaSeg();
-    C2ValoresEnc.style.alignItems = "center";
-    tValoresEnc.addEventListener("click", function () {
-      if (C2ValoresEnc.innerHTML === "") {
-        C2ValoresEnc.innerHTML = `
+      const BBancDa = c1riarBotSalv(31, "Banco de Dados");
+      BBancDa.addEventListener("click", function () {
+        if (CBancDa.innerHTML === "") {
+          listarChavesEConteudos(); // Preenche o conteúdo
+        } else {
+          CBancDa.innerHTML = ""; // Limpa o conteúdo
+        }
+      });
+
+      const CBBancDa = criarCaixaSeg();
+      CBBancDa.append(BBancDa);
+      CBBancDa.append(CBancDa);
+
+      const C2ValoresEnc = criarCaixaSeg();
+      C2ValoresEnc.style.alignItems = "center";
+
+      const tValoresEnc = c1riarBotSalv(30, "Valores Encontrados");
+      tValoresEnc.addEventListener("click", function () {
+        if (C2ValoresEnc.innerHTML === "") {
+          C2ValoresEnc.innerHTML = `
         <div>Disponivel = ${Htime.Disponivel}</div>
         <div>Trabalhando = ${Htime.Trabalhando}</div>
         <div>Indisponivel = ${Htime.Indisponivel}</div>
         <div>Atendidas = ${stt.vAtendidas}</div>
         `;
-      } else {
-        C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
-      }
-    });
-    tValoresEnc.style.cssText = `
-        cursor: pointer;
-        text-decoration: underline;
-        font-size: 13px;
-        margin: auto auto 5px;
+        } else {
+          C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
+        }
+      });
+
+      const CValoresEnc = criarCaixaSeg();
+      CValoresEnc.append(tValoresEnc);
+      CValoresEnc.append(C2ValoresEnc);
+
+      const BotaoResetT = c1riarBotSalv(15, "Restaurar Config");
+      BotaoResetT.addEventListener("click", function () {
+        caixa.appendChild(
+          ADDCaixaDAviso("Restaurar Config", () => {
+            SalvandoVari(2);
+            iniciarBusca();
+          })
+        );
+      });
+
+      const caixaDeBotres = criarCaixaSeg();
+      caixaDeBotres.append(BotaoResetT);
+
+      const Cavancado = criarCaixaSeg();
+      Cavancado.id = "Cavancado";
+      Cavancado.style.padding = "0px 8px";
+      Cavancado.append(
+        criarSeparador(),
+        CBBancDa,
+        criarSeparador(),
+        CValoresEnc,
+        criarSeparador(),
+        caixaDeBotres
+      );
+
+      const a = CaixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
+
+      a.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      width: 90%;
+      background: #ff000a3d;
+      border-radius: 10px;
+      `;
+      return a;
+    }
+
+    function Faixa() {
+      const b = criarCaixaSeg();
+
+      const fixar = criarLinhaTextoComBot(18, "Faixar Valor");
+
+      const ocultar = document.createElement("div");
+      textoMinu.textContent = "Ocultar em ";
+
+      const c = criarCaixaSeg();
+
+      const InputMin = document.createElement("input");
+      InputMin.className = "placeholderPerso";
+      InputMin.placeholder = CConfig.tempoPOcul;
+      InputMin.type = "number";
+      InputMin.min = "3";
+      InputMin.max = "99";
+      InputMin.style.cssText = `
+        width: 40px;
+        height: 16px;
+        color: white;
+        background: #ffffff00;
+        border: solid 1px white;
+        margin: 0px 3px;
         `;
 
-    CValoresEnc.append(tValoresEnc);
-    CValoresEnc.append(C2ValoresEnc);
+      c.append(ocultar);
+      c.append(InputMin);
+      const d = BotaoSlideFun(() => {
+        CConfig.temOcul = !CConfig.temOcul;
 
-    Cavancado.append(CBBancDa);
-    Cavancado.append(criarSeparador());
-    Cavancado.append(CValoresEnc);
+        if (CConfig.temOcul) CConfig.tempoPOcul = InputMin.value || 3;
+
+        arabe(CConfig.temOcul, d);
+      });
+      c.append(d);
+
+      b.append(fixar);
+      b.append(c);
+
+      const a = CaixaDeOcultar(criarBotSalv(32, "Faixa"), b);
+
+      return a;
+    }
 
     caixa.append(
-      ContTempEsc,
+      caixaDeCor(),
+      Faixa(),
       criarSeparador(),
-      ContlogueManual,
-      criarSeparador(),
-      CFixaValor,
       CIgOffline,
       CIgTMA,
       CIgErro,
       criarSeparador(),
+      ContTMA(),
+      criarSeparador(),
+      ContTempEsc(),
+      criarSeparador(),
+      ContlogueManual(),
+      criarSeparador(),
       CIgEst,
       criarSeparador(),
-      ContTMA,
+      modoBusca(),
       criarSeparador(),
-      modoBusca,
+      modoCalculo(),
       criarSeparador(),
-      modoCalculo,
-      criarSeparador(),
-      caixaDeCor,
-      criarSeparador(),
-      caixaDeBotres,
-      criarSeparador(),
-      Cbotavan,
-      criarSeparador()
+      Cbotavan()
     );
 
     document.body.appendChild(caixa);
@@ -1865,7 +1949,7 @@
       const textoDiv = document.createElement("div");
       textoDiv.textContent = b;
 
-      const botao = criarBotSalv(a, "Salvar");
+      const botao = criarBotSalv(a, "Aplicar");
 
       botao.addEventListener("click", function () {
         Ccor.Varian = inputCor.value;
@@ -1886,21 +1970,22 @@
     const Botao = document.createElement("button");
     Botao.id = `Botao${a1}`;
     Botao.style.cssText = `
-            padding: 2px;
+            padding: 1px 3px;
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
             background-color: transparent;
             color: white;
-            font-size: 12px;
+            font-size: 10px;
             height: 22px;
             `;
+
     Botao.textContent = `${a2}`;
 
     return Botao;
   }
 
-  function AtualizarConf(zz) {
+  function AtualizarConf(zz = 0) {
     var CaixaConfig = document.getElementById("CaixaConfig");
     var InputMin = document.getElementById("InputMin");
     var InputMinX = document.getElementById("InputMinX");
@@ -1973,12 +2058,12 @@
       if (stt.AbaConfig) {
         if (stt.AbaPausas) {
           stt.AbaPausas = 0;
-          CaiDPa.remove();
+          if (CaiDPa) CaiDPa.remove();
         }
         minhaCaixa.appendChild(criarC());
         AtualizarConf();
       } else {
-        CaixaConfig.remove();
+        if (CaixaConfig) CaixaConfig.remove();
       }
     }
     if (zz === 16) {
@@ -2015,6 +2100,8 @@
       AtualizarTMA(0);
       if (CConfig.IgnorarErroNice) {
         AtualizarConf(5);
+      }else{
+        AtualizarConf(3);
       }
     }
     if (zz === 22) {
@@ -2064,19 +2151,21 @@
   function atualizarVisual(a, quem) {
     var x = document.getElementById(a);
     if (!x) {
-      console.warn(`NiceMonk Elemento com ID '${a}' não encontrado.`);
       return;
     }
+    arabe(a, x);
+  }
 
-    if (quem) {
-      if (!x.classList.contains("active")) {
-        x.classList.add("active");
-        x.style.backgroundColor = Ccor.Principal;
+  function arabe(a, b) {
+    if (a) {
+      if (!b.classList.contains("active")) {
+        b.classList.add("active");
+        b.style.backgroundColor = Ccor.Principal;
       }
     } else {
-      if (x.classList.contains("active")) {
-        x.classList.remove("active");
-        x.style.backgroundColor = "#ccc";
+      if (b.classList.contains("active")) {
+        b.classList.remove("active");
+        b.style.backgroundColor = "#ccc";
       }
     }
   }
@@ -2135,6 +2224,74 @@
     const slider = document.createElement("div");
     slider.className = "slider-button27";
     slider.id = `Bot${IdBot}`;
+
+    const circle = document.createElement("div");
+    circle.className = "slider-circle";
+
+    slider.appendChild(circle);
+    toggleContainer.appendChild(slider);
+
+    slider.addEventListener("click", () => {
+      funcao();
+    });
+
+    return toggleContainer;
+  }
+
+  function BotaoSlideFun(funcao) {
+    // Adiciona estilos apenas uma vez
+    if (!document.getElementById("estilo-slide")) {
+      const style = document.createElement("style");
+      style.id = "estilo-slide";
+      style.textContent = `
+          .slider-button27 {
+            position: relative;
+            width: 26px;
+            height: 14px;
+            background-color: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+          }
+
+          .slider-circle {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 12px;
+            height: 12px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+          }
+
+          .slider-button27.active {
+            background-color: ${Ccor.Principal};
+          }
+
+          .slider-button27.active .slider-circle {
+            transform: translateX(12px);
+          }
+
+          .status {
+            margin-left: 10px;
+            font-size: 16px;
+          }
+
+          .toggle-container {
+            display: flex;
+            align-items: center;
+          }
+        `;
+      document.getElementsByTagName("head")[0].appendChild(style);
+    }
+
+    const toggleContainer = document.createElement("div");
+    toggleContainer.className = "toggle-container";
+
+    const slider = document.createElement("div");
+    slider.className = "slider-button27";
+    //slider.id = `Bot${IdBot}`;
 
     const circle = document.createElement("div");
     circle.className = "slider-circle";
