@@ -1835,11 +1835,12 @@
 
     function Faixa() {
       const b = criarCaixaSeg();
+      b.id = "ContFaixa";
 
       const fixar = criarLinhaTextoComBot(18, "Faixar Valor");
 
       const ocultar = document.createElement("div");
-      textoMinu.textContent = "Ocultar em ";
+      ocultar.textContent = "Ocultar em ";
 
       const c = criarCaixaSeg();
 
@@ -1879,6 +1880,7 @@
 
     caixa.append(
       caixaDeCor(),
+      criarSeparador(),
       Faixa(),
       criarSeparador(),
       CIgOffline,
@@ -2100,7 +2102,7 @@
       AtualizarTMA(0);
       if (CConfig.IgnorarErroNice) {
         AtualizarConf(5);
-      }else{
+      } else {
         AtualizarConf(3);
       }
     }
