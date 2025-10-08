@@ -129,6 +129,7 @@
     BeepRet: 0,
     logout: 1,
     observ: 1,
+    temOcul: 0,
   };
 
   const BGround = {
@@ -1151,6 +1152,17 @@
     }
   }
 
+  function temOculfun(a) {
+    if (stt.temOcul) return;
+    stt.temOcul = 1;
+    setTimeout(function () {
+      if (!stt.AbaConfig && !stt.AbaPausas && !stt.DentrodMC) {
+        a();
+      }
+      stt.temOcul = 0;
+    }, CConfig.tempoPOcul * 1000);
+  }
+
   function ControleFront(a) {
     var circuloclick = document.getElementById("circuloclick");
     var circuloclick2 = document.getElementById("circuloclick2");
@@ -1211,10 +1223,10 @@
           ControleFront();
         }, 1000);
       }
-      if (CConfig.temOcul && !stt.AbaConfig && !stt.AbaPausas) {
-        setTimeout(function () {
+      if (CConfig.temOcul) {
+        temOculfun(() => {
           ControleFront(7);
-        }, CConfig.tempoPOcul * 1000);
+        });
       }
       stt.Atualizando = 0;
       MostarcontValores(1);
@@ -1223,8 +1235,16 @@
     if (a === 3) {
       //Chamado do circuloclick cont
       Mostarcirculoclick2(stt.DentrodcCC);
-      if (!stt.AbaConfig) {
-        MostarcontValores(stt.DentrodcCC);
+      if (stt.DentrodcCC) {
+        MostarcontValores(1);
+      } else {
+        if (CConfig.temOcul) {
+          temOculfun(() => {
+            MostarcontValores(0);
+          });
+        } else {
+          MostarcontValores(0);
+        }
       }
     }
 
@@ -2253,7 +2273,6 @@
         `;
       document.getElementsByTagName("head")[0].appendChild(style);
     }
-
   }
 
   function criarBotaoSlide(IdBot) {
