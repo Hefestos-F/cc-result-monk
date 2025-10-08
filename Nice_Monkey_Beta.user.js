@@ -1243,7 +1243,7 @@
             MostarcontValores(0);
           });
         } else {
-          MostarcontValores(0);
+          if (!stt.AbaConfig && !stt.AbaPausas) MostarcontValores(0);
         }
       }
     }
