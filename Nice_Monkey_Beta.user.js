@@ -2185,51 +2185,7 @@
 
   function criarBotaoSlide2(IdBot, funcao) {
     // Adiciona estilos apenas uma vez
-    if (!document.getElementById("estilo-slide")) {
-      const style = document.createElement("style");
-      style.id = "estilo-slide";
-      style.textContent = `
-          .slider-button27 {
-            position: relative;
-            width: 26px;
-            height: 14px;
-            background-color: #ccc;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-          }
-
-          .slider-circle {
-            position: absolute;
-            top: 1px;
-            left: 1px;
-            width: 12px;
-            height: 12px;
-            background-color: white;
-            border-radius: 50%;
-            transition: transform 0.3s ease;
-          }
-
-          .slider-button27.active {
-            background-color: ${Ccor.Principal};
-          }
-
-          .slider-button27.active .slider-circle {
-            transform: translateX(12px);
-          }
-
-          .status {
-            margin-left: 10px;
-            font-size: 16px;
-          }
-
-          .toggle-container {
-            display: flex;
-            align-items: center;
-          }
-        `;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
+    StyleSlide();
 
     const toggleContainer = document.createElement("div");
     toggleContainer.className = "toggle-container";
@@ -2251,8 +2207,7 @@
     return toggleContainer;
   }
 
-  function BotaoSlideFun(funcao) {
-    // Adiciona estilos apenas uma vez
+  function StyleSlide() {
     if (!document.getElementById("estilo-slide")) {
       const style = document.createElement("style");
       style.id = "estilo-slide";
@@ -2299,73 +2254,11 @@
       document.getElementsByTagName("head")[0].appendChild(style);
     }
 
-    const toggleContainer = document.createElement("div");
-    toggleContainer.className = "toggle-container";
-
-    const slider = document.createElement("div");
-    slider.className = "slider-button27";
-    //slider.id = `Bot${IdBot}`;
-
-    const circle = document.createElement("div");
-    circle.className = "slider-circle";
-
-    slider.appendChild(circle);
-    toggleContainer.appendChild(slider);
-
-    slider.addEventListener("click", () => {
-      funcao();
-    });
-
-    return toggleContainer;
   }
 
   function criarBotaoSlide(IdBot) {
     // Adiciona estilos apenas uma vez
-    if (!document.getElementById("estilo-slide")) {
-      const style = document.createElement("style");
-      style.id = "estilo-slide";
-      style.textContent = `
-          .slider-button27 {
-            position: relative;
-            width: 26px;
-            height: 14px;
-            background-color: #ccc;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-          }
-
-          .slider-circle {
-            position: absolute;
-            top: 1px;
-            left: 1px;
-            width: 12px;
-            height: 12px;
-            background-color: white;
-            border-radius: 50%;
-            transition: transform 0.3s ease;
-          }
-
-          .slider-button27.active {
-            background-color: ${Ccor.Principal};
-          }
-
-          .slider-button27.active .slider-circle {
-            transform: translateX(12px);
-          }
-
-          .status {
-            margin-left: 10px;
-            font-size: 16px;
-          }
-
-          .toggle-container {
-            display: flex;
-            align-items: center;
-          }
-        `;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
+    StyleSlide();
 
     const toggleContainer = document.createElement("div");
     toggleContainer.className = "toggle-container";
