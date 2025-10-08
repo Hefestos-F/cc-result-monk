@@ -35,7 +35,7 @@
     Estouro: 1,
     SomEstouro: 1,
     temOcul: 0,
-    tempoPOcul: 3,
+    tempoPOcul: 8,
   };
 
   const PCConfig = {
@@ -57,7 +57,7 @@
     Estouro: 1,
     SomEstouro: 1,
     temOcul: 0,
-    tempoPOcul: 3,
+    tempoPOcul: 8,
   };
 
   const Ccor = {
@@ -1887,7 +1887,7 @@
         margin: 0px 3px;
         `;
       InputMin.addEventListener("input", function () {
-        CConfig.tempoPOcul = InputMin.value || 3;
+        CConfig.tempoPOcul = InputMin.value || InputMin.min;
       });
 
       c.append(ocultar);
