@@ -108,20 +108,22 @@
   <div id="settingsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="drawer">
       <div class="tabs">
+<div>
         <button class="btn" data-tab="tabWifi">📶 Wi‑Fi</button>
         <button class="btn" data-tab="tabAlert">🚨 Alerta</button>
         <button class="btn" data-tab="tabAdv">🧪 Avançado</button>
         <button class="btn" data-tab="tabSys">🛡️ Sistema</button>
+</div>
         <div class="spacer"></div>
         <button id="btnCloseSettings" class="btn">Fechar ✖</button>
       </div>
       <div class="drawer-body">
         <!-- Wi‑Fi -->
         <section id="tabWifi" class="tab-panel">
-          <div class="grid-2">
+          <div class="grid-12">
             <div class="card">
               <div class="section-title">Cliente (STA)</div>
-              <div class="grid-2">
+              <div class="grid-11">
                 <div class="field"><label>SSID</label><input id="staSsid" placeholder="Rede Wi‑Fi" /></div>
                 <div class="field"><label>Senha</label><input id="staPass" type="password" placeholder="••••••••" /></div>
               </div>
@@ -131,7 +133,7 @@
                 <span id="wifiStaStatus" class="hint">—</span>
               </div>
               <div class="divider"></div>
-              <div class="grid-3">
+              <div class="grid-11">
                 <div class="field"><label>Estado</label><input id="wifiConnState" disabled value="—" /></div>
                 <div class="field"><label>IP</label><input id="wifiIP" disabled value="—" /></div>
                 <div class="field"><label>RSSI</label><input id="wifiRSSI" disabled value="—" /></div>
@@ -141,10 +143,11 @@
 
             <div class="card">
               <div class="section-title">Ponto de Acesso (AP)</div>
-              <div class="grid-2">
+              <div class="grid-11">
                 <div class="field"><label>SSID</label><input id="apSsid" placeholder="FAN-CTRL" /></div>
                 <div class="field"><label>Senha (≥ 8)</label><input id="apPass" type="password" placeholder="12345678" /></div>
               </div>
+<label class="switch"><input id="modoAP" type="checkbox"><span class="track"><span class="knob"></span></span><span>Modo AP Ativo</span></label>
               <div class="row" style="margin-top:10px">
                 <button id="btnSaveAP" class="btn primary">Salvar AP</button>
                 <span id="wifiApStatus" class="hint">—</span>
@@ -155,10 +158,11 @@
 
         <!-- Alerta -->
         <section id="tabAlert" class="tab-panel">
-          <div class="grid-2">
+          <div class="grid-12">
             <div class="card">
               <div class="section-title">Ações para Alertas</div>
-              <div class="grid-3">
+              <div class="grid-11">
+<div class="grid-12">
                 <div>
                   <div class="label">RPM</div>
                   <label class="switch"><input id="actRpmMsg" type="checkbox" checked><span class="track"><span class="knob"></span></span><span>Mensagem</span></label><br>
@@ -171,6 +175,7 @@
                   <label class="switch"><input id="actTempBip" type="checkbox" checked><span class="track"><span class="knob"></span></span><span>Bip</span></label><br>
                   <label class="switch"><input id="actTempLed" type="checkbox" checked><span class="track"><span class="knob"></span></span><span>LED</span></label>
                 </div>
+</div>
                 <div>
                   <div class="label">Opções</div>
                   <div class="field"><label>Repetir alerta a cada (ms)</label><input id="repeatMs" type="number" min="0" value="60000"></div>
@@ -183,7 +188,7 @@
 
             <div class="card">
               <div class="section-title">Condições e Parâmetros</div>
-              <div class="grid-2">
+              <div class="grid-12">
                 <div>
                   <div class="label">Flags RPM</div>
                   <label class="switch"><input id="flagRpmErr" type="checkbox" checked><span class="track"><span class="knob"></span></span><span>Erro de sensor</span></label><br>
@@ -195,12 +200,12 @@
                   <label class="switch"><input id="flagTempRange" type="checkbox" checked><span class="track"><span class="knob"></span></span><span>Fora de parâmetro</span></label>
                 </div>
               </div>
-              <div class="grid-2" style="margin-top:10px">
-                <div class="grid-2">
+              <div class="grid-11" style="margin-top:10px">
+                <div class="grid-12">
                   <div class="field"><label>RPM Mín</label><input id="rpmMin" type="number" value="300"></div>
                   <div class="field"><label>RPM Máx</label><input id="rpmMax" type="number" value="3000"></div>
                 </div>
-                <div class="grid-2">
+                <div class="grid-12">
                   <div class="field"><label>Temp Mín (°C)</label><input id="tMin" type="number" value="15"></div>
                   <div class="field"><label>Temp Máx (°C)</label><input id="tMax" type="number" value="65"></div>
                 </div>
@@ -215,18 +220,17 @@
 
         <!-- Avançado (sem Telegram) -->
         <section id="tabAdv" class="tab-panel">
-          <div class="grid-2">
+          <div class="grid-12">
             <div class="card">
               <div class="section-title">Modo Simulação/Teste</div>
               <label class="switch"><input id="simEnable" type="checkbox"><span class="track"><span class="knob"></span></span><span>Ignorar sensores e usar valores fixos</span></label>
-              <div class="grid-3" style="margin-top:10px">
+              <div class="grid-11" style="margin-top:10px">
                 <div class="field"><label>RPM Fixo</label><input id="simRpm" type="number" value="1200"></div>
                 <div class="field"><label>Temp Fixa (°C)</label><input id="simTemp" type="number" step="0.1" value="35.0"></div>
                 <div class="field"><label>Umidade Fixa (%)</label><input id="simHum" type="number" step="0.1" value="45.0"></div>
               </div>
               <div class="row" style="margin-top:10px">
                 <button id="btnSaveSim" class="btn primary">Salvar Simulação</button>
-                <span class="hint">Mensagens externas podem ser suprimidas quando simulação estiver ativa (depende do firmware).</span>
               </div>
             </div>
 
@@ -240,7 +244,7 @@
               <div class="divider"></div>
 
               <div class="section-title">Flags & Debug</div>
-              <div class="grid-2">
+              <div class="grid-11">
                 <div>
                   <label class="switch"><input id="fMonTempHumErr" type="checkbox" checked><span class="track"><span class="knob"></span></span><span>Monitorar Temperatura/Umidade e Erro de Sensor</span></label><br>
                   <label class="switch"><input id="fMonRpmErr" type="checkbox" checked><span class="track"><span class="knob"></span></span><span>Monitorar RPM e Erro de Sensor</span></label>
@@ -267,12 +271,11 @@
 
         <!-- Sistema -->
         <section id="tabSys" class="tab-panel">
-          <div class="grid-2">
+          <div class="grid-12">
             <div class="card">
               <div class="section-title">Controle de Acesso</div>
-              <div class="grid-2">
+              <div class="grid-11">
                 <div class="field"><label>Usuário</label><input id="sysUser" value="admin"></div>
-                <div></div>
                 <div class="field"><label>Senha antiga</label><input id="sysOld" type="password" placeholder="••••••••"></div>
                 <div class="field"><label>Nova senha</label><input id="sysNew" type="password" placeholder="••••••••"></div>
                 <div class="field"><label>Confirmar nova senha</label><input id="sysNew2" type="password" placeholder="••••••••"></div>
