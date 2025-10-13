@@ -191,7 +191,7 @@
   }
 
   function addAoini() {
-    console.debug(`NiceMonk observer Iniciado`);
+    console.log(`NiceMonk observer Iniciado`);
     ObservarItem(() => {
       let a = document.querySelector(LugarJS.elementoReferencia);
       let b = document.querySelector(LugarJS.elementoReferencia2);
@@ -217,13 +217,13 @@
   async function RecuperarTVariaveis() {
     try {
       dadosdePausas = await RecDadosindexdb(ChavePausas);
-      console.debug("NiceMonk Encontrados em dadosdePausas:", dadosdePausas);
+      console.log("NiceMonk Encontrados em dadosdePausas:", dadosdePausas);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosdePausas:", e);
     }
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      console.debug(
+      console.log(
         "NiceMonk Encontrados em dadosSalvosConfi:",
         dadosSalvosConfi
       );
@@ -232,26 +232,26 @@
     }
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      console.debug("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogue);
+      console.log("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogue);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogue:", e);
     }
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      console.debug("NiceMonk Encontrados em dadosdePausas:", dadosLogueManu);
+      console.log("NiceMonk Encontrados em dadosdePausas:", dadosLogueManu);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosLogueManu:", e);
     }
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.debug("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogueOnt);
+      console.log("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogueOnt);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
     }
 
-    await SalvandoVari(3);
-    await SalvarLogueManual(0);
-    await salvarDPausas();
+    SalvandoVari(3);
+    SalvarLogueManual(0);
+    salvarDPausas();
   }
 
   function atualizarAuto() {
@@ -611,44 +611,34 @@
     }
   }
 
-  // Converte segundos (number) ou string ("HH:MM:SS"/"MM:SS"/"SS") para uma string formatada "MM:SS" ou "HH:MM:SS"
-  function converterParaTempo(input) {
-    if (input == null) return "00:00";
-    // aceita número (segundos) ou string ("HH:MM:SS" / "MM:SS" / "SS")
-    let total = Number(input);
-    if (Number.isNaN(total)) {
-      if (typeof input === "string" && input.includes(":")) {
-        const parts = input.split(":").map((p) => Number(p.trim()));
-        if (parts.length === 3) total = parts[0] * 3600 + parts[1] * 60 + parts[2];
-        else if (parts.length === 2) total = parts[0] * 60 + parts[1];
-        else total = 0;
-      } else {
-        total = 0;
-      }
+  function converterParaTempo(segundos) {
+    var minutos;
+    if (segundos < 60) {
+      return segundos;
+    } else if (segundos < 3600) {
+      minutos = Math.floor(segundos / 60);
+      segundos = segundos % 60;
+      return `${minutos.toString().padStart(2, "0")}:${segundos
+        .toString()
+        .padStart(2, "0")}`;
+    } else {
+      var horas = Math.floor(segundos / 3600);
+      segundos %= 3600;
+      minutos = Math.floor(segundos / 60);
+      segundos = segundos % 60;
+      return `${horas.toString().padStart(2, "0")}:${minutos
+        .toString()
+        .padStart(2, "0")}:${segundos.toString().padStart(2, "0")}`;
     }
-    total = Math.max(0, Math.floor(total));
-    const horas = Math.floor(total / 3600);
-    const minutos = Math.floor((total % 3600) / 60);
-    const segundos = total % 60;
-    if (horas > 0) {
-      return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
-    }
-    return `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
   }
 
-  // Tenta clicar no elemento e trata erros; retorna booleano
-  async function clicarElementoQuerySelector(selector) {
-    try {
-      const elemento = document.querySelector(selector);
-      if (elemento) {
-        elemento.click();
-        return true;
-      }
-      return false;
-    } catch (err) {
-      console.error("NiceMonk Erro ao clicar elemento:", err);
-      return false;
+  function clicarElementoQuerySelector(selector) {
+    var elemento = document.querySelector(selector);
+    if (elemento) {
+      elemento.click();
+      return true;
     }
+    return false;
   }
 
   async function caminhoInfo(A) {
@@ -751,48 +741,22 @@
   }
 
   function formatTime(time) {
-    // Normaliza diferentes formatos de tempo para "HH:MM:SS" (ou retorna null)
-    if (!time || typeof time !== "string") {
+    if (!time) {
       console.error("NiceMonk Tempo inválido.");
-      return "00:00:00";
+      return null;
     }
-    const parts = time.trim().split(":").map((p) => p.trim());
-    if (parts.length === 3) {
-      return parts.map((p) => p.padStart(2, "0")).join(":");
-    }
+    const parts = time.split(":");
     if (parts.length === 2) {
-      // mm:ss -> 00:mm:ss
-      const [mm, ss] = parts;
-      return `00:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+      // Se o formato for mm:ss, adiciona "00:" no início para transformar em hh:mm:ss
+      return `00:${time}`;
     }
-    if (parts.length === 1 && /^\d+$/.test(parts[0])) {
-      // segundos como número
-      const total = Number(parts[0]);
-      const h = Math.floor(total / 3600);
-      const m = Math.floor((total % 3600) / 60);
-      const s = total % 60;
-      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-    }
-    return "00:00:00";
+    return time; // Se já estiver no formato hh:mm:ss, retorna como está
   }
 
   function converterParaSegundos(tempo) {
-    // Mais tolerante: aceita "HH:MM:SS", "MM:SS" e números; retorna segundos inteiros.
-    if (tempo == null || tempo === "") return 0;
-    if (typeof tempo === "number") return Math.floor(tempo);
-    if (typeof tempo === "string") {
-      const parts = tempo.trim().split(":").map((p) => Number(p.trim()));
-      if (parts.length === 3) {
-        const [h, m, s] = parts;
-        return (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0);
-      }
-      if (parts.length === 2) {
-        const [m, s] = parts;
-        return (Number(m) || 0) * 60 + (Number(s) || 0);
-      }
-      if (/^\d+$/.test(tempo.trim())) {
-        return Number(tempo.trim());
-      }
+    if (tempo) {
+      const [horas, minutos, segundos] = tempo.split(":").map(Number);
+      return horas * 3600 + minutos * 60 + segundos;
     }
     return 0;
   }
@@ -2357,19 +2321,16 @@
       "Dispon",
     ];
 
-    // Executa verificações de status de forma assíncrona e aguarda atualizações no DB quando necessário
-    (async function () {
-      for (const tipo of tiposStatus) {
-        await verificacaoStatus(tipo);
-      }
+    for (const tipo of tiposStatus) {
+      verificacaoStatus(tipo);
+    }
 
-      if (StatusNOV !== stt.StatusANT) {
-        stt.StatusANT = StatusNOV;
-        await atualizarID1();
-      }
+    if (StatusNOV !== stt.StatusANT) {
+      stt.StatusANT = StatusNOV;
+      atualizarID1();
+    }
 
-      VeriEstDPausa();
-    })();
+    VeriEstDPausa();
 
     function VeriEstDPausa() {
       let a = "00:00:00";
@@ -2417,7 +2378,7 @@
       Alinha2.style.marginBottom = e ? "" : "-18px";
     }
 
-    async function FimdePausa(tipo) {
+    function FimdePausa(tipo) {
       stt.FPausaS = converterParaSegundos(mostrarHora());
       stt.DPausaS = stt.FPausaS - stt.IPausaS;
       var DPausaS1 = converterParaTempo(stt.DPausaS);
@@ -2428,13 +2389,13 @@
           `NiceMonk Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`
         );
 
-  await atualizarCampos(y, "Fim", mostrarHora());
-  await atualizarCampos(y, "Duracao", DPausaS1);
+      atualizarCampos(y, "Fim", mostrarHora());
+      atualizarCampos(y, "Duracao", DPausaS1);
 
       if (CaiDPa) AtuaPausas();
     }
 
-    async function verificacaoStatus(tipo) {
+    function verificacaoStatus(tipo) {
       if (StatusNOV.includes(tipo)) {
         if (!stt.StatusANT.includes(tipo)) {
           stt.IPausaS = converterParaSegundos(mostrarHora());
@@ -2462,11 +2423,11 @@
           }
 
           if (a === 2) {
-            await atualizarCampos(a, "pausa", "Disponivel");
-            await atualizarCampos(a, "Inicio", mostrarHora());
-            await atualizarCampos(a, "Fim", 0);
+            atualizarCampos(a, "pausa", "Disponivel");
+            atualizarCampos(a, "Inicio", mostrarHora());
+            atualizarCampos(a, "Fim", 0);
           } else {
-            await AddouAtualizarPausas(a, b, mostrarHora(), f, g);
+            AddouAtualizarPausas(a, b, mostrarHora(), f, g);
           }
 
           if (CaiDPa) AtuaPausas();
@@ -2614,27 +2575,23 @@
   }
 
   function AddOuAtuIindexdb(nomechave, dados) {
-    return new Promise((resolve, reject) => {
-      try {
-        abrirDB(function (db) {
-          const transacao = db.transaction([StoreBD], "readwrite");
-          const store = transacao.objectStore(StoreBD);
-          const request = store.put(dados, nomechave);
+    abrirDB(function (db) {
+      const transacao = db.transaction([StoreBD], "readwrite");
+      const store = transacao.objectStore(StoreBD);
+      const request = store.put(dados, nomechave);
 
-          request.onsuccess = function () {
-            console.debug(`NiceMonk Dados salvos com sucesso na chave "${nomechave}"`);
-            resolve(true);
-          };
+      request.onsuccess = function () {
+        console.log(
+          `NiceMonk Dados salvos com sucesso na chave "${nomechave}"`
+        );
+      };
 
-          request.onerror = function (event) {
-            console.error("NiceMonk Erro ao salvar os dados:", event.target?.errorCode || event);
-            reject(event);
-          };
-        });
-      } catch (err) {
-        console.error("NiceMonk AddOuAtuIindexdb erro:", err);
-        reject(err);
-      }
+      request.onerror = function (event) {
+        console.error(
+          "NiceMonk Erro ao salvar os dados:",
+          event.target.errorCode
+        );
+      };
     });
   }
 
@@ -2768,7 +2725,7 @@
     });
   }
 
-  async function SalvarLogueManual(x) {
+  function SalvarLogueManual(x) {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
@@ -2785,12 +2742,12 @@
       x = 1;
       //console.log("NiceMonk Data Diferente de Hoje");
     }
-    if (dadosLogueManu && dadosLogueManu.data === ontemFormatado) {
-      await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosLogueManu);
+    if (dadosLogueManu.data === ontemFormatado) {
+      AddOuAtuIindexdb(ChavePrimLogueOntem, dadosLogueManu);
     }
 
     if (x) {
-      await AddOuAtuIindexdb(ChavelogueManu, valorEdata);
+      AddOuAtuIindexdb(ChavelogueManu, valorEdata);
       //console.log("NiceMonk Informação salva para a data de hoje  LogueManual: ",valorEdata);
     } else {
       CConfig.ValorLogueManual = dadosLogueManu.ValorLogueManual;
@@ -2799,7 +2756,7 @@
     }
   }
 
-  async function verificarESalvar(x) {
+  function verificarESalvar(x) {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
@@ -2813,8 +2770,8 @@
       valorEdata.valor = "24:00:00";
       x = 1;
     }
-    if (dadosPrimLogue && dadosPrimLogue.data === ontemFormatado) {
-      await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosPrimLogue);
+    if (dadosPrimLogue.data === ontemFormatado) {
+      AddOuAtuIindexdb(ChavePrimLogueOntem, dadosPrimLogue);
     }
 
     if (x) {
@@ -2822,7 +2779,7 @@
         "NiceMonk Anteriormente salvo em primeiroLogue: ",
         dadosPrimLogue
       );
-      await AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
+      AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
       dadosPrimLogue = valorEdata;
       console.log(
         "NiceMonk Informação salva para a data de hoje primeiroLogue: ",
@@ -2838,7 +2795,7 @@
     }
   }
 
-  async function SalvandoVari(a) {
+  function SalvandoVari(a) {
     let AsVari = {
       CConfig: { ...CConfig },
       Ccor: { ...Ccor },
@@ -2851,7 +2808,7 @@
 
     switch (a) {
       case 1:
-        await AddOuAtuIindexdb(ChaveConfig, AsVari);
+        AddOuAtuIindexdb(ChaveConfig, AsVari);
         ondemudar(AsVari);
         break;
 
@@ -2859,7 +2816,7 @@
         if (typeof PCConfig !== "undefined" && typeof PCcor !== "undefined") {
           AsVari.CConfig = { ...PCConfig };
           AsVari.Ccor = { ...PCcor };
-          await AddOuAtuIindexdb(ChaveConfig, AsVari);
+          AddOuAtuIindexdb(ChaveConfig, AsVari);
           ondemudar(AsVari);
         } else {
           console.warn("PCConfig ou PCcor não estão definidos.");
@@ -2875,7 +2832,7 @@
             `NiceMonk Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão:`,
             dadosSalvosConfi
           );
-          await SalvandoVari(2);
+          SalvandoVari(2);
         }
         break;
 
@@ -2884,7 +2841,7 @@
     }
   }
 
-  async function salvarDPausas() {
+  function salvarDPausas() {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
@@ -2904,7 +2861,7 @@
 
     if (!itemComData || itemComData.data !== hojeFormatado) {
       dadosdePausas = [...valorEdata]; // reinicia com os dados padrão
-      await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
+      AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } else {
       stt.Ndpausas = itemComData.Ndpausas;
       stt.StatusANT = itemComData.StatusANT;
@@ -2912,7 +2869,7 @@
     }
   }
 
-  async function AddouAtualizarPausas(id, pausa, Inicio, Fim, Duracao) {
+  function AddouAtualizarPausas(id, pausa, Inicio, Fim, Duracao) {
     const novoItem = { id, pausa, Inicio, Fim, Duracao };
 
     // Garante que dadosdePausas seja um array
@@ -2928,10 +2885,10 @@
       dadosdePausas.push(novoItem);
     }
 
-    await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
+    AddOuAtuIindexdb(ChavePausas, dadosdePausas);
   }
 
-  async function atualizarCampos(id, campo, valor) {
+  function atualizarCampos(id, campo, valor) {
     const index = dadosdePausas.findIndex((item) => item.id === id);
 
     if (index !== -1) {
@@ -2943,37 +2900,29 @@
       dadosdePausas.push(novoItem);
     }
 
-    try {
-      await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
-    } catch (err) {
-      console.error('NiceMonk Erro ao atualizar campos no IndexedDB:', err);
-    }
+    AddOuAtuIindexdb(ChavePausas, dadosdePausas);
 
     if (campo === "Duracao") {
-      console.debug(`NiceMonk Tabela salva : `, ChavePausas);
+      console.log(`NiceMonk Tabela salva : `, ChavePausas);
     }
   }
 
-  async function removerPausaPorId(id) {
+  function removerPausaPorId(id) {
     const index = dadosdePausas.findIndex((item) => item.id === id);
 
     if (index !== -1) {
       dadosdePausas.splice(index, 1); // Remove o item do array
-      try {
-        await AddOuAtuIindexdb(ChavePausas, dadosdePausas); // Atualiza o IndexedDB
-      } catch (err) {
-        console.error('NiceMonk Erro ao remover pausa:', err);
-      }
+      AddOuAtuIindexdb(ChavePausas, dadosdePausas); // Atualiza o IndexedDB
       AtuaPausas();
-      console.debug(`NiceMonk item com id ${id} removido.`);
+      console.log(`NiceMonk item com id ${id} removido.`);
     } else {
-      console.debug(`NiceMonk item com id ${id} não encontrado.`);
+      console.log(`NiceMonk item com id ${id} não encontrado.`);
     }
   }
 
-  async function atualizarID1() {
+  function atualizarID1() {
     if (!dadosdePausas) {
-      await salvarDPausas();
+      salvarDPausas();
     }
     const index = dadosdePausas.findIndex((item) => item.id === 1);
     if (index !== -1) {
@@ -2981,11 +2930,7 @@
       dadosdePausas[index].StatusANT = stt.StatusANT;
       dadosdePausas[index].IPausaS = stt.IPausaS;
     }
-    try {
-      await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
-    } catch (err) {
-      console.error('NiceMonk Erro ao atualizar ID1 no IndexedDB:', err);
-    }
+    AddOuAtuIindexdb(ChavePausas, dadosdePausas);
   }
 
   function AtuaPausas() {
