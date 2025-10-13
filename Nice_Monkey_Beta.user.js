@@ -19,6 +19,8 @@
     TempoEscaladoHoras: "06:20:00",
     ValorLogueManual: "12:00:00",
     LogueManual: 0,
+    // Controle de logs: 'error'|'warn'|'info'|'debug' (mais verboso)
+    LogLevel: 'info',
     ValorMetaTMA: 725,
     ModoSalvo: 1,
     Vigia: 1,
@@ -58,7 +60,48 @@
     SomEstouro: 1,
     temOcul: 0,
     tempoPOcul: 8,
+    LogLevel: 'info',
   };
+
+  // Logger runtime que respeita CConfig.LogLevel (checa dinamicamente e permite atualização em runtime)
+  (function setupNiceMonkLogger() {
+    try {
+      const levels = { error: 0, warn: 1, info: 2, debug: 3 };
+      // garante que exista uma configuração padrão
+      if (!CConfig.LogLevel) CConfig.LogLevel = 'info';
+
+      function allowed(method) {
+        // lê o nível atual dinamicamente (permite mudar em runtime via CConfig.LogLevel)
+        const currentLevel = CConfig && CConfig.LogLevel && CConfig.LogLevel in levels ? CConfig.LogLevel : 'info';
+        const methodLevel = method === 'log' || method === 'info' ? 'info' : method;
+        return levels[methodLevel] <= levels[currentLevel];
+      }
+
+      ['error', 'warn', 'info', 'log', 'debug'].forEach((m) => {
+        const orig = console[m] ? console[m].bind(console) : () => {};
+        console[m] = function (...args) {
+          if (allowed(m)) {
+            orig(...args);
+          }
+        };
+      });
+
+      // função global para atualizar o nível de logs em runtime
+      window.AtualizarLogLevel = function (novoNivel) {
+        if (!novoNivel) return false;
+        if (novoNivel in levels) {
+          CConfig.LogLevel = novoNivel;
+          console.info('NiceMonk LogLevel atualizado para:', novoNivel);
+          return true;
+        }
+        console.warn('NiceMonk AtualizarLogLevel: nível inválido', novoNivel);
+        return false;
+      };
+    } catch (e) {
+      // se algo falhar ao definir logger, não bloqueia o script
+      console.error('NiceMonk falha ao inicializar logger:', e);
+    }
+  })();
 
   const Ccor = {
     Offline: "#3a82cf",
