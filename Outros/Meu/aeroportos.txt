@@ -1,0 +1,485 @@
+
+2. Alta Floresta - AFL
+3. Altamira - ATM
+4. Aracaju - AJU
+5. Araguaina - AUX
+6. Araxá - AAX
+7. Araçatuba - ARU
+8. Barreiras - BRA
+9. Barretos - BAT
+10. Bauru - Arealva - JTC
+11. Belo Horizonte - Confins - CNF
+12. Belo Horizonte - Pampulha - PLU
+13. Belo Horizonte - Todos os aeroportos - BHZ
+14. Belém - BEL
+15. Boa Vista - BVB
+16. Boipeba - PBA
+17. Bonito - BYO
+18. Brasília - BSB
+19. Cabo Frio - CFB
+20. Cacoal - OAL
+21. Caldas Novas - CLV
+22. Campina Grande - CPV
+23. Campo Grande - CGR
+24. Campos dos Goitacazes - CAW
+25. Canoas - QNS
+26. Caruaru - CAU
+27. Cascavel - CAC
+28. Caxias do Sul - Gramado e Canela - CXJ
+29. Chapecó - XAP
+30. Corumbá - CMG
+31. Cruzeiro do Sul - CZS
+32. Cuiabá - CGB
+33. Curitiba - CWB
+34. Dourados - DOU
+35. Eirunepé - ERN
+36. Feira de Santana - FEC
+37. Fernando de Noronha - FEN
+38. Florianópolis - FLN
+39. Fortaleza - FOR
+40. Foz do Iguaçu – Iguazu Falls - IGU
+41. Franca - FRC
+42. Goiânia - GYN
+43. Governador Valadares - GVR
+44. Guanambi - GNM
+45. Guarapuava - GPB
+46. Ilhéus - IOS
+47. Imperatriz - IMP
+48. Ipatinga / Vale do Aço - IPN
+49. Itaituba - ITB
+50. Jaguaruna - Criciúma - JJG
+51. Jericoacoara - JJD
+52. Ji-Paraná - JPR
+53. Joinville - JOI
+54. João Pessoa - JPA
+55. Juazeiro do Norte - JDO
+56. Juiz de Fora -Zona da Mata - IZA
+57. Lages - Correia Pinto - EEA
+58. Lençóis/Chapada Diamantina - LEC
+59. Londrina - LDB
+60. Macapá - MCP
+61. Maceió - MCZ
+62. Manaus - MAO
+63. Marabá - MAB
+64. Maringá - MGF
+65. Marília - MII
+66. Montes Claros - MOC
+67. Morro de São Paulo - MXQ
+68. Mossoró - MVF
+69. Mucugê - CHD
+70. Natal - NAT
+71. Navegantes - NVT
+72. Palmas - PMW
+73. Parauapebas - Carajás - CKS
+74. Parintins - PIN
+75. Parnaíba - PHB
+76. Passo Fundo  - PFB
+77. Pato Branco - PTO
+78. Patos de Minas - POJ
+79. Paulo Afonso - PAV
+80. Pelotas - PET
+81. Península de Maraú - MUU
+82. Petrolina - PNZ
+83. Ponta Grossa - PGZ
+84. Ponta Porã - PMG
+85. Porto Alegre - POA
+86. Porto Seguro - BPS
+87. Porto Trombetas - TMT
+88. Porto Velho - PVH
+89. Presidente Prudente - PPB
+90. Recife - REC
+91. Ribeirão Preto - RAO
+92. Rio Branco - RBR
+93. Rio Verde - RVD
+94. Rio de Janeiro - Galeão - GIG
+95. Rio de Janeiro - Santos Dumont - SDU
+96. Rio de Janeiro - Todos os aeroportos - RIO
+97. Rondonópolis - ROO
+98. Salvador - SSA
+99. Santa Maria - RIA
+100. Santarém - STM
+101. Santo Ângelo - GEL
+102. Sinop - OPS
+103. Sobral - QBX
+104. Sorriso - SMT
+105. São Benedito - QXY
+106. São Gabriel da Cachoeira - SJL
+107. São José do Rio Preto - Olímpia - SJP
+109. São Paulo - Campinas - Viracopos - VCP
+110. São Paulo - Congonhas - CGH
+111. São Paulo - Guarulhos - GRU
+112. São Paulo - São José dos Campos - SJK
+113. São Paulo - Todos os aeroportos - SAO
+114. São Raimundo Nonato - NSR
+115. Tabatinga - TBT
+116. Tefé - TFF
+117. Teresina - THE
+118. Três Lagoas - TJL
+119. Uberaba - UBA
+120. Uberlândia - UDI
+121. Una-Comandatuba - UNA
+122. Uruguaiana - URG
+123. Vilhena - BVH
+124. Vitória - VIX
+125. Vitória da Conquista - VDC
+
+127. Aalborg Airport - AAL
+128. Aberdeen - ABZ
+129. Abidjan, Ivory Coast - ABJ
+130. Abuja, Nigeria - ABV
+131. Accra - ACC
+132. Aeroporto Cap Carlos Perez - VSA
+133. Aeroporto Internacional de Piarco - POS
+134. Agadir, Morocco - AGA
+135. Al Ain - Terminal de Onibus - AAN
+136. Albany - ALB
+137. Alesund - AES
+138. Antofagasta - ANF
+139. Arauca - AUC
+140. Arica - Arica y Parinacota - ARI
+141. Armênia - AXM
+142. Aruba - AUA
+143. Assunção - ASU
+144. Athens - Eleftherios Venizelos - ATH
+145. Atlanta - ATL
+146. Austin - AUS
+147. Ayacucho - AYP
+148. B Diagne Int Dkr, Senegal - DSS
+149. Bahia Blanca - BHI
+150. Balmaceda - Aysén del General Carlos Ibáñez del Campo - BBA
+151. Baltimore - BWI
+152. Bamako, Mali - BKO
+153. Banjul, Gambia - BJL
+154. Barbados - BGI
+155. Barcelona - El Prat - BCN
+156. Bariloche  - BRC
+157. Barrancabermeja - EJA
+158. Barranquilla - BAQ
+159. Bergen - BGO
+160. Berlin - Brandenburg Airport - BER
+161. Bilbao - BIO
+162. Billund Airport - BLL
+163. Birmingham - BHX
+164. Birmingham Alabama - BHM
+165. Bissau, Guinea Bissau - OXB
+166. Bogotá - BOG
+167. Bolonha - BLQ
+168. Bordeaux Airport - BOD
+169. Boston - BOS
+170. Bremen Airport - BRE
+171. Brest - BES
+172. Bristol - BRS
+173. Bucaramanga - BGA
+174. Buenos Aires - Aeroparque - AEP
+175. Buenos Aires - Ezeiza - EZE
+176. Buenos Aires - Todos os aeroportos - BUE
+177. Buffalo - BUF
+178. Cairo, Egypt - CAI
+179. Calama - Antofagasta - CJC
+180. Cali - CLO
+181. Cancún - CUN
+182. Caracas - CCS
+183. Cardiff - CWL
+184. Cartagena - CTG
+185. Casablanca, Morocco - CMN
+186. Castro - Dalcahue - Chiloé Island - Los Lagos - MHC
+187. Catamarca - CTC
+188. Cayenne - Félix Eboué - CAY
+189. Cedar Rapids - CID
+190. Charleston - CHS
+191. Charlotte - CLT
+192. Chicago - ORD
+193. Cidade do Cabo - CPT
+194. Cidade do México - MEX
+195. Cidade do Panamá - PTY
+196. Cincinnati - CVG
+197. Clermont-Ferrand - CFE
+198. Cleveland - CLE
+199. Cochabamba - CBB
+200. Columbus - CMH
+201. Comodoro Rivadavia - CRD
+202. Conakry, Guinea - CKY
+203. Concepción - Bío Bío - CCP
+204. Copenhagen Airport - CPH
+205. Copiapó - Atacama - CPO
+206. Corrientes - CNQ
+207. Cotonou, Benin - COO
+208. Cuenca - CUE
+209. Curaçao - CUR
+210. Cusco - CUZ
+211. Córdoba - COR
+212. Cúcuta - CUC
+213. Dakhla, Morocco - VIL
+214. Dallas - Fort Worth - DFW
+215. Deer Lake - YDF
+216. Denver - DEN
+217. Des Moines - DSM
+218. Detroit - DTW
+219. Dubai – Terminal de Onibus - XNB
+220. Dublin Airport - DUB
+221. Duesseldorf International - DUS
+222. Durban - DUR
+223. Durham - MME
+224. Eagle County Airport - EGE
+225. Edinburgh - EDI
+226. Edmonton - YEG
+227. El Calafate - FTE
+228. El Yopal - EYP
+229. Errachidla, Morocco - ERH
+230. Esquel - EQS
+231. Estocolmo Arlanda - ARN
+232. EuroAirport Swiss - BSL
+233. Fayetteville Northwest Arkansas - XNA
+234. Fez, Morocco - FEZ
+235. Filadelfia - PHL
+236. Florença - FLR
+237. Flores - FRS
+238. Formosa - FMA
+239. Fort Lauderdale - FLL
+240. Fort-de-France - Martinica - FDF
+241. Forte McMurray - YMM
+242. Frankfurt International Airport - FRA
+243. Fredericton - YFC
+244. Freetown Lungi, Sierra Leone - FNA
+245. Geneva - GVA
+246. Genova - GOA
+247. Georgetown - GEO
+248. Glasgow - GLA
+249. Gotemburgo Landvetter - GOT
+250. Grand Rapids - GRR
+251. Greensboro - GSO
+252. Greenville Spartanburg - GSP
+253. Guadalajara - GDL
+254. Guatemala - GUA
+255. Guayaquil - GYE
+256. Halifax - YHZ
+257. Hamburg Airport - HAM
+258. Hannover Airport - HAJ
+259. Hartford Springfield - BDL
+260. Havana - HAV
+261. Honolulu International Airport - HNL
+262. Houston - IAH
+263. Houston – todos os aeroportos - HOU
+264. Humberside - HUY
+265. Ibagué - IBE
+266. Iguazu - IGR
+267. Ilhas Galápagos - GPS
+268. Indianapolis - IND
+269. Ipiales - IPI
+270. Iquique - Tarapacá - IQQ
+271. Iquitos - Loreto - IQT
+272. Istambul - IST
+273. Jacksonville - JAX
+274. Jauja - Junín - JAU
+275. Johannesburg - JNB
+276. Jujuy - JUJ
+277. Juliaca - Puno - JUL
+278. Kansas City Missouri - MCI
+279. Key West - EYW
+280. Kingston - KIN
+281. Knoxville - TYS
+282. Kristiansand - KRS
+283. La Paz – El Alto - LPB
+284. La Rioja - IRJ
+285. La Serena - Coquimbo - LSC
+286. Laayoune, Morocco - EUN
+287. Lagos, Nigeria - LOS
+288. Las Vegas - LAS
+289. Leeds/Bradford - LBA
+290. Leticia - LET
+291. León - BJX
+292. Lima - LIM
+293. Linkoping Airport - LPI
+294. Lisboa - LIS
+295. Little Rock - LIT
+296. Lome, Togo - LFW
+297. London - Heathrow - LHR
+298. Los Angeles - LAX
+299. Louisville - SDF
+300. Luanda - LAD
+301. Lyon Satolas Airport - LYS
+302. Madison - MSN
+303. Madrid - Barajas - MAD
+304. Manchester - MAN
+305. Manta - MEC
+306. Manágua - MGA
+307. Maputo - MPM
+308. Mar del Plata - MDQ
+309. Maracaibo - MAR
+310. Marrakech, Morocco - RAK
+311. Marseille - MRS
+312. Medellín - MDE
+313. Memphis - MEM
+314. Mendoza - MDZ
+315. Miami - MIA
+316. Milwaukee - MKE
+317. Milão - Linate - LIN
+318. Milão - Malpensa - MXP
+319. Minneapolis - MSP
+320. Moncton - YQM
+321. Monrovia Roberts, Liberia - ROB
+322. Montego Bay - MBJ
+323. Monterrey - MTY
+324. Montería - MTR
+325. Montevidéu - MVD
+326. Montpellier - MPL
+327. Montreal - YMQ
+328. Montreal - YUL
+329. Munich International - MUC
+330. Nador, Morocco - NDR
+331. Nantes - NTE
+332. Napoles - NAP
+333. Nashville - BNA
+334. Nassau - NAS
+335. Neiva - NVA
+336. Neuquen - NQN
+337. New Orleans - MSY
+338. Newcastle - NCL
+339. Niamey, Niger - NIM
+340. Nice - NCE
+341. Norfolk Virginia - ORF
+342. Norwich - NWI
+343. Nouakchott, Mauritania - NKC
+344. Nova Iorque - John F. Kennedy - JFK
+345. Nova Iorque - La Guardia - LGA
+346. Nova Iorque - Newark - EWR
+347. Nova Iorque – Todos os aeroportos - NYC
+348. Nuremberg Airport - NUE
+349. Oakland - OAK
+350. Oklahoma City - OKC
+351. Omaha - OMA
+352. Ontário - Califórnia - ONT
+353. Orlando - MCO
+354. Oslo Gardemoen - OSL
+355. Oslo Sandefjord - TRF
+356. Osorno - Los Lagos - ZOS
+357. Ottawa - YOW
+358. Ouagadougou, Burkina Faso - OUA
+359. Ouarzazate, Morocco - OZZ
+360. Oujda, Morocco - OUD
+361. Paramaribo - PBM
+362. Paris - Charles De Gaulle - CDG
+363. Paris - Todos os aeroportos - PAR
+364. Pau - PUF
+365. Pensacola - PNS
+366. Pereira - PEI
+367. Phoenix - PHX
+368. Pittsburgh - PIT
+369. Piura - PIU
+370. Pointe-a-Pitre, Guadeloupe - PTP
+371. Ponta Negra - PNR
+372. Popayán - PPN
+373. Port Elizabeth - PLZ
+374. Portland - PDX
+375. Porto - OPO
+376. Porto Príncipe - PAP
+377. Posadas - PSS
+378. Praia, Cape Verde - RAI
+379. Pucallpa - Ucayali - PCL
+380. Puerto Maldonado - Madre de Dios - PEM
+381. Puerto Montt - Los Lagos - PMC
+382. Puerto Natales - Magallanes y de la Antártica Chilena - PNT
+383. Punta Arenas - Magallanes y de la Antártica Chilena - PUQ
+384. Punta Cana - PUJ
+385. Punta Del Este - PDP
+386. Quebec - YQB
+387. Quibdó - UIB
+388. Quinxassa - FIH
+389. Quito - UIO
+390. Raleigh/Durham - RDU
+391. Regina - YQR
+392. Rennes - RNS
+393. Resistencia - RES
+394. Rhodes, Rhodos Island - RHO
+395. Richmond - RIC
+396. Rio Gallegos - RGL
+397. Rio Grande - RGA
+398. Rio Hondo - RHD
+399. Riohacha - RCH
+400. Rochester - ROC
+401. Rodriguez Ballon Airport - AQP
+402. Roma – Feumicio – Todos os aeroportos - ROM
+403. Roma – Fiumicino - FCO
+404. Rosario - ROS
+405. Sacramento - SMF
+406. Saint Croix - STX
+407. Saint Louis - STL
+408. Saint Thomas - STT
+409. Sal, Cape Verde - SID
+410. Salt Lake City - SLC
+411. Salta - SLA
+412. Salto da Santa Maria - YAM
+413. San Andrés - ADZ
+414. San Antonio - SAT
+415. San Cristobal – Ilhas Galápagos - SCY
+416. San Diego - SAN
+417. San José - Califórnia - SJC
+418. San José - Costa Rica - SJO
+419. San José del Cabo - SJD
+420. San Juan - SJU
+421. San Juan - UAQ
+422. San Juan de Pasto - PSO
+423. San Luis - LUQ
+424. San Martín de los Andes - CPC
+425. San Pedro Sula - SAP
+426. San Rafael - AFA
+427. San Salvador - SAL
+428. Santa Cruz de la Sierra - VVI
+429. Santa Fe - SFN
+430. Santa Marta - SMR
+431. Santa Rosa - RSA
+432. Santana do Livramento - RVY
+433. Santiago - SCL
+434. Santiago del Estero - SDE
+435. Santo Domingo - SDQ
+436. Savannah - SAV
+437. Schiphol Airport - AMS
+438. Seattle - SEA
+439. Sevilha - SVQ
+440. Stavanger - SVG
+441. Stuttgart Airport - STR
+442. Sucre Airport - SRE
+443. Sudbury - YSB
+444. Sydney - YQY
+445. Syracuse - SYR
+446. São Francisco - SFO
+447. São João da Terra Nova - YSJ
+448. São Martinho - SXM
+449. Tacna - TCQ
+450. Tampa - TPA
+451. Tangier, Morocco - TNG
+452. Tarapoto - San Martín - TPP
+453. Tegucigalpa - XPL
+454. Temuco - Araucanía - ZCO
+455. Thunder Bay - YQT
+456. Tijuana - TIJ
+457. Timmins - YTS
+458. Tobago - TAB
+459. Toronto - YTO
+460. Toronto - YYZ
+461. Toulouse - TLS
+462. Trelew - REL
+463. Trondheim - TRD
+464. Trujillo - La Libertad - TRU
+465. Tucuman - TUC
+466. Tulsa - TUL
+467. Tulum - TQO
+468. Tumbes - TBP
+469. Tunis, Tunisia - TUN
+470. Turin - TRN
+471. Ushuaia - USH
+472. Valdivia - Los Ríos - ZAL
+473. Valledupar - VUP
+474. Valência - VLC
+475. Vancouver - YVR
+476. Veneza - VCE
+477. Viedma - VDM
+478. Villavicencio - VVC
+479. Washington - Dulles - IAD
+480. Washington - Ronald Reagan - DCA
+481. Washington – Todos os aeroportos - WAS
+482. Wichita - ICT
+483. Windhoek - WDH
+484. Windsor - YQG
+485. Winnipeg - YWG
+486. Zurich - ZRH

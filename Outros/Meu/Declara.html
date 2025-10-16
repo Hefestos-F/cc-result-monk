@@ -23,93 +23,93 @@
       Preencha os campos abaixo e clique em "Gerar Declaração" para criar o
       texto formatado.
     </p>
-
-    <label for="cidade">Cidade da declaração</label>
-    <input id="cidade" value="São Paulo" readonly />
-    <label for="declaracao_date">Data da declaração</label>
-    <input
-      id="declaracao_date"
-      type="date"
-      aria-label="data da declaracao"
-      readonly
-    />
-
-    <label for="nome">Nome do(a) passageiro(a)</label>
-    <input id="nome" value="X" />
-
-    <label for="localizador">Código localizador</label>
-    <input id="localizador" value="X" />
-
-    <label for="origem">Origem</label>
-    <select id="origem">
-      <option value="X">X</option>
-      <option value="Belém (BEL)">Belém (BEL)</option>
-      <option value="Belo Horizonte - Confins (CNF)">
-        Belo Horizonte - Confins (CNF)
-      </option>
-      <option value="Brasília (BSB)">Brasília (BSB)</option>
-      <option value="Curitiba (CWB)">Curitiba (CWB)</option>
-      <option value="Florianópolis (FLN)">Florianópolis (FLN)</option>
-      <option value="Fortaleza (FOR)">Fortaleza (FOR)</option>
-      <option value="Manaus (MAO)">Manaus (MAO)</option>
-      <option value="Porto Alegre (POA)">Porto Alegre (POA)</option>
-      <option value="Recife (REC)">Recife (REC)</option>
-      <option value="Rio de Janeiro - Galeão (GIG)">
-        Rio de Janeiro - Galeão (GIG)
-      </option>
-      <option value="Rio de Janeiro - Santos Dumont (SDU)">
-        Rio de Janeiro - Santos Dumont (SDU)
-      </option>
-      <option value="Salvador (SSA)">Salvador (SSA)</option>
-      <option value="São Paulo - Congonhas (CGH)">
-        São Paulo - Congonhas (CGH)
-      </option>
-      <option value="São Paulo - Guarulhos (GRU)">
-        São Paulo - Guarulhos (GRU)
-      </option>
-    </select>
-
-    <label for="destino">Destino</label>
-    <select id="destino">
-      <option value="X">X</option>
-      <option value="Belém (BEL)">Belém (BEL)</option>
-      <option value="Belo Horizonte - Confins (CNF)">
-        Belo Horizonte - Confins (CNF)
-      </option>
-      <option value="Brasília (BSB)">Brasília (BSB)</option>
-      <option value="Curitiba (CWB)">Curitiba (CWB)</option>
-      <option value="Florianópolis (FLN)">Florianópolis (FLN)</option>
-      <option value="Fortaleza (FOR)">Fortaleza (FOR)</option>
-      <option value="Manaus (MAO)">Manaus (MAO)</option>
-      <option value="Porto Alegre (POA)">Porto Alegre (POA)</option>
-      <option value="Recife (REC)">Recife (REC)</option>
-      <option value="Rio de Janeiro - Galeão (GIG)">
-        Rio de Janeiro - Galeão (GIG)
-      </option>
-      <option value="Rio de Janeiro - Santos Dumont (SDU)">
-        Rio de Janeiro - Santos Dumont (SDU)
-      </option>
-      <option value="Salvador (SSA)">Salvador (SSA)</option>
-      <option value="São Paulo - Congonhas (CGH)">
-        São Paulo - Congonhas (CGH)
-      </option>
-      <option value="São Paulo - Guarulhos (GRU)">
-        São Paulo - Guarulhos (GRU)
-      </option>
-    </select>
-
-    <label for="companhia">Companhia aérea</label>
-    <input id="companhia" value="GOL Linhas Aéreas S.A" readonly disabled />
-
-    <h3>Voo de ida</h3>
-    <label>Tipo de viagem</label>
     <div class="row">
-      <select id="tipo_viagem_select" onchange="marcadoida()">
-        <option value="X">X</option>
-        <option value="ida">IDA</option>
-        <option value="ida/volta">IDA/VOLTA</option>
+      <label for="cidade">Cidade da declaração</label>
+      <input id="cidade" value="São Paulo" readonly />
+      <label for="declaracao_date">Data da declaração</label>
+      <input
+        id="declaracao_date"
+        type="date"
+        aria-label="data da declaracao"
+        readonly
+      />
+
+      <label for="companhia">Companhia aérea</label>
+      <input id="companhia" value="GOL Linhas Aéreas S.A" readonly disabled />
+    </div>
+    <div class="row">
+      <label for="nome">Nome do(a) passageiro(a)</label>
+      <input id="nome" value="-" />
+
+      <label for="localizador">Código localizador</label>
+      <input id="localizador" value="-" />
+    </div>
+    <div class="row">
+      <label for="origem">Origem</label>
+      <select id="origem">
+        <option value="-">-</option>
+        <option value="Belém (BEL)">Belém (BEL)</option>
+        <option value="Belo Horizonte - Confins (CNF)">
+          Belo Horizonte - Confins (CNF)
+        </option>
+        <option value="Brasília (BSB)">Brasília (BSB)</option>
+        <option value="Curitiba (CWB)">Curitiba (CWB)</option>
+        <option value="Florianópolis (FLN)">Florianópolis (FLN)</option>
+        <option value="Fortaleza (FOR)">Fortaleza (FOR)</option>
+        <option value="Manaus (MAO)">Manaus (MAO)</option>
+        <option value="Porto Alegre (POA)">Porto Alegre (POA)</option>
+        <option value="Recife (REC)">Recife (REC)</option>
+        <option value="Rio de Janeiro - Galeão (GIG)">
+          Rio de Janeiro - Galeão (GIG)
+        </option>
+        <option value="Rio de Janeiro - Santos Dumont (SDU)">
+          Rio de Janeiro - Santos Dumont (SDU)
+        </option>
+        <option value="Salvador (SSA)">Salvador (SSA)</option>
+        <option value="São Paulo - Congonhas (CGH)">
+          São Paulo - Congonhas (CGH)
+        </option>
+        <option value="São Paulo - Guarulhos (GRU)">
+          São Paulo - Guarulhos (GRU)
+        </option>
+      </select>
+
+      <label for="destino">Destino</label>
+      <select id="destino">
+        <option value="-">-</option>
+        <option value="Belém (BEL)">Belém (BEL)</option>
+        <option value="Belo Horizonte - Confins (CNF)">
+          Belo Horizonte - Confins (CNF)
+        </option>
+        <option value="Brasília (BSB)">Brasília (BSB)</option>
+        <option value="Curitiba (CWB)">Curitiba (CWB)</option>
+        <option value="Florianópolis (FLN)">Florianópolis (FLN)</option>
+        <option value="Fortaleza (FOR)">Fortaleza (FOR)</option>
+        <option value="Manaus (MAO)">Manaus (MAO)</option>
+        <option value="Porto Alegre (POA)">Porto Alegre (POA)</option>
+        <option value="Recife (REC)">Recife (REC)</option>
+        <option value="Rio de Janeiro - Galeão (GIG)">
+          Rio de Janeiro - Galeão (GIG)
+        </option>
+        <option value="Rio de Janeiro - Santos Dumont (SDU)">
+          Rio de Janeiro - Santos Dumont (SDU)
+        </option>
+        <option value="Salvador (SSA)">Salvador (SSA)</option>
+        <option value="São Paulo - Congonhas (CGH)">
+          São Paulo - Congonhas (CGH)
+        </option>
+        <option value="São Paulo - Guarulhos (GRU)">
+          São Paulo - Guarulhos (GRU)
+        </option>
       </select>
     </div>
+    <h3>Voo de ida</h3>
+    <label>Tipo de viagem</label>
+    <select id="tipo_viagem_select" onchange="marcadoida()">
+      <option value="-"></option>
+      <option value="ida">IDA</option>
+      <option value="ida/volta">IDA/VOLTA</option>
+    </select>
     <div id="CaixaDida" style="display: none;">
       <div class="row">
         <div>
@@ -118,45 +118,47 @@
         </div>
         <div>
           <label for="ida_num">Número do voo</label>
-          <input id="ida_num" value="X" />
+          <input id="ida_num" value="-" />
         </div>
       </div>
       <div class="row">
         <div>
           <label for="ida_partida_aero">Partida - aeroporto (código)</label>
-          <input id="ida_partida_aero" value="X" />
+          <input id="ida_partida_aero" value="-" />
         </div>
         <div>
           <label for="ida_partida_hora">Horário partida</label>
-          <input id="ida_partida_hora" value="X" />
+          <input id="ida_partida_hora" value="-" />
         </div>
       </div>
-      
+
       <div class="row">
         <div>
           <label for="ida_chegada_aero">Chegada - aeroporto (código)</label>
-          <input id="ida_chegada_aero" value="X" />
+          <input id="ida_chegada_aero" value="-" />
         </div>
         <div>
           <label for="ida_chegada_hora">Horário chegada</label>
-          <input id="ida_chegada_hora" value="X" />
+          <input id="ida_chegada_hora" value="-" />
         </div>
       </div>
       <div id="ida_con_1" style="display: none;">
         <div class="row">
-          <label for="ida_num_C1">Número do voo</label>
-          <input id="ida_num_C1" value="X" />
+          <div>
+            <label for="ida_num_C1">Número do voo</label>
+            <input id="ida_num_C1" value="-" />
+          </div>
         </div>
         <div class="row">
           <div>
             <label for="ida_partida_aero_C1"
               >Partida - aeroporto (código)</label
             >
-            <input id="ida_partida_aero_C1" value="X" />
+            <input id="ida_partida_aero_C1" value="-" />
           </div>
           <div>
             <label for="ida_partida_hora_C1">Horário partida</label>
-            <input id="ida_partida_hora_C1 value="X" />
+            <input id="ida_partida_hora_C1 value="-" />
           </div>
         </div>
         <div class="row">
@@ -164,11 +166,11 @@
             <label for="ida_chegada_aero_C1"
               >Chegada - aeroporto (código)</label
             >
-            <input id="ida_chegada_aero_C1" value="X" />
+            <input id="ida_chegada_aero_C1" value="-" />
           </div>
           <div>
             <label for="ida_chegada_hora_C1">Horário chegada</label>
-            <input id="ida_chegada_hora_C1" value="X" />
+            <input id="ida_chegada_hora_C1" value="-" />
           </div>
         </div>
       </div>
@@ -191,27 +193,27 @@
         </div>
         <div>
           <label for="volta_num">Número do voo</label>
-          <input id="volta_num" value="X" />
+          <input id="volta_num" value="-" />
         </div>
       </div>
       <div class="row">
         <div>
           <label for="volta_partida_aero">Partida - aeroporto (código)</label>
-          <input id="volta_partida_aero" value="X" />
+          <input id="volta_partida_aero" value="-" />
         </div>
         <div>
           <label for="volta_partida_hora">Horário partida</label>
-          <input id="volta_partida_hora" value="X" />
+          <input id="volta_partida_hora" value="-" />
         </div>
       </div>
       <div class="row">
         <div>
           <label for="volta_chegada_aero">Chegada - aeroporto (código)</label>
-          <input id="volta_chegada_aero" value="X" />
+          <input id="volta_chegada_aero" value="-" />
         </div>
         <div>
           <label for="volta_chegada_hora">Horário chegada</label>
-          <input id="volta_chegada_hora" value="X" />
+          <input id="volta_chegada_hora" value="-" />
         </div>
       </div>
     </div>
@@ -227,423 +229,132 @@
     <pre id="preview"></pre>
 
     <script>
-      const $ = (id) => document.getElementById(id);
+      const Byid = (id) => document.getElementById(id);
 
-      const ida_conexoes_count = $("ida_conexoes_count");
-      const ida_con_1 = $("ida_con_1");
+      // ---- Mostrar/ocultar conexões (ida) ----
+      const ida_conexoes_count = Byid("ida_conexoes_count");
+      const ida_con_1 = Byid("ida_con_1");
+
       ida_conexoes_count.addEventListener("input", () => {
-        if(ida_conexoes_count.value !== 0){
-            ida_con_1.style.display = "flow";
-        }else{
-            ida_con_1.style.display = "none";
-        }
+        const qtd = Number(ida_conexoes_count.value || 0);
+        ida_con_1.style.display = qtd > 0 ? "block" : "none";
       });
 
+      // ---- Mostrar/ocultar se é ida e/ou volta ----
       function marcadoida() {
-        const CaixaDida = $("CaixaDida");
-        const CaixaDvolta = $("CaixaDvolta");
-        const tipo_viagem_select = $("tipo_viagem_select");
+        const CaixaDida = Byid("CaixaDida");
+        const CaixaDvolta = Byid("CaixaDvolta");
+        const tipo_viagem_select = Byid("tipo_viagem_select");
 
         if (
           tipo_viagem_select.value === "ida/volta" ||
           tipo_viagem_select.value === "ida"
         ) {
-          CaixaDida.style.display = "flow";
+          CaixaDida.style.display = "block";
         } else {
           CaixaDida.style.display = "none";
         }
+
         if (tipo_viagem_select.value === "ida/volta") {
-          CaixaDvolta.style.display = "flow";
+          CaixaDvolta.style.display = "block";
         } else {
           CaixaDvolta.style.display = "none";
         }
+
+        atualizarIda();
       }
 
-      function generate() {
-        const cidade = $("cidade").value;
-        const declaracao_date = $("declaracao_date").value;
-        const cidade_local =
-          cidade +
-          (declaracao_date ? ", " + formatDatePt(declaracao_date) : ", X");
-        const nomeInput = $("nome").value.trim();
-        const nome = nomeInput
-          ? nomeInput.charAt(0).toUpperCase() + nomeInput.slice(1).toLowerCase()
-          : "X";
+      // ---- Preenchimento automático do aeroporto de partida (ida) ----
+      const ida_partida_aero = Byid("ida_partida_aero");
+      const origem = Byid("origem"); // Certifique-se que existe no HTML
 
-        const locInput = $("localizador").value.trim().toUpperCase();
-        const localizador =
-          locInput.length === 6 ? locInput : locInput.padEnd(6, "X");
-        const companhia = $("companhia").value.trim();
+      function atualizarIda() {
+        if (ida_partida_aero && origem) {
+          if (ida_partida_aero.value === "-") {
+            ida_partida_aero.value = origem.value || "-";
+          }
+        }
+      }
 
-        const ida_data = $("ida_data").value;
-        const ida_num = $("ida_num").value.trim();
-        const ida_partida_aero = $("ida_partida_aero").value.trim();
-        const ida_partida_hora = $("ida_partida_hora").value.trim();
-        const ida_chegada_aero = $("ida_chegada_aero").value.trim();
-        const ida_chegada_hora = $("ida_chegada_hora").value.trim();
-        // coletar conexões ida
-        const ida_conexoes = [];
-        const idaCount = Number($("ida_conexoes_count").value || 0);
-        for (let i = 0; i < idaCount; i++) {
-          const v = document.getElementById("ida_conexao_" + i);
-          if (v) ida_conexoes.push(v.value.trim() || "X");
+      if (ida_partida_aero) {
+        ida_partida_aero.addEventListener("input", atualizarIda);
+      }
+
+      // ---- Geração do texto somente sob demanda ----
+      function textoInicial() {
+        const cidadeEl = Byid("cidade");
+        const dataDeclEl = Byid("declaracao_date");
+        const cidade = cidadeEl ? cidadeEl.value : "";
+        const dataDecl = dataDeclEl ? dataDeclEl.value : "";
+        return `${cidade}, ${dataDecl}`;
+      }
+
+      function textodaida() {
+        // Campos base
+        const nome = Byid("nome")?.value ?? "";
+        const localizador = Byid("localizador")?.value ?? "";
+        const companhia = Byid("companhia")?.value ?? "";
+        const ida_data = Byid("ida_data")?.value ?? "";
+        const ida_num = Byid("ida_num")?.value ?? "";
+        const ida_partida_aero_v = Byid("ida_partida_aero")?.value ?? "";
+        const ida_partida_hora = Byid("ida_partida_hora")?.value ?? "";
+        const ida_chegada_aero = Byid("ida_chegada_aero")?.value ?? "";
+        const ida_chegada_hora = Byid("ida_chegada_hora")?.value ?? "";
+
+        let texto =
+          `Fazemos referência, por ora, que&nbsp;a&nbsp;Sr.(a)&nbsp;${nome}&nbsp;possuía a passagem de código ` +
+          `localizador ${localizador} e embarcou com a companhia ${companhia}, sendo o voo de ` +
+          `ida no dia&nbsp;${ida_data}, no voo G3&nbsp;${ida_num}, partindo do ${ida_partida_aero_v} às ${ida_partida_hora}, ` +
+          `chegando em ${ida_chegada_aero} às ${ida_chegada_hora}`;
+
+        // Conexão 1 (opcional)
+        const qtdCon = Number(Byid("ida_conexoes_count")?.value || 0);
+        if (qtdCon > 0) {
+          const v = Byid("ida_num_C1")?.value ?? "";
+          const o = Byid("ida_partida_aero_C1")?.value ?? "";
+          const hs = Byid("ida_partida_hora_C1")?.value ?? "";
+          const d = Byid("ida_chegada_aero_C1")?.value ?? "";
+          const hc = Byid("ida_chegada_hora_C1")?.value ?? "";
+          texto += `, com uma conexão no voo G3&nbsp;${v}, partindo de ${o} às&nbsp;${hs},&nbsp;chegando em ${d} às&nbsp;${hc}`;
         }
 
-        const volta_data = $("volta_data").value;
-        const volta_num = $("volta_num").value.trim();
-        const volta_partida_aero = $("volta_partida_aero").value.trim();
-        const volta_partida_hora = $("volta_partida_hora").value.trim();
-        const volta_chegada_aero = $("volta_chegada_aero").value.trim();
-        const volta_chegada_hora = $("volta_chegada_hora").value.trim();
-        // coletar conexões volta
-        const volta_conexoes = [];
-        const voltaCount = Number(
-          ($("volta_conexoes_count") && $("volta_conexoes_count").value) || 0
+        return texto;
+      }
+
+      function textodavolta() {
+        const volta_data = Byid("volta_data")?.value ?? "";
+        const volta_num = Byid("volta_num")?.value ?? "";
+        const volta_partida_aero = Byid("volta_partida_aero")?.value ?? "";
+        const volta_partida_hora = Byid("volta_partida_hora")?.value ?? "";
+        const volta_chegada_aero = Byid("volta_chegada_aero")?.value ?? "";
+        const volta_chegada_hora = Byid("volta_chegada_hora")?.value ?? "";
+
+        return (
+          `E&nbsp;o voo de&nbsp;volta&nbsp;no dia&nbsp;${volta_data}, no voo G3&nbsp;${volta_num}, partindo de&nbsp;${volta_partida_aero} às ` +
+          `${volta_partida_hora}, chegando em ${volta_chegada_aero} às ${volta_chegada_hora}`
         );
-        for (let i = 0; i < voltaCount; i++) {
-          const v = document.getElementById("volta_conexao_" + i);
-          if (v) volta_conexoes.push(v.value.trim() || "X");
-        }
+      }
 
-        // Validações básicas de datas
-        if (!ida_data) {
-          alert("Preencha a data da viagem (ida).");
-          return null;
-        }
-        const tipoVal = document.querySelector(
-          'input[name="tipo_viagem"]:checked'
-        ).value;
-        if (tipoVal === "ida_volta" && !volta_data) {
-          alert("Preencha a data da viagem (volta).");
-          return null;
-        }
+      // Botão "Gerar Declaração"
+      const btnGerar = Byid("btn_gerar");
+      const preview = Byid("preview");
 
-        const lines = [];
-        lines.push("Declaração de Embarque");
-        lines.push("");
-        lines.push("");
-        lines.push("");
-        lines.push("");
-        lines.push(cidade_local);
-        lines.push("");
-        lines.push(
-          "Fazemos referência, por ora, que a Sr.(a) " +
-            (nome || "X") +
-            " possuía a passagem de código localizador " +
-            (localizador || "X") +
-            " e embarcou com a companhia " +
-            companhia +
-            ", sendo o voo no dia " +
-            (formatDatePt(ida_data) || "X") +
-            ", no voo " +
-            (ida_num || "X") +
-            ", partindo do " +
-            (ida_partida_aero || "X") +
-            " às " +
-            (ida_partida_hora || "X") +
-            ", chegando em " +
-            (ida_chegada_aero || "X") +
-            " às " +
-            (ida_chegada_hora || "X") +
-            "."
-        );
-        // parágrafos de conexões ida
-        ida_conexoes.forEach((c, idx) => {
-          lines.push("Com conexão " + (idx + 1) + ": " + c + ".");
+      if (btnGerar && preview) {
+        btnGerar.addEventListener("click", (e) => {
+          e.preventDefault();
+
+          const tipo = Byid("tipo_viagem_select")?.value;
+          let partes = [textoInicial(), textodaida()];
+          if (tipo === "ida/volta") {
+            partes.push(textodavolta());
+          }
+
+          // Usar innerHTML para respeitar &nbsp;
+          preview.innerHTML = partes.filter(Boolean).join(". ") + ".";
         });
-        lines.push("");
-        // adicionar trecho de volta somente se tipo for ida_volta
-        const tipo = document.querySelector(
-          'input[name="tipo_viagem"]:checked'
-        ).value;
-        if (tipo === "ida_volta") {
-          lines.push(
-            "E o voo de volta no dia " +
-              (formatDatePt(volta_data) || "X") +
-              ", no voo " +
-              (volta_num || "X") +
-              ", partindo de " +
-              (volta_partida_aero || "X") +
-              " às " +
-              (volta_partida_hora || "X") +
-              ", chegando em " +
-              (volta_chegada_aero || "X") +
-              " às " +
-              (volta_chegada_hora || "X") +
-              "."
-          );
-          volta_conexoes.forEach((c, idx) => {
-            lines.push("Conexão de volta " + (idx + 1) + ": " + c + ".");
-          });
-        }
-
-        const text = lines.join("\n");
-        $("preview").textContent = text;
-        return text;
       }
 
-      $("btn_gerar").addEventListener("click", () => {
-        const txt = generate();
-        if (txt) alert("Declaração gerada. Veja no preview abaixo.");
-      });
-
-      $("btn_exemplo").addEventListener("click", () => {
-        // Limpa para Xs (o usuário pediu para retirar exemplo e deixar X)
-        // preservar cidade e data da declaração
-        document.querySelectorAll("input").forEach((i) => {
-          if (!i.readOnly && i.id !== "declaracao_date") i.value = "X";
-        });
-        // definir selects para X se existirem opção X
-        document.querySelectorAll("select").forEach((s) => {
-          if ([...s.options].some((o) => o.value === "X")) s.value = "X";
-        });
-        // limpar datas de ida/volta (devem ser preenchidas pelo usuário)
-        $("ida_data").value = "";
-        $("volta_data").value = "";
-        // reset conexões
-        $("ida_conexoes_count").value = 0;
-        renderConexoes("ida_conexoes_container", 0, "ida_conexao");
-        $("volta_conexoes_count").value = 0;
-        renderConexoes("volta_conexoes_container", 0, "volta_conexao");
-        $("preview").textContent = "";
-        alert("Campos preenchidos com X. Preencha as datas e clique em Gerar.");
-      });
-
-      $("btn_copiar").addEventListener("click", async () => {
-        const txt = $("preview").textContent;
-        if (!txt) {
-          alert("Gere a declaração primeiro.");
-          return;
-        }
-        try {
-          await navigator.clipboard.writeText(txt);
-          alert("Texto copiado para a área de transferência.");
-        } catch (e) {
-          // fallback
-          const ta = document.createElement("textarea");
-          ta.value = txt;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          ta.remove();
-          alert("Texto copiado (fallback).");
-        }
-      });
-
-      $("btn_imprimir").addEventListener("click", () => {
-        const txt = $("preview").textContent;
-        if (!txt) {
-          alert("Gere a declaração primeiro.");
-          return;
-        }
-        const w = window.open("", "_blank");
-        w.document.write(
-          '<pre style="font-family:system-ui;white-space:pre-wrap">' +
-            escapeHtml(txt) +
-            "</pre>"
-        );
-        w.document.close();
-        w.focus();
-        w.print();
-      });
-
-      $("btn_baixar").addEventListener("click", () => {
-        const txt = $("preview").textContent;
-        if (!txt) {
-          alert("Gere a declaração primeiro.");
-          return;
-        }
-        const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "declaracao_embarque.txt";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      });
-
-      function escapeHtml(s) {
-        if (!s) return "";
-        return String(s)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
-      }
-
-      function formatDatePt(isoDate) {
-        // isoDate: 'yyyy-mm-dd' -> '01 de Setembro de 2025'
-        if (!isoDate) return "";
-        try {
-          const d = new Date(isoDate + "T00:00:00");
-          const monthNames = [
-            "janeiro",
-            "fevereiro",
-            "março",
-            "abril",
-            "maio",
-            "junho",
-            "julho",
-            "agosto",
-            "setembro",
-            "outubro",
-            "novembro",
-            "dezembro",
-          ];
-          const day = String(d.getDate()).padStart(2, "0");
-          const month = monthNames[d.getMonth()];
-          const year = d.getFullYear();
-          return day + " de " + capitalize(month) + " de " + year;
-        } catch (e) {
-          return isoDate;
-        }
-      }
-
-      function capitalize(s) {
-        return s && s[0].toUpperCase() + s.slice(1);
-      }
-
-      function renderConexoes(containerId, count, prefix) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
-        for (let i = 0; i < count; i++) {
-          const div = document.createElement("div");
-          div.style.marginTop = "8px";
-          // Campo: Aeroporto com lista
-          const labelAero = document.createElement("label");
-          labelAero.textContent = "Conexão " + (i + 1) + " - Aeroporto";
-          const selectAero = document.createElement("select");
-          selectAero.id = prefix + "_aero_" + i;
-          const options = [
-            { value: "X", text: "X" },
-            { value: "Belém (BEL)", text: "Belém (BEL)" },
-            {
-              value: "Belo Horizonte - Confins (CNF)",
-              text: "Belo Horizonte - Confins (CNF)",
-            },
-            { value: "Brasília (BSB)", text: "Brasília (BSB)" },
-            { value: "Curitiba (CWB)", text: "Curitiba (CWB)" },
-            { value: "Florianópolis (FLN)", text: "Florianópolis (FLN)" },
-            { value: "Fortaleza (FOR)", text: "Fortaleza (FOR)" },
-            { value: "Manaus (MAO)", text: "Manaus (MAO)" },
-            { value: "Porto Alegre (POA)", text: "Porto Alegre (POA)" },
-            { value: "Recife (REC)", text: "Recife (REC)" },
-            {
-              value: "Rio de Janeiro - Galeão (GIG)",
-              text: "Rio de Janeiro - Galeão (GIG)",
-            },
-            {
-              value: "Rio de Janeiro - Santos Dumont (SDU)",
-              text: "Rio de Janeiro - Santos Dumont (SDU)",
-            },
-            { value: "Salvador (SSA)", text: "Salvador (SSA)" },
-            {
-              value: "São Paulo - Congonhas (CGH)",
-              text: "São Paulo - Congonhas (CGH)",
-            },
-            {
-              value: "São Paulo - Guarulhos (GRU)",
-              text: "São Paulo - Guarulhos (GRU)",
-            },
-          ];
-          options.forEach((optData) => {
-            const opt = document.createElement("option");
-            opt.value = optData.value;
-            opt.textContent = optData.text;
-            selectAero.appendChild(opt);
-          });
-          div.appendChild(labelAero);
-          div.appendChild(selectAero);
-
-          // Campo: Número do voo
-          const labelVoo = document.createElement("label");
-          labelVoo.textContent = "Conexão " + (i + 1) + " - Número do voo";
-          const inputVoo = document.createElement("input");
-          inputVoo.id = prefix + "_num_" + i;
-          inputVoo.value = "X";
-          div.appendChild(labelVoo);
-          div.appendChild(inputVoo);
-
-          // Campo: Hora de chegada na conexão
-          const labelCheg = document.createElement("label");
-          labelCheg.textContent =
-            "Conexão " + (i + 1) + " - Horário de chegada na conexão";
-          const inputCheg = document.createElement("input");
-          inputCheg.id = prefix + "_cheg_" + i;
-          inputCheg.value = "X";
-          div.appendChild(labelCheg);
-          div.appendChild(inputCheg);
-
-          // Campo: Hora de partida para o destino
-          const labelPart = document.createElement("label");
-          labelPart.textContent =
-            "Conexão " + (i + 1) + " - Horário de partida para o destino";
-          const inputPart = document.createElement("input");
-          inputPart.id = prefix + "_part_" + i;
-          inputPart.value = "X";
-          div.appendChild(labelPart);
-          div.appendChild(inputPart);
-
-          container.appendChild(div);
-        }
-      }
-
-      function init() {
-        // definir data da declaracao como hoje
-        const today = new Date();
-        const iso = today.toISOString().slice(0, 10);
-        $("declaracao_date").value = iso;
-
-        // controlar visibilidade da volta
-        const tipoRadios = document.querySelectorAll(
-          'input[name="tipo_viagem"]'
-        );
-        tipoRadios.forEach((r) =>
-          r.addEventListener("change", () => {
-            const tipo = document.querySelector(
-              'input[name="tipo_viagem"]:checked'
-            ).value;
-            $("volta_section").style.display =
-              tipo === "ida_volta" ? "block" : "none";
-            if (tipo === "ida_volta") {
-              $("volta_partida_aero").value = $("ida_chegada_aero").value;
-              $("volta_chegada_aero").value = $("ida_partida_aero").value;
-            }
-          })
-        );
-        // set initial
-        document.querySelector(
-          'input[name="tipo_viagem"][value="ida"]'
-        ).checked = true;
-        $("volta_section").style.display = "none";
-
-        // listeners para contadores
-        $("ida_conexoes_count").addEventListener("change", () => {
-          const c = Number($("ida_conexoes_count").value) || 0;
-          renderConexoes("ida_conexoes_container", c, "ida_conexao");
-        });
-        $("volta_conexoes_count").addEventListener("change", () => {
-          const c = Number($("volta_conexoes_count").value) || 0;
-          renderConexoes("volta_conexoes_container", c, "volta_conexao");
-        });
-        // inicial
-        renderConexoes(
-          "ida_conexoes_container",
-          Number($("ida_conexoes_count").value) || 0,
-          "ida_conexao"
-        );
-        renderConexoes(
-          "volta_conexoes_container",
-          Number($("volta_conexoes_count").value) || 0,
-          "volta_conexao"
-        );
-      }
-
-      // inicializa comportamentos
-      init();
-
-      // Não gerar automaticamente: página começa com valores 'X' e datas vazias
+      // Não gerar automaticamente: página inicia com valores padrões
     </script>
   </body>
 </html>
