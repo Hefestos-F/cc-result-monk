@@ -419,13 +419,7 @@
       const volta_chegada_aero = Byid("volta_chegada_aero");
 
       // ---- Texto inicial (cidade e data da declaração) ----
-      function textoInicial() {
-        const cidadeEl = Byid("cidade");
-        const dataDeclEl = Byid("declaracao_date");
-        const cidade = cidadeEl ? cidadeEl.value : "";
-        const dataDecl = dataDeclEl ? dataDeclEl.value : "";
-        return `${cidade}, ${dataDecl}`;
-      }
+      // função consolidada definida mais adiante (evita duplicatas)
 
       // ---- Botão "Gerar Declaração" ----
       // ===== Funções de ações: gerar, copiar, imprimir, baixar, exemplo =====
@@ -509,6 +503,105 @@
         return true;
       }
 
+      // helper: seleciona uma option de <select> tentando match exato, contains ou por código (GRU)
+      function setSelectByLabel(selectEl, label) {
+            if (!selectEl || !label) return;
+            const opts = Array.from(selectEl.options || []);
+
+            // helper: normalize (remove accents, punctuation, lower)
+            function normalize(s) {
+              return (
+                (s || "")
+                  .toString()
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .replace(/[\-–—\/\\()\.\,\*]/g, " ")
+                  .replace(/\s+/g, " ")
+                  .trim()
+                  .toLowerCase()
+              );
+            }
+
+            const lbl = label.toString().trim();
+            // exact match (value or text)
+            for (const opt of opts) {
+              if (opt.value === lbl || opt.textContent === lbl) {
+                selectEl.value = opt.value;
+                try { selectEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+                return;
+              }
+            }
+
+            const nlbl = normalize(lbl);
+            // contains or normalized match
+            for (const opt of opts) {
+              const tv = (opt.textContent || "").toString();
+              if (tv === lbl) {
+                selectEl.value = opt.value;
+                return;
+              }
+              if (normalize(tv).includes(nlbl) || normalize(opt.value || "").includes(nlbl)) {
+                selectEl.value = opt.value;
+                try { selectEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+                return;
+              }
+            }
+
+            // try match by code in parentheses e.g. (GRU) or standalone
+            const m = lbl.match(/\(([A-Z0-9]{2,4})\)/i) || lbl.match(/\b([A-Z]{2,4})\b/);
+            if (m) {
+              const code = (m[1] || "").toUpperCase();
+              for (const opt of opts) {
+                const tv = opt.textContent || opt.value || "";
+                if (tv.includes(`(${code})`) || tv.includes(code)) {
+                  selectEl.value = opt.value;
+                  try { selectEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+                  return;
+                }
+              }
+            }
+
+            // last resort: try partial word matches (e.g., 'guarulhos' or 'recife')
+            const tokens = nlbl.split(" ").filter(Boolean);
+            if (tokens.length) {
+              for (const opt of opts) {
+                const nt = normalize(opt.textContent || opt.value || "");
+                let matches = 0;
+                for (const t of tokens) if (nt.includes(t)) matches++;
+                // choose option that matches at least half of the tokens
+                if (matches >= Math.max(1, Math.floor(tokens.length / 2))) {
+                  selectEl.value = opt.value;
+                  try { selectEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+                  return;
+                }
+              }
+            }
+
+            // fallback: set raw value
+            try {
+              selectEl.value = label;
+              try { selectEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+            } catch (e) {
+              // ignore
+            }
+      }
+
+      // attach small helpers to allow users to quickly select by typing a code:
+      // - double-click on a select.aero-select to enter an IATA code or name
+      function attachAeroSelectHandlers() {
+        const nodes = Array.from(document.querySelectorAll("select.aero-select"));
+        for (const el of nodes) {
+          // avoid attaching multiple times
+          if (el.dataset.aeroHandler) continue;
+          el.addEventListener("dblclick", () => {
+            const v = prompt("Digite o código IATA ou nome do aeroporto (ex: GRU ou Recife)");
+            if (v) setSelectByLabel(el, v);
+          });
+          // mark as attached
+          el.dataset.aeroHandler = "1";
+        }
+      }
+
       function carregarExemplo() {
         // valores de exemplo
         Byid("OouA").value = "o";
@@ -520,7 +613,7 @@
         Byid("ida_data").value = new Date().toISOString().split("T")[0];
         Byid("ida_num").value = "1234";
         Byid("ida_partida_aero").value = "São Paulo - Guarulhos (GRU)";
-        Byid("ida_partida_hora").value = "08:30";
+        Byid("ida_partida_hora").value = "13:00";
         Byid("ida_chegada_aero").value = "Recife (REC)";
         Byid("ida_chegada_hora").value = "11:55";
         // volta
@@ -661,12 +754,12 @@
 
         // popula o primeiro trecho na seção de ida
         const first = parsed[0];
-        if (first.date) Byid("ida_data").value = first.date;
-        if (first.number) Byid("ida_num").value = first.number;
-        if (first.origem) Byid("ida_partida_aero").value = first.origem;
-        if (first.depart) Byid("ida_partida_hora").value = first.depart;
-        if (first.destino) Byid("ida_chegada_aero").value = first.destino;
-        if (first.arrive) Byid("ida_chegada_hora").value = first.arrive;
+  if (first.date) Byid("ida_data").value = first.date;
+  if (first.number) Byid("ida_num").value = first.number;
+  if (first.origem) setSelectByLabel(Byid("ida_partida_aero"), first.origem);
+  if (first.depart) Byid("ida_partida_hora").value = first.depart;
+  if (first.destino) setSelectByLabel(Byid("ida_chegada_aero"), first.destino);
+  if (first.arrive) Byid("ida_chegada_hora").value = first.arrive;
 
         // se houver mais linhas, transforme em conexões
         if (parsed.length > 1) {
@@ -675,9 +768,9 @@
           for (let i = 1; i < parsed.length; i++) {
             const p = parsed[i];
             if (p.number) Byid(`ida_num_${i - 1}`).value = p.number;
-            if (p.origem) Byid(`ida_partida_aero_${i - 1}`).value = p.origem;
+            if (p.origem) setSelectByLabel(Byid(`ida_partida_aero_${i - 1}`), p.origem);
             if (p.depart) Byid(`ida_partida_hora_${i - 1}`).value = p.depart;
-            if (p.destino) Byid(`ida_chegada_aero_${i - 1}`).value = p.destino;
+            if (p.destino) setSelectByLabel(Byid(`ida_chegada_aero_${i - 1}`), p.destino);
             if (p.arrive) Byid(`ida_chegada_hora_${i - 1}`).value = p.arrive;
           }
         }
@@ -771,6 +864,10 @@
             carregarExemplo();
           });
 
+        // Botão Importar
+        const bImport = Byid("btn_importar");
+        if (bImport) bImport.addEventListener("click", () => importarTrechosFromTextarea());
+
         // Botão Limpar
         const bLimpar = Byid("btn_limpar");
         if (bLimpar)
@@ -799,8 +896,12 @@
       // 2) Nome: primeira letra maiúscula e restante minúsculo
       function formatPassengerName(v) {
         if (!v) return "";
-        v = v.trim();
-        return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+        return v
+          .toString()
+          .trim()
+          .split(/\s+/)
+          .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : ""))
+          .join(" ");
       }
 
       // 3) Data: "01 de Janeiro de 2025"
@@ -840,20 +941,7 @@
         return /^\d{4}$/.test(v);
       }
 
-      // 5) Horário: "23h59" (aceita "23:59" no input e formata na saída)
-      function normalizeTimeToHHMM(v) {
-        if (!v) return "";
-        // aceita "23:59", "2359", "23h59"
-        const digits = v.replace(/\D/g, "").slice(0, 4); // hhmm
-        if (digits.length < 4) return "";
-        const hh = digits.slice(0, 2);
-        const mm = digits.slice(2, 4);
-        // valida faixa simples
-        const H = Number(hh),
-          M = Number(mm);
-        if (H > 23 || M > 59) return "";
-        return `${hh}:${mm}`;
-      }
+      // 5) Horário: função de normalização consolidada definida mais abaixo
       function formatTimeHhMm(v) {
         // recebe "23:59" e devolve "23h59"
         if (!v) return "";
@@ -1020,11 +1108,13 @@
         const ida_data_fmt = formatDateLong(ida_data_raw);
 
         const ida_num_fmt = fourDigitFlight(Byid("ida_num")?.value || "");
-        const ida_partida_aero_v = Byid("ida_partida_aero")?.value || "";
+  const ida_partida_sel = Byid("ida_partida_aero");
+  const ida_partida_aero_v = (ida_partida_sel?.selectedOptions?.[0]?.textContent) || ida_partida_sel?.value || "";
         const ida_partida_hora_fmt = formatTimeHhMm(
           Byid("ida_partida_hora")?.value || ""
         );
-        const ida_chegada_aero_v = Byid("ida_chegada_aero")?.value || "";
+  const ida_chegada_sel = Byid("ida_chegada_aero");
+  const ida_chegada_aero_v = (ida_chegada_sel?.selectedOptions?.[0]?.textContent) || ida_chegada_sel?.value || "";
         const ida_chegada_hora_fmt = formatTimeHhMm(
           Byid("ida_chegada_hora")?.value || ""
         );
@@ -1038,9 +1128,11 @@
         const qtdCon = Number(Byid("ida_conexoes_count")?.value || 0);
         for (let i = 0; i < qtdCon; i++) {
           const v = fourDigitFlight(Byid(`ida_num_${i}`)?.value || "");
-          const o = Byid(`ida_partida_aero_${i}`)?.value || "";
+          const oel = Byid(`ida_partida_aero_${i}`);
+          const o = (oel?.selectedOptions?.[0]?.textContent) || oel?.value || "";
           const hs = formatTimeHhMm(Byid(`ida_partida_hora_${i}`)?.value || "");
-          const d = Byid(`ida_chegada_aero_${i}`)?.value || "";
+          const del = Byid(`ida_chegada_aero_${i}`);
+          const d = (del?.selectedOptions?.[0]?.textContent) || del?.value || "";
           const hc = formatTimeHhMm(Byid(`ida_chegada_hora_${i}`)?.value || "");
           texto += `, com conexão no voo G3 ${v}, partindo de ${o} às ${hs}, chegando em ${d} às ${hc}`;
         }
@@ -1051,11 +1143,13 @@
       function textodavolta() {
         const volta_data_fmt = formatDateLong(Byid("volta_data")?.value || "");
         const volta_num_fmt = fourDigitFlight(Byid("volta_num")?.value || "");
-        const volta_partida_aero_v = Byid("volta_partida_aero")?.value || "";
+  const volta_partida_sel = Byid("volta_partida_aero");
+  const volta_partida_aero_v = (volta_partida_sel?.selectedOptions?.[0]?.textContent) || volta_partida_sel?.value || "";
         const volta_partida_hora_fmt = formatTimeHhMm(
           Byid("volta_partida_hora")?.value || ""
         );
-        const volta_chegada_aero_v = Byid("volta_chegada_aero")?.value || "";
+  const volta_chegada_sel = Byid("volta_chegada_aero");
+  const volta_chegada_aero_v = (volta_chegada_sel?.selectedOptions?.[0]?.textContent) || volta_chegada_sel?.value || "";
         const volta_chegada_hora_fmt = formatTimeHhMm(
           Byid("volta_chegada_hora")?.value || ""
         );
@@ -1067,11 +1161,13 @@
         const qtdCon = Number(Byid("volta_conexoes_count")?.value || 0);
         for (let i = 0; i < qtdCon; i++) {
           const v = fourDigitFlight(Byid(`volta_num_${i}`)?.value || "");
-          const o = Byid(`volta_partida_aero_${i}`)?.value || "";
+          const oel = Byid(`volta_partida_aero_${i}`);
+          const o = (oel?.selectedOptions?.[0]?.textContent) || oel?.value || "";
           const hs = formatTimeHhMm(
             Byid(`volta_partida_hora_${i}`)?.value || ""
           );
-          const d = Byid(`volta_chegada_aero_${i}`)?.value || "";
+          const del = Byid(`volta_chegada_aero_${i}`);
+          const d = (del?.selectedOptions?.[0]?.textContent) || del?.value || "";
           const hc = formatTimeHhMm(
             Byid(`volta_chegada_hora_${i}`)?.value || ""
           );
@@ -1631,11 +1727,18 @@
         }
 
         for (const el of selects) makeOptions(el);
+        // ensure selects gain helper handlers that allow quick code lookup
+        try {
+          attachAeroSelectHandlers();
+        } catch (e) {
+          // ignore
+        }
       }
 
       // populate selects once DOM is ready (if not already done elsewhere)
       document.addEventListener("DOMContentLoaded", () => {
         buildAirportOptions();
+        try { attachAeroSelectHandlers(); } catch (e) {}
       });
 
       // ===== Time input sanitization: accept either 4 digits (2359) or HH:MM =====
