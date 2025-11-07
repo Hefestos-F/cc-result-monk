@@ -149,6 +149,44 @@
         font-weight: 500;
         margin-top: 2rem;
       }
+      /* Aero-select autocomplete styles */
+      .aero-search-wrapper {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        position: relative;
+      }
+      .aero-search-input {
+        padding: 0.5rem;
+        border: 1px solid var(--gray-300);
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+        min-width: 160px;
+        max-width: 45%;
+        background: white;
+      }
+      .aero-suggestions {
+        position: absolute;
+        z-index: 1200;
+        left: 0;
+        right: 0;
+        top: calc(100% + 6px);
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 6px;
+        box-shadow: 0 6px 18px rgba(15,23,42,0.08);
+        max-height: 220px;
+        overflow: auto;
+        display: none;
+      }
+      .aero-suggestion-item {
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
+      .aero-suggestion-item:hover {
+        background: var(--gray-100);
+      }
     </style>
   </head>
   <body>
@@ -204,6 +242,10 @@
           <input id="ida_num" placeholder="1234" />
         </div>
       </div>
+      <div>
+      <label for="ida_conexoes_count">Número de conexões (ida)</label>
+      <input id="ida_conexoes_count" type="number" min="0" value="0" />
+      </div>
       <div class="row">
         <div>
           <label for="ida_partida_aero">Partida</label>
@@ -229,8 +271,7 @@
           <input id="ida_chegada_hora" placeholder="23:59" />
         </div>
       </div>
-      <label for="ida_conexoes_count">Número de conexões (ida)</label>
-      <input id="ida_conexoes_count" type="number" min="0" value="0" />
+      
       <div id="ida_conexoes_container"></div>
     </div>
 
@@ -295,23 +336,6 @@
     </div>
 
     <pre id="preview" aria-live="polite"></pre>
-    <!-- Área de importação rápida -->
-    <div
-      style="display:flex;flex-direction:column;gap:6px;margin-left:12px;flex:1;"
-    >
-      <label for="import_text"
-        >Importar trecho (cole aqui linhas no formato fornecido)</label
-      >
-      <textarea
-        id="import_text"
-        placeholder="Ex: 1 G33689Y 17OCT VIXGIG HK1 2030 2135 /RLLA*AUKLWM/E"
-        rows="2"
-        style="padding:8px;border-radius:6px;border:1px solid #ccc"
-      ></textarea>
-      <button id="btn_importar" class="ghost" type="button">
-        Importar trechos
-      </button>
-    </div>
 
     <script>
       const Byid = (id) => document.getElementById(id);
@@ -586,17 +610,109 @@
             }
       }
 
-      // attach small helpers to allow users to quickly select by typing a code:
-      // - double-click on a select.aero-select to enter an IATA code or name
+      // attach small helpers to allow users to search airports via an input
+      // and see a popup of suggestions while typing
       function attachAeroSelectHandlers() {
+        const list = parseRawAirports(rawAeroportos || "");
         const nodes = Array.from(document.querySelectorAll("select.aero-select"));
         for (const el of nodes) {
           // avoid attaching multiple times
           if (el.dataset.aeroHandler) continue;
-          el.addEventListener("dblclick", () => {
-            const v = prompt("Digite o código IATA ou nome do aeroporto (ex: GRU ou Recife)");
-            if (v) setSelectByLabel(el, v);
+
+          // create wrapper and search input + suggestions container
+          const wrapper = document.createElement("div");
+          wrapper.className = "aero-search-wrapper";
+          el.parentNode.insertBefore(wrapper, el);
+          wrapper.appendChild(el);
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "aero-search-input";
+          input.placeholder = "Buscar aeroporto (código/nome)";
+          wrapper.appendChild(input);
+
+          const sug = document.createElement("div");
+          sug.className = "aero-suggestions";
+          wrapper.appendChild(sug);
+
+          // sync input when select changes
+          function syncInputFromSelect() {
+            input.value = (el.selectedOptions && el.selectedOptions[0] && el.selectedOptions[0].textContent) || el.value || "";
+          }
+          syncInputFromSelect();
+          el.addEventListener("change", syncInputFromSelect);
+          // hide the native select and let the input be the visible control
+          try { el.style.display = "none"; } catch (e) {}
+
+          // helper normalize
+          const normalize = (s) =>
+            (s || "")
+              .toString()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/[\-–—\/\\()\.\,\*]/g, " ")
+              .replace(/\s+/g, " ")
+              .trim()
+              .toLowerCase();
+
+          let currentMatches = [];
+
+          input.addEventListener("input", () => {
+            const q = input.value.trim();
+            if (!q) {
+              sug.innerHTML = "";
+              sug.style.display = "none";
+              return;
+            }
+            const qn = normalize(q);
+            const matches = list
+              .filter((it) => normalize(it.label).includes(qn) || (it.code || "").toLowerCase().includes(qn))
+              .slice(0, 10);
+            currentMatches = matches;
+            sug.innerHTML = "";
+            for (const m of matches) {
+              const it = document.createElement("div");
+              it.className = "aero-suggestion-item";
+              it.textContent = m.label;
+              it.addEventListener("mousedown", (ev) => {
+                // use mousedown to prevent losing focus before click
+                ev.preventDefault();
+                setSelectByLabel(el, m.label);
+                syncInputFromSelect();
+                sug.innerHTML = "";
+                sug.style.display = "none";
+                input.focus();
+              });
+              sug.appendChild(it);
+            }
+            sug.style.display = matches.length ? "block" : "none";
           });
+
+          // enter picks the first suggestion
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (currentMatches && currentMatches[0]) {
+                setSelectByLabel(el, currentMatches[0].label);
+                syncInputFromSelect();
+                sug.innerHTML = "";
+                sug.style.display = "none";
+              }
+            }
+            if (e.key === "Escape") {
+              sug.innerHTML = "";
+              sug.style.display = "none";
+            }
+          });
+
+          // hide suggestions when clicking outside
+          document.addEventListener("click", (ev) => {
+            if (!wrapper.contains(ev.target)) {
+              sug.innerHTML = "";
+              sug.style.display = "none";
+            }
+          });
+
           // mark as attached
           el.dataset.aeroHandler = "1";
         }
@@ -609,27 +725,28 @@
         Byid("localizador").value = "ABC123";
         Byid("tipo_viagem_select").value = "ida/volta";
         marcadoida();
-        // ida
-        Byid("ida_data").value = new Date().toISOString().split("T")[0];
-        Byid("ida_num").value = "1234";
-        Byid("ida_partida_aero").value = "São Paulo - Guarulhos (GRU)";
-        Byid("ida_partida_hora").value = "13:00";
-        Byid("ida_chegada_aero").value = "Recife (REC)";
-        Byid("ida_chegada_hora").value = "11:55";
-        // volta
-        Byid("volta_data").value = new Date(Date.now() + 5 * 24 * 3600 * 1000)
-          .toISOString()
-          .split("T")[0];
-        Byid("volta_num").value = "4321";
-        Byid("volta_partida_aero").value = "Recife (REC)";
-        Byid("volta_partida_hora").value = "13:00";
-        Byid("volta_chegada_aero").value = "São Paulo - Guarulhos (GRU)";
-        Byid("volta_chegada_hora").value = "16:35";
         // conexões zero
         Byid("ida_conexoes_count").value = "0";
         renderConexoes("ida", 0);
         Byid("volta_conexoes_count").value = "0";
         renderConexoes("volta", 0);
+  // ida
+        Byid("ida_data").value = new Date().toISOString().split("T")[0];
+        Byid("ida_num").value = "1234";
+  setSelectByLabel(Byid("ida_partida_aero"), "São Paulo - Guarulhos (GRU)");
+        Byid("ida_partida_hora").value = "10:50";
+  setSelectByLabel(Byid("ida_chegada_aero"), "Recife (REC)");
+        Byid("ida_chegada_hora").value = "11:55";
+        // volta
+        Byid("volta_data").value = new Date(Date.now() + 5 * 24 * 3600 * 1000)
+          .toISOString()
+          .split("T")[0];
+  Byid("volta_num").value = "4321";
+  setSelectByLabel(Byid("volta_partida_aero"), "Recife (REC)");
+        Byid("volta_partida_hora").value = "13:00";
+  setSelectByLabel(Byid("volta_chegada_aero"), "São Paulo - Guarulhos (GRU)");
+        Byid("volta_chegada_hora").value = "16:35";
+        
         // gerar visual
         gerarDeclaracao();
       }
@@ -803,8 +920,10 @@
           Byid("ida_data").value = "";
           Byid("ida_num").value = "";
           Byid("ida_partida_aero").value = "";
+          try { Byid("ida_partida_aero").dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
           Byid("ida_partida_hora").value = "";
           Byid("ida_chegada_aero").value = "";
+          try { Byid("ida_chegada_aero").dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
           Byid("ida_chegada_hora").value = "";
 
           // Reseta conexões ida
@@ -815,16 +934,16 @@
           Byid("volta_data").value = "";
           Byid("volta_num").value = "";
           Byid("volta_partida_aero").value = "";
+          try { Byid("volta_partida_aero").dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
           Byid("volta_partida_hora").value = "";
           Byid("volta_chegada_aero").value = "";
+          try { Byid("volta_chegada_aero").dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
           Byid("volta_chegada_hora").value = "";
 
           // Reseta conexões volta
           Byid("volta_conexoes_count").value = "0";
           renderConexoes("volta", 0);
 
-          // Limpa área de importação
-          Byid("import_text").value = "";
 
           // Limpa preview
           const preview = Byid("preview");
@@ -1713,6 +1832,8 @@
 
         function makeOptions(el) {
           // keep an empty placeholder option
+          // preserve previous selection (if any) and restore after rebuild
+          const prev = el.value;
           el.innerHTML = "";
           const empty = document.createElement("option");
           empty.value = "";
@@ -1723,6 +1844,34 @@
             opt.value = item.label;
             opt.textContent = item.label;
             el.appendChild(opt);
+          }
+          // try to restore previous selection if it still matches an option
+          if (prev) {
+            // exact match first
+            try {
+              el.value = prev;
+            } catch (e) {}
+            if (!el.value) {
+              // try to match by visible text or normalized contains
+              const normalize = (s) =>
+                (s || "")
+                  .toString()
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .replace(/[\-–—\/\\()\.\,\*]/g, " ")
+                  .replace(/\s+/g, " ")
+                  .trim()
+                  .toLowerCase();
+              const np = normalize(prev);
+              for (const o of Array.from(el.options)) {
+                const tv = (o.textContent || o.value || "").toString();
+                if (tv === prev || normalize(tv) === np || normalize(tv).includes(np)) {
+                  el.value = o.value;
+                  break;
+                }
+              }
+            }
+            try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
           }
         }
 
@@ -1808,6 +1957,52 @@
           },
           true
         );
+      });
+
+      // Auto-fill rules linking ida <-> volta
+      document.addEventListener("DOMContentLoaded", () => {
+        // delegate changes from any ida select (including conexoes)
+        document.body.addEventListener("change", (e) => {
+          const t = e.target;
+          if (!t || t.tagName !== "SELECT") return;
+          const id = (t.id || "").toString();
+          // only handle ida partida/chegada selects
+          if (!id.startsWith("ida_partida_aero") && !id.startsWith("ida_chegada_aero")) return;
+
+          const tipo = Byid("tipo_viagem_select")?.value;
+          if (tipo !== "ida/volta") return; // only for round trips
+
+          const selectedText = (t.selectedOptions && t.selectedOptions[0] && t.selectedOptions[0].textContent) || t.value || "";
+          // 1) if user set ida_partida -> fill volta_chegada (main or last connection) when empty
+          if (id.startsWith("ida_partida_aero")) {
+            const qVolta = Math.max(0, Number(Byid("volta_conexoes_count")?.value || 0));
+            let target = null;
+            if (qVolta > 0) {
+              const last = qVolta - 1;
+              target = Byid(`volta_chegada_aero_${last}`) || Byid("volta_chegada_aero");
+            } else {
+              target = Byid("volta_chegada_aero");
+            }
+            if (target && !target.value) {
+              setSelectByLabel(target, selectedText);
+            }
+          }
+
+          // 2) if user set ida_chegada -> fill volta_partida (main or last connection) when empty
+          if (id.startsWith("ida_chegada_aero")) {
+            const qVolta = Math.max(0, Number(Byid("volta_conexoes_count")?.value || 0));
+            let target = null;
+            if (qVolta > 0) {
+              const last = qVolta - 1;
+              target = Byid(`volta_partida_aero_${last}`) || Byid("volta_partida_aero");
+            } else {
+              target = Byid("volta_partida_aero");
+            }
+            if (target && !target.value) {
+              setSelectByLabel(target, selectedText);
+            }
+          }
+        });
       });
     </script>
   </body>
