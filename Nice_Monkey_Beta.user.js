@@ -173,6 +173,7 @@
     logout: 1,
     observ: 1,
     temOcul: 0,
+    contarSalvar: 0,
   };
 
   const BGround = {
@@ -1122,8 +1123,10 @@
     Segun.Hora = converterParaSegundos(mostrarHora());
     Segun.Logou = Segun.Hora - Segun.NewLogado;
 
-    if (Segun.Logou < Segun.LogouSalvo) {
+    stt.contarSalvar = stt.contarSalvar++;
+    if (Segun.Logou < Segun.LogouSalvo && stt.contarSalvar > 3) {
       verificarESalvar(1);
+      stt.contarSalvar = 0;
     }
 
     Segun.QualLogou = CConfig.LogueManual
