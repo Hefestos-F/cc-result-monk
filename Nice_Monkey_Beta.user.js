@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.10
+// @version      3.3.7.11
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1123,9 +1123,14 @@
     Segun.Hora = converterParaSegundos(mostrarHora());
     Segun.Logou = Segun.Hora - Segun.NewLogado;
 
-    stt.contarSalvar = stt.contarSalvar++;
-    if (Segun.Logou < Segun.LogouSalvo && stt.contarSalvar > 3) {
-      verificarESalvar(1);
+    
+    if (Segun.Logou < Segun.LogouSalvo) {
+      stt.contarSalvar = stt.contarSalvar++;
+      if (stt.contarSalvar > 3) {
+        verificarESalvar(1);
+        stt.contarSalvar = 0;
+      }
+    }else{
       stt.contarSalvar = 0;
     }
 
