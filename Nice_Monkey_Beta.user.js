@@ -1124,7 +1124,7 @@
     Segun.Logou = Segun.Hora - Segun.NewLogado;
 
     
-    if (Segun.Logou < Segun.LogouSalvo) {
+    if (Segun.Logou < Segun.LogouSalvo && stt.Atualizando) {
       stt.contarSalvar = stt.contarSalvar++;
       if (stt.contarSalvar > 3) {
         verificarESalvar(1);
