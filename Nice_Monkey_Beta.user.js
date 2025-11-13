@@ -20,7 +20,7 @@
     ValorLogueManual: "12:00:00",
     LogueManual: 0,
     // Controle de logs: 'error'|'warn'|'info'|'debug' (mais verboso)
-    LogLevel: 'info',
+    LogLevel: "info",
     ValorMetaTMA: 725,
     ModoSalvo: 1,
     Vigia: 1,
@@ -60,7 +60,7 @@
     SomEstouro: 1,
     temOcul: 0,
     tempoPOcul: 8,
-    LogLevel: 'info',
+    LogLevel: "info",
   };
 
   // Logger runtime que respeita CConfig.LogLevel (checa dinamicamente e permite atualização em runtime)
@@ -68,16 +68,20 @@
     try {
       const levels = { error: 0, warn: 1, info: 2, debug: 3 };
       // garante que exista uma configuração padrão
-      if (!CConfig.LogLevel) CConfig.LogLevel = 'info';
+      if (!CConfig.LogLevel) CConfig.LogLevel = "info";
 
       function allowed(method) {
         // lê o nível atual dinamicamente (permite mudar em runtime via CConfig.LogLevel)
-        const currentLevel = CConfig && CConfig.LogLevel && CConfig.LogLevel in levels ? CConfig.LogLevel : 'info';
-        const methodLevel = method === 'log' || method === 'info' ? 'info' : method;
+        const currentLevel =
+          CConfig && CConfig.LogLevel && CConfig.LogLevel in levels
+            ? CConfig.LogLevel
+            : "info";
+        const methodLevel =
+          method === "log" || method === "info" ? "info" : method;
         return levels[methodLevel] <= levels[currentLevel];
       }
 
-      ['error', 'warn', 'info', 'log', 'debug'].forEach((m) => {
+      ["error", "warn", "info", "log", "debug"].forEach((m) => {
         const orig = console[m] ? console[m].bind(console) : () => {};
         console[m] = function (...args) {
           if (allowed(m)) {
@@ -91,15 +95,15 @@
         if (!novoNivel) return false;
         if (novoNivel in levels) {
           CConfig.LogLevel = novoNivel;
-          console.info('NiceMonk LogLevel atualizado para:', novoNivel);
+          console.info("NiceMonk LogLevel atualizado para:", novoNivel);
           return true;
         }
-        console.warn('NiceMonk AtualizarLogLevel: nível inválido', novoNivel);
+        console.warn("NiceMonk AtualizarLogLevel: nível inválido", novoNivel);
         return false;
       };
     } catch (e) {
       // se algo falhar ao definir logger, não bloqueia o script
-      console.error('NiceMonk falha ao inicializar logger:', e);
+      console.error("NiceMonk falha ao inicializar logger:", e);
     }
   })();
 
@@ -288,7 +292,10 @@
     }
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.debug("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogueOnt);
+      console.debug(
+        "NiceMonk Encontrados em dadosdePausas:",
+        dadosPrimLogueOnt
+      );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
     }
@@ -663,7 +670,8 @@
     if (Number.isNaN(total)) {
       if (typeof input === "string" && input.includes(":")) {
         const parts = input.split(":").map((p) => Number(p.trim()));
-        if (parts.length === 3) total = parts[0] * 3600 + parts[1] * 60 + parts[2];
+        if (parts.length === 3)
+          total = parts[0] * 3600 + parts[1] * 60 + parts[2];
         else if (parts.length === 2) total = parts[0] * 60 + parts[1];
         else total = 0;
       } else {
@@ -675,9 +683,15 @@
     const minutos = Math.floor((total % 3600) / 60);
     const segundos = total % 60;
     if (horas > 0) {
-      return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
+      return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(
+        2,
+        "0"
+      )}:${String(segundos).padStart(2, "0")}`;
     }
-    return `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
+    return `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(
+      2,
+      "0"
+    )}`;
   }
 
   // Tenta clicar no elemento e trata erros; retorna booleano
@@ -800,7 +814,10 @@
       console.error("NiceMonk Tempo inválido.");
       return "00:00:00";
     }
-    const parts = time.trim().split(":").map((p) => p.trim());
+    const parts = time
+      .trim()
+      .split(":")
+      .map((p) => p.trim());
     if (parts.length === 3) {
       return parts.map((p) => p.padStart(2, "0")).join(":");
     }
@@ -815,7 +832,10 @@
       const h = Math.floor(total / 3600);
       const m = Math.floor((total % 3600) / 60);
       const s = total % 60;
-      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(
+        2,
+        "0"
+      )}:${String(s).padStart(2, "0")}`;
     }
     return "00:00:00";
   }
@@ -825,10 +845,15 @@
     if (tempo == null || tempo === "") return 0;
     if (typeof tempo === "number") return Math.floor(tempo);
     if (typeof tempo === "string") {
-      const parts = tempo.trim().split(":").map((p) => Number(p.trim()));
+      const parts = tempo
+        .trim()
+        .split(":")
+        .map((p) => Number(p.trim()));
       if (parts.length === 3) {
         const [h, m, s] = parts;
-        return (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0);
+        return (
+          (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0)
+        );
       }
       if (parts.length === 2) {
         const [m, s] = parts;
@@ -1123,14 +1148,13 @@
     Segun.Hora = converterParaSegundos(mostrarHora());
     Segun.Logou = Segun.Hora - Segun.NewLogado;
 
-    
-    if (Segun.Logou < Segun.LogouSalvo && stt.Atualizando) {
-      stt.contarSalvar = stt.contarSalvar++;
+    if (Segun.Logou < Segun.LogouSalvo) {
+      stt.contarSalvar = stt.contarSalvar + 1;
       if (stt.contarSalvar > 3) {
         verificarESalvar(1);
         stt.contarSalvar = 0;
       }
-    }else{
+    } else {
       stt.contarSalvar = 0;
     }
 
@@ -2479,8 +2503,8 @@
           `NiceMonk Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`
         );
 
-  await atualizarCampos(y, "Fim", mostrarHora());
-  await atualizarCampos(y, "Duracao", DPausaS1);
+      await atualizarCampos(y, "Fim", mostrarHora());
+      await atualizarCampos(y, "Duracao", DPausaS1);
 
       if (CaiDPa) AtuaPausas();
     }
@@ -2673,12 +2697,17 @@
           const request = store.put(dados, nomechave);
 
           request.onsuccess = function () {
-            console.debug(`NiceMonk Dados salvos com sucesso na chave "${nomechave}"`);
+            console.debug(
+              `NiceMonk Dados salvos com sucesso na chave "${nomechave}"`
+            );
             resolve(true);
           };
 
           request.onerror = function (event) {
-            console.error("NiceMonk Erro ao salvar os dados:", event.target?.errorCode || event);
+            console.error(
+              "NiceMonk Erro ao salvar os dados:",
+              event.target?.errorCode || event
+            );
             reject(event);
           };
         });
@@ -2997,7 +3026,7 @@
     try {
       await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } catch (err) {
-      console.error('NiceMonk Erro ao atualizar campos no IndexedDB:', err);
+      console.error("NiceMonk Erro ao atualizar campos no IndexedDB:", err);
     }
 
     if (campo === "Duracao") {
@@ -3013,7 +3042,7 @@
       try {
         await AddOuAtuIindexdb(ChavePausas, dadosdePausas); // Atualiza o IndexedDB
       } catch (err) {
-        console.error('NiceMonk Erro ao remover pausa:', err);
+        console.error("NiceMonk Erro ao remover pausa:", err);
       }
       AtuaPausas();
       console.debug(`NiceMonk item com id ${id} removido.`);
@@ -3035,7 +3064,7 @@
     try {
       await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } catch (err) {
-      console.error('NiceMonk Erro ao atualizar ID1 no IndexedDB:', err);
+      console.error("NiceMonk Erro ao atualizar ID1 no IndexedDB:", err);
     }
   }
 

@@ -318,7 +318,7 @@
             }
             var variant2;
             if (linha6in.value !== "") {
-              variant2 = linha5T1.textContent + "\n" + linha6in.value + ".";
+              variant2 = linha5T1.textContent + "\n" + linha6in.value;
             } else {
               variant2 = "";
             }
@@ -337,7 +337,7 @@
               "\n\n" +
               variant1 +
               variant2 +
-              variant3;
+              variant3 + ".";
             navigator.clipboard.writeText(textToCopy).then(
               function () {
                 console.log("Texto copiado com sucesso.");
