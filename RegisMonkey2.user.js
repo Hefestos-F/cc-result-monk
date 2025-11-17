@@ -290,6 +290,16 @@
     linha7T1.textContent = "Localizador - ";
     linha7.appendChild(linha7T1);
     linha7.appendChild(linha7in);
+
+    linha7.addEventListener("input", () => {
+      if (!linha7in.value) {
+        linha7.style.background = "rgb(255 108 0)";
+      } else {
+        linha7.style.background = "transparent";
+      }
+    });
+    
+
     dd2.appendChild(linha7);
 
     const motivos = [
@@ -361,6 +371,14 @@
       }
     });
 
+    linha9.addEventListener("change", () => {
+      if (linha8in.value === "Sim" && !linha9in.value) {
+        linha9.style.background = "rgb(255 108 0)";
+      } else {
+        linha9.style.background = "transparent";
+      }
+    });
+
     // Inicializar com display none
     linha9.style.display = "none";
 
@@ -411,6 +429,14 @@
       } else {
         linha11.style.display = "none";
         linha11in.value = "Escolha o motivo";
+      }
+    });
+
+    linha11.addEventListener("change", () => {
+      if (linha10in.value === "Sim" && !linha11in.value) {
+        linha11.style.background = "rgb(255 108 0)";
+      } else {
+        linha11.style.background = "transparent";
       }
     });
 
@@ -493,10 +519,24 @@
     const copyButton = CriarBotCopiar();
 
     copyButton.addEventListener("click", function () {
+      if (linha8in.value === "Sim" && !linha9in.value) {
+        linha9.style.background = "rgb(255 108 0)";
+      } else {
+        linha9.style.background = "transparent";
+      }
+      if (linha10in.value === "Sim" && !linha11in.value) {
+        linha11.style.background = "rgb(255 108 0)";
+      } else {
+        linha11.style.background = "transparent";
+      }
+      if (!linha7in.value) {
+        linha7.style.background = "rgb(255 108 0)";
+      } else {
+        linha7.style.background = "transparent";
+      }
       // Buscar Localizador PNR na página
       const pnrNaPagina = buscarLocalizadorPNR();
       if (linha7in.value && pnrNaPagina) {
-        // Se não encontrou PNR na página mas linha7in tem valor, tentar preencher na página
         try {
           const pnrInput = document.querySelector('[id*="CReglinha7"] input');
           if (pnrInput && !pnrInput.value) {
@@ -524,7 +564,7 @@
       if (linha7in.value !== "") {
         variant3 = "\n\n" + linha7T1.textContent + linha7in.value + ".";
       } else {
-        variant3 = "";
+        variant3 = "\n\n" + linha7T1.textContent + "Não se aplica.";
       }
       var variant4;
       if (linha8in.value !== "") {
