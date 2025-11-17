@@ -210,8 +210,7 @@
 
   const LugarJS = {
     elementoReferencia: '[data-testid="bg-color"].MuiAppBar-root',
-    elementoReferencia2:
-      '[href*="help.nice-incontact.com"]',
+    elementoReferencia2: '[href*="help.nice-incontact.com"]',
     Status: "#agent-state-section > div > span > div > div",
 
     abaRelatorio: '[role="button"][aria-label="Reporting"]',
@@ -1149,13 +1148,7 @@
     Segun.Logou = Segun.Hora - Segun.NewLogado;
 
     if (Segun.Logou < Segun.LogouSalvo) {
-      stt.contarSalvar = stt.contarSalvar + 1;
-      if (stt.contarSalvar > 3) {
-        verificarESalvar(1);
-        stt.contarSalvar = 0;
-      }
-    } else {
-      stt.contarSalvar = 0;
+      verificarESalvar(1);
     }
 
     Segun.QualLogou = CConfig.LogueManual
@@ -3247,4 +3240,3 @@
 
   // Your code here...
 })();
-
