@@ -211,7 +211,7 @@
   const LugarJS = {
     elementoReferencia: '[data-testid="bg-color"].MuiAppBar-root',
     elementoReferencia2:
-      'a[aria-label="Ajuda"][href*="help.nice-incontact.com"]',
+      '[href*="help.nice-incontact.com"]',
     Status: "#agent-state-section > div > span > div > div",
 
     abaRelatorio: '[role="button"][aria-label="Reporting"]',
@@ -3247,3 +3247,4 @@
 
   // Your code here...
 })();
+
