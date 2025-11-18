@@ -298,36 +298,54 @@
         linha7.style.background = "transparent";
       }
     });
-    
 
     dd2.appendChild(linha7);
 
     const motivos = [
-      { motivo: "Erro sistêmico", waiver: "Waiver 01" },
+      { motivo: "Erro sistemico", waiver: "Waiver 01- SYSTEM ERROR" },
       {
         motivo: "Cliente Smiles Diamante categorizado cobrando assento",
-        waiver: "Waiver 01",
+        waiver: "Waiver 01- SYSTEM ERROR",
       },
       {
-        motivo: "Regra tarifaria possui bagagem mas no VCR não consta",
-        waiver: "Waiver 01",
+        motivo: "Regra tarifaria possui bagagem mas no VCR nao consta",
+        waiver: "Waiver 01- SYSTEM ERROR",
       },
-      { motivo: "Cancelamento dentro das 24 horas", waiver: "Waiver 08" },
-      { motivo: "Cancelamento de serviços antes do voo", waiver: "Waiver 08" },
-      { motivo: "CNN ao Lado do Responsável", waiver: "Waiver 08" },
-      { motivo: "Remarcação laudo medico", waiver: "Waiver 13" },
-      { motivo: "Cancelamento laudo medico", waiver: "Waiver 13" },
-      { motivo: "Remarcação concurso publico", waiver: "Waiver 13" },
-      { motivo: "Cancelamento concurso publico", waiver: "Waiver 13" },
-      { motivo: "Duplicidade de compra", waiver: "Waiver 13" },
       {
-        motivo: "Remarcação erro do cliente dentro das 24 Horas",
-        waiver: "Waiver 13",
+        motivo: "Cancelamento dentro das 24 horas",
+        waiver: "Waiver 08-AE FEE NOT APPLICABLE",
       },
-      { motivo: "Cancelamento por acomodação", waiver: "Waiver 14" },
       {
-        motivo: "Isenção de assento por acomodação voo direto para conexão",
-        waiver: "Waiver 14",
+        motivo: "Cancelamento de servicos antes do voo",
+        waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+      },
+      { motivo: "Remarcacao laudo medico", waiver: "Waiver 13- CONCESSAO" },
+      { motivo: "Cancelamento laudo medico", waiver: "Waiver 13- CONCESSAO" },
+      { motivo: "Remarcacao concurso publico", waiver: "Waiver 13- CONCESSAO" },
+      {
+        motivo: "Cancelamento concurso publico",
+        waiver: "Waiver 13- CONCESSAO",
+      },
+      { motivo: "Duplicidade de compra", waiver: "Waiver 13- CONCESSAO" },
+      {
+        motivo: "Remarcacao erro do cliente dentro das 24 Horas",
+        waiver: "Waiver 13- CONCESSAO",
+      },
+      {
+        motivo: "Cancelamento por acomodacao",
+        waiver: "Waiver 14- INVOL REACOMODACAO",
+      },
+      {
+        motivo: "Isencao de assento por acomodacao voo direto para conexao",
+        waiver: "Waiver 14- INVOL REACOMODACAO",
+      },
+      {
+        motivo: "Voa Brasil Cancelamento Parcial ida voada cancelar a volta",
+        waiver: "Waiver 19- ART19RA400",
+      },
+      {
+        motivo: "Voa Brasil Cancelamento Parcial cancelar ida e manter volta",
+        waiver: "Waiver 19- ART19RA400",
       },
     ];
 
