@@ -558,14 +558,19 @@
       }
       // Buscar Localizador PNR na página
       const pnrNaPagina = buscarLocalizadorPNR();
-      if (linha7in.value && pnrNaPagina) {
+      // Se o widget estiver vazio e a página tiver valor, preenche o campo do widget
+      if (!linha7in.value && pnrNaPagina && pnrNaPagina.valor) {
+        linha7in.value = pnrNaPagina.valor;
+      }
+      // Se o widget tiver valor, tenta atualizar o campo da página (usar a função que já escreve e dispara eventos)
+      if (linha7in.value) {
         try {
-          const pnrInput = document.querySelector('[id*="CReglinha7"] input');
-          if (pnrInput && !pnrInput.value) {
-            pnrInput.value = linha7in.value;
+          const updated = buscarLocalizadorPNR(linha7in.value);
+          if (!updated) {
+            log("PNR na página não encontrado para atualização");
           }
         } catch (e) {
-          log("Erro ao preencher PNR na página:", e);
+          log("Erro ao atualizar PNR na página:", e);
         }
       }
 
@@ -1295,22 +1300,23 @@
           const input = document.getElementById(inputId);
           if (input) {
             if (novoValor !== undefined) {
-              // ✅ Atualiza o valor do input
-              input.value = novoValor;
-              return true; // Encontrou e atualizou
+              // Atualiza o valor do input e dispara evento para listeners
+              try {
+                input.value = novoValor;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+              } catch (e) {}
+              return { updated: true, inputId, input };
             } else {
-              // ✅ Apenas retorna o que encontrou
-              return {
-                label: label.textContent.trim(),
-                valor: input.value || null
-              };
+              // Retorna informações úteis sobre o localizador encontrado
+              return { label: label.textContent.trim(), valor: input.value || null, inputId, input };
             }
           }
         }
       }
     }
   } catch (e) {
-    console.error("Erro na função destacarEObterLocalizadorPNR:", e);
+    console.error("Erro na função buscarLocalizadorPNR:", e);
   }
   return novoValor !== undefined ? false : null;
 }
