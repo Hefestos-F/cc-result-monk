@@ -551,11 +551,7 @@
       } else {
         linha11.style.background = "transparent";
       }
-      if (!linha7in.value) {
-        linha7.style.background = "rgb(255 108 0)";
-      } else {
-        linha7.style.background = "transparent";
-      }
+      
       // Buscar Localizador PNR na página
       const pnrNaPagina = buscarLocalizadorPNR();
       // Se o widget estiver vazio e a página tiver valor, preenche o campo do widget
@@ -576,6 +572,12 @@
           log("Erro ao atualizar PNR na página:", e);
         }
       }
+      }
+
+      if (!linha7in.value) {
+        linha7.style.background = "rgb(255 108 0)";
+      } else {
+        linha7.style.background = "transparent";
       }
       
 
