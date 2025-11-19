@@ -319,6 +319,10 @@
         motivo: "Cancelamento de servicos antes do voo",
         waiver: "Waiver 08-AE FEE NOT APPLICABLE",
       },
+      {
+        motivo: "CNN ao Lado do Responsável",
+        waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+      },
       { motivo: "Remarcacao laudo medico", waiver: "Waiver 13- CONCESSAO" },
       { motivo: "Cancelamento laudo medico", waiver: "Waiver 13- CONCESSAO" },
       { motivo: "Remarcacao concurso publico", waiver: "Waiver 13- CONCESSAO" },
@@ -1277,50 +1281,39 @@
   /** ===========================
    *  Buscar Localizador PNR na página
    *  =========================== */
-  function buscarLocalizadorPNR() {
-    try {
-      // Procura por elementos que contenham "Localizador PNR" ou "PNR" próximos a inputs
-      const allElements = document.querySelectorAll("*");
-      for (const el of allElements) {
-        const text = (el.textContent || "").toUpperCase();
-        if (
-          text.includes("LOCALIZADOR") &&
-          (text.includes("PNR") || text.includes("BOOKING"))
-        ) {
-          // Procura input ou campo próximo
-          const input = el.querySelector("input, [contenteditable]");
-          if (input && input.value) {
-            return input.value.trim();
-          }
-          // Procura irmão próximo
-          let sibling = el.nextElementSibling;
-          while (sibling && !sibling.value) {
-            if (
-              sibling.tagName === "INPUT" ||
-              sibling.contentEditable === "true"
-            ) {
-              if (sibling.value) return sibling.value.trim();
+
+  function buscarLocalizadorPNR(novoValor) {
+  try {
+    const labels = document.querySelectorAll("label");
+    for (const label of labels) {
+      const text = (label.textContent || "").toUpperCase();
+      if (text.includes("LOCALIZADOR") && text.includes("PNR")) {
+
+        // Busca o input associado pelo atributo 'for'
+        const inputId = label.getAttribute("for");
+        if (inputId) {
+          const input = document.getElementById(inputId);
+          if (input) {
+            if (novoValor !== undefined) {
+              // ✅ Atualiza o valor do input
+              input.value = novoValor;
+              return true; // Encontrou e atualizou
+            } else {
+              // ✅ Apenas retorna o que encontrou
+              return {
+                label: label.textContent.trim(),
+                valor: input.value || null
+              };
             }
-            sibling = sibling.nextElementSibling;
-          }
-          // Procura em parent
-          let parent = el.parentElement;
-          while (parent && parent !== document.body) {
-            const inputInParent = parent.querySelector(
-              "input[value], [contenteditable][text-content]"
-            );
-            if (inputInParent && inputInParent.value) {
-              return inputInParent.value.trim();
-            }
-            parent = parent.parentElement;
           }
         }
       }
-    } catch (e) {
-      log("Erro ao buscar Localizador PNR:", e);
     }
-    return null;
+  } catch (e) {
+    console.error("Erro na função destacarEObterLocalizadorPNR:", e);
   }
+  return novoValor !== undefined ? false : null;
+}
 
   function ADDCaixaDAviso(titulo, funcao) {
     const caixa = document.createElement("div");
