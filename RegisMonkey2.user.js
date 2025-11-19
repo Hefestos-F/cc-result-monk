@@ -562,7 +562,10 @@
       if (!linha7in.value && pnrNaPagina && pnrNaPagina.valor) {
         linha7in.value = pnrNaPagina.valor;
       }
-      // Se o widget tiver valor, tenta atualizar o campo da página (usar a função que já escreve e dispara eventos)
+
+      if (pnrNaPagina.valor === '0-0') {
+        // Se o widget tiver valor, tenta atualizar o campo da página 
+      // (usar a função que já escreve e dispara eventos)
       if (linha7in.value) {
         try {
           const updated = buscarLocalizadorPNR(linha7in.value);
@@ -573,6 +576,8 @@
           log("Erro ao atualizar PNR na página:", e);
         }
       }
+      }
+      
 
       var textnome = linha1in.value || linha1in.placeholder;
       var variant1;
@@ -1286,30 +1291,38 @@
   /** ===========================
    *  Buscar Localizador PNR na página
    *  =========================== */
-
-  function buscarLocalizadorPNR(novoValor) {
+function buscarLocalizadorPNR(novoValor) {
   try {
     const labels = document.querySelectorAll("label");
     for (const label of labels) {
       const text = (label.textContent || "").toUpperCase();
       if (text.includes("LOCALIZADOR") && text.includes("PNR")) {
-
-        // Busca o input associado pelo atributo 'for'
         const inputId = label.getAttribute("for");
         if (inputId) {
           const input = document.getElementById(inputId);
           if (input) {
             if (novoValor !== undefined) {
-              // Atualiza o valor do input e dispara evento para listeners
-              try {
-                input.value = novoValor;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-              } catch (e) {}
-              return { updated: true, inputId, input };
+
+              // Usa setter nativo para frameworks como React
+              const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+              setter.call(input, novoValor);
+
+              // Também define atributo para reforçar
+              input.setAttribute("value", novoValor);
+
+              // Dispara eventos para atualizar estado interno
+              input.dispatchEvent(new Event("input", { bubbles: true }));
+              input.dispatchEvent(new Event("change", { bubbles: true }));
+
+              return true; // Encontrou e atualizou
             } else {
-              // Retorna informações úteis sobre o localizador encontrado
-              return { label: label.textContent.trim(), valor: input.value || null, inputId, input };
+              // Apenas retorna informações
+              return {
+                label: label.textContent.trim(),
+                valor: input.value || '0-0',
+                inputId,
+                input
+              };
             }
           }
         }
@@ -1525,3 +1538,5 @@
 
   // Your code here...
 })();
+
+
