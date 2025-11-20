@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RegisMonkey2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      6.1.5
+// @version      6.1.6
 // @description  that's all folks!
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
@@ -64,7 +64,7 @@
   function adicionarEventos(innerDiv, additionalContent) {
     innerDiv.addEventListener("click", function () {
       if (additionalContent.style.display === "none") {
-        additionalContent.style.display = "flex";
+        additionalContent.style.display = "block";
       } else {
         additionalContent.style.display = "none";
       }
@@ -154,8 +154,10 @@
     position: absolute;
     left: 110%;
     top: 14%;
-    display: flex;
     align-items: center;
+    max-height: 85%;
+    overflow: auto;
+    display: none;
     `;
 
     var contentBox = criarContentBox();
@@ -187,7 +189,7 @@
         background-color: rgb(255, 236, 209);
         border: 3px solid rgb(255, 112, 32);
         border-radius: 15px;
-        padding: 8px;
+        padding: 8px 0px;
         flex-direction: column;
         align-items: center;
     justify-content: center;
@@ -760,7 +762,7 @@
         border: 3px solid rgb(255, 112, 32);
         border-radius: 15px;
         padding: 8px;
-        margin-left: 10px;
+        margin-top: 10px;
         flex-direction: column;
         `;
 
@@ -942,8 +944,8 @@
     BDnotas.id = "notepad"; // Aqui estava o erro
     BDnotas.placeholder = "Escreva suas notas aqui...";
     BDnotas.style.cssText = `
-        width: 320px;
-        height: 80px;
+        width: 290px;
+        height: 70px;
         padding: 10px;
         font-size: 16px;
         border: 1px solid #ccc;
