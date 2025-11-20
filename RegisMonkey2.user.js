@@ -555,7 +555,7 @@
       // Buscar Localizador PNR na página
       const pnrNaPagina = buscarLocalizadorPNR();
       // Se o widget estiver vazio e a página tiver valor, preenche o campo do widget
-      if (!linha7in.value && pnrNaPagina && pnrNaPagina.valor) {
+      if (!linha7in.value && pnrNaPagina && pnrNaPagina.valor !== '0-0') {
         linha7in.value = pnrNaPagina.valor;
       }
 
