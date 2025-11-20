@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RegisMonkey2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      6.1.4
+// @version      6.1.5
 // @description  that's all folks!
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
@@ -559,7 +559,7 @@
         linha7in.value = pnrNaPagina.valor;
       }
 
-      if (pnrNaPagina.valor === '0-0') {
+      if (pnrNaPagina && pnrNaPagina.valor === '0-0') {
         // Se o widget tiver valor, tenta atualizar o campo da página 
       // (usar a função que já escreve e dispara eventos)
       if (linha7in.value) {
