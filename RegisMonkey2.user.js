@@ -722,7 +722,7 @@
       b.style.maxHeight = "75px";
       b.style.width = "100%";
       b.style.height = "25px";
-      b.style.overflow = "hidden";
+      b.style.overflow = "auto";
       b.style.resize = "none";
       b.addEventListener("input", () => {
         b.style.height = "auto"; // Reset height
