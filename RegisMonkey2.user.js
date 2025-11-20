@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RegisMonkey2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      6.1.6
+// @version      6.1.6.1
 // @description  that's all folks!
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
@@ -1304,9 +1304,8 @@ function buscarLocalizadorPNR(novoValor) {
         const inputId = label.getAttribute("for");
         if (inputId) {
           const input = document.getElementById(inputId);
-          if (input) {
+          if (input && isElementVisible(input)) { // Verifica visibilidade real
             if (novoValor !== undefined) {
-
               // Usa setter nativo para frameworks como React
               const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
               setter.call(input, novoValor);
@@ -1337,6 +1336,20 @@ function buscarLocalizadorPNR(novoValor) {
   }
   return novoValor !== undefined ? false : null;
 }
+
+// Função auxiliar para verificar visibilidade real
+function isElementVisible(el) {
+  const style = window.getComputedStyle(el);
+  const rect = el.getBoundingClientRect();
+  return (
+    style.display !== "none" &&
+    style.visibility !== "hidden" &&
+    style.opacity !== "0" &&
+    rect.width > 0 &&
+    rect.height > 0
+  );
+}
+
 
   function ADDCaixaDAviso(titulo, funcao) {
     const caixa = document.createElement("div");
