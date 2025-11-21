@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.11
+// @version      3.3.7.12
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1250,10 +1250,6 @@
     tOffline.textContent = CConfig.MostraValorOff
       ? "Com Offline :"
       : "Sem Offline :";
-
-    if (!stt.Atualizando) {
-      ControleFront();
-    }
   }
 
   function temOculfun(a) {
