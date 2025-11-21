@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RegisMonkey2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      6.1.6.1
+// @version      6.1.6.2
 // @description  that's all folks!
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
@@ -510,34 +510,39 @@
         width: 100%;
         `;
 
+    const contentBoxlimpar = ADDCaixaDAviso("Registro", () => {
+      nome = "";
+      entrada1 = "";
+      entrada2 = "";
+      entrada3 = "";
+      linha1in.value = "";
+      linha2in.value = "";
+      linha2in.style.height = "25px";
+      linha4in.value = "";
+      linha4in.style.height = "25px";
+      linha6in.value = "";
+      linha6in.style.height = "25px";
+      linha7in.value = "";
+      linha8in.value = "Não";
+      linha8T2.textContent = "";
+      linha9in.value = "";
+      linha9.style.display = "none";
+      linha10in.value = "Não";
+      linha11in.value = "";
+      linha11.style.display = "none";
+      linha12in.value = "Não se aplica";
+      linha13in.value = "Não";
+    });
+
+    contentBoxlimpar.style.visibility = "hidden";
+
+    contentBox.appendChild(contentBoxlimpar);
+
     const botlimpar = CriarBotLimpar();
     botlimpar.addEventListener("click", function () {
-      contentBox.appendChild(
-        ADDCaixaDAviso("Registro", () => {
-          nome = "";
-          entrada1 = "";
-          entrada2 = "";
-          entrada3 = "";
-          linha1in.value = "";
-          linha2in.value = "";
-          linha2in.style.height = "25px";
-          linha4in.value = "";
-          linha4in.style.height = "25px";
-          linha6in.value = "";
-          linha6in.style.height = "25px";
-          linha7in.value = "";
-          linha8in.value = "Não";
-          linha8T2.textContent = "";
-          linha9in.value = "";
-          linha9.style.display = "none";
-          linha10in.value = "Não";
-          linha11in.value = "";
-          linha11.style.display = "none";
-          linha12in.value = "Não se aplica";
-          linha13in.value = "Não";
-        })
-      );
+      contentBoxlimpar.style.visibility = "visible";
     });
+
     buttonContainer.appendChild(botlimpar);
 
     const copyButton = CriarBotCopiar();
@@ -553,27 +558,27 @@
       } else {
         linha11.style.background = "transparent";
       }
-      
+
       // Buscar Localizador PNR na página
       const pnrNaPagina = buscarLocalizadorPNR();
       // Se o widget estiver vazio e a página tiver valor, preenche o campo do widget
-      if (!linha7in.value && pnrNaPagina && pnrNaPagina.valor !== '0-0') {
+      if (!linha7in.value && pnrNaPagina && pnrNaPagina.valor !== "0-0") {
         linha7in.value = pnrNaPagina.valor;
       }
 
-      if (pnrNaPagina && pnrNaPagina.valor === '0-0') {
-        // Se o widget tiver valor, tenta atualizar o campo da página 
-      // (usar a função que já escreve e dispara eventos)
-      if (linha7in.value) {
-        try {
-          const updated = buscarLocalizadorPNR(linha7in.value);
-          if (!updated) {
-            log("PNR na página não encontrado para atualização");
+      if (pnrNaPagina && pnrNaPagina.valor === "0-0") {
+        // Se o widget tiver valor, tenta atualizar o campo da página
+        // (usar a função que já escreve e dispara eventos)
+        if (linha7in.value) {
+          try {
+            const updated = buscarLocalizadorPNR(linha7in.value);
+            if (!updated) {
+              log("PNR na página não encontrado para atualização");
+            }
+          } catch (e) {
+            log("Erro ao atualizar PNR na página:", e);
           }
-        } catch (e) {
-          log("Erro ao atualizar PNR na página:", e);
         }
-      }
       }
 
       if (!linha7in.value) {
@@ -581,7 +586,6 @@
       } else {
         linha7.style.background = "transparent";
       }
-      
 
       var textnome = linha1in.value || linha1in.placeholder;
       var variant1;
@@ -1295,61 +1299,64 @@
   /** ===========================
    *  Buscar Localizador PNR na página
    *  =========================== */
-function buscarLocalizadorPNR(novoValor) {
-  try {
-    const labels = document.querySelectorAll("label");
-    for (const label of labels) {
-      const text = (label.textContent || "").toUpperCase();
-      if (text.includes("LOCALIZADOR") && text.includes("PNR")) {
-        const inputId = label.getAttribute("for");
-        if (inputId) {
-          const input = document.getElementById(inputId);
-          if (input && isElementVisible(input)) { // Verifica visibilidade real
-            if (novoValor !== undefined) {
-              // Usa setter nativo para frameworks como React
-              const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-              setter.call(input, novoValor);
+  function buscarLocalizadorPNR(novoValor) {
+    try {
+      const labels = document.querySelectorAll("label");
+      for (const label of labels) {
+        const text = (label.textContent || "").toUpperCase();
+        if (text.includes("LOCALIZADOR") && text.includes("PNR")) {
+          const inputId = label.getAttribute("for");
+          if (inputId) {
+            const input = document.getElementById(inputId);
+            if (input && isElementVisible(input)) {
+              // Verifica visibilidade real
+              if (novoValor !== undefined) {
+                // Usa setter nativo para frameworks como React
+                const setter = Object.getOwnPropertyDescriptor(
+                  window.HTMLInputElement.prototype,
+                  "value"
+                ).set;
+                setter.call(input, novoValor);
 
-              // Também define atributo para reforçar
-              input.setAttribute("value", novoValor);
+                // Também define atributo para reforçar
+                input.setAttribute("value", novoValor);
 
-              // Dispara eventos para atualizar estado interno
-              input.dispatchEvent(new Event("input", { bubbles: true }));
-              input.dispatchEvent(new Event("change", { bubbles: true }));
+                // Dispara eventos para atualizar estado interno
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+                input.dispatchEvent(new Event("change", { bubbles: true }));
 
-              return true; // Encontrou e atualizou
-            } else {
-              // Apenas retorna informações
-              return {
-                label: label.textContent.trim(),
-                valor: input.value || '0-0',
-                inputId,
-                input
-              };
+                return true; // Encontrou e atualizou
+              } else {
+                // Apenas retorna informações
+                return {
+                  label: label.textContent.trim(),
+                  valor: input.value || "0-0",
+                  inputId,
+                  input,
+                };
+              }
             }
           }
         }
       }
+    } catch (e) {
+      console.error("Erro na função buscarLocalizadorPNR:", e);
     }
-  } catch (e) {
-    console.error("Erro na função buscarLocalizadorPNR:", e);
+    return novoValor !== undefined ? false : null;
   }
-  return novoValor !== undefined ? false : null;
-}
 
-// Função auxiliar para verificar visibilidade real
-function isElementVisible(el) {
-  const style = window.getComputedStyle(el);
-  const rect = el.getBoundingClientRect();
-  return (
-    style.display !== "none" &&
-    style.visibility !== "hidden" &&
-    style.opacity !== "0" &&
-    rect.width > 0 &&
-    rect.height > 0
-  );
-}
-
+  // Função auxiliar para verificar visibilidade real
+  function isElementVisible(el) {
+    const style = window.getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    return (
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      style.opacity !== "0" &&
+      rect.width > 0 &&
+      rect.height > 0
+    );
+  }
 
   function ADDCaixaDAviso(titulo, funcao) {
     const caixa = document.createElement("div");
@@ -1407,10 +1414,9 @@ function isElementVisible(el) {
       a.addEventListener("click", function () {
         if (texto === "Sim") {
           funcao();
-          caixa.remove();
-        } else {
-          caixa.remove();
         }
+        caixa.style.visibility = "hidden";
+        //caixa.remove();
       });
       return a;
     }
@@ -1555,5 +1561,3 @@ function isElementVisible(el) {
 
   // Your code here...
 })();
-
-
