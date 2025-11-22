@@ -780,8 +780,6 @@
 
     const botCop5 = CriarBotCopiar();
 
-    const botlim5 = CriarBotLimpar();
-
     const Input5 = CriarInput(0, "");
     Input5.placeholder = "XXXXXXX";
     Input5.id = "input5";
@@ -802,11 +800,7 @@
         }
       );
     });
-    botlim5.addEventListener("click", function () {
-      Input5.value = "";
-    });
 
-    paragraph21.appendChild(botlim5);
     paragraph21.appendChild(TextoTick);
     paragraph21.appendChild(Input5);
     paragraph21.appendChild(botCop5);
@@ -825,8 +819,6 @@
     TextoLAss.textContent = "cardholdername-";
 
     const botCop6 = CriarBotCopiar();
-
-    const botlim6 = CriarBotLimpar();
 
     const Input6 = CriarInput(0, "");
     Input6.placeholder = "XXXXXXX";
@@ -868,19 +860,9 @@
       );
     });
 
-    botlim6.addEventListener("click", function () {
-      Input6.value = "";
-      Cardhold = "";
-      sizer.textContent = Input6.placeholder;
-      Input6.style.width = sizer.offsetWidth + "px";
-    });
-
-    Cardholder.appendChild(botlim6);
     Cardholder.appendChild(TextoLAss);
     Cardholder.appendChild(Input6);
     Cardholder.appendChild(botCop6);
-
-    contentBox2.appendChild(Cardholder);
 
     var ClinhaAssin = document.createElement("p");
     ClinhaAssin.id = "ClinhaAssin";
@@ -891,8 +873,6 @@
         `;
 
     const botCop7 = CriarBotCopiar();
-
-    const botlim7 = CriarBotLimpar();
 
     const Input7 = CriarInput(0, "");
     Input7.placeholder = "ALMAVIVA.XXXXXXX-0300-MCZ";
@@ -922,18 +902,86 @@
       );
     });
 
-    botlim7.addEventListener("click", function () {
-      Input7.value = "";
-      Assinatura = "";
-      sizer.textContent = Input7.placeholder;
-      Input7.style.width = sizer.offsetWidth + "px";
-    });
-
-    ClinhaAssin.appendChild(botlim7);
     ClinhaAssin.appendChild(Input7);
     ClinhaAssin.appendChild(botCop7);
 
     contentBox2.appendChild(ClinhaAssin);
+    contentBox2.appendChild(Cardholder);
+
+    var linhahbg = document.createElement("p");
+    linhahbg.id = "ClinhaAssin";
+    linhahbg.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        `;
+
+    const linhahbgt1 = document.createElement("p");
+    linhahbgt1.textContent = "AE¥U";
+
+    const Input8 = CriarInput(0, "");
+    Input8.placeholder = "12";
+    Input8.style.width = "20px";
+
+    const Input9 = CriarInput(0, "");
+    Input9.placeholder = "11000";
+    Input9.style.width = "40px";
+
+    const linhahbgt2 = document.createElement("p");
+    linhahbgt2.textContent = "/BASE-";
+
+    const linhahbgt3 = document.createElement("p");
+    linhahbgt3.textContent = "¥TTL-";
+
+    const linhahbgt4 = document.createElement("p");
+    linhahbgt4.textContent = "11000";
+    Input9.addEventListener("input", function () {
+      linhahbgt4.textContent = Input9.value || "0000";
+    });
+
+    const linhahbgt5 = document.createElement("p");
+    linhahbgt5.textContent = "¥DEC-2";
+
+    const botCop8 = CriarBotCopiar();
+    botCop8.addEventListener("click", function () {
+      const textToCopy =
+        linhahbgt1.textContent +
+        Input8.value +
+        linhahbgt2.textContent +
+        Input9.value +
+        linhahbgt3.textContent +
+        linhahbgt4.textContent +
+        linhahbgt5.textContent;
+
+      navigator.clipboard.writeText(textToCopy).then(
+        function () {
+          console.log("Texto copiado com sucesso.");
+        },
+        function (err) {
+          console.error("Erro ao copiar texto: ", err);
+        }
+      );
+    });
+
+    linhahbg.appendChild(linhahbgt1);
+    linhahbg.appendChild(Input8);
+    linhahbg.appendChild(linhahbgt2);
+    linhahbg.appendChild(Input9);
+    linhahbg.appendChild(linhahbgt3);
+    linhahbg.appendChild(linhahbgt4);
+    linhahbg.appendChild(linhahbgt5);
+
+    contentBox2.appendChild(linhahbg);
+
+    const linhahbgbt = document.createElement("div");
+    linhahbgbt.style.cssText = `
+        display: flex;
+        justify-content: space-around;
+    `;
+
+    linhahbgbt.appendChild(botCop8);
+
+    contentBox2.appendChild(linhahbgbt);
 
     const CaixadBDnotas = document.createElement("div");
     CaixadBDnotas.style.cssText = `
@@ -1006,7 +1054,7 @@
     // Onde escrever o NÚMERO DO TICKET encontrado na URL
     input5Selector: "#input5",
     // "placeholder" | "value" | "valueIfEmpty"
-    input5Mode: "placeholder",
+    input5Mode: "value",
 
     // Destaque visual
     highlight: true,
