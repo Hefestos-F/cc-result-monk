@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RegisMonkey2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      6.1.6.2
+// @version      6.1.6.3
 // @description  that's all folks!
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
