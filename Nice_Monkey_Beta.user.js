@@ -610,8 +610,10 @@
       circuloclickCont.appendChild(circuloclick2);
       circuloclickCont.appendChild(circuloclick);
 
-      const pai = elementoReferencia2.parentNode;
-      pai.insertBefore(circuloclickCont, pai.firstChild);
+      //const pai = elementoReferencia2.parentNode;
+      //pai.insertBefore(circuloclickCont, pai.firstChild);
+
+      elementoReferencia2.appendChild(circuloclickCont);
 
       // Adiciona o evento de mouseover ao circuloclick
       circuloclick.addEventListener("mouseover", function () {
