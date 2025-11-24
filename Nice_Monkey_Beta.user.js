@@ -493,7 +493,8 @@
 
   function addcirculo(elementoReferencia2) {
     // Verifica se o elemento existe
-    if (elementoReferencia2) {
+    let a = 1;
+    if (a) {
       //${ContIcon};
       var ContIcon = document.createElement("div");
       ContIcon.setAttribute("id", "ContIcon");
@@ -598,7 +599,8 @@
             z-index: 1;
             display: flex;
             align-items: center;
-            left: -40px;
+            left: 10px;
+            top: 3px;
             background: rgb(0, 124, 190);
             border-radius: 10%;
             min-height: 50px;
@@ -613,7 +615,7 @@
       //const pai = elementoReferencia2.parentNode;
       //pai.insertBefore(circuloclickCont, pai.firstChild);
 
-      elementoReferencia2.appendChild(circuloclickCont);
+      document.body.appendChild(circuloclickCont);
 
       // Adiciona o evento de mouseover ao circuloclick
       circuloclick.addEventListener("mouseover", function () {
