@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_Beta
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.12
+// @version      3.3.7.13
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -598,7 +598,7 @@
             z-index: 1;
             display: flex;
             align-items: center;
-            left: 3px;
+            left: -40px;
             background: rgb(0, 124, 190);
             border-radius: 10%;
             min-height: 50px;
