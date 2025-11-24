@@ -1301,7 +1301,6 @@
       BGround.circuloclick2 = "white";
       BGround.circuloclick = stt.DentrodCC1 ? "white" : "";
       BGround.ContIcon = "white";
-      BGround.ContValores = Ccor.Atualizando;
       ControleFront(5);
       MostarcontValores(0);
     }
