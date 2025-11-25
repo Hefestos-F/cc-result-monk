@@ -210,7 +210,6 @@
 
   const LugarJS = {
     elementoReferencia: '[data-testid="bg-color"].MuiAppBar-root',
-    elementoReferencia2: '[href*="help.nice-incontact.com"]',
     Status: "#agent-state-section > div > span > div > div",
 
     abaRelatorio: '[role="button"][aria-label="Reporting"]',
@@ -241,15 +240,13 @@
     console.debug(`NiceMonk observer Iniciado`);
     ObservarItem(() => {
       let a = document.querySelector(LugarJS.elementoReferencia);
-      let b = document.querySelector(LugarJS.elementoReferencia2);
       if (
         a &&
-        b &&
         !document.getElementById("minhaCaixa") &&
         !document.getElementById("circuloclickCont")
       ) {
-        AdicionarCaixaAtualizada(a);
-        addcirculo(b);
+        AdicionarCaixaAtualizada();
+        addcirculo();
         stt.NBT = 1;
         stt.observ = 0;
         stt.logout = 0;
@@ -335,7 +332,7 @@
     return separador;
   }
 
-  function AdicionarCaixaAtualizada(LDCaixa) {
+  function AdicionarCaixaAtualizada() {
     function criarLinhaFixa(x, titulo) {
       const caixa = document.createElement("div");
       caixa.id = `c${titulo}`;
@@ -478,7 +475,7 @@
     minhaCaixa.appendChild(ADDBotPa());
 
     // Adiciona o contêiner principal ao elemento LDCaixa
-    LDCaixa.insertAdjacentElement("afterend", minhaCaixa);
+    document.body.appendChild(minhaCaixa);
 
     minhaCaixa.addEventListener("mouseover", function () {
       stt.DentrodMC = 1;
@@ -491,7 +488,7 @@
     });
   }
 
-  function addcirculo(elementoReferencia2) {
+  function addcirculo() {
     // Verifica se o elemento existe
     let a = 1;
     if (a) {
