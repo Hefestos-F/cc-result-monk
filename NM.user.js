@@ -15,31 +15,39 @@
 (function () {
   "use strict";
 
+  /**
+   * CConfig - Configurações em tempo de execução
+   * - Valores podem ser alterados e salvos no indexedDB.
+   * - Descrever cada propriedade ajuda na manutenção do código.
+   */
   const CConfig = {
-    TempoEscaladoHoras: "06:20:00",
-    ValorLogueManual: "12:00:00",
-    LogueManual: 0,
+    TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
+    ValorLogueManual: "12:00:00", // Valor utilizado quando LogueManual ativo
+    LogueManual: 0, // Flag para usar logue manual (0|1)
     // Controle de logs: 'error'|'warn'|'info'|'debug' (mais verboso)
     LogLevel: "info",
-    ValorMetaTMA: 725,
-    ModoSalvo: 1,
-    Vigia: 1,
-    MetaTMA: 1,
-    ValorAuto: 10,
-    AutoAtivo: 0,
-    TolerOff: 40,
-    MostraOff: 0,
-    IgnorarOff: 0,
-    MostraValorOff: 0,
-    FaixaFixa: 0,
-    IgnorarTMA: 0,
-    IgnorarErroNice: 0,
-    Estouro: 1,
-    SomEstouro: 1,
-    temOcul: 0,
-    tempoPOcul: 8,
+    ValorMetaTMA: 725, // Meta de TMA (em segundos)
+    ModoSalvo: 1, // Modo de cálculos salvo (0|1)
+    Vigia: 1, // Monitoramento ativo
+    MetaTMA: 1, // Ativa verificação de meta de TMA
+    ValorAuto: 10, // Intervalo automático em minutos
+    AutoAtivo: 0, // Auto atualização ativa
+    TolerOff: 40, // Tolerância de offline (em segundos)
+    MostraOff: 0, // Mostrar indicador de offline
+    IgnorarOff: 0, // Ignorar offline nas verificações
+    MostraValorOff: 0, // Mostrar valores incluindo offline
+    FaixaFixa: 0, // Fixar faixa de exibição
+    IgnorarTMA: 0, // Ignorar cálculo de TMA
+    IgnorarErroNice: 0, // Ignorar erros da Nice
+    Estouro: 1, // Notificar estouro de pausa
+    SomEstouro: 1, // Tocar som em estouro
+    temOcul: 0, // Flag de ocultação temporária
+    tempoPOcul: 8, // Tempo (s) antes da ocultação
   };
 
+  /**
+   * PCConfig - Configuração padrão (backup para restaurar)
+   */
   const PCConfig = {
     TempoEscaladoHoras: "06:20:00",
     ValorLogueManual: "12:00:00",
@@ -64,7 +72,7 @@
   };
 
   // Logger runtime que respeita CConfig.LogLevel (checa dinamicamente e permite atualização em runtime)
-  (function setupNiceMonkLogger() {
+  (function setupLogger() {
     try {
       const levels = { error: 0, warn: 1, info: 2, debug: 3 };
       // garante que exista uma configuração padrão
@@ -91,6 +99,11 @@
       });
 
       // função global para atualizar o nível de logs em runtime
+      /**
+       * AtualizarLogLevel - atualiza o nível de log em runtime
+       * @param {string} novoNivel - 'error'|'warn'|'info'|'debug'
+       * @returns {boolean} true se atualizado
+       */
       window.AtualizarLogLevel = function (novoNivel) {
         if (!novoNivel) return false;
         if (novoNivel in levels) {
@@ -107,6 +120,9 @@
     }
   })();
 
+  /**
+   * Ccor - Cores usadas na interface (valores em hex)
+   */
   const Ccor = {
     Offline: "#3a82cf",
     Atualizando: "#c97123ff",
@@ -118,6 +134,9 @@
     TVarian: "",
   };
 
+  /**
+   * PCcor - Cores padrão (backup)
+   */
   const PCcor = {
     Offline: "#3a82cf",
     Atualizando: "#c97123ff",
@@ -129,6 +148,10 @@
     TVarian: "",
   };
 
+  /**
+   * Segun - Estatísticas/contadores em segundos e tempos
+   * - Mantém os valores calculados de disponibilidade, trabalhando, etc.
+   */
   const Segun = {
     Disponivel: 0,
     Trabalhando: 0,
@@ -144,6 +167,10 @@
     QualLogou: 0,
   };
 
+  /**
+   * stt - Estado interno do script (flags e contadores de controle)
+   * - Usado para controlar comportamento visual e loops de atualização.
+   */
   const stt = {
     vAtendidas: "",
     vAtendidasA: 0,
@@ -180,6 +207,11 @@
     contarSalvar: 0,
   };
 
+  
+
+  /**
+   * BGround - Agrupa cores/estilos dinâmicos usados na UI
+   */
   const BGround = {
     ContValores: Ccor.Principal,
     ContIcon: "",
@@ -187,27 +219,37 @@
     circuloclick2: "",
   };
 
+  /**
+   * Htime - Armazena strings de tempo mostradas na tela (formatadas)
+   */
   const Htime = {
     Disponivel: 0,
     Trabalhando: 0,
     Indisponivel: 0,
   };
 
+  // Chaves usadas no IndexedDB/local storage
   const ChavePausas = "DadosDePausas";
   const ChaveConfig = "Configuções";
   const ChavelogueManu = "LogueManual";
   const ChavePrimLogue = "PrimeiroLogue";
   const ChavePrimLogueOntem = "PrimeiroLogueOntem";
 
+  // Variáveis que receberão dados recuperados do banco local (indexedDB)
   let dadosdePausas;
   let dadosSalvosConfi;
   let dadosPrimLogue;
   let dadosPrimLogueOnt;
   let dadosLogueManu;
 
+  // Configuração do IndexedDB
   const nomeBD = "MeuBDNiceMonk";
   const StoreBD = "NiceMonk";
 
+  /**
+   * LugarJS - Seletores CSS usados para localizar elementos da UI da NiceCX
+   * - Centralizar seletores facilita manutenção quando a UI mudar.
+   */
   const LugarJS = {
     elementoReferencia: '[data-testid="bg-color"].MuiAppBar-root',
     Status: "#agent-state-section > div > span > div > div",
@@ -224,9 +266,14 @@
 
   RecuperarTVariaveis();
 
+  /**
+   * ObservarItem - observa alterações no DOM e executa callback quando houver mudanças
+   * @param {Function} aoMudar - função chamada sempre que ocorrer uma mutação
+   */
   function ObservarItem(aoMudar) {
     const observer = new MutationObserver(() => {
       aoMudar();
+      // Desconecta observer caso flag global seja desativada
       if (!stt.observ) {
         observer.disconnect();
         console.log(`NiceMonk observer Desconectado`);
@@ -236,12 +283,16 @@
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
+  /**
+   * addAoini - adiciona observador inicial e dispara setup da UI quando o elemento de referência existir
+   */
   function addAoini() {
     console.debug(`NiceMonk observer Iniciado`);
     ObservarItem(() => {
-      let a = document.querySelector(LugarJS.elementoReferencia);
+      const elementoReferencia = document.querySelector(LugarJS.elementoReferencia);
+      // Verifica se o elemento de referência existe e se os componentes já não foram criados
       if (
-        a &&
+        elementoReferencia &&
         !document.getElementById("minhaCaixa") &&
         !document.getElementById("circuloclickCont")
       ) {
@@ -258,6 +309,10 @@
     });
   }
 
+  /**
+   * RecuperarTVariaveis - recupera as variáveis persistidas do indexedDB
+   * - Tenta recuperar vários conjuntos de dados e registra erros quando ocorrerem
+   */
   async function RecuperarTVariaveis() {
     try {
       dadosdePausas = await RecDadosindexdb(ChavePausas);
@@ -265,37 +320,36 @@
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosdePausas:", e);
     }
+
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      console.debug(
-        "NiceMonk Encontrados em dadosSalvosConfi:",
-        dadosSalvosConfi
-      );
+      console.debug("NiceMonk Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosSalvosConfi:", e);
     }
+
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      console.debug("NiceMonk Encontrados em dadosdePausas:", dadosPrimLogue);
+      console.debug("NiceMonk Encontrados em dadosPrimLogue:", dadosPrimLogue);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogue:", e);
     }
+
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      console.debug("NiceMonk Encontrados em dadosdePausas:", dadosLogueManu);
+      console.debug("NiceMonk Encontrados em dadosLogueManu:", dadosLogueManu);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosLogueManu:", e);
     }
+
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.debug(
-        "NiceMonk Encontrados em dadosdePausas:",
-        dadosPrimLogueOnt
-      );
+      console.debug("NiceMonk Encontrados em dadosPrimLogueOnt:", dadosPrimLogueOnt);
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
     }
 
+    // Aplica configurações recuperadas e inicializa estruturas
     await SalvandoVari(3);
     await SalvarLogueManual(0);
     await salvarDPausas();
@@ -312,8 +366,14 @@
     }
   }
 
+  /**
+   * criarCaixaDCv - cria um elemento de exibição de valor com título
+   * @param {string} n - prefixo/id do elemento
+   * @param {string} titulo - texto do título exibido
+   * @returns {HTMLElement} div formatada
+   */
   function criarCaixaDCv(n, titulo) {
-    var caixa = document.createElement("div");
+    const caixa = document.createElement("div");
     caixa.classList.add("info-caixa");
     caixa.style.transition = "all 0.5s ease";
     caixa.id = `${n}${titulo}`;
@@ -325,13 +385,22 @@
     return caixa;
   }
 
+  /**
+   * criarSeparadorCV - cria um separador visual entre os valores
+   * @param {number} x - índice usado para id do elemento
+   * @returns {HTMLElement}
+   */
   function criarSeparadorCV(x) {
-    var separador = document.createElement("div");
+    const separador = document.createElement("div");
     separador.setAttribute("id", `SepCVal${x}`);
     separador.classList.add("separadorC");
     return separador;
   }
 
+  /**
+   * AdicionarCaixaAtualizada - cria e injeta o painel principal na página
+   * - Cria o layout principal com indicadores (Logou, Logado, TMA, Falta, Saida)
+   */
   function AdicionarCaixaAtualizada() {
     function criarLinhaFixa(x, titulo) {
       const caixa = document.createElement("div");
