@@ -207,8 +207,6 @@
     contarSalvar: 0,
   };
 
-  
-
   /**
    * BGround - Agrupa cores/estilos dinâmicos usados na UI
    */
@@ -289,7 +287,9 @@
   function addAoini() {
     console.debug(`NiceMonk observer Iniciado`);
     ObservarItem(() => {
-      const elementoReferencia = document.querySelector(LugarJS.elementoReferencia);
+      const elementoReferencia = document.querySelector(
+        LugarJS.elementoReferencia
+      );
       // Verifica se o elemento de referência existe e se os componentes já não foram criados
       if (
         elementoReferencia &&
@@ -323,7 +323,10 @@
 
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      console.debug("NiceMonk Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
+      console.debug(
+        "NiceMonk Encontrados em dadosSalvosConfi:",
+        dadosSalvosConfi
+      );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosSalvosConfi:", e);
     }
@@ -344,7 +347,10 @@
 
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.debug("NiceMonk Encontrados em dadosPrimLogueOnt:", dadosPrimLogueOnt);
+      console.debug(
+        "NiceMonk Encontrados em dadosPrimLogueOnt:",
+        dadosPrimLogueOnt
+      );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
     }
@@ -763,7 +769,11 @@
     )}`;
   }
 
-  // Tenta clicar no elemento e trata erros; retorna booleano
+  /**
+   * clicarElementoQuerySelector - tenta clicar em um elemento usando seletor CSS
+   * @param {string} selector - seletor CSS do elemento
+   * @returns {Promise<boolean>} true se elemento foi encontrado e clicado
+   */
   async function clicarElementoQuerySelector(selector) {
     try {
       const elemento = document.querySelector(selector);
@@ -778,10 +788,15 @@
     }
   }
 
-  async function caminhoInfo(A) {
+  /**
+   * caminhoInfo - navega pelas abas para acessar informações
+   * @param {number} abaTipo - tipo de aba (0=Produtividade, 1=Desempenho)
+   * @returns {Promise<boolean>} true se navegação bem-sucedida
+   */
+  async function caminhoInfo(abaTipo) {
     if (await seExiste(LugarJS.abaRelatorio)) {
       await clicarElementoQuerySelector(LugarJS.abaRelatorio);
-      if (!A) {
+      if (!abaTipo) {
         if (await seExiste(LugarJS.abaProdutividade)) {
           await clicarElementoQuerySelector(LugarJS.abaProdutividade);
         } else {
@@ -816,26 +831,30 @@
     }
   }
 
+  /**
+   * seExiste - verifica se elemento existe com polling (até 5 segundos)
+   * @param {string} seletor - seletor CSS do elemento
+   * @returns {Promise<boolean>} true se elemento encontrado
+   */
   function seExiste(seletor) {
     return new Promise((resolve, reject) => {
-      var maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
-      var attempts = 0;
-      var interval = setInterval(function () {
-        var elemento = document.querySelector(seletor);
-        var NomeDIt = Object.keys(LugarJS).filter(
+      const maxAttempts = 50; // Tentativas máximas (5 segundos / 100ms por tentativa)
+      let tentativas = 0;
+      const intervalo = setInterval(function () {
+        const elemento = document.querySelector(seletor);
+        const nomeElemento = Object.keys(LugarJS).filter(
           (chave) => LugarJS[chave] === seletor
         );
 
         if (elemento) {
-          clearInterval(interval);
-          //console.log('Elemento encontrado.');
+          clearInterval(intervalo);
           resolve(true);
         } else {
-          attempts++;
-          if (attempts >= maxAttempts) {
-            clearInterval(interval);
+          tentativas++;
+          if (tentativas >= maxAttempts) {
+            clearInterval(intervalo);
             console.error(
-              `NiceMonk Elemento de referência não encontrado: ${NomeDIt}`
+              `NiceMonk Elemento de referência não encontrado: ${nomeElemento}`
             );
             resolve(false);
           }
@@ -844,6 +863,11 @@
     });
   }
 
+  /**
+   * seExiste3 - aguarda atualização de atendidas ou tempos com observer de mutações
+   * @param {number} objeto - 1 para atendidas, 0 para tempos
+   * @returns {Promise<boolean>} true se dados foram encontrados/atualizados
+   */
   function seExiste3(objeto) {
     console.log("NiceMonk seExiste3 iniciado.");
     return new Promise((resolve) => {
@@ -852,11 +876,11 @@
       const observer = new MutationObserver(() => {
         const retorno = objeto ? AtuAtendidas() : AtualizarDTI2();
 
-        let objeto2 = objeto ? "Atendidas" : "Tempos";
+        let nomeObjeto = objeto ? "Atendidas" : "Tempos";
 
         if (retorno === true) {
           observer.disconnect();
-          console.log(`NiceMonk seExiste3 ${objeto2} encontrado.`);
+          console.log(`NiceMonk seExiste3 ${nomeObjeto} encontrado.`);
           resultado = true;
           resolve(true);
         }
@@ -871,7 +895,7 @@
         if (!resultado) {
           observer.disconnect();
           console.log("NiceMonk seExiste3 nada encontrado.");
-          resolve(resultado); // Retorna true se encontrou, false se não
+          resolve(resultado);
         }
       }, 6000);
     });
@@ -939,20 +963,29 @@
     await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  /**
+   * AtualizarContAtual - atualiza o tempo de contagem atual
+   * @returns {Promise<boolean>} true se conseguiu atualizar
+   */
   async function AtualizarContAtual() {
     if (await seExiste(LugarJS.lContAtual)) {
-      const formattedTime = formatTime(
+      const tempoFormatado = formatTime(
         document.querySelector(LugarJS.lContAtual).textContent
       );
-      Segun.ContAtual = converterParaSegundos(formattedTime);
+      Segun.ContAtual = converterParaSegundos(tempoFormatado);
       return true;
     } else {
       return false;
     }
   }
 
+  /**
+   * TentAtend - tenta atualizar dados de atendimentos
+   * @returns {Promise<boolean>} true se houve mudança relevante
+   */
   async function TentAtend() {
     stt.ErroAten = !(await AtualizarAtendidas());
+    // Verifica se há novos atendimentos ou mudança no tempo trabalhando
     if (
       stt.vAtendidas <= stt.vAtendidasA &&
       Segun.Trabalhando > Segun.TrabalhandoA
@@ -965,34 +998,37 @@
     }
   }
 
+  /**
+   * AtualizarAtendidas - navega e busca dados de atendimentos
+   * @returns {Promise<boolean>} true se dados foram encontrados
+   */
   async function AtualizarAtendidas() {
-    const a = await caminhoInfo(1);
-    const b = await seExiste3(1);
-    if (a && b) {
-      return true;
-    } else {
-      return false;
-    }
+    const caminhoOk = await caminhoInfo(1);
+    const dadosAtualizados = await seExiste3(1);
+    return caminhoOk && dadosAtualizados;
   }
 
+  /**
+   * AtualizarDTI - navega e busca dados de tempos (DTI - Disponível/Trabalhando/Indisponível)
+   * @returns {Promise<boolean>} true se dados foram encontrados
+   */
   async function AtualizarDTI() {
-    const a = await caminhoInfo(0);
-    const b = await seExiste3(0);
-
-    if (a && b) {
-      return true;
-    } else {
-      return false;
-    }
+    const caminhoOk = await caminhoInfo(0);
+    const dadosAtualizados = await seExiste3(0);
+    return caminhoOk && dadosAtualizados;
   }
 
+  /**
+   * AtuAtendidas - busca valor de atendimentos na tabela (próximo a "Geral")
+   * @returns {boolean} true se conseguiu atualizar stt.vAtendidas
+   */
   function AtuAtendidas() {
     let encontrou = false;
 
     // Seleciona todas as linhas da tabela
     const linhas = document.querySelectorAll("tbody tr");
 
-    let a = 0;
+    let jaEncontrado = 0;
     linhas.forEach((linha) => {
       const celulas = linha.querySelectorAll("td");
       celulas.forEach((celula) => {
@@ -1003,8 +1039,8 @@
           valores.forEach((valorEl) => {
             const texto = valorEl.getAttribute("aria-label");
 
-            if (!a && texto && texto !== "Geral") {
-              a = 1;
+            if (!jaEncontrado && texto && texto !== "Geral") {
+              jaEncontrado = 1;
               stt.vAtendidas = texto;
               console.log(`NiceMonk Valor ao lado de "Geral": ${texto}`);
               encontrou = true;
@@ -1021,6 +1057,10 @@
     return encontrou;
   }
 
+  /**
+   * AtualizarDTI2 - extrai tempos dos ícones de status (Disponível/Trabalhando/Indisponível)
+   * @returns {boolean} true se conseguiu encontrar pelo menos um tempo
+   */
   function AtualizarDTI2() {
     const iconesStatus = {
       availableStatusIconId: "Disponível",
@@ -1030,8 +1070,8 @@
 
     const resultados = {};
 
-    Object.entries(iconesStatus).forEach(([id, nomeStatus]) => {
-      const icon = document.getElementById(id);
+    Object.entries(iconesStatus).forEach(([idIcone, nomeStatus]) => {
+      const icon = document.getElementById(idIcone);
       if (!icon) return;
 
       // Sobe até o bloco principal do status
@@ -1039,12 +1079,11 @@
       if (!blocoStatus) return;
 
       // Procura o tempo dentro do mesmo bloco
-      const tempoEl = blocoStatus.querySelector("p");
       let tempoEncontrado = null;
 
       // Verifica se há algum tempo no formato HH:MM:SS ou HHH:MM:SS
-      blocoStatus.querySelectorAll("p").forEach((p) => {
-        const texto = p.textContent.trim();
+      blocoStatus.querySelectorAll("p").forEach((pElemento) => {
+        const texto = pElemento.textContent.trim();
         if (/^\d{2,3}:\d{2}:\d{2}$/.test(texto)) {
           tempoEncontrado = texto;
         }
@@ -1078,68 +1117,84 @@
     return encontrou;
   }
 
-  function AtualizarTMA(x) {
-    const cTMA = document.getElementById("cTMA");
-    const SepCVal2 = document.getElementById("SepCVal2");
+  /**
+   * AtualizarTMA - atualiza o display de TMA (Tempo Médio de Atendimento)
+   * @param {number} temErro - flag de erro (0|1)
+   */
+  function AtualizarTMA(temErro) {
+    const elementoCaixaTMA = document.getElementById("cTMA");
+    const elementoSeparador = document.getElementById("SepCVal2");
     const contValores = document.getElementById("contValores");
 
+    // Remove TMA se deve ser ignorado
     if (CConfig.IgnorarTMA && !stt.Busc5s) {
-      if (cTMA) {
-        cTMA.remove();
+      if (elementoCaixaTMA) {
+        elementoCaixaTMA.remove();
       }
-      if (SepCVal2) {
-        SepCVal2.remove();
+      if (elementoSeparador) {
+        elementoSeparador.remove();
       }
       return;
     } else {
       const divs = contValores.querySelectorAll(":scope > div");
 
-      if (!SepCVal2 && divs.length >= 3) {
+      if (!elementoSeparador && divs.length >= 3) {
         // adicionar após a quarta div
         const tma = criarCaixaDCv("c", "TMA");
         divs[2].insertAdjacentElement("afterend", tma);
       }
 
-      if (!cTMA && divs.length >= 3) {
+      if (!elementoCaixaTMA && divs.length >= 3) {
         // adicionar após a terceira div
         const sep = criarSeparadorCV(2);
         divs[2].insertAdjacentElement("afterend", sep);
       }
     }
 
-    const cTMA2 = document.getElementById("cTMA");
-    if (cTMA2) {
-      const tTMA = document.getElementById("tTMA");
-      const vTMA = document.getElementById("vTMA");
-      let TMA = stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
-      TMA = Math.floor(TMA);
-      tTMA.innerHTML = stt.Busc5s ? "Busca" : "TMA:";
-      vTMA.innerHTML = stt.Busc5s
+    const caixaTMAAtualizada = document.getElementById("cTMA");
+    if (caixaTMAAtualizada) {
+      const tituloTMA = document.getElementById("tTMA");
+      const valorTMA = document.getElementById("vTMA");
+      let tmaCalculado =
+        stt.vAtendidas === "0" ? 0 : Segun.Trabalhando / stt.vAtendidas;
+      tmaCalculado = Math.floor(tmaCalculado);
+      tituloTMA.innerHTML = stt.Busc5s ? "Busca" : "TMA:";
+      valorTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
-        : stt.ErroAtu || x
+        : stt.ErroAtu || temErro
         ? "Atualize !!"
-        : TMA; // Arredonda para o valor inteiro mais próximo
-      cTMA2.style.background =
-        (TMA > CConfig.ValorMetaTMA && !stt.ErroAtu && CConfig.MetaTMA) ||
+        : tmaCalculado;
+      caixaTMAAtualizada.style.background =
+        (tmaCalculado > CConfig.ValorMetaTMA &&
+          !stt.ErroAtu &&
+          CConfig.MetaTMA) ||
         stt.Busc5s
           ? Ccor.MetaTMA
           : "";
-      cTMA2.style.borderRadius = "5px";
-      cTMA2.style.padding = " 0px 4px";
-      cTMA2.style.margin = "0px -4px";
+      caixaTMAAtualizada.style.borderRadius = "5px";
+      caixaTMAAtualizada.style.padding = " 0px 4px";
+      caixaTMAAtualizada.style.margin = "0px -4px";
     }
   }
 
+  /**
+   * mostrarHora - retorna a hora atual no formato HH:MM:SS
+   * @returns {string} hora formatada
+   */
   function mostrarHora() {
     const agora = new Date();
     let horas = String(agora.getHours()).padStart(2, "0");
     const minutos = String(agora.getMinutes()).padStart(2, "0");
     const segundos = String(agora.getSeconds()).padStart(2, "0");
-    //horas = String(Number(horas) + 12).padStart(2, '0');
 
     return `${horas}:${minutos}:${segundos}`;
   }
 
+  /**
+   * iniciarBusca - coordena a atualização principal de todos os dados
+   * - Tenta atualizar DTI (tempos), depois atendimentos e TMA
+   * - Controla loops e calls ao ControleFront para UI
+   */
   async function iniciarBusca() {
     ControleFront(1);
 
@@ -1191,6 +1246,11 @@
     }
   }
 
+  /**
+   * VerificacoesN1 - verifica estado atual e atualiza display de informações
+   * - Calcula tempos de logado, saída, falta, offline
+   * - Controla visibilidade de offline
+   */
   async function VerificacoesN1() {
     await AtualizarContAtual();
 
@@ -1248,62 +1308,75 @@
     observarDisponibilidade();
   }
 
+  /**
+   * AtualizarInfo - calcula e atualiza os valores de exibição na UI
+   * - Calcula saída, falta, logado, horas extras
+   * - Atualiza display dos valores no painel principal
+   */
   function AtualizarInfo() {
-    var TempoEscalado = converterParaSegundos(CConfig.TempoEscaladoHoras);
-    var vHE;
-    var TempoCumprido = false;
-    var HE = false;
+    const tempoEscalado = converterParaSegundos(CConfig.TempoEscaladoHoras);
+    let tempoHorasExtras;
+    let tempoCumprido = false;
+    let temHorasExtras = false;
 
-    var LogadoSegundos = Segun.Hora - Segun.QualLogou;
-    var SaidaSegundos = Segun.QualLogou + TempoEscalado;
-    SaidaSegundos =
+    const logadoSegundos = Segun.Hora - Segun.QualLogou;
+    let saidaSegundos = Segun.QualLogou + tempoEscalado;
+    saidaSegundos =
       !stt.offForaDToler &&
       !stt.ErroAtu &&
       !CConfig.LogueManual &&
       !CConfig.IgnorarOff &&
       !stt.ErroVerif
-        ? SaidaSegundos + Segun.Offline
-        : SaidaSegundos;
-    var FaltaSegundos = SaidaSegundos - Segun.Hora;
-    var ASaidaSegundos = SaidaSegundos + Segun.Offline;
-    var AFaltaSegundos = FaltaSegundos + Segun.Offline;
-    var dezMinutosSegundos = converterParaSegundos("00:10:00");
+        ? saidaSegundos + Segun.Offline
+        : saidaSegundos;
+    const faltaSegundos = saidaSegundos - Segun.Hora;
+    const saidaComOfflineSegundos = saidaSegundos + Segun.Offline;
+    const faltaComOfflineSegundos = faltaSegundos + Segun.Offline;
+    const dezMinutosSegundos = converterParaSegundos("00:10:00");
 
-    var varia1 = CConfig.MostraValorOff ? ASaidaSegundos : SaidaSegundos;
+    const saidaAExibir = CConfig.MostraValorOff
+      ? saidaComOfflineSegundos
+      : saidaSegundos;
+    const faltaAExibir = CConfig.MostraValorOff
+      ? faltaComOfflineSegundos
+      : faltaSegundos;
 
-    var varia2 = CConfig.MostraValorOff ? AFaltaSegundos : FaltaSegundos;
-
-    if (Segun.Hora > varia1 + dezMinutosSegundos) {
-      HE = true;
-      vHE = Segun.Hora - varia1;
-    } else if (Segun.Hora > varia1) {
-      TempoCumprido = true;
+    if (Segun.Hora > saidaAExibir + dezMinutosSegundos) {
+      temHorasExtras = true;
+      tempoHorasExtras = Segun.Hora - saidaAExibir;
+    } else if (Segun.Hora > saidaAExibir) {
+      tempoCumprido = true;
     }
 
-    var LogouSegundosFormatado = converterParaTempo(Segun.QualLogou);
-    var vLogou = document.getElementById("vLogou");
-    vLogou.textContent = LogouSegundosFormatado;
+    const logouFormatado = converterParaTempo(Segun.QualLogou);
+    const vLogou = document.getElementById("vLogou");
+    vLogou.textContent = logouFormatado;
 
-    var vari1 = CConfig.MostraValorOff ? Segun.NewLogado : LogadoSegundos;
-    var LogadoSegundosFormatado = converterParaTempo(vari1);
-    var vLogado = document.getElementById("vLogado");
-    vLogado.textContent = LogadoSegundosFormatado;
+    const logadoExibido = CConfig.MostraValorOff
+      ? Segun.NewLogado
+      : logadoSegundos;
+    const logadoFormatado = converterParaTempo(logadoExibido);
+    const vLogado = document.getElementById("vLogado");
+    vLogado.textContent = logadoFormatado;
 
-    var vari2 = varia1;
-    var SaidaSegundosFormatado = converterParaTempo(vari2);
-    var vSaida = document.getElementById("vSaida");
-    vSaida.textContent = SaidaSegundosFormatado;
+    const saidaFormatada = converterParaTempo(saidaAExibir);
+    const vSaida = document.getElementById("vSaida");
+    vSaida.textContent = saidaFormatada;
 
-    var FouH = HE ? vHE : varia2;
-    var FouHFormatado = converterParaTempo(FouH);
-    var vFalta = document.getElementById("vFalta");
-    var tFalta = document.getElementById("tFalta");
-    tFalta.textContent = HE ? "HE:" : TempoCumprido ? "Tempo" : "Falta:";
-    vFalta.textContent = HE
-      ? FouHFormatado
-      : TempoCumprido
+    const faltaOuHE = temHorasExtras ? tempoHorasExtras : faltaAExibir;
+    const faltaOuHEFormatada = converterParaTempo(faltaOuHE);
+    const vFalta = document.getElementById("vFalta");
+    const tFalta = document.getElementById("tFalta");
+    tFalta.textContent = temHorasExtras
+      ? "HE:"
+      : tempoCumprido
+      ? "Tempo"
+      : "Falta:";
+    vFalta.textContent = temHorasExtras
+      ? faltaOuHEFormatada
+      : tempoCumprido
       ? "Cumprido"
-      : FouHFormatado;
+      : faltaOuHEFormatada;
 
     if (stt.Busc5s) {
       AtualizarTMA(0);
@@ -1313,36 +1386,53 @@
       stt.Busc5sTem = 5;
     }
 
-    var OfflineSegundosFormatado = converterParaTempo(Segun.Offline);
-    var vOffline = document.getElementById("vOffline");
-    var tOffline = document.getElementById("tOffline");
-    vOffline.textContent = OfflineSegundosFormatado;
+    const offlineFormatado = converterParaTempo(Segun.Offline);
+    const vOffline = document.getElementById("vOffline");
+    const tOffline = document.getElementById("tOffline");
+    vOffline.textContent = offlineFormatado;
     tOffline.textContent = CConfig.MostraValorOff
       ? "Com Offline :"
       : "Sem Offline :";
   }
 
-  function temOculfun(a) {
+  /**
+   * temOculfun - executa função após tempo de ocultação se nenhuma aba estiver aberta
+   * @param {Function} callback - função a executar
+   */
+  function temOculfun(callback) {
     if (stt.temOcul) return;
     stt.temOcul = 1;
     setTimeout(function () {
       if (!stt.AbaConfig && !stt.AbaPausas && !stt.DentrodMC) {
-        a();
+        callback();
       }
       stt.temOcul = 0;
     }, CConfig.tempoPOcul * 1000);
   }
 
+  /**
+   * ControleFront - controla a atualização visual da interface
+   * Modos (a):
+   *   1: iniciar atualização (animação, cores)
+   *   2: atualização concluída
+   *   3: circuloclickCont hover
+   *   4: circuloclick hover
+   *   5: circuloclick2 hover
+   *   6: mostrar contValores
+   *   7: ocultar contValores
+   *   8: atualizar visibilidade do botão pausas
+   * @param {number} a - modo de controle
+   */
   function ControleFront(a) {
-    var circuloclick = document.getElementById("circuloclick");
-    var circuloclick2 = document.getElementById("circuloclick2");
-    var contValores = document.getElementById("contValores");
-    var ContIcon = document.getElementById("ContIcon");
-    var textCC1 = document.getElementById("textCC1");
-    var textCC2 = document.getElementById("textCC2");
-    var cOffline = document.getElementById("cOffline");
-    var Alinha1 = document.getElementById("Alinha1");
-    var BotPa = document.getElementById("BotPa");
+    const circuloclick = document.getElementById("circuloclick");
+    const circuloclick2 = document.getElementById("circuloclick2");
+    const contValores = document.getElementById("contValores");
+    const ContIcon = document.getElementById("ContIcon");
+    const textCC1 = document.getElementById("textCC1");
+    const textCC2 = document.getElementById("textCC2");
+    const cOffline = document.getElementById("cOffline");
+    const Alinha1 = document.getElementById("Alinha1");
+    const BotPa = document.getElementById("BotPa");
 
     function TodasCores(d) {
       var b = stt.ErroAtu ? Ccor.Erro : d;
@@ -1534,6 +1624,10 @@
     });
   }
 
+  /**
+   * copiarTexto - copia texto para clipboard
+   * @param {string} texto - texto a copiar
+   */
   async function copiarTexto(texto) {
     try {
       await navigator.clipboard.writeText(texto);
@@ -1543,6 +1637,11 @@
     }
   }
 
+  /**
+   * criarC - cria o painel de configuração da UI
+   * - Inclui cores, modo de busca, modo de cálculo, TMA, tempo escalado, logue manual
+   * @returns {HTMLElement} div com painel de configurações
+   */
   function criarC() {
     const style = document.createElement("style");
     style.textContent = `
@@ -2169,9 +2268,15 @@
     return caixa;
   }
 
-  function criarBotSalv(a1, a2) {
+  /**
+   * criarBotSalv - cria um botão estilizado simples
+   * @param {number} idBot - id único do botão
+   * @param {string} texto - texto a exibir
+   * @returns {HTMLElement} botão criado
+   */
+  function criarBotSalv(idBot, texto) {
     const Botao = document.createElement("button");
-    Botao.id = `Botao${a1}`;
+    Botao.id = `Botao${idBot}`;
     Botao.style.cssText = `
             padding: 1px 3px;
             border-radius: 8px;
@@ -2183,18 +2288,23 @@
             height: 22px;
             `;
 
-    Botao.textContent = `${a2}`;
+    Botao.textContent = `${texto}`;
 
     return Botao;
   }
 
+  /**
+   * AtualizarConf - aplica alterações de configuração e atualiza UI
+   * - Controla 33+ modos diferentes de atualização de configurações e UI
+   * @param {number} zz - modo de atualização (0-33+)
+   */
   function AtualizarConf(zz = 0) {
-    var CaixaConfig = document.getElementById("CaixaConfig");
-    var InputMin = document.getElementById("InputMin");
-    var InputMinX = document.getElementById("InputMinX");
-    var CaiDPa = document.getElementById("CaiDPa");
-    var BotPa = document.getElementById("BotPa");
-    var minhaCaixa = document.getElementById("minhaCaixa");
+    const CaixaConfig = document.getElementById("CaixaConfig");
+    const InputMin = document.getElementById("InputMin");
+    const InputMinX = document.getElementById("InputMinX");
+    const CaiDPa = document.getElementById("CaiDPa");
+    const BotPa = document.getElementById("BotPa");
+    const minhaCaixa = document.getElementById("minhaCaixa");
 
     if (zz === 1) {
       CConfig.ModoSalvo = 0;
@@ -2354,24 +2464,35 @@
     ControleFront();
   }
 
-  function atualizarVisual(qual, controle) {
-    var x = document.getElementById(qual);
-    if (!x) {
+  /**
+   * atualizarVisual - atualiza estado visual de um botão slide
+   * @param {string} idBotao - id do botão (ex: "Bot14")
+   * @param {boolean} estaAtivo - se botão deve estar ativo/não ativo
+   */
+  function atualizarVisual(idBotao, estaAtivo) {
+    const elemento = document.getElementById(idBotao);
+    if (!elemento) {
       return;
     }
-    if (controle) {
-      if (!x.classList.contains("active")) {
-        x.classList.add("active");
-        x.style.backgroundColor = Ccor.Principal;
+    if (estaAtivo) {
+      if (!elemento.classList.contains("active")) {
+        elemento.classList.add("active");
+        elemento.style.backgroundColor = Ccor.Principal;
       }
     } else {
-      if (x.classList.contains("active")) {
-        x.classList.remove("active");
-        x.style.backgroundColor = "#ccc";
+      if (elemento.classList.contains("active")) {
+        elemento.classList.remove("active");
+        elemento.style.backgroundColor = "#ccc";
       }
     }
   }
 
+  /**
+   * criarBotaoSlide2 - cria um botão slider/toggle estilizado
+   * @param {number} IdBot - id único do slider
+   * @param {Function} funcao - callback a executar ao clicar
+   * @returns {HTMLElement} container do toggle criado
+   */
   function criarBotaoSlide2(IdBot, funcao) {
     // Adiciona estilos apenas uma vez
     StyleSlide();
@@ -2396,11 +2517,18 @@
     return toggleContainer;
   }
 
+  /**
+   * StyleSlide - injeta CSS para buttons sliders na página (executa uma única vez)
+   * Define estilos para:
+   * - .slider-button27: dimensões e transição da barra
+   * - .slider-circle: círculo que se move ao clicar
+   * - .slider-button27.active: cor ativa
+   */
   function StyleSlide() {
     if (!document.getElementById("estilo-slide")) {
-      const style = document.createElement("style");
-      style.id = "estilo-slide";
-      style.textContent = `
+      const elementoEstilo = document.createElement("style");
+      elementoEstilo.id = "estilo-slide";
+      elementoEstilo.textContent = `
           .slider-button27 {
             position: relative;
             width: 26px;
@@ -2440,10 +2568,16 @@
             align-items: center;
           }
         `;
-      document.getElementsByTagName("head")[0].appendChild(style);
+      const elementoHead = document.getElementsByTagName("head")[0];
+      elementoHead.appendChild(elementoEstilo);
     }
   }
 
+  /**
+   * criarBotaoSlide - cria um botão slider que dispara modo de AtualizarConf
+   * @param {number} IdBot - id único do slider (modo a chamar em AtualizarConf)
+   * @returns {HTMLElement} container do toggle criado
+   */
   function criarBotaoSlide(IdBot) {
     // Adiciona estilos apenas uma vez
     StyleSlide();
@@ -2468,6 +2602,11 @@
     return toggleContainer;
   }
 
+  /**
+   * observarDisponibilidade - monitora mudanças de status (Disponível, Pausa, etc)
+   * Detecta pausas, calcula durações, dispara notificações de estouro
+   * Gerencia estado de pausas no painel de pausas
+   */
   function observarDisponibilidade() {
     const alvo = document.querySelector(LugarJS.Status);
     const CaiDPa = document.getElementById("CaiDPa");
@@ -2504,25 +2643,29 @@
       VeriEstDPausa();
     })();
 
+    /**
+     * VeriEstDPausa - verifica se pausa ultrapassou limite de tempo (estouro)
+     * Dispara som e exibe notificação se limite foi ultrapassado
+     */
     function VeriEstDPausa() {
-      let a = "00:00:00";
-      let b = 0;
-      let f = "";
+      let tempoLimiteFormatado = "00:00:00";
+      let estaEmPausaComLimite = 0;
+      let nomePausaAtual = "";
 
       if (StatusNOV.includes("Descanso")) {
-        a = "00:10:00";
-        f = "Descanso";
-        b = 1;
+        tempoLimiteFormatado = "00:10:00";
+        nomePausaAtual = "Descanso";
+        estaEmPausaComLimite = 1;
       } else if (StatusNOV.includes("Lanche")) {
-        a = "00:20:00";
-        f = "Lanche";
-        b = 1;
+        tempoLimiteFormatado = "00:20:00";
+        nomePausaAtual = "Lanche";
+        estaEmPausaComLimite = 1;
       }
-      let c = converterParaSegundos(a);
+      const tempoLimiteSegundos = converterParaSegundos(tempoLimiteFormatado);
 
-      if (Segun.ContAtual > c && b) {
+      if (Segun.ContAtual > tempoLimiteSegundos && estaEmPausaComLimite) {
         stt.Estouro = 1;
-        let d = Segun.ContAtual - c;
+        const tempoEstourado = Segun.ContAtual - tempoLimiteSegundos;
 
         if (!stt.Estour1 && CConfig.SomEstouro) {
           stt.Estour1 = 1;
@@ -2535,71 +2678,93 @@
 
         const vEstouro = document.getElementById("vEstouro");
         const tEstouro = document.getElementById("tEstouro");
-        tEstouro.textContent = `Estourou a pausa ${f}:`;
-        vEstouro.textContent = converterParaTempo(d);
-        //console.log(`Estouro de Pausa ${tipo}:`, d);
+        tEstouro.textContent = `Estourou a pausa ${nomePausaAtual}:`;
+        vEstouro.textContent = converterParaTempo(tempoEstourado);
+        //console.log(`Estouro de Pausa ${tipo}:`, tempoEstourado);
       } else {
         stt.Estouro = 0;
         stt.Estour1 = 0;
         stt.intervaloBeep = 3;
       }
-      let e = stt.Estouro && CConfig.Estouro ? 1 : 0;
+
+      const estaVisivel = stt.Estouro && CConfig.Estouro ? 1 : 0;
       const Alinha2 = document.getElementById("Alinha2");
-      Alinha2.style.visibility = e ? "visible" : "hidden";
-      Alinha2.style.opacity = e ? "1" : "0";
-      Alinha2.style.marginBottom = e ? "" : "-18px";
+      Alinha2.style.visibility = estaVisivel ? "visible" : "hidden";
+      Alinha2.style.opacity = estaVisivel ? "1" : "0";
+      Alinha2.style.marginBottom = estaVisivel ? "" : "-18px";
     }
 
+    /**
+     * FimdePausa - registra fim de uma pausa no banco de dados
+     * @param {string} tipo - tipo de pausa (Descanso, Lanche, Dispon, etc)
+     */
     async function FimdePausa(tipo) {
       stt.FPausaS = converterParaSegundos(mostrarHora());
       stt.DPausaS = stt.FPausaS - stt.IPausaS;
-      var DPausaS1 = converterParaTempo(stt.DPausaS);
-      var y = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
+      const duracaoPausaFormatada = converterParaTempo(stt.DPausaS);
+      const idRegistroPausa = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
 
-      if (y === 2)
+      if (idRegistroPausa === 2)
         console.log(
           `NiceMonk Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`
         );
 
-      await atualizarCampos(y, "Fim", mostrarHora());
-      await atualizarCampos(y, "Duracao", DPausaS1);
+      await atualizarCampos(idRegistroPausa, "Fim", mostrarHora());
+      await atualizarCampos(idRegistroPausa, "Duracao", duracaoPausaFormatada);
 
       if (CaiDPa) AtuaPausas();
     }
 
+    /**
+     * verificacaoStatus - verifica se status mudou e registra nova pausa
+     * @param {string} tipo - tipo de status a verificar
+     */
     async function verificacaoStatus(tipo) {
       if (StatusNOV.includes(tipo)) {
         if (!stt.StatusANT.includes(tipo)) {
           stt.IPausaS = converterParaSegundos(mostrarHora());
           stt.Ndpausas = stt.Ndpausas + 1;
 
-          let a = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
-          let b = tipo.includes("PRE") ? "Logout" : tipo;
-          let c = "00:00:00";
-          let e = 0;
+          const idRegistroPausa = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
+          const nomePausa = tipo.includes("PRE") ? "Logout" : tipo;
+          let tempoLimiteFormatado = "00:00:00";
+          let temPausaComLimite = 0;
+
           if (tipo.includes("Descanso")) {
-            c = "00:10:00";
-            e = 1;
+            tempoLimiteFormatado = "00:10:00";
+            temPausaComLimite = 1;
           } else if (tipo.includes("Lanche")) {
-            c = "00:20:00";
-            e = 1;
+            tempoLimiteFormatado = "00:20:00";
+            temPausaComLimite = 1;
           }
-          let d = converterParaSegundos(c);
-          let f = e ? converterParaTempo(stt.IPausaS + d) : 0;
-          if (e) {
-            console.log(`NiceMonk o D Esta : ${d}`);
+
+          const tempoLimiteSegundos =
+            converterParaSegundos(tempoLimiteFormatado);
+          const tempoPrevistoFim = temPausaComLimite
+            ? converterParaTempo(stt.IPausaS + tempoLimiteSegundos)
+            : 0;
+
+          if (temPausaComLimite) {
+            console.log(`NiceMonk o D Esta : ${tempoLimiteSegundos}`);
           }
-          let g = e ? "<-Volta" : 0;
+
+          const notaRetorno = temPausaComLimite ? "<-Volta" : 0;
           if (stt.Ndpausas >= 100) {
             stt.Ndpausas = 2;
           }
 
-          if (a === 2) {
-            await atualizarCampos(a, "pausa", "Disponivel");
-            await atualizarCampos(a, "Inicio", mostrarHora());
-            await atualizarCampos(a, "Fim", 0);
+          if (idRegistroPausa === 2) {
+            await atualizarCampos(idRegistroPausa, "pausa", "Disponivel");
+            await atualizarCampos(idRegistroPausa, "Inicio", mostrarHora());
+            await atualizarCampos(idRegistroPausa, "Fim", 0);
           } else {
-            await AddouAtualizarPausas(a, b, mostrarHora(), f, g);
+            await AddouAtualizarPausas(
+              idRegistroPausa,
+              nomePausa,
+              mostrarHora(),
+              tempoPrevistoFim,
+              notaRetorno
+            );
           }
 
           if (CaiDPa) AtuaPausas();
@@ -2610,6 +2775,11 @@
     }
   }
 
+  /**
+   * AddTituloCp - cria um elemento título para seção na configuração
+   * @param {string} titulo - texto do título
+   * @returns {HTMLElement} div formatada com título
+   */
   function AddTituloCp(titulo) {
     const caixa = document.createElement("div");
     caixa.innerHTML = `${titulo}`;
@@ -2622,6 +2792,11 @@
     return caixa;
   }
 
+  /**
+   * ADDCaiPausas - cria container para exibir tabela de pausas
+   * Define 5 colunas: Excluir, Pausa, Início, Fim, Duração
+   * @returns {HTMLElement} caixa container das pausas
+   */
   function ADDCaiPausas() {
     const caixa = document.createElement("div");
     caixa.id = "CaiDPa";
@@ -2641,9 +2816,14 @@
         justify-content: center;
        `;
 
-    function ADDCaixa1(id) {
+    /**
+     * ADDCaixa1 - cria coluna interna para tabela de pausas
+     * @param {string} idColuna - id da coluna
+     * @returns {HTMLElement} div coluna
+     */
+    function ADDCaixa1(idColuna) {
       const caixa = document.createElement("div");
-      caixa.id = id;
+      caixa.id = idColuna;
       caixa.style.cssText = `
             display: flex;
             flex-direction: column;
@@ -2654,15 +2834,10 @@
     }
 
     // Criar colunas
-
     const CPausa = ADDCaixa1("CPausa");
-
     const CExcl = ADDCaixa1("CExcl");
-
     const CInicio = ADDCaixa1("CInicio");
-
     const CFim = ADDCaixa1("CFim");
-
     const CDuracao = ADDCaixa1("CDuracao");
 
     // Montar estrutura final
@@ -2671,6 +2846,11 @@
     return caixa;
   }
 
+  /**
+   * ADDBotPa - cria botão para mostrar/ocultar painel de pausas
+   * Exibe "Pausas"/"Fechar" ou "P"/"F" dependendo do espaço
+   * @returns {HTMLElement} botão de pausas
+   */
   function ADDBotPa() {
     const caixa = document.createElement("div");
     caixa.id = "BotPa";
@@ -2693,6 +2873,7 @@
         margin-top: -20px;
         margin-bottom: 20px;
         `;
+
     caixa.addEventListener("click", function () {
       AtualizarConf(17);
       ControleFront(3);
@@ -2700,19 +2881,24 @@
       if (CaiDPa) AtuaPausas();
       Controle(1);
     });
-    // Adiciona o evento de mouseover ao circuloclick
+
+    // Adiciona o evento de mouseover ao botão
     caixa.addEventListener("mouseover", function () {
       Controle(1);
     });
 
-    // Adiciona o evento de mouseout ao circuloclick
+    // Adiciona o evento de mouseout ao botão
     caixa.addEventListener("mouseout", function () {
       Controle(0);
     });
-    function Controle(x) {
-      caixa.style.width = x ? "auto" : "20px";
-      //Esperar antes de mudar o innerHTML
-      caixa.innerHTML = x
+
+    /**
+     * Controle - alterna entre modo compacto/expandido do botão
+     * @param {number} mostrarTextoCompleto - 1 para expandido, 0 para compacto
+     */
+    function Controle(mostrarTextoCompleto) {
+      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
+      caixa.innerHTML = mostrarTextoCompleto
         ? stt.AbaPausas
           ? "Fechar"
           : "Pausas"
@@ -2720,25 +2906,30 @@
         ? "F"
         : "P";
     }
+
     return caixa;
   }
 
+  /**
+   * abrirDB - abre ou cria IndexedDB para persistência de dados
+   * @param {Function} callback - função a executar com banco de dados aberto
+   */
   function abrirDB(callback) {
-    const request = indexedDB.open(nomeBD, 1);
+    const requisicao_bd = indexedDB.open(nomeBD, 1);
 
-    request.onupgradeneeded = function (event) {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains(StoreBD)) {
-        db.createObjectStore(StoreBD);
+    requisicao_bd.onupgradeneeded = function (event) {
+      const banco_dados = event.target.result;
+      if (!banco_dados.objectStoreNames.contains(StoreBD)) {
+        banco_dados.createObjectStore(StoreBD);
       }
     };
 
-    request.onsuccess = function (event) {
-      const db = event.target.result;
-      callback(db);
+    requisicao_bd.onsuccess = function (event) {
+      const banco_dados = event.target.result;
+      callback(banco_dados);
     };
 
-    request.onerror = function (event) {
+    requisicao_bd.onerror = function (event) {
       console.error(
         "NiceMonk Erro ao abrir o banco de dados:",
         event.target.errorCode
@@ -2746,6 +2937,12 @@
     };
   }
 
+  /**
+   * AddOuAtuIindexdb - salva ou atualiza dados no IndexedDB
+   * @param {string} nomechave - chave de armazenamento
+   * @param {*} dados - dados a salvar (qualquer tipo)
+   * @returns {Promise<boolean>} true se salvo com sucesso
+   */
   function AddOuAtuIindexdb(nomechave, dados) {
     return new Promise((resolve, reject) => {
       try {
@@ -2776,6 +2973,11 @@
     });
   }
 
+  /**
+   * RecDadosindexdb - recupera dados do IndexedDB por chave
+   * @param {string} nomechave - chave de armazenamento
+   * @returns {Promise<*>} dados armazenados ou false se não encontrado
+   */
   function RecDadosindexdb(nomechave) {
     return new Promise((resolve, reject) => {
       abrirDB(function (db) {
@@ -2795,6 +2997,10 @@
     });
   }
 
+  /**
+   * listarChavesEConteudos - lista todas as chaves e conteúdos do IndexedDB
+   * Exibe painel interativo com visualização e exclusão de registros
+   */
   function listarChavesEConteudos() {
     abrirDB(function (db) {
       const transacao = db.transaction([StoreBD], "readonly");
@@ -2804,12 +3010,12 @@
       request.onsuccess = function (event) {
         const chaves = event.target.result;
 
-        var asta = 0;
-        chaves.forEach((chave) => {
-          const reqConteudo = store.get(chave);
+        let contador = 0;
+        chaves.forEach((nomeChave) => {
+          const requisicaoConteudo = store.get(nomeChave);
 
-          reqConteudo.onsuccess = function (e) {
-            const conteudo = e.target.result;
+          requisicaoConteudo.onsuccess = function (e) {
+            const conteudoChave = e.target.result;
 
             const CaixaConfig = document.getElementById("CaixaConfig");
             const CBancDa = document.getElementById("CBancDa");
@@ -2826,7 +3032,7 @@
                         `;
 
             const divChave = document.createElement("div");
-            divChave.textContent = chave;
+            divChave.textContent = nomeChave;
             divChave.style.cssText = `
                         cursor: pointer;
                         text-decoration: underline;
@@ -2839,7 +3045,7 @@
                         justify-content: center;
                         `;
 
-            divConteudo.textContent = JSON.stringify(conteudo, null, 2);
+            divConteudo.textContent = JSON.stringify(conteudoChave, null, 2);
 
             divChave.addEventListener("click", function () {
               if (
@@ -2852,17 +3058,17 @@
               }
             });
 
-            asta = asta + 1;
-            const bot = document.createElement("div");
-            bot.id = `Chave${asta}`;
-            bot.style.cssText = `
+            contador = contador + 1;
+            const botaoExcluir = document.createElement("div");
+            botaoExcluir.id = `Chave${contador}`;
+            botaoExcluir.style.cssText = `
                         cursor: pointer;
                         `;
-            bot.textContent = "❌";
-            bot.addEventListener("click", function () {
+            botaoExcluir.textContent = "❌";
+            botaoExcluir.addEventListener("click", function () {
               CaixaConfig.appendChild(
                 ADDCaixaDAviso("Excluir", () => {
-                  ApagarChaveIndexDB(chave);
+                  ApagarChaveIndexDB(nomeChave);
                   CBancDa.innerHTML = "";
                   listarChavesEConteudos();
                 })
@@ -2870,11 +3076,9 @@
             });
 
             TituloEBot.appendChild(divChave);
-            TituloEBot.appendChild(bot);
+            TituloEBot.appendChild(botaoExcluir);
             divPai.appendChild(TituloEBot);
             divPai.appendChild(divConteudo);
-
-            // Adicionar ao DOM (exemplo: dentro de um elemento com id="resultado")
 
             CBancDa.appendChild(divPai);
           };
@@ -2887,6 +3091,10 @@
     });
   }
 
+  /**
+   * ApagarChaveIndexDB - deleta uma chave do IndexedDB
+   * @param {string} nomechave - chave a deletar
+   */
   function ApagarChaveIndexDB(nomechave) {
     abrirDB(function (db) {
       const transacao = db.transaction([StoreBD], "readwrite");
@@ -2906,6 +3114,11 @@
     });
   }
 
+  /**
+   * SalvarLogueManual - salva dados de login manual no IndexedDB
+   * Se data mudou (dia anterior), move registro anterior para "Ontem"
+   * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
+   */
   async function SalvarLogueManual(x) {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
@@ -2937,6 +3150,11 @@
     }
   }
 
+  /**
+   * verificarESalvar - verifica e salva primeiro login do dia no IndexedDB
+   * Se data mudou, movimenta registro anterior para "Ontem"
+   * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
+   */
   async function verificarESalvar(x) {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
@@ -2944,8 +3162,8 @@
     ontem.setDate(hoje.getDate() - 1);
     const ontemFormatado = ontem.toISOString().split("T")[0];
 
-    var convert = converterParaTempo(Segun.Logou);
-    const valorEdata = { valor: convert, data: hojeFormatado }; // Usa a data de hoje e o valor passado
+    const valorFormatado = converterParaTempo(Segun.Logou);
+    const valorEdata = { valor: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
     if (!dadosPrimLogue || dadosPrimLogue.data !== hojeFormatado) {
       valorEdata.valor = "24:00:00";
@@ -2976,21 +3194,32 @@
     }
   }
 
-  async function SalvandoVari(a) {
-    let AsVari = {
+  /**
+   * SalvandoVari - salva/restaura/valida configurações (CConfig, Ccor)
+   * Modo 1: Salva atual no IndexedDB
+   * Modo 2: Restaura de backup (PCConfig, PCcor)
+   * Modo 3: Recupera do IndexedDB ou padrão
+   * @param {number} modo - 1=salvar, 2=backup, 3=recuperar
+   */
+  async function SalvandoVari(modo) {
+    const AsVari = {
       CConfig: { ...CConfig },
       Ccor: { ...Ccor },
     };
 
-    function ondemudar(x) {
-      Object.assign(CConfig, x.CConfig);
-      Object.assign(Ccor, x.Ccor);
+    /**
+     * aplicarConfiguracao - aplica dados de configuração aos objetos globais
+     * @param {Object} dados - objeto com CConfig e Ccor
+     */
+    function aplicarConfiguracao(dados) {
+      Object.assign(CConfig, dados.CConfig);
+      Object.assign(Ccor, dados.Ccor);
     }
 
-    switch (a) {
+    switch (modo) {
       case 1:
         await AddOuAtuIindexdb(ChaveConfig, AsVari);
-        ondemudar(AsVari);
+        aplicarConfiguracao(AsVari);
         break;
 
       case 2:
@@ -2998,7 +3227,7 @@
           AsVari.CConfig = { ...PCConfig };
           AsVari.Ccor = { ...PCcor };
           await AddOuAtuIindexdb(ChaveConfig, AsVari);
-          ondemudar(AsVari);
+          aplicarConfiguracao(AsVari);
         } else {
           console.warn("PCConfig ou PCcor não estão definidos.");
         }
@@ -3006,7 +3235,7 @@
 
       case 3:
         if (typeof dadosSalvosConfi !== "undefined") {
-          ondemudar(dadosSalvosConfi);
+          aplicarConfiguracao(dadosSalvosConfi);
           console.log(`NiceMonk Dados em ${ChaveConfig}:`, dadosSalvosConfi);
         } else {
           console.log(
@@ -3018,10 +3247,15 @@
         break;
 
       default:
-        console.warn("Parâmetro inválido para SalvandoVari:", a);
+        console.warn("Parâmetro inválido para SalvandoVari:", modo);
     }
   }
 
+  /**
+   * salvarDPausas - inicializa ou recupera estrutura de pausas do dia
+   * Se a data mudou, reinicializa com estrutura padrão
+   * Caso contrário, recupera contador de pausas e status anterior
+   */
   async function salvarDPausas() {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
@@ -3029,7 +3263,7 @@
     ontem.setDate(hoje.getDate() - 1);
     const ontemFormatado = ontem.toISOString().split("T")[0];
 
-    const valorEdata = [
+    const estruturaPadrao = [
       { id: 1, data: hojeFormatado, Ndpausas: 2, StatusANT: "", IPausaS: "" },
     ];
 
@@ -3041,7 +3275,7 @@
     const itemComData = dadosdePausas.find((item) => item.id === 1);
 
     if (!itemComData || itemComData.data !== hojeFormatado) {
-      dadosdePausas = [...valorEdata]; // reinicia com os dados padrão
+      dadosdePausas = [...estruturaPadrao]; // reinicia com os dados padrão
       await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } else {
       stt.Ndpausas = itemComData.Ndpausas;
@@ -3050,6 +3284,14 @@
     }
   }
 
+  /**
+   * AddouAtualizarPausas - adiciona ou atualiza registro de pausa
+   * @param {number} id - id único da pausa
+   * @param {string} pausa - nome da pausa (Descanso, Lanche, etc)
+   * @param {string} Inicio - hora de início (HH:MM:SS)
+   * @param {string} Fim - hora de fim (HH:MM:SS) ou tempo previsto
+   * @param {string} Duracao - duração prevista ou real
+   */
   async function AddouAtualizarPausas(id, pausa, Inicio, Fim, Duracao) {
     const novoItem = { id, pausa, Inicio, Fim, Duracao };
 
@@ -3069,6 +3311,13 @@
     await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
   }
 
+  /**
+   * atualizarCampos - atualiza um campo de uma pausa pelo id
+   * Se id não existe, cria novo item com o campo
+   * @param {number} id - id da pausa
+   * @param {string} campo - nome do campo a atualizar
+   * @param {*} valor - novo valor
+   */
   async function atualizarCampos(id, campo, valor) {
     const index = dadosdePausas.findIndex((item) => item.id === id);
 
@@ -3092,6 +3341,11 @@
     }
   }
 
+  /**
+   * removerPausaPorId - remove um registro de pausa pelo id
+   * Atualiza IndexedDB e refaz a exibição da tabela
+   * @param {number} id - id da pausa a remover
+   */
   async function removerPausaPorId(id) {
     const index = dadosdePausas.findIndex((item) => item.id === id);
 
@@ -3109,6 +3363,10 @@
     }
   }
 
+  /**
+   * atualizarID1 - atualiza registro raiz (id=1) com estado atual de pausas
+   * Sincroniza contador de pausas, status anterior e tempo de início
+   */
   async function atualizarID1() {
     if (!dadosdePausas) {
       await salvarDPausas();
@@ -3126,6 +3384,10 @@
     }
   }
 
+  /**
+   * AtuaPausas - renderiza tabela de pausas do dia
+   * Ordena por id e preenche 5 colunas (Excl, Pausa, Início, Fim, Duração)
+   */
   function AtuaPausas() {
     const CPausa = document.getElementById("CPausa");
     const CInicio = document.getElementById("CInicio");
@@ -3154,10 +3416,17 @@
       CDuracao.appendChild(AddTituloCp("Duração"));
     }
 
-    function ADDitem(id, campo, valor) {
+    /**
+     * criarItemTabela - cria célula de tabela com ícone ou texto
+     * @param {number} id - id da pausa
+     * @param {string} campo - tipo de campo (id, pausa, etc)
+     * @param {string} textoExibicao - texto a exibir
+     * @returns {HTMLElement} célula formatada
+     */
+    function criarItemTabela(id, campo, textoExibicao) {
       const caixa = document.createElement("div");
       caixa.id = `${campo}${id}`;
-      caixa.innerHTML = valor;
+      caixa.innerHTML = textoExibicao;
 
       if (campo === "id") {
         if (id === 2) {
@@ -3189,19 +3458,25 @@
       ordenado.forEach((item) => {
         if (item.id === 1) return;
 
-        CExcl.appendChild(ADDitem(item.id, "id", "❌"));
-        CPausa.appendChild(ADDitem(item.id, "pausa", item.pausa || ""));
+        CExcl.appendChild(criarItemTabela(item.id, "id", "❌"));
+        CPausa.appendChild(criarItemTabela(item.id, "pausa", item.pausa || ""));
         CInicio.appendChild(
-          ADDitem(item.id, "inicio", item.Inicio || "<---->")
+          criarItemTabela(item.id, "inicio", item.Inicio || "<---->")
         );
-        CFim.appendChild(ADDitem(item.id, "fim", item.Fim || "<---->"));
+        CFim.appendChild(criarItemTabela(item.id, "fim", item.Fim || "<---->"));
         CDuracao.appendChild(
-          ADDitem(item.id, "duracao", item.Duracao || "<---->")
+          criarItemTabela(item.id, "duracao", item.Duracao || "<---->")
         );
       });
     }
   }
 
+  /**
+   * ADDCaixaDAviso - cria caixa de diálogo confirmação (Sim/Não)
+   * @param {string} titulo - título do diálogo
+   * @param {Function} funcao - callback ao clicar em "Sim"
+   * @returns {HTMLElement} caixa de aviso posicionada
+   */
   function ADDCaixaDAviso(titulo, funcao) {
     const caixa = document.createElement("div");
     caixa.id = "CaiDeAvi";
@@ -3214,47 +3489,53 @@
         flex-direction: column;
         align-items: center;
         `;
-    const Ctitulo = document.createElement("div");
-    Ctitulo.innerHTML = titulo;
-    Ctitulo.style.cssText = `
+
+    const elementoTitulo = document.createElement("div");
+    elementoTitulo.innerHTML = titulo;
+    elementoTitulo.style.cssText = `
             font-size: 14px;
             border-bottom-style: dashed;
             border-width: 1px;
             margin-bottom: 6px;
         `;
 
-    const TC = document.createElement("div");
-    TC.style.cssText = `
+    const elementoPergunta = document.createElement("div");
+    elementoPergunta.style.cssText = `
         margin-bottom: 8px;
         `;
+    elementoPergunta.innerHTML = "Tem Certeza ?";
 
-    TC.innerHTML = "Tem Certeza ?";
-    const CaixaSouN = document.createElement("div");
-    CaixaSouN.style.cssText = `
+    const caixaBotoes = document.createElement("div");
+    caixaBotoes.style.cssText = `
         display: flex;
         justify-content: space-between;
         width: 100%;
         `;
 
-    function SimouNao(texto) {
-      const a = document.createElement("div");
-      a.innerHTML = texto;
-      a.style.cssText = `
+    /**
+     * criarBotaoOpcao - cria botão de opção (Sim/Não)
+     * @param {string} texto - texto do botão (Sim ou Não)
+     * @returns {HTMLElement} botão formatado
+     */
+    function criarBotaoOpcao(texto) {
+      const botao = document.createElement("div");
+      botao.innerHTML = texto;
+      botao.style.cssText = `
             cursor: pointer;
             border: white 1px solid;
             border-radius: 15px;
             padding: 2px 4px;
            `;
-      a.addEventListener("mouseover", function () {
-        a.style.background = "white";
-        a.style.color = Ccor.Principal;
+      botao.addEventListener("mouseover", function () {
+        botao.style.background = "white";
+        botao.style.color = Ccor.Principal;
       });
 
-      a.addEventListener("mouseout", function () {
-        a.style.background = "";
-        a.style.color = "";
+      botao.addEventListener("mouseout", function () {
+        botao.style.background = "";
+        botao.style.color = "";
       });
-      a.addEventListener("click", function () {
+      botao.addEventListener("click", function () {
         if (texto === "Sim") {
           funcao();
           caixa.remove();
@@ -3262,36 +3543,44 @@
           caixa.remove();
         }
       });
-      return a;
+      return botao;
     }
 
-    CaixaSouN.appendChild(SimouNao("Sim"));
-    CaixaSouN.appendChild(SimouNao("Não"));
+    caixaBotoes.appendChild(criarBotaoOpcao("Sim"));
+    caixaBotoes.appendChild(criarBotaoOpcao("Não"));
 
-    caixa.appendChild(Ctitulo);
-    caixa.appendChild(TC);
-    caixa.appendChild(CaixaSouN);
+    caixa.appendChild(elementoTitulo);
+    caixa.appendChild(elementoPergunta);
+    caixa.appendChild(caixaBotoes);
 
     return caixa;
   }
 
+  /**
+   * tocarBeep - toca tom de alerta via Web Audio API
+   * Frequência: 700Hz, duração: 0.5s, volume: 0.6
+   */
   function tocarBeep() {
     const contextoAudio = new (window.AudioContext ||
       window.webkitAudioContext)();
-    const oscilador = contextoAudio.createOscillator();
-    const ganho = contextoAudio.createGain();
+    const nodoOscilador = contextoAudio.createOscillator();
+    const nodoGanho = contextoAudio.createGain();
 
-    oscilador.type = "sine"; // Tipo de onda
-    oscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
-    ganho.gain.setValueAtTime(0.6, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
+    nodoOscilador.type = "sine"; // Tipo de onda
+    nodoOscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
+    nodoGanho.gain.setValueAtTime(0.6, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
 
-    oscilador.connect(ganho);
-    ganho.connect(contextoAudio.destination);
+    nodoOscilador.connect(nodoGanho);
+    nodoGanho.connect(contextoAudio.destination);
 
-    oscilador.start();
-    oscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
+    nodoOscilador.start();
+    nodoOscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
   }
 
+  /**
+   * RepetirBeep - toca beep repetidamente enquanto pausa estiver em estouro
+   * Intervalo configurável via stt.intervaloBeep (em segundos)
+   */
   function RepetirBeep() {
     if (stt.Estouro && CConfig.SomEstouro && !stt.BeepRet) {
       stt.BeepRet = 1;
