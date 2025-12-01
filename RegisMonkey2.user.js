@@ -478,9 +478,31 @@
     linha12.appendChild(linha12in);
     dd2.appendChild(linha12);
 
+
+    const linha14 = CriarLinha(14);
+    const linha14T1 = document.createElement("p");
+    linha14T1.textContent = "Motivo : ";
+    const linha14in = CriarInput(0, "Motivo");
+
+    linha14.appendChild(linha14T1);
+    linha14.appendChild(linha14in);
+    linha14.style.display = "none";
+    dd2.appendChild(linha14);
+
+    linha12in.addEventListener("change", () => {
+      if(linha12in.value === "Não"){
+        linha14.style.display = "flex";
+      }else{
+        linha14.style.display = "none";
+      }
+
+    });
+
+
     const linha13 = CriarLinha(13);
     const linha13in = Criarselect(
       "Sim, Sucesso",
+      "Sim, Porem Muda",
       "Sim, Falhou, Caixa Postal",
       "Sim, Falhou, Erro Nice",
       "Sim, Falhou, Não Atendeu",
