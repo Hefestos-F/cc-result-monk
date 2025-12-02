@@ -553,7 +553,9 @@
       linha11in.value = "";
       linha11.style.display = "none";
       linha12in.value = "Não se aplica";
+      linha14in.value = "";
       linha13in.value = "Não";
+
     });
 
     contentBoxlimpar.style.visibility = "hidden";
@@ -663,6 +665,12 @@
       } else {
         variant8 = "";
       }
+      var variant10;
+      if (linha14in.value !== "") {
+        variant10 = "\n\n" + linha14T1.textContent + linha14in.value + ".";
+      } else {
+        variant10 = "";
+      }
       var variant9;
       if (linha13in.value !== "") {
         variant9 = "\n\n" + linha13T1.textContent + linha13in.value + ".";
@@ -685,6 +693,7 @@
         variant6 +
         variant7 +
         variant8 +
+        variant10 +
         variant9;
       navigator.clipboard.writeText(textToCopy).then(
         function () {
