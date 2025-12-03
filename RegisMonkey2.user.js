@@ -481,7 +481,7 @@
 
     const linha14 = CriarLinha(14);
     const linha14T1 = document.createElement("p");
-    linha14T1.textContent = "Motivo : ";
+    linha14T1.textContent = "Motivo ? ";
     const linha14in = CriarInput(0, "Motivo");
 
     linha14.appendChild(linha14T1);
