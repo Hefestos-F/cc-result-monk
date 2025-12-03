@@ -495,7 +495,6 @@
       }else{
         linha14.style.display = "none";
       }
-
     });
 
 
@@ -678,6 +677,10 @@
         variant9 = "";
       }
 
+      //const TextoLAss = element.
+
+      TextoLAss.textContent + Input6.value;
+
       var textToCopy =
         linha1T1.textContent +
         textnome +
@@ -848,12 +851,14 @@
 
     var TextoLAss = document.createElement("p");
     TextoLAss.textContent = "cardholdername-";
+    TextoLAss.id = 'TextoLAss';
 
     const botCop6 = CriarBotCopiar();
 
     const Input6 = CriarInput(0, "");
     Input6.placeholder = "XXXXXXX";
     Input6.value = Cardhold;
+    Input6.id = 'Input6';
 
     // Criar o elemento sizer invisível
     const sizer = document.createElement("span");
@@ -908,6 +913,7 @@
     const Input7 = CriarInput(0, "");
     Input7.placeholder = "ALMAVIVA.XXXXXXX-0300-MCZ";
     Input7.value = Assinatura;
+    
 
     Input7.addEventListener("input", function () {
       sizer.textContent = Input7.value || Input7.placeholder;
