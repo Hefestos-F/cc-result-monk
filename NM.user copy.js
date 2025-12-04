@@ -43,12 +43,6 @@
     SomEstouro: 1, // Tocar som em estouro
     temOcul: 0, // Flag de ocultação temporária
     tempoPOcul: 8, // Tempo (s) antes da ocultação
-    modoTeste: 0, // Modo de teste (0|1)  
-  };
-
-  const VariavelmodoTeste = {
-    hora: "+00:00:00", // Offset (deslocamento) em relação à hora atual (ex: +02:30:00, -01:15:00)
-    data: "2024-01-15", // Data fixa para modo de teste (YYYY-MM-DD) ou vazio para hoje
   };
 
   /**
@@ -1187,50 +1181,8 @@
    * mostrarHora - retorna a hora atual no formato HH:MM:SS
    * @returns {string} hora formatada
    */
-  /**
-   * agoraDate - retorna um Date objeto respeitando o modo de teste
-   * Se `CConfig.modoTeste` for truthy:
-   *   - usa `VariavelmodoTeste.data` como data (ou hoje se vazio)
-   *   - aplica offset de `VariavelmodoTeste.hora` à hora atual (ex: +02:30:00 ou -01:15:00)
-   * @returns {Date}
-   */
-  function agoraDate() {
-    try {
-      if (CConfig && CConfig.modoTeste) {
-        let dataBase = new Date();
-        
-        // Sobrescreve a data se VariavelmodoTeste.data foi definida
-        if (VariavelmodoTeste && VariavelmodoTeste.data) {
-          const d = VariavelmodoTeste.data;
-          const [y, m, day] = d.split("-").map((v) => Number(v));
-          if (!Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(day)) {
-            dataBase = new Date(y, (m || 1) - 1, day || 1, 0, 0, 0);
-          }
-        }
-        
-        // Aplica offset de hora
-        let offset = 0; // segundos
-        if (VariavelmodoTeste && VariavelmodoTeste.hora) {
-          const offset_str = VariavelmodoTeste.hora;
-          const sinal = offset_str.charAt(0) === "-" ? -1 : 1;
-          const timePart = offset_str.replace(/^[+-]/, ""); // remove sinal
-          const [hh, mm, ss] = timePart.split(":").map((v) => Number(v));
-          if (!Number.isNaN(hh) || !Number.isNaN(mm) || !Number.isNaN(ss)) {
-            offset = sinal * ((hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0));
-          }
-        }
-        
-        const result = new Date(dataBase.getTime() + offset * 1000);
-        return result;
-      }
-    } catch (e) {
-      console.warn("NiceMonk agoraDate: falha ao parsear modoTeste:", e);
-    }
-    return new Date();
-  }
-
   function mostrarHora() {
-    const agora = agoraDate();
+    const agora = new Date();
     let horas = String(agora.getHours()).padStart(2, "0");
     const minutos = String(agora.getMinutes()).padStart(2, "0");
     const segundos = String(agora.getSeconds()).padStart(2, "0");
@@ -1973,70 +1925,6 @@
       return a;
     }
 
-    function ContModoTeste() {
-      const cont = criarCaixaSeg();
-      cont.id = "CModoTeste";
-
-      const titulo = c1riarBotSalv(34, "Modo Teste");
-
-      const area = document.createElement("div");
-      area.style.cssText = `display:flex; flex-direction: column; width:100%;`;
-
-      const linha = document.createElement("div");
-      linha.style.cssText = `display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:6px;`;
-
-      const dateInput = document.createElement("input");
-      dateInput.type = "date";
-      dateInput.id = "InputModoTesteDate";
-      dateInput.style.cssText = `background: #ffffff00; border: solid 1px white; color: white; padding:2px;`;
-      dateInput.value = VariavelmodoTeste && VariavelmodoTeste.data ? VariavelmodoTeste.data : "";
-
-      const timeInput = document.createElement("input");
-      timeInput.type = "text";
-      timeInput.id = "InputModoTesteTime";
-      timeInput.placeholder = "+00:00:00 (offset HH:MM:SS)";
-      timeInput.style.cssText = `background: #ffffff00; border: solid 1px white; color: white; padding:2px; font-size:11px;`;
-      timeInput.value = VariavelmodoTeste && VariavelmodoTeste.hora ? VariavelmodoTeste.hora : "+00:00:00";
-
-      const salvarBot = criarBotSalv(35, "Salvar");
-      salvarBot.addEventListener("click", function () {
-        VariavelmodoTeste.data = dateInput.value || VariavelmodoTeste.data || "";
-        VariavelmodoTeste.hora = timeInput.value || VariavelmodoTeste.hora || "";
-        // garante que CConfig.modoTeste siga o toggle
-        CConfig.modoTeste = CConfig.modoTeste ? 1 : 0;
-        SalvandoVari(1);
-        AtualizarConf();
-      });
-
-      const toggle = criarBotaoSlide2(34, () => {
-        CConfig.modoTeste = !CConfig.modoTeste;
-        if (CConfig.modoTeste) {
-          // quando ativar, preenche inputs com valores atuais se vazio
-          if (!dateInput.value && VariavelmodoTeste.data) dateInput.value = VariavelmodoTeste.data;
-          if (!timeInput.value && VariavelmodoTeste.hora) timeInput.value = VariavelmodoTeste.hora;
-        }
-        SalvandoVari(1);
-        AtualizarConf();
-      });
-
-      // Atualiza VariavelmodoTeste quando inputs mudam
-      dateInput.addEventListener("change", () => {
-        VariavelmodoTeste.data = dateInput.value;
-        SalvandoVari(1);
-      });
-      timeInput.addEventListener("change", () => {
-        VariavelmodoTeste.hora = timeInput.value;
-        SalvandoVari(1);
-      });
-
-      linha.append(dateInput, timeInput, salvarBot);
-      area.appendChild(linha);
-      area.appendChild(toggle);
-
-      const a = CaixaDeOcultar(titulo, area);
-      return a;
-    }
-
     function modoBusca() {
       const CmodoBusca = criarCaixaSeg();
       CmodoBusca.id = "CmodoBusca";
@@ -2305,8 +2193,6 @@
       criarSeparador(),
       ContlogueManual(),
       criarSeparador(),
-      ContModoTeste(),
-      criarSeparador(),
       CIgEst,
       criarSeparador(),
       modoBusca(),
@@ -2569,7 +2455,6 @@
       atualizarVisual("Bot22", CConfig.Estouro);
       atualizarVisual("Bot23", CConfig.SomEstouro);
       atualizarVisual("Bot33", CConfig.temOcul);
-      atualizarVisual("Bot34", CConfig.modoTeste);
     }
 
     if (zz > 0 && zz !== 14) {
@@ -3235,7 +3120,7 @@
    * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
    */
   async function SalvarLogueManual(x) {
-    const hoje = agoraDate();
+    const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
     ontem.setDate(hoje.getDate() - 1);
@@ -3271,7 +3156,7 @@
    * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
    */
   async function verificarESalvar(x) {
-    const hoje = agoraDate();
+    const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
     ontem.setDate(hoje.getDate() - 1);
@@ -3320,7 +3205,6 @@
     const AsVari = {
       CConfig: { ...CConfig },
       Ccor: { ...Ccor },
-      VariavelmodoTeste: { ...(VariavelmodoTeste || {}) },
     };
 
     /**
@@ -3328,9 +3212,8 @@
      * @param {Object} dados - objeto com CConfig e Ccor
      */
     function aplicarConfiguracao(dados) {
-      if (dados.CConfig) Object.assign(CConfig, dados.CConfig);
-      if (dados.Ccor) Object.assign(Ccor, dados.Ccor);
-      if (dados.VariavelmodoTeste) Object.assign(VariavelmodoTeste, dados.VariavelmodoTeste);
+      Object.assign(CConfig, dados.CConfig);
+      Object.assign(Ccor, dados.Ccor);
     }
 
     switch (modo) {
@@ -3374,7 +3257,7 @@
    * Caso contrário, recupera contador de pausas e status anterior
    */
   async function salvarDPausas() {
-    const hoje = agoraDate();
+    const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
     ontem.setDate(hoje.getDate() - 1);

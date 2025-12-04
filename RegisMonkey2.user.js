@@ -481,8 +481,16 @@
 
     const linha14 = CriarLinha(14);
     const linha14T1 = document.createElement("p");
-    linha14T1.textContent = "Motivo ? ";
+    linha14T1.textContent = "Motivo : ";
     const linha14in = CriarInput(0, "Motivo");
+
+    linha14in.addEventListener("input", () => {
+      if (!linha14in.value) {
+        linha7.style.background = "rgb(255 108 0)";
+      } else {
+        linha7.style.background = "transparent";
+      }
+    });
 
     linha14.appendChild(linha14T1);
     linha14.appendChild(linha14in);
@@ -553,6 +561,7 @@
       linha11.style.display = "none";
       linha12in.value = "Não se aplica";
       linha14in.value = "";
+      linha14.style.display = "none";
       linha13in.value = "Não";
 
     });
@@ -677,10 +686,16 @@
         variant9 = "";
       }
 
-      //const TextoLAss = element.
+      var variant11;
+      const TextoLAss = document.getElementById("TextoLAss");
+      const Input6 = document.getElementById("Input6");
+      if (TextoLAss && Input6 && Input6.value !== "") {
+        variant11 = "\n\n" + TextoLAss.textContent + Input6.value + ".";
+      } else {
+        variant11 = "";
+      }
 
-      TextoLAss.textContent + Input6.value;
-
+      
       var textToCopy =
         linha1T1.textContent +
         textnome +
@@ -697,6 +712,7 @@
         variant7 +
         variant8 +
         variant10 +
+        variant11 +
         variant9;
       navigator.clipboard.writeText(textToCopy).then(
         function () {
