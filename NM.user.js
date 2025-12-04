@@ -1,13 +1,13 @@
 // ==UserScript==
-// @name         Nice_Monkey_Beta
+// @name         Nice_Monkey_NM
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.3.7.13
+// @version      4.3.7.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
-// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/Nice_Monkey_Beta.user.js
-// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/Nice_Monkey_Beta.user.js
+// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/NM.user.js
+// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/NM.user.js
 // @grant        none
 
 // ==/UserScript==
