@@ -43,7 +43,7 @@
     SomEstouro: 1, // Tocar som em estouro
     temOcul: 0, // Flag de ocultação temporária
     tempoPOcul: 8, // Tempo (s) antes da ocultação
-    modoTeste: 0, // Modo de teste (0|1)  
+    modoTeste: 0, // Modo de teste (0|1)
   };
 
   const VariavelmodoTeste = {
@@ -1198,7 +1198,7 @@
     try {
       if (CConfig && CConfig.modoTeste) {
         let dataBase = new Date();
-        
+
         // Sobrescreve a data se VariavelmodoTeste.data foi definida
         if (VariavelmodoTeste && VariavelmodoTeste.data) {
           const d = VariavelmodoTeste.data;
@@ -1207,7 +1207,7 @@
             dataBase = new Date(y, (m || 1) - 1, day || 1, 0, 0, 0);
           }
         }
-        
+
         // Aplica offset de hora
         let offset = 0; // segundos
         if (VariavelmodoTeste && VariavelmodoTeste.hora) {
@@ -1219,7 +1219,7 @@
             offset = sinal * ((hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0));
           }
         }
-        
+
         const result = new Date(dataBase.getTime() + offset * 1000);
         return result;
       }
@@ -1983,25 +1983,39 @@
       area.style.cssText = `display:flex; flex-direction: column; width:100%;`;
 
       const linha = document.createElement("div");
-      linha.style.cssText = `display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:6px;`;
+      linha.style.cssText = `
+        display: flex;
+        align-items: center;
+        width: 100%;
+        margin-top: 6px;
+        flex-direction: column;
+      `;
 
       const dateInput = document.createElement("input");
       dateInput.type = "date";
       dateInput.id = "InputModoTesteDate";
       dateInput.style.cssText = `background: #ffffff00; border: solid 1px white; color: white; padding:2px;`;
-      dateInput.value = VariavelmodoTeste && VariavelmodoTeste.data ? VariavelmodoTeste.data : "";
+      dateInput.value =
+        VariavelmodoTeste && VariavelmodoTeste.data
+          ? VariavelmodoTeste.data
+          : "";
 
       const timeInput = document.createElement("input");
       timeInput.type = "text";
       timeInput.id = "InputModoTesteTime";
       timeInput.placeholder = "+00:00:00 (offset HH:MM:SS)";
       timeInput.style.cssText = `background: #ffffff00; border: solid 1px white; color: white; padding:2px; font-size:11px;`;
-      timeInput.value = VariavelmodoTeste && VariavelmodoTeste.hora ? VariavelmodoTeste.hora : "+00:00:00";
+      timeInput.value =
+        VariavelmodoTeste && VariavelmodoTeste.hora
+          ? VariavelmodoTeste.hora
+          : "+00:00:00";
 
       const salvarBot = criarBotSalv(35, "Salvar");
       salvarBot.addEventListener("click", function () {
-        VariavelmodoTeste.data = dateInput.value || VariavelmodoTeste.data || "";
-        VariavelmodoTeste.hora = timeInput.value || VariavelmodoTeste.hora || "";
+        VariavelmodoTeste.data =
+          dateInput.value || VariavelmodoTeste.data || "";
+        VariavelmodoTeste.hora =
+          timeInput.value || VariavelmodoTeste.hora || "";
         // garante que CConfig.modoTeste siga o toggle
         CConfig.modoTeste = CConfig.modoTeste ? 1 : 0;
         SalvandoVari(1);
@@ -2012,8 +2026,10 @@
         CConfig.modoTeste = !CConfig.modoTeste;
         if (CConfig.modoTeste) {
           // quando ativar, preenche inputs com valores atuais se vazio
-          if (!dateInput.value && VariavelmodoTeste.data) dateInput.value = VariavelmodoTeste.data;
-          if (!timeInput.value && VariavelmodoTeste.hora) timeInput.value = VariavelmodoTeste.hora;
+          if (!dateInput.value && VariavelmodoTeste.data)
+            dateInput.value = VariavelmodoTeste.data;
+          if (!timeInput.value && VariavelmodoTeste.hora)
+            timeInput.value = VariavelmodoTeste.hora;
         }
         SalvandoVari(1);
         AtualizarConf();
@@ -2221,6 +2237,8 @@
         criarSeparador(),
         CBBancDa,
         criarSeparador(),
+        ContModoTeste(),
+        criarSeparador(),
         CValoresEnc,
         criarSeparador(),
         caixaDeBotres
@@ -2304,8 +2322,6 @@
       ContTempEsc(),
       criarSeparador(),
       ContlogueManual(),
-      criarSeparador(),
-      ContModoTeste(),
       criarSeparador(),
       CIgEst,
       criarSeparador(),
@@ -3330,7 +3346,8 @@
     function aplicarConfiguracao(dados) {
       if (dados.CConfig) Object.assign(CConfig, dados.CConfig);
       if (dados.Ccor) Object.assign(Ccor, dados.Ccor);
-      if (dados.VariavelmodoTeste) Object.assign(VariavelmodoTeste, dados.VariavelmodoTeste);
+      if (dados.VariavelmodoTeste)
+        Object.assign(VariavelmodoTeste, dados.VariavelmodoTeste);
     }
 
     switch (modo) {
