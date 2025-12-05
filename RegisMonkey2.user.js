@@ -502,6 +502,7 @@
         linha14.style.display = "flex";
       }else{
         linha14.style.display = "none";
+        linha14in.value = "";
       }
     });
 
