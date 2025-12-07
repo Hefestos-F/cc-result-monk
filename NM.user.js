@@ -44,6 +44,7 @@
     temOcul: 0, // Flag de ocultação temporária
     tempoPOcul: 8, // Tempo (s) antes da ocultação
     modoTeste: 0, // Modo de teste (0|1)
+    LogouOntem: 0, // Se o inicio do logue foi ontem (0|1)
   };
 
   const VariavelmodoTeste = {
@@ -3296,13 +3297,32 @@
     const valorFormatado = converterParaTempo(Segun.Logou);
     const valorEdata = { valor: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
-    if (!dadosPrimLogue || dadosPrimLogue.data !== hojeFormatado) {
+    if (
+      !dadosPrimLogue ||
+      (dadosPrimLogue.data !== hojeFormatado &&
+        dadosPrimLogue.data !== ontemFormatado)
+    ) {
       valorEdata.valor = "24:00:00";
       x = 1;
     }
     if (dadosPrimLogue && dadosPrimLogue.data === ontemFormatado) {
       await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosPrimLogue);
     }
+
+
+    const dadosPrimLoguesegun = converterParaSegundos(dadosPrimLogue.valor);
+    const dadosPrimLogueOntSeg = converterParaSegundos(dadosPrimLogueOnt.valor);
+    const VinteEQuatro = converterParaSegundos('24:00:00');
+    const TempoEscaladoSeg = converterParaSegundos(CConfig.TempoEscaladoHoras);
+    
+
+    if (VinteEQuatro - dadosPrimLoguesegun < TempoEscaladoSeg ||
+        Segun.Hora < TempoEscaladoSeg) {
+      LogouOntem = true;
+    }else{
+      LogouOntem = false;
+    }
+    
 
     if (x) {
       console.log(
