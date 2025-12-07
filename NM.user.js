@@ -3297,6 +3297,7 @@
     const valorFormatado = converterParaTempo(Segun.Logou);
     const valorEdata = { valor: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
+    let PrimeiroLogueRes;
     if (
       !dadosPrimLogue ||
       (dadosPrimLogue.data !== hojeFormatado &&
@@ -3323,24 +3324,31 @@
       LogouOntem = false;
     }
     
+    PrimeiroLogueRes = LogouOntem ? dadosPrimLogueOnt : dadosPrimLogue;
 
     if (x) {
       console.log(
         "NiceMonk Anteriormente salvo em primeiroLogue: ",
-        dadosPrimLogue
+        PrimeiroLogueRes
       );
       await AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
-      dadosPrimLogue = valorEdata;
+      if (LogouOntem){
+        valorEdata.data = ontemFormatado;
+        dadosPrimLogueOnt = valorEdata;
+      }else{
+        dadosPrimLogue = valorEdata;
+      }
+      
       console.log(
         "NiceMonk Informação salva para a data de hoje primeiroLogue: ",
         valorEdata
       );
       Segun.LogouSalvo = converterParaSegundos(valorEdata.valor);
     } else {
-      Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.valor);
+      Segun.LogouSalvo = converterParaSegundos(PrimeiroLogueRes.valor);
       console.log(
         "NiceMonk Informação salva em primeiroLogue: ",
-        dadosPrimLogue
+        PrimeiroLogueRes
       );
     }
   }
