@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_NM
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      4.3.7.4
+// @version      4.3.7.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -366,6 +366,8 @@
     await SalvandoVari(3);
     await SalvarLogueManual(0);
     await salvarDPausas();
+    // aplica ajustes de modo de teste (se ativo)
+    await aplicarModoTesteConfiguracoes();
   }
 
   function atualizarAuto() {
@@ -1221,6 +1223,24 @@
           }
         }
 
+        // Aplica fuso horário de teste se fornecido (ex: "+02:00" ou "-03:00:00")
+        if (VariavelmodoTeste && VariavelmodoTeste.fuso) {
+          const fusoStr = VariavelmodoTeste.fuso;
+          // aceita formatos +HH:MM ou +HH:MM:SS (com ou sem sinal)
+          const sinalF = fusoStr.charAt(0) === "-" ? -1 : 1;
+          const fusoPart = fusoStr.replace(/^[+-]/, "");
+          const [fh, fm, fs] = fusoPart.split(":").map((v) => Number(v));
+          if (!Number.isNaN(fh)) {
+            const targetOffsetSeconds = sinalF * ((fh || 0) * 3600 + (fm || 0) * 60 + (fs || 0));
+            // offset local em segundos (positivo == UTC+)
+            const localOffsetSeconds = -new Date().getTimezoneOffset() * 60;
+            // delta a aplicar para converter hora local -> fuso alvo
+            const delta = targetOffsetSeconds - localOffsetSeconds;
+            dataBase = new Date(dataBase.getTime() + delta * 1000);
+          }
+        }
+
+        // Aplica offset adicional de hora (compatibilidade com VariavelmodoTeste.hora)
         const result = new Date(dataBase.getTime() + offset * 1000);
         return result;
       }
@@ -1237,6 +1257,32 @@
     const segundos = String(agora.getSeconds()).padStart(2, "0");
 
     return `${horas}:${minutos}:${segundos}`;
+  }
+
+  /**
+   * aplicarModoTesteConfiguracoes - aplica ajustes adicionais quando `modoTeste` está ativo
+   * - se `VariavelmodoTeste.logou` estiver definida, usa como `ValorLogueManual` e ativa `LogueManual`
+   * - preserva comportamento normal quando `modoTeste` não está ativo
+   */
+  async function aplicarModoTesteConfiguracoes() {
+    try {
+      if (!CConfig || !CConfig.modoTeste) return;
+
+      if (VariavelmodoTeste && VariavelmodoTeste.logou) {
+        // aceita formatos "HH:MM:SS" ou "HH:MM"
+        const logouStr = VariavelmodoTeste.logou.trim();
+        // valida simples
+        if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(logouStr)) {
+          CConfig.ValorLogueManual = logouStr.length === 5 ? `00:${logouStr}`.slice(-8) : logouStr.padStart(8, "0");
+          CConfig.LogueManual = 1;
+          console.info("NiceMonk modoTeste: aplicando ValorLogueManual=", CConfig.ValorLogueManual);
+        } else {
+          console.warn("NiceMonk modoTeste: formato inválido para VariavelmodoTeste.logou:", logouStr);
+        }
+      }
+    } catch (e) {
+      console.warn("NiceMonk aplicarModoTesteConfiguracoes: falha:", e);
+    }
   }
 
   /**
@@ -3328,21 +3374,24 @@
       await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosPrimLogue);
     }
 
-    const dadosPrimLoguesegun = converterParaSegundos(dadosPrimLogue.valor);
-    const dadosPrimLogueOntSeg = converterParaSegundos(dadosPrimLogueOnt.valor);
+    // garantir valores seguros caso não existam registros anteriores
+    const dadosPrimLoguesegun = converterParaSegundos(
+      (dadosPrimLogue && dadosPrimLogue.valor) ? dadosPrimLogue.valor : "00:00:00"
+    );
+    const dadosPrimLogueOntSeg = converterParaSegundos(
+      (dadosPrimLogueOnt && dadosPrimLogueOnt.valor) ? dadosPrimLogueOnt.valor : "00:00:00"
+    );
     const VinteEQuatro = converterParaSegundos("23:59:59");
     const TempoEscaladoSeg = converterParaSegundos(CConfig.TempoEscaladoHoras);
 
-    if (
+    // determina se o primeiro logue pertence ao dia anterior
+    const entreDatas =
       VinteEQuatro - dadosPrimLoguesegun < TempoEscaladoSeg ||
-      Segun.Hora < TempoEscaladoSeg
-    ) {
-      logueEntreDatas = true;
-    } else {
-      logueEntreDatas = false;
-    }
+      Segun.Hora < TempoEscaladoSeg;
 
-    PrimeiroLogueRes = logueEntreDatas ? dadosPrimLogueOnt : dadosPrimLogue;
+    // atualiza flag de configuração (0|1) e escolhe o registro correto
+    CConfig.logueEntreDatas = entreDatas ? 1 : 0;
+    PrimeiroLogueRes = entreDatas ? dadosPrimLogueOnt : dadosPrimLogue;
 
     if (x) {
       console.log(
@@ -3350,14 +3399,14 @@
         PrimeiroLogueRes
       );
 
-      if (logueEntreDatas) {
+      if (entreDatas) {
         valorEdata.data = ontemFormatado;
         dadosPrimLogueOnt = valorEdata;
       } else {
         dadosPrimLogue = valorEdata;
       }
 
-      let chavelogue = logueEntreDatas ? ChavePrimLogueOntem : ChavePrimLogue;
+      let chavelogue = entreDatas ? ChavePrimLogueOntem : ChavePrimLogue;
 
       await AddOuAtuIindexdb(chavelogue, valorEdata);
 
