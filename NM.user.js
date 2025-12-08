@@ -44,7 +44,7 @@
     temOcul: 0, // Flag de ocultação temporária
     tempoPOcul: 8, // Tempo (s) antes da ocultação
     modoTeste: 0, // Modo de teste (0|1)
-    LogouOntem: 0, // Se o inicio do logue foi ontem (0|1)
+    logueEntreDatas: 0, // Se o inicio do logue foi ontem (0|1)
   };
 
   const VariavelmodoTeste = {
@@ -1324,7 +1324,11 @@
     }
 
     Segun.Hora = converterParaSegundos(mostrarHora());
-    Segun.Logou = Segun.Hora - Segun.NewLogado;
+    if (Segun.Hora - Segun.NewLogado < 0) {
+      Segun.Logou = Segun.Hora - Segun.NewLogado + 86400;
+    } else {
+      Segun.Logou = Segun.Hora - Segun.NewLogado;
+    }
 
     if (Segun.Logou < Segun.LogouSalvo) {
       verificarESalvar(1);
@@ -1369,7 +1373,15 @@
     let temHorasExtras = false;
 
     const logadoSegundos = Segun.Hora - Segun.QualLogou;
+
+    if (logadoSegundos < 0) {
+      logadoSegundos += 86400;
+    }
+
     let saidaSegundos = Segun.QualLogou + tempoEscalado;
+    if (saidaSegundos > 86400) {
+      saidaSegundos -= 86400;
+    }
     saidaSegundos =
       !stt.offForaDToler &&
       !stt.ErroAtu &&
@@ -1378,7 +1390,13 @@
       !stt.ErroVerif
         ? saidaSegundos + Segun.Offline
         : saidaSegundos;
-    const faltaSegundos = saidaSegundos - Segun.Hora;
+    let faltaSegundos;
+    if (Segun.Hora < saidaSegundos) {
+      faltaSegundos = saidaSegundos - Segun.Hora;
+    } else {
+      faltaSegundos = 86400 - Segun.Hora + saidaSegundos;
+    }
+
     const saidaComOfflineSegundos = saidaSegundos + Segun.Offline;
     const faltaComOfflineSegundos = faltaSegundos + Segun.Offline;
     const dezMinutosSegundos = converterParaSegundos("00:10:00");
@@ -3310,35 +3328,39 @@
       await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosPrimLogue);
     }
 
-
     const dadosPrimLoguesegun = converterParaSegundos(dadosPrimLogue.valor);
     const dadosPrimLogueOntSeg = converterParaSegundos(dadosPrimLogueOnt.valor);
-    const VinteEQuatro = converterParaSegundos('24:00:00');
+    const VinteEQuatro = converterParaSegundos("23:59:59");
     const TempoEscaladoSeg = converterParaSegundos(CConfig.TempoEscaladoHoras);
-    
 
-    if (VinteEQuatro - dadosPrimLoguesegun < TempoEscaladoSeg ||
-        Segun.Hora < TempoEscaladoSeg) {
-      LogouOntem = true;
-    }else{
-      LogouOntem = false;
+    if (
+      VinteEQuatro - dadosPrimLoguesegun < TempoEscaladoSeg ||
+      Segun.Hora < TempoEscaladoSeg
+    ) {
+      logueEntreDatas = true;
+    } else {
+      logueEntreDatas = false;
     }
-    
-    PrimeiroLogueRes = LogouOntem ? dadosPrimLogueOnt : dadosPrimLogue;
+
+    PrimeiroLogueRes = logueEntreDatas ? dadosPrimLogueOnt : dadosPrimLogue;
 
     if (x) {
       console.log(
         "NiceMonk Anteriormente salvo em primeiroLogue: ",
         PrimeiroLogueRes
       );
-      await AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
-      if (LogouOntem){
+
+      if (logueEntreDatas) {
         valorEdata.data = ontemFormatado;
         dadosPrimLogueOnt = valorEdata;
-      }else{
+      } else {
         dadosPrimLogue = valorEdata;
       }
-      
+
+      let chavelogue = logueEntreDatas ? ChavePrimLogueOntem : ChavePrimLogue;
+
+      await AddOuAtuIindexdb(chavelogue, valorEdata);
+
       console.log(
         "NiceMonk Informação salva para a data de hoje primeiroLogue: ",
         valorEdata
