@@ -1186,72 +1186,8 @@
     }
   }
 
-  /**
-   * mostrarHora - retorna a hora atual no formato HH:MM:SS
-   * @returns {string} hora formatada
-   */
-  /**
-   * agoraDate - retorna um Date objeto respeitando o modo de teste
-   * Se `CConfig.modoTeste` for truthy:
-   *   - usa `VariavelmodoTeste.data` como data (ou hoje se vazio)
-   *   - aplica offset de `VariavelmodoTeste.hora` à hora atual (ex: +02:30:00 ou -01:15:00)
-   * @returns {Date}
-   */
-  function agoraDate() {
-    try {
-      if (CConfig && CConfig.modoTeste) {
-        let dataBase = new Date();
-
-        // Sobrescreve a data se VariavelmodoTeste.data foi definida
-        if (VariavelmodoTeste && VariavelmodoTeste.data) {
-          const d = VariavelmodoTeste.data;
-          const [y, m, day] = d.split("-").map((v) => Number(v));
-          if (!Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(day)) {
-            dataBase = new Date(y, (m || 1) - 1, day || 1, 0, 0, 0);
-          }
-        }
-
-        // Aplica offset de hora
-        let offset = 0; // segundos
-        if (VariavelmodoTeste && VariavelmodoTeste.hora) {
-          const offset_str = VariavelmodoTeste.hora;
-          const sinal = offset_str.charAt(0) === "-" ? -1 : 1;
-          const timePart = offset_str.replace(/^[+-]/, ""); // remove sinal
-          const [hh, mm, ss] = timePart.split(":").map((v) => Number(v));
-          if (!Number.isNaN(hh) || !Number.isNaN(mm) || !Number.isNaN(ss)) {
-            offset = sinal * ((hh || 0) * 3600 + (mm || 0) * 60 + (ss || 0));
-          }
-        }
-
-        // Aplica fuso horário de teste se fornecido (ex: "+02:00" ou "-03:00:00")
-        if (VariavelmodoTeste && VariavelmodoTeste.fuso) {
-          const fusoStr = VariavelmodoTeste.fuso;
-          // aceita formatos +HH:MM ou +HH:MM:SS (com ou sem sinal)
-          const sinalF = fusoStr.charAt(0) === "-" ? -1 : 1;
-          const fusoPart = fusoStr.replace(/^[+-]/, "");
-          const [fh, fm, fs] = fusoPart.split(":").map((v) => Number(v));
-          if (!Number.isNaN(fh)) {
-            const targetOffsetSeconds = sinalF * ((fh || 0) * 3600 + (fm || 0) * 60 + (fs || 0));
-            // offset local em segundos (positivo == UTC+)
-            const localOffsetSeconds = -new Date().getTimezoneOffset() * 60;
-            // delta a aplicar para converter hora local -> fuso alvo
-            const delta = targetOffsetSeconds - localOffsetSeconds;
-            dataBase = new Date(dataBase.getTime() + delta * 1000);
-          }
-        }
-
-        // Aplica offset adicional de hora (compatibilidade com VariavelmodoTeste.hora)
-        const result = new Date(dataBase.getTime() + offset * 1000);
-        return result;
-      }
-    } catch (e) {
-      console.warn("NiceMonk agoraDate: falha ao parsear modoTeste:", e);
-    }
-    return new Date();
-  }
-
   function mostrarHora() {
-    const agora = agoraDate();
+    const agora = new Date();
     let horas = String(agora.getHours()).padStart(2, "0");
     const minutos = String(agora.getMinutes()).padStart(2, "0");
     const segundos = String(agora.getSeconds()).padStart(2, "0");
@@ -1273,11 +1209,20 @@
         const logouStr = VariavelmodoTeste.logou.trim();
         // valida simples
         if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(logouStr)) {
-          CConfig.ValorLogueManual = logouStr.length === 5 ? `00:${logouStr}`.slice(-8) : logouStr.padStart(8, "0");
+          CConfig.ValorLogueManual =
+            logouStr.length === 5
+              ? `00:${logouStr}`.slice(-8)
+              : logouStr.padStart(8, "0");
           CConfig.LogueManual = 1;
-          console.info("NiceMonk modoTeste: aplicando ValorLogueManual=", CConfig.ValorLogueManual);
+          console.info(
+            "NiceMonk modoTeste: aplicando ValorLogueManual=",
+            CConfig.ValorLogueManual
+          );
         } else {
-          console.warn("NiceMonk modoTeste: formato inválido para VariavelmodoTeste.logou:", logouStr);
+          console.warn(
+            "NiceMonk modoTeste: formato inválido para VariavelmodoTeste.logou:",
+            logouStr
+          );
         }
       }
     } catch (e) {
@@ -1421,12 +1366,12 @@
     const logadoSegundos = Segun.Hora - Segun.QualLogou;
 
     if (logadoSegundos < 0) {
-      logadoSegundos += 86400;
+      logadoSegundos = logadoSegundos += 86400;
     }
 
-    let saidaSegundos = Segun.QualLogou + tempoEscalado;
+    const saidaSegundos = Segun.QualLogou + tempoEscalado;
     if (saidaSegundos > 86400) {
-      saidaSegundos -= 86400;
+      saidaSegundos = saidaSegundos -= 86400;
     }
     saidaSegundos =
       !stt.offForaDToler &&
@@ -3316,7 +3261,7 @@
    * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
    */
   async function SalvarLogueManual(x) {
-    const hoje = agoraDate();
+    const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
     ontem.setDate(hoje.getDate() - 1);
@@ -3352,7 +3297,7 @@
    * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
    */
   async function verificarESalvar(x) {
-    const hoje = agoraDate();
+    const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
     ontem.setDate(hoje.getDate() - 1);
@@ -3376,10 +3321,12 @@
 
     // garantir valores seguros caso não existam registros anteriores
     const dadosPrimLoguesegun = converterParaSegundos(
-      (dadosPrimLogue && dadosPrimLogue.valor) ? dadosPrimLogue.valor : "00:00:00"
+      dadosPrimLogue && dadosPrimLogue.valor ? dadosPrimLogue.valor : "00:00:00"
     );
     const dadosPrimLogueOntSeg = converterParaSegundos(
-      (dadosPrimLogueOnt && dadosPrimLogueOnt.valor) ? dadosPrimLogueOnt.valor : "00:00:00"
+      dadosPrimLogueOnt && dadosPrimLogueOnt.valor
+        ? dadosPrimLogueOnt.valor
+        : "00:00:00"
     );
     const VinteEQuatro = converterParaSegundos("23:59:59");
     const TempoEscaladoSeg = converterParaSegundos(CConfig.TempoEscaladoHoras);
@@ -3490,7 +3437,7 @@
    * Caso contrário, recupera contador de pausas e status anterior
    */
   async function salvarDPausas() {
-    const hoje = agoraDate();
+    const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
     ontem.setDate(hoje.getDate() - 1);
