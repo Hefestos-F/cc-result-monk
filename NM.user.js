@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_NM
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      4.3.7.5
+// @version      4.3.7.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -48,7 +48,7 @@
   };
 
   const VariavelmodoTeste = {
-    hora: "+00:00:00", // Offset (deslocamento) em relação à hora atual (ex: +02:30:00, -01:15:00)
+    fuso: "00:00:00", // Offset (deslocamento) em relação à hora atual (ex: +02:30:00, -01:15:00)
     data: "2024-01-15", // Data fixa para modo de teste (YYYY-MM-DD) ou vazio para hoje
   };
 
@@ -366,8 +366,6 @@
     await SalvandoVari(3);
     await SalvarLogueManual(0);
     await salvarDPausas();
-    // aplica ajustes de modo de teste (se ativo)
-    await aplicarModoTesteConfiguracoes();
   }
 
   function atualizarAuto() {
@@ -747,6 +745,7 @@
   }
 
   // Converte segundos (number) ou string ("HH:MM:SS"/"MM:SS"/"SS") para uma string formatada "MM:SS" ou "HH:MM:SS"
+
   function converterParaTempo(input) {
     if (input == null) return "00:00";
     // aceita número (segundos) ou string ("HH:MM:SS" / "MM:SS" / "SS")
@@ -1188,46 +1187,31 @@
 
   function mostrarHora() {
     const agora = new Date();
-    let horas = String(agora.getHours()).padStart(2, "0");
-    const minutos = String(agora.getMinutes()).padStart(2, "0");
-    const segundos = String(agora.getSeconds()).padStart(2, "0");
+    const [horas1, minutos1, segundos1] = VariavelmodoTeste.fuso
+      .split(":")
+      .map(Number);
+
+    let horas2, minutos2, segundos2;
+
+    if (CConfig.modoTeste) {
+      horas2 = agora.getHours() + horas1;
+      minutos2 = agora.getMinutes() + minutos1;
+      segundos2 = agora.getSeconds() + segundos1;
+
+      if (horas2 > 23) horas2 = horas2 - 23;
+      if (minutos2 > 59) minutos2 = minutos2 - 59;
+      if (segundos2 > 59) segundos2 = segundos2 - 59;
+    } else {
+      horas2 = agora.getHours();
+      minutos2 = agora.getMinutes();
+      segundos2 = agora.getSeconds();
+    }
+
+    const horas = String(horas2).padStart(2, "0");
+    const minutos = String(minutos2).padStart(2, "0");
+    const segundos = String(segundos2).padStart(2, "0");
 
     return `${horas}:${minutos}:${segundos}`;
-  }
-
-  /**
-   * aplicarModoTesteConfiguracoes - aplica ajustes adicionais quando `modoTeste` está ativo
-   * - se `VariavelmodoTeste.logou` estiver definida, usa como `ValorLogueManual` e ativa `LogueManual`
-   * - preserva comportamento normal quando `modoTeste` não está ativo
-   */
-  async function aplicarModoTesteConfiguracoes() {
-    try {
-      if (!CConfig || !CConfig.modoTeste) return;
-
-      if (VariavelmodoTeste && VariavelmodoTeste.logou) {
-        // aceita formatos "HH:MM:SS" ou "HH:MM"
-        const logouStr = VariavelmodoTeste.logou.trim();
-        // valida simples
-        if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(logouStr)) {
-          CConfig.ValorLogueManual =
-            logouStr.length === 5
-              ? `00:${logouStr}`.slice(-8)
-              : logouStr.padStart(8, "0");
-          CConfig.LogueManual = 1;
-          console.info(
-            "NiceMonk modoTeste: aplicando ValorLogueManual=",
-            CConfig.ValorLogueManual
-          );
-        } else {
-          console.warn(
-            "NiceMonk modoTeste: formato inválido para VariavelmodoTeste.logou:",
-            logouStr
-          );
-        }
-      }
-    } catch (e) {
-      console.warn("NiceMonk aplicarModoTesteConfiguracoes: falha:", e);
-    }
   }
 
   /**
@@ -1363,15 +1347,15 @@
     let tempoCumprido = false;
     let temHorasExtras = false;
 
-    const logadoSegundos = Segun.Hora - Segun.QualLogou;
+    let logadoSegundos = Segun.Hora - Segun.QualLogou;
 
     if (logadoSegundos < 0) {
-      logadoSegundos = logadoSegundos += 86400;
+      logadoSegundos += 86400;
     }
 
-    const saidaSegundos = Segun.QualLogou + tempoEscalado;
+    let saidaSegundos = Segun.QualLogou + tempoEscalado;
     if (saidaSegundos > 86400) {
-      saidaSegundos = saidaSegundos -= 86400;
+      saidaSegundos -= 86400;
     }
     saidaSegundos =
       !stt.offForaDToler &&
@@ -1984,13 +1968,8 @@
     }
 
     function ContModoTeste() {
-      const cont = criarCaixaSeg();
-      cont.id = "CModoTeste";
-
-      const titulo = c1riarBotSalv(34, "Modo Teste");
-
-      const area = document.createElement("div");
-      area.style.cssText = `display:flex; flex-direction: column; width:100%;`;
+      const area = criarCaixaSeg();
+      area.id = "CModoTeste";
 
       const linha = document.createElement("div");
       linha.style.cssText = `
@@ -1998,7 +1977,6 @@
         align-items: center;
         width: 100%;
         margin-top: 6px;
-        flex-direction: column;
       `;
 
       const dateInput = document.createElement("input");
@@ -2010,25 +1988,54 @@
           ? VariavelmodoTeste.data
           : "";
 
-      const timeInput = document.createElement("input");
-      timeInput.type = "text";
-      timeInput.id = "InputModoTesteTime";
-      timeInput.placeholder = "+00:00:00 (offset HH:MM:SS)";
-      timeInput.style.cssText = `background: #ffffff00; border: solid 1px white; color: white; padding:2px; font-size:11px;`;
-      timeInput.value =
-        VariavelmodoTeste && VariavelmodoTeste.hora
-          ? VariavelmodoTeste.hora
-          : "+00:00:00";
+      // Criar inputs separados para hora e minuto (como em ContlogueManual)
+      const existingHoraRaw =
+        (VariavelmodoTeste &&
+          (VariavelmodoTeste.hora || VariavelmodoTeste.fuso)) ||
+        "+00:00:00";
+      // preserva sinal (+/-) se houver
+      const signMatch = /^[+-]/.test(existingHoraRaw) ? existingHoraRaw[0] : "";
+      const existingHora = signMatch
+        ? existingHoraRaw.slice(1)
+        : existingHoraRaw;
+      const [existH = "00", existM = "00"] = existingHora
+        .split(":")
+        .map((v) => String(v).padStart(2, "0"));
+
+      const horaInputModoTeste = entradatempo(
+        "HModoTeste",
+        1,
+        String(existH).padStart(2, "0")
+      );
+      const minuInputModoTeste = entradatempo(
+        "MModoTeste",
+        0,
+        String(existM).padStart(2, "0")
+      );
+      horaInputModoTeste.style.marginRight = "4px";
+
+      function salvarHorarioModoTeste() {
+        const hora =
+          parseInt(horaInputModoTeste.value) || parseInt(existH) || 0;
+        const minuto =
+          parseInt(minuInputModoTeste.value) || parseInt(existM) || 0;
+        const horaFormatada = String(hora).padStart(2, "0");
+        const minutoFormatado = String(minuto).padStart(2, "0");
+        const segundos = "00";
+        const horarioFormatado = `${signMatch}${horaFormatada}:${minutoFormatado}:${segundos}`;
+        // salva em ambas propriedades para manter compatibilidade
+        VariavelmodoTeste.hora = horarioFormatado;
+        VariavelmodoTeste.fuso = horarioFormatado;
+        SalvandoVari(1);
+      }
 
       const salvarBot = criarBotSalv(35, "Salvar");
       salvarBot.addEventListener("click", function () {
         VariavelmodoTeste.data =
           dateInput.value || VariavelmodoTeste.data || "";
-        VariavelmodoTeste.hora =
-          timeInput.value || VariavelmodoTeste.hora || "";
+        salvarHorarioModoTeste();
         // garante que CConfig.modoTeste siga o toggle
         CConfig.modoTeste = CConfig.modoTeste ? 1 : 0;
-        SalvandoVari(1);
         AtualizarConf();
       });
 
@@ -2038,8 +2045,15 @@
           // quando ativar, preenche inputs com valores atuais se vazio
           if (!dateInput.value && VariavelmodoTeste.data)
             dateInput.value = VariavelmodoTeste.data;
-          if (!timeInput.value && VariavelmodoTeste.hora)
-            timeInput.value = VariavelmodoTeste.hora;
+          const raw =
+            VariavelmodoTeste.hora || VariavelmodoTeste.fuso || "+00:00:00";
+          const sign = /^[+-]/.test(raw) ? raw[0] : "";
+          const parts = sign ? raw.slice(1) : raw;
+          const [hh = "00", mm = "00"] = parts.split(":");
+          if (!horaInputModoTeste.value)
+            horaInputModoTeste.value = String(hh).padStart(2, "0");
+          if (!minuInputModoTeste.value)
+            minuInputModoTeste.value = String(mm).padStart(2, "0");
         }
         SalvandoVari(1);
         AtualizarConf();
@@ -2050,16 +2064,25 @@
         VariavelmodoTeste.data = dateInput.value;
         SalvandoVari(1);
       });
-      timeInput.addEventListener("change", () => {
-        VariavelmodoTeste.hora = timeInput.value;
-        SalvandoVari(1);
+      horaInputModoTeste.addEventListener("input", () => {
+        salvarHorarioModoTeste();
+      });
+      minuInputModoTeste.addEventListener("input", () => {
+        salvarHorarioModoTeste();
       });
 
-      linha.append(dateInput, timeInput, salvarBot);
+      // monta a linha com inputs separados e o botão salvar
+      linha.append(
+        horaInputModoTeste,
+        doispontos(),
+        minuInputModoTeste,
+        salvarBot
+      );
+      area.appendChild(dateInput);
       area.appendChild(linha);
       area.appendChild(toggle);
 
-      const a = CaixaDeOcultar(titulo, area);
+      const a = CaixaDeOcultar(c1riarBotSalv(34, "Modo Teste"), area);
       return a;
     }
 
