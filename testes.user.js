@@ -18,6 +18,11 @@
     fuso: "+12:00:00",
   };
 
+  const horaedataparacalculo = {
+    hora: "24:00:00",
+    data: "2025-12-11",
+  };
+
   let modoteste = false;
 
   function showBanner(text) {
@@ -31,13 +36,21 @@
     }
     el.textContent = text;
   }
-
-  function exibirHora() {
+  
+  function mostrarHora() {
     const agora = new Date();
+    const horas = String(agora.getHours()).padStart(2, "0");
+    const minutos = String(agora.getMinutes()).padStart(2, "0");
+    const segundos = String(agora.getSeconds()).padStart(2, "0");
+    return `${horas}:${minutos}:${segundos}`;
+  }
 
+  function exibirHora(horaedataparacalculo, valordeacrecimo) {
     function parseOffset(offsetStr) {
       // Suporta formatos +HH:MM, +HH:MM:SS e variantes sem separador
-      const m = String(offsetStr).match(/^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/);
+      const m = String(offsetStr).match(
+        /^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/
+      );
       if (!m) return 0;
       const sign = m[1] === "-" ? -1 : 1;
       const hours = parseInt(m[2], 10);
@@ -46,25 +59,42 @@
       return sign * (hours * 3600 + minutes * 60 + seconds);
     }
 
+    function buildDateTime(obj) {
+      // obj: { data: 'YYYY-MM-DD', hora: 'HH:MM:SS' }
+      const dparts = String(obj.data).split("-").map(Number);
+      const tparts = String(obj.valor || "00:00:00")
+        .split(":")
+        .map(Number);
+      if (dparts.length < 3) return new Date();
+      let [year, month, day] = dparts;
+      let [hh = 0, mm = 0, ss = 0] = tparts;
+      if (hh === 24) {
+        hh = 0;
+        const tmp = new Date(year, month - 1, day);
+        tmp.setDate(tmp.getDate() + 1);
+        year = tmp.getFullYear();
+        month = tmp.getMonth() + 1;
+        day = tmp.getDate();
+      }
+      return new Date(year, month - 1, day, hh, mm, ss);
+    }
+
     function formatDateTime(date) {
       const d = date.toISOString().split("T")[0];
       const t = date.toTimeString().split(" ")[0];
       return { date: d, time: t };
     }
 
-    if (modoteste) {
-      const offsetSec = parseOffset(modotestevalores.fuso);
-      const adjusted = new Date(agora.getTime() + offsetSec * 1000);
-      const out = formatDateTime(adjusted);
-      console.log(
-        `Modo teste: Data: ${out.date}, Hora: ${out.time} (fuso ${modotestevalores.fuso})`
-      );
-      showBanner(`TESTE ${out.date} ${out.time} ${modotestevalores.fuso}`);
-    } else {
-      const out = formatDateTime(agora);
-      console.log(`Data: ${out.date}, Hora: ${out.time}`);
-      showBanner(`${out.date} ${out.time}`);
-    }
+    const base = buildDateTime(horaedataparacalculo);
+    const offsetSec = parseOffset(valordeacrecimo);
+    const adjusted = new Date(base.getTime() + offsetSec * 1000);
+    const out = formatDateTime(adjusted);
+    console.log(
+      `Modo teste: Data: ${out.date}, Hora: ${out.time} (fuso ${valordeacrecimo})`
+    );
+    showBanner(`TESTE ${out.date} ${out.time} ${valordeacrecimo}`);
+
+    return { date: out.date, time: out.time };
   }
 
   function createToggle() {
@@ -78,7 +108,7 @@
     btn.addEventListener("click", () => {
       modoteste = !modoteste;
       localStorage.setItem("nm-modoteste", modoteste ? "1" : "0");
-      exibirHora();
+      exibirHora(horaedataparacalculo, modotestevalores.fuso);
     });
     document.body.appendChild(btn);
     const stored = localStorage.getItem("nm-modoteste");
@@ -89,8 +119,10 @@
 
   function init() {
     createToggle();
-    exibirHora();
-    setInterval(exibirHora, 1000);
+    exibirHora(horaedataparacalculo, modotestevalores.fuso);
+    setInterval(() => {
+      exibirHora(horaedataparacalculo, modotestevalores.fuso);
+    }, 1000);
   }
 
   if (document.readyState === "loading") {
