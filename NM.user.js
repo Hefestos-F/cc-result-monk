@@ -1360,11 +1360,11 @@
     let tempoCumprido = false;
     let temHorasExtras = false;
 
-    let logadoSegundos = Segun.Hora - Segun.QualLogou;
-
-    if (logadoSegundos < 0) {
-      logadoSegundos += 86400;
-    }
+    const logadoSegundos = exibirHora(
+      gerarDataHora(),
+      0,
+      converterParaTempo(Segun.QualLogou)
+    );
 
     let saidaSegundos = Segun.QualLogou + tempoEscalado;
     if (saidaSegundos > 86400) {
