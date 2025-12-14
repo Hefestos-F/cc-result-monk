@@ -1409,7 +1409,7 @@
 
     const logadoExibido = CConfig.MostraValorOff
       ? Segun.NewLogado
-      : logadoSegundos;
+      : logadoSegundos.valor;
     const logadoFormatado = converterParaTempo(logadoExibido);
     const vLogado = document.getElementById("vLogado");
     vLogado.textContent = logadoFormatado;
