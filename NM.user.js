@@ -1214,6 +1214,18 @@
     return `${horas}:${minutos}:${segundos}`;
   }
 
+  function gerarDataHora() {
+    const agora = new Date();
+
+    const hora = agora.toLocaleTimeString("pt-BR", { hour12: false });
+    const data = agora.toISOString().split("T")[0];
+
+    return {
+      hora: hora,
+      data: data,
+    };
+  }
+
   /**
    * iniciarBusca - coordena a atualização principal de todos os dados
    * - Tenta atualizar DTI (tempos), depois atendimentos e TMA
@@ -1298,12 +1310,13 @@
       stt.ErroVerif = 1;
     }
 
-    Segun.Hora = converterParaSegundos(mostrarHora());
-    if (Segun.Hora - Segun.NewLogado < 0) {
-      Segun.Logou = Segun.Hora - Segun.NewLogado + 86400;
-    } else {
-      Segun.Logou = Segun.Hora - Segun.NewLogado;
-    }
+    const novo = exibirHora(
+      gerarDataHora(),
+      0,
+      converterParaTempo(Segun.NewLogado)
+    );
+
+    Segun.Logou = converterParaSegundos(novo.valor);
 
     if (Segun.Logou < Segun.LogouSalvo) {
       verificarESalvar(1);
@@ -3314,6 +3327,88 @@
     }
   }
 
+  /*
+   *horaedataparacalculo: { hora: 'HH:MM:SS', data: 'YYYY-MM-DD' }
+   *maisoumenos: true para '+' ou false para '-'
+   *valordeacrecimo: string no formato 'HH:MM', 'HH:MM:SS'
+   */
+  function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
+    function parseOffset(offsetStr) {
+      // Suporta formatos com sinal: +HH:MM, -HH:MM:SS, etc.
+      const m = String(offsetStr || "").match(
+        /^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/
+      );
+      if (!m) return 0;
+      const sign = m[1] === "-" ? -1 : 1;
+      const hours = parseInt(m[2], 10);
+      const minutes = parseInt(m[3], 10);
+      const seconds = m[4] ? parseInt(m[4], 10) : 0;
+      return sign * (hours * 3600 + minutes * 60 + seconds);
+    }
+
+    function parseDuration(durationStr) {
+      // 'HH:MM' or 'HH:MM:SS' -> seconds (always positive)
+      if (!durationStr) return 0;
+      const m = String(durationStr).match(/^(\d{1,2}):?(\d{2})(?::?(\d{2}))?$/);
+      if (!m) return 0;
+      const hours = parseInt(m[1], 10);
+      const minutes = parseInt(m[2], 10);
+      const seconds = m[3] ? parseInt(m[3], 10) : 0;
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+
+    function buildDateTime(obj) {
+      // obj: { data: 'YYYY-MM-DD', hora: 'HH:MM:SS' }
+      const dparts = String(obj.data || "")
+        .split("-")
+        .map(Number);
+      const tparts = String(obj.hora || "00:00:00")
+        .split(":")
+        .map(Number);
+      if (dparts.length < 3) return new Date();
+      let [year, month, day] = dparts;
+      let [hh = 0, mm = 0, ss = 0] = tparts;
+      if (hh === 24) {
+        hh = 0;
+        const tmp = new Date(year, month - 1, day);
+        tmp.setDate(tmp.getDate() + 1);
+        year = tmp.getFullYear();
+        month = tmp.getMonth() + 1;
+        day = tmp.getDate();
+      }
+      return new Date(year, month - 1, day, hh, mm, ss);
+    }
+
+    function formatDateTime(date) {
+      const d = date.toISOString().split("T")[0];
+      const t = date.toTimeString().split(" ")[0];
+      return { date: d, time: t };
+    }
+
+    // Determina offset em segundos. Suporta duas formas de chamada:
+    // 1) exibirHora(base, "+HH:MM:SS") -> usa sinal embutido
+    // 2) exibirHora(base, maisoumenosBool, "HH:MM:SS") -> usa boolean para sinal
+    let offsetSec = 0;
+    if (typeof maisoumenos === "string" && valordeacrecimo === undefined) {
+      // segunda forma usada anteriormente: passou o valor com sinal
+      offsetSec = parseOffset(maisoumenos);
+    } else {
+      const dur = parseDuration(valordeacrecimo || "00:00:00");
+      const sign = maisoumenos === false ? -1 : 1; // default '+'
+      offsetSec = sign * dur;
+    }
+
+    const base = buildDateTime(horaedataparacalculo);
+    const adjusted = new Date(base.getTime() + offsetSec * 1000);
+    const out = formatDateTime(adjusted);
+    console.log(
+      `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`
+    );
+    showBanner(`TESTE ${out.date} ${out.time} (offset ${offsetSec}s)`);
+
+    return { date: out.date, time: out.time };
+  }
+
   /**
    * verificarESalvar - verifica e salva primeiro login do dia no IndexedDB
    * Se data mudou, movimenta registro anterior para "Ontem"
@@ -3329,73 +3424,24 @@
     const valorFormatado = converterParaTempo(Segun.Logou);
     const valorEdata = { valor: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
-
-
-
-    let PrimeiroLogueRes;
     if (
       !dadosPrimLogue ||
       (dadosPrimLogue.data !== hojeFormatado &&
         dadosPrimLogue.data !== ontemFormatado)
     ) {
       valorEdata.valor = mostrarHora();
-      x = 1;
-
+      await AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
+      dadosPrimLogue = valorEdata;
     }
+
     if (dadosPrimLogue && dadosPrimLogue.data === ontemFormatado) {
       await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosPrimLogue);
+      const nova = exibirHora(dadosPrimLogue, 1, CConfig.TempoEscaladoHoras);
+
+      CConfig.logueEntreDatas = nova.date === hojeFormatado ? 1 : 0;
     }
 
-    // garantir valores seguros caso não existam registros anteriores
-    const dadosPrimLoguesegun = converterParaSegundos(
-      dadosPrimLogue && dadosPrimLogue.valor ? dadosPrimLogue.valor : "00:00:00"
-    );
-    const dadosPrimLogueOntSeg = converterParaSegundos(
-      dadosPrimLogueOnt && dadosPrimLogueOnt.valor
-        ? dadosPrimLogueOnt.valor
-        : "00:00:00"
-    );
-    const VinteEQuatro = converterParaSegundos("23:59:59");
-    const TempoEscaladoSeg = converterParaSegundos(CConfig.TempoEscaladoHoras);
-
-    // determina se o primeiro logue pertence ao dia anterior
-    const entreDatas =
-      VinteEQuatro - dadosPrimLoguesegun < TempoEscaladoSeg ||
-      Segun.Hora < TempoEscaladoSeg;
-
-    // atualiza flag de configuração (0|1) e escolhe o registro correto
-    CConfig.logueEntreDatas = entreDatas ? 1 : 0;
-    PrimeiroLogueRes = entreDatas ? dadosPrimLogueOnt : dadosPrimLogue;
-
-    if (x) {
-      console.log(
-        "NiceMonk Anteriormente salvo em primeiroLogue: ",
-        PrimeiroLogueRes
-      );
-
-      if (entreDatas) {
-        valorEdata.data = ontemFormatado;
-        dadosPrimLogueOnt = valorEdata;
-      } else {
-        dadosPrimLogue = valorEdata;
-      }
-
-      let chavelogue = entreDatas ? ChavePrimLogueOntem : ChavePrimLogue;
-
-      await AddOuAtuIindexdb(chavelogue, valorEdata);
-
-      console.log(
-        "NiceMonk Informação salva para a data de hoje primeiroLogue: ",
-        valorEdata
-      );
-      Segun.LogouSalvo = converterParaSegundos(valorEdata.valor);
-    } else {
-      Segun.LogouSalvo = converterParaSegundos(PrimeiroLogueRes.valor);
-      console.log(
-        "NiceMonk Informação salva em primeiroLogue: ",
-        PrimeiroLogueRes
-      );
-    }
+    Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.valor);
   }
 
   async function verificarESalvar(x) {

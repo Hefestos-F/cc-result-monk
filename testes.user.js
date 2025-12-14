@@ -45,12 +45,15 @@
     return `${horas}:${minutos}:${segundos}`;
   }
 
-  function exibirHora(horaedataparacalculo, valordeacrecimo) {
+  /*
+  *horaedataparacalculo: { hora: 'HH:MM:SS', data: 'YYYY-MM-DD' }
+  *maisoumenos: true para '+' ou false para '-'
+  *valordeacrecimo: string no formato 'HH:MM', 'HH:MM:SS'
+  */
+  function exibirHora(horaedataparacalculo,maisoumenos,valordeacrecimo) {
     function parseOffset(offsetStr) {
-      // Suporta formatos +HH:MM, +HH:MM:SS e variantes sem separador
-      const m = String(offsetStr).match(
-        /^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/
-      );
+      // Suporta formatos com sinal: +HH:MM, -HH:MM:SS, etc.
+      const m = String(offsetStr || "").match(/^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/);
       if (!m) return 0;
       const sign = m[1] === "-" ? -1 : 1;
       const hours = parseInt(m[2], 10);
@@ -59,12 +62,21 @@
       return sign * (hours * 3600 + minutes * 60 + seconds);
     }
 
+    function parseDuration(durationStr) {
+      // 'HH:MM' or 'HH:MM:SS' -> seconds (always positive)
+      if (!durationStr) return 0;
+      const m = String(durationStr).match(/^(\d{1,2}):?(\d{2})(?::?(\d{2}))?$/);
+      if (!m) return 0;
+      const hours = parseInt(m[1], 10);
+      const minutes = parseInt(m[2], 10);
+      const seconds = m[3] ? parseInt(m[3], 10) : 0;
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+
     function buildDateTime(obj) {
       // obj: { data: 'YYYY-MM-DD', hora: 'HH:MM:SS' }
-      const dparts = String(obj.data).split("-").map(Number);
-      const tparts = String(obj.valor || "00:00:00")
-        .split(":")
-        .map(Number);
+      const dparts = String(obj.data || "").split("-").map(Number);
+      const tparts = String(obj.hora || "00:00:00").split(":").map(Number);
       if (dparts.length < 3) return new Date();
       let [year, month, day] = dparts;
       let [hh = 0, mm = 0, ss = 0] = tparts;
@@ -85,14 +97,24 @@
       return { date: d, time: t };
     }
 
+    // Determina offset em segundos. Suporta duas formas de chamada:
+    // 1) exibirHora(base, "+HH:MM:SS") -> usa sinal embutido
+    // 2) exibirHora(base, maisoumenosBool, "HH:MM:SS") -> usa boolean para sinal
+    let offsetSec = 0;
+    if (typeof maisoumenos === "string" && valordeacrecimo === undefined) {
+      // segunda forma usada anteriormente: passou o valor com sinal
+      offsetSec = parseOffset(maisoumenos);
+    } else {
+      const dur = parseDuration(valordeacrecimo || "00:00:00");
+      const sign = maisoumenos === false ? -1 : 1; // default '+'
+      offsetSec = sign * dur;
+    }
+
     const base = buildDateTime(horaedataparacalculo);
-    const offsetSec = parseOffset(valordeacrecimo);
     const adjusted = new Date(base.getTime() + offsetSec * 1000);
     const out = formatDateTime(adjusted);
-    console.log(
-      `Modo teste: Data: ${out.date}, Hora: ${out.time} (fuso ${valordeacrecimo})`
-    );
-    showBanner(`TESTE ${out.date} ${out.time} ${valordeacrecimo}`);
+    console.log(`Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`);
+    showBanner(`TESTE ${out.date} ${out.time} (offset ${offsetSec}s)`);
 
     return { date: out.date, time: out.time };
   }
