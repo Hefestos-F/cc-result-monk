@@ -1366,10 +1366,16 @@
       converterParaTempo(Segun.QualLogou)
     );
 
-    let saidaSegundos = Segun.QualLogou + tempoEscalado;
-    if (saidaSegundos > 86400) {
-      saidaSegundos -= 86400;
-    }
+    const dataehora = gerarDataHora();
+    dataehora.valor = converterParaTempo(Segun.QualLogou);
+
+    const dataehora2 = exibirHora(
+      dataehora,
+      1,
+      converterParaTempo(tempoEscalado)
+    );
+
+    let saidaSegundos = converterParaSegundos(dataehora2.valor);
     saidaSegundos =
       !stt.offForaDToler &&
       !stt.ErroAtu &&
@@ -1378,11 +1384,19 @@
       !stt.ErroVerif
         ? saidaSegundos + Segun.Offline
         : saidaSegundos;
+
     let faltaSegundos;
-    if (Segun.Hora < saidaSegundos) {
-      faltaSegundos = saidaSegundos - Segun.Hora;
+
+    const dataehora3 = gerarDataHora();
+
+    if (CConfig.logueEntreDatas) {
+      if (dataehora3.data === dadosPrimLogue.data) {
+        faltaSegundos = Segun.QualLogou - Segun.Hora + saidaSegundos;
+      } else {
+        faltaSegundos = saidaSegundos - Segun.Hora;
+      }
     } else {
-      faltaSegundos = 86400 - Segun.Hora + saidaSegundos;
+      faltaSegundos = Segun.Hora - saidaSegundos;
     }
 
     const saidaComOfflineSegundos = saidaSegundos + Segun.Offline;
@@ -3404,7 +3418,6 @@
     console.log(
       `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`
     );
-    showBanner(`TESTE ${out.date} ${out.time} (offset ${offsetSec}s)`);
 
     return { date: out.date, time: out.time };
   }
@@ -3414,7 +3427,7 @@
    * Se data mudou, movimenta registro anterior para "Ontem"
    * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
    */
-  async function verificarESalvar2(x) {
+  async function verificarESalvar(x) {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
@@ -3440,11 +3453,15 @@
 
       CConfig.logueEntreDatas = nova.date === hojeFormatado ? 1 : 0;
     }
+    if(x){
+      dadosPrimLogue.valor = valorFormatado;
+      await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
+    }
 
     Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.valor);
   }
 
-  async function verificarESalvar(x) {
+  async function verificarESalvar2(x) {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
