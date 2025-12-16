@@ -50,10 +50,12 @@
   *maisoumenos: true para '+' ou false para '-'
   *valordeacrecimo: string no formato 'HH:MM', 'HH:MM:SS'
   */
-  function exibirHora(horaedataparacalculo,maisoumenos,valordeacrecimo) {
+  function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
     function parseOffset(offsetStr) {
       // Suporta formatos com sinal: +HH:MM, -HH:MM:SS, etc.
-      const m = String(offsetStr || "").match(/^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/);
+      const m = String(offsetStr || "").match(
+        /^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/
+      );
       if (!m) return 0;
       const sign = m[1] === "-" ? -1 : 1;
       const hours = parseInt(m[2], 10);
@@ -75,8 +77,12 @@
 
     function buildDateTime(obj) {
       // obj: { data: 'YYYY-MM-DD', hora: 'HH:MM:SS' }
-      const dparts = String(obj.data || "").split("-").map(Number);
-      const tparts = String(obj.hora || "00:00:00").split(":").map(Number);
+      const dparts = String(obj.data || "")
+        .split("-")
+        .map(Number);
+      const tparts = String(obj.hora || "00:00:00")
+        .split(":")
+        .map(Number);
       if (dparts.length < 3) return new Date();
       let [year, month, day] = dparts;
       let [hh = 0, mm = 0, ss = 0] = tparts;
@@ -106,17 +112,23 @@
       offsetSec = parseOffset(maisoumenos);
     } else {
       const dur = parseDuration(valordeacrecimo || "00:00:00");
-      const sign = maisoumenos === false ? -1 : 1; // default '+'
+      // aceita booleano ou números 0/1 usados pelo código chamador
+      const isNegative =
+        maisoumenos === false ||
+        (typeof maisoumenos === "number" && Number(maisoumenos) === 0) ||
+        (typeof maisoumenos === "string" && maisoumenos === "0");
+      const sign = isNegative ? -1 : 1; // default '+'
       offsetSec = sign * dur;
     }
 
     const base = buildDateTime(horaedataparacalculo);
     const adjusted = new Date(base.getTime() + offsetSec * 1000);
     const out = formatDateTime(adjusted);
-    console.log(`Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`);
-    showBanner(`TESTE ${out.date} ${out.time} (offset ${offsetSec}s)`);
+    /*console.debug(
+     * `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`
+    );*/
 
-    return { date: out.date, time: out.time };
+    return { date: out.date, hora: out.time };
   }
 
   function createToggle() {

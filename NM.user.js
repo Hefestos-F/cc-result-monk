@@ -1288,7 +1288,8 @@
    * - Controla visibilidade de offline
    */
   async function VerificacoesN1() {
-    await AtualizarContAtual();
+    if (await AtualizarContAtual()) {
+    }
 
     Segun.NewLogado =
       Segun.Disponivel +
@@ -1310,13 +1311,15 @@
       stt.ErroVerif = 1;
     }
 
+    Segun.Hora = converterParaSegundos(mostrarHora());
+
     const novo = exibirHora(
       gerarDataHora(),
       0,
       converterParaTempo(Segun.NewLogado)
     );
 
-    Segun.Logou = converterParaSegundos(novo.valor);
+    Segun.Logou = converterParaSegundos(novo.hora);
 
     if (Segun.Logou < Segun.LogouSalvo) {
       verificarESalvar(1);
@@ -1355,7 +1358,6 @@
    * - Atualiza display dos valores no painel principal
    */
   function AtualizarInfo() {
-    const tempoEscalado = converterParaSegundos(CConfig.TempoEscaladoHoras);
     let tempoHorasExtras;
     let tempoCumprido = false;
     let temHorasExtras = false;
@@ -1367,15 +1369,11 @@
     );
 
     const dataehora = gerarDataHora();
-    dataehora.valor = converterParaTempo(Segun.QualLogou);
+    dataehora.hora = converterParaTempo(Segun.QualLogou);
 
-    const dataehora2 = exibirHora(
-      dataehora,
-      1,
-      converterParaTempo(tempoEscalado)
-    );
+    const dataehora2 = exibirHora(dataehora, 1, CConfig.TempoEscaladoHoras);
 
-    let saidaSegundos = converterParaSegundos(dataehora2.valor);
+    let saidaSegundos = converterParaSegundos(dataehora2.hora);
     saidaSegundos =
       !stt.offForaDToler &&
       !stt.ErroAtu &&
@@ -1396,7 +1394,7 @@
         faltaSegundos = saidaSegundos - Segun.Hora;
       }
     } else {
-      faltaSegundos = Segun.Hora - saidaSegundos;
+      faltaSegundos = saidaSegundos - Segun.Hora;
     }
 
     const saidaComOfflineSegundos = saidaSegundos + Segun.Offline;
@@ -1423,7 +1421,7 @@
 
     const logadoExibido = CConfig.MostraValorOff
       ? Segun.NewLogado
-      : logadoSegundos.valor;
+      : logadoSegundos.hora;
     const logadoFormatado = converterParaTempo(logadoExibido);
     const vLogado = document.getElementById("vLogado");
     vLogado.textContent = logadoFormatado;
@@ -3408,18 +3406,23 @@
       offsetSec = parseOffset(maisoumenos);
     } else {
       const dur = parseDuration(valordeacrecimo || "00:00:00");
-      const sign = maisoumenos === false ? -1 : 1; // default '+'
+      // aceita booleano ou números 0/1 usados pelo código chamador
+      const isNegative =
+        maisoumenos === false ||
+        (typeof maisoumenos === "number" && Number(maisoumenos) === 0) ||
+        (typeof maisoumenos === "string" && maisoumenos === "0");
+      const sign = isNegative ? -1 : 1; // default '+'
       offsetSec = sign * dur;
     }
 
     const base = buildDateTime(horaedataparacalculo);
     const adjusted = new Date(base.getTime() + offsetSec * 1000);
     const out = formatDateTime(adjusted);
-    console.log(
-      `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`
-    );
+    /*console.debug(
+     * `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`
+    );*/
 
-    return { date: out.date, time: out.time };
+    return { date: out.date, hora: out.time };
   }
 
   /**
@@ -3435,14 +3438,14 @@
     const ontemFormatado = ontem.toISOString().split("T")[0];
 
     const valorFormatado = converterParaTempo(Segun.Logou);
-    const valorEdata = { valor: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
+    const valorEdata = { hora: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
     if (
       !dadosPrimLogue ||
       (dadosPrimLogue.data !== hojeFormatado &&
         dadosPrimLogue.data !== ontemFormatado)
     ) {
-      valorEdata.valor = mostrarHora();
+      valorEdata.hora = mostrarHora();
       await AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
       dadosPrimLogue = valorEdata;
     }
@@ -3453,12 +3456,11 @@
 
       CConfig.logueEntreDatas = nova.date === hojeFormatado ? 1 : 0;
     }
-    if(x){
-      dadosPrimLogue.valor = valorFormatado;
+    if (x) {
+      dadosPrimLogue.hora = valorFormatado;
       await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
     }
-
-    Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.valor);
+    Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.hora);
   }
 
   async function verificarESalvar2(x) {
@@ -3469,7 +3471,7 @@
     const ontemFormatado = ontem.toISOString().split("T")[0];
 
     const valorFormatado = converterParaTempo(Segun.Logou);
-    const valorEdata = { valor: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
+    const valorEdata = { hora: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
     let PrimeiroLogueRes;
     if (
@@ -3477,7 +3479,7 @@
       (dadosPrimLogue.data !== hojeFormatado &&
         dadosPrimLogue.data !== ontemFormatado)
     ) {
-      valorEdata.valor = "24:00:00";
+      valorEdata.hora = "24:00:00";
       x = 1;
     }
     if (dadosPrimLogue && dadosPrimLogue.data === ontemFormatado) {
@@ -3486,11 +3488,11 @@
 
     // garantir valores seguros caso não existam registros anteriores
     const dadosPrimLoguesegun = converterParaSegundos(
-      dadosPrimLogue && dadosPrimLogue.valor ? dadosPrimLogue.valor : "00:00:00"
+      dadosPrimLogue && dadosPrimLogue.hora ? dadosPrimLogue.hora : "00:00:00"
     );
     const dadosPrimLogueOntSeg = converterParaSegundos(
-      dadosPrimLogueOnt && dadosPrimLogueOnt.valor
-        ? dadosPrimLogueOnt.valor
+      dadosPrimLogueOnt && dadosPrimLogueOnt.hora
+        ? dadosPrimLogueOnt.hora
         : "00:00:00"
     );
     const VinteEQuatro = converterParaSegundos("23:59:59");
@@ -3526,9 +3528,9 @@
         "NiceMonk Informação salva para a data de hoje primeiroLogue: ",
         valorEdata
       );
-      Segun.LogouSalvo = converterParaSegundos(valorEdata.valor);
+      Segun.LogouSalvo = converterParaSegundos(valorEdata.hora);
     } else {
-      Segun.LogouSalvo = converterParaSegundos(PrimeiroLogueRes.valor);
+      Segun.LogouSalvo = converterParaSegundos(PrimeiroLogueRes.hora);
       console.log(
         "NiceMonk Informação salva em primeiroLogue: ",
         PrimeiroLogueRes
