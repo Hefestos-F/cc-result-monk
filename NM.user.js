@@ -2887,6 +2887,7 @@
      * FimdePausa - registra fim de uma pausa no banco de dados
      * @param {string} tipo - tipo de pausa (Descanso, Lanche, Dispon, etc)
      */
+
     async function FimdePausa(tipo) {
       stt.FPausaS = converterParaSegundos(mostrarHora());
       stt.DPausaS = stt.FPausaS - stt.IPausaS;
