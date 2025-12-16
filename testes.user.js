@@ -36,7 +36,7 @@
     }
     el.textContent = text;
   }
-  
+
   function mostrarHora() {
     const agora = new Date();
     const horas = String(agora.getHours()).padStart(2, "0");
@@ -46,10 +46,10 @@
   }
 
   /*
-  *horaedataparacalculo: { hora: 'HH:MM:SS', data: 'YYYY-MM-DD' }
-  *maisoumenos: true para '+' ou false para '-'
-  *valordeacrecimo: string no formato 'HH:MM', 'HH:MM:SS'
-  */
+   *horaedataparacalculo: { hora: 'HH:MM:SS', data: 'YYYY-MM-DD' }
+   *maisoumenos: true para '+' ou false para '-'
+   *valordeacrecimo: string no formato 'HH:MM', 'HH:MM:SS'
+   */
   function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
     function parseOffset(offsetStr) {
       // Suporta formatos com sinal: +HH:MM, -HH:MM:SS, etc.
@@ -125,8 +125,9 @@
     const adjusted = new Date(base.getTime() + offsetSec * 1000);
     const out = formatDateTime(adjusted);
     /*console.debug(
-     * `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`
-    );*/
+     * `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`);
+     *showBanner(`TESTE ${out.date} ${out.time} ${valordeacrecimo}`);
+     */
 
     return { date: out.date, hora: out.time };
   }
