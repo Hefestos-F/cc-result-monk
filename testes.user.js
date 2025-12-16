@@ -126,9 +126,10 @@
     const out = formatDateTime(adjusted);
     /*console.debug(
      * `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`);
-     *showBanner(`TESTE ${out.date} ${out.time} ${valordeacrecimo}`);
+     *
      */
 
+    showBanner(`TESTE ${out.date} ${out.time} ${valordeacrecimo}`);
     return { date: out.date, hora: out.time };
   }
 
