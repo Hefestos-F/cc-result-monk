@@ -3447,96 +3447,34 @@
         dadosPrimLogue.data !== ontemFormatado)
     ) {
       valorEdata.hora = mostrarHora();
-      await AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
-      dadosPrimLogue = valorEdata;
+      x = 1;
     }
 
     if (dadosPrimLogue && dadosPrimLogue.data === ontemFormatado) {
       await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosPrimLogue);
+      const calc =
+        converterParaSegundos(CConfig.TempoEscaladoHoras) +
+        converterParaSegundos("12:00:00");
+      const nova2 = exibirHora(dadosPrimLogue, 1, converterParaTempo(calc));
       const nova = exibirHora(dadosPrimLogue, 1, CConfig.TempoEscaladoHoras);
 
       CConfig.logueEntreDatas = nova.date === hojeFormatado ? 1 : 0;
+      if (CConfig.logueEntreDatas) {
+        if (
+          converterParaSegundos(nova2.hora) >
+          converterParaSegundos(mostrarHora())
+        ) {
+          x = 1;
+        }
+      } else {
+        x = 1;
+      }
     }
     if (x) {
-      dadosPrimLogue.hora = valorFormatado;
-      await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
+      dadosPrimLogue = valorEdata;
+      await AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
     }
     Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.hora);
-  }
-
-  async function verificarESalvar2(x) {
-    const hoje = new Date();
-    const hojeFormatado = hoje.toISOString().split("T")[0];
-    const ontem = new Date(hoje);
-    ontem.setDate(hoje.getDate() - 1);
-    const ontemFormatado = ontem.toISOString().split("T")[0];
-
-    const valorFormatado = converterParaTempo(Segun.Logou);
-    const valorEdata = { hora: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
-
-    let PrimeiroLogueRes;
-    if (
-      !dadosPrimLogue ||
-      (dadosPrimLogue.data !== hojeFormatado &&
-        dadosPrimLogue.data !== ontemFormatado)
-    ) {
-      valorEdata.hora = "24:00:00";
-      x = 1;
-    }
-    if (dadosPrimLogue && dadosPrimLogue.data === ontemFormatado) {
-      await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosPrimLogue);
-    }
-
-    // garantir valores seguros caso não existam registros anteriores
-    const dadosPrimLoguesegun = converterParaSegundos(
-      dadosPrimLogue && dadosPrimLogue.hora ? dadosPrimLogue.hora : "00:00:00"
-    );
-    const dadosPrimLogueOntSeg = converterParaSegundos(
-      dadosPrimLogueOnt && dadosPrimLogueOnt.hora
-        ? dadosPrimLogueOnt.hora
-        : "00:00:00"
-    );
-    const VinteEQuatro = converterParaSegundos("23:59:59");
-    const TempoEscaladoSeg = converterParaSegundos(CConfig.TempoEscaladoHoras);
-
-    // determina se o primeiro logue pertence ao dia anterior
-    const entreDatas =
-      VinteEQuatro - dadosPrimLoguesegun < TempoEscaladoSeg ||
-      Segun.Hora < TempoEscaladoSeg;
-
-    // atualiza flag de configuração (0|1) e escolhe o registro correto
-    CConfig.logueEntreDatas = entreDatas ? 1 : 0;
-    PrimeiroLogueRes = entreDatas ? dadosPrimLogueOnt : dadosPrimLogue;
-
-    if (x) {
-      console.log(
-        "NiceMonk Anteriormente salvo em primeiroLogue: ",
-        PrimeiroLogueRes
-      );
-
-      if (entreDatas) {
-        valorEdata.data = ontemFormatado;
-        dadosPrimLogueOnt = valorEdata;
-      } else {
-        dadosPrimLogue = valorEdata;
-      }
-
-      let chavelogue = entreDatas ? ChavePrimLogueOntem : ChavePrimLogue;
-
-      await AddOuAtuIindexdb(chavelogue, valorEdata);
-
-      console.log(
-        "NiceMonk Informação salva para a data de hoje primeiroLogue: ",
-        valorEdata
-      );
-      Segun.LogouSalvo = converterParaSegundos(valorEdata.hora);
-    } else {
-      Segun.LogouSalvo = converterParaSegundos(PrimeiroLogueRes.hora);
-      console.log(
-        "NiceMonk Informação salva em primeiroLogue: ",
-        PrimeiroLogueRes
-      );
-    }
   }
 
   /**
