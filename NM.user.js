@@ -212,6 +212,7 @@
     observ: 1,
     temOcul: 0,
     contarSalvar: 0,
+    timeReal: 0,
   };
 
   /**
@@ -1288,27 +1289,27 @@
    * - Controla visibilidade de offline
    */
   async function VerificacoesN1() {
-    if (await AtualizarContAtual()) {
-    }
+    stt.timeReal = await AtualizarContAtual();
+    if (stt.timeReal) {
+      Segun.NewLogado =
+        Segun.Disponivel +
+        Segun.Trabalhando +
+        Segun.Indisponivel +
+        Segun.ContAtual;
 
-    Segun.NewLogado =
-      Segun.Disponivel +
-      Segun.Trabalhando +
-      Segun.Indisponivel +
-      Segun.ContAtual;
-
-    if (Segun.NewLogado >= Segun.UltimaSomaDTI) {
-      Segun.UltimaSomaDTI = Segun.NewLogado;
-      stt.ErroVerif = 0;
-    } else if (CConfig.Vigia && !stt.Atualizando && !stt.ErroVerif) {
-      stt.ErroVerif = 1;
-      stt.Busc5s = 1;
-      ControleFront(7);
-      setTimeout(function () {
-        iniciarBusca();
-      }, 5000);
-    } else {
-      stt.ErroVerif = 1;
+      if (Segun.NewLogado >= Segun.UltimaSomaDTI) {
+        Segun.UltimaSomaDTI = Segun.NewLogado;
+        stt.ErroVerif = 0;
+      } else if (CConfig.Vigia && !stt.Atualizando && !stt.ErroVerif) {
+        stt.ErroVerif = 1;
+        stt.Busc5s = 1;
+        ControleFront(7);
+        setTimeout(function () {
+          iniciarBusca();
+        }, 5000);
+      } else {
+        stt.ErroVerif = 1;
+      }
     }
 
     Segun.Hora = converterParaSegundos(mostrarHora());
@@ -1338,6 +1339,7 @@
       (CConfig.Vigia || stt.Atualizando) &&
       !stt.ErroAtu &&
       !stt.ErroVerif &&
+      stt.timeReal &&
       !CConfig.IgnorarOff
         ? 1
         : 0;
@@ -3461,7 +3463,7 @@
       CConfig.logueEntreDatas = nova.date === hojeFormatado ? 1 : 0;
       if (CConfig.logueEntreDatas) {
         if (
-          converterParaSegundos(nova2.hora) >
+          converterParaSegundos(nova2.hora) <
           converterParaSegundos(mostrarHora())
         ) {
           x = 1;
