@@ -1917,24 +1917,23 @@
       return a;
     }
 
-    function salvarHorariologueManual() {
-      const hora = parseInt(
-        horaInputlogueManual.value || horaInputlogueManual.placeholder
-      );
-      const minuto = parseInt(
-        minuInputlogueManual.value || minuInputlogueManual.placeholder
-      );
-      const horaFormatada = String(hora).padStart(2, "0");
-      const minutoFormatado = String(minuto).padStart(2, "0");
-      const segundos = "00";
-      const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
-      horaInputlogueManual.placeholder = horaFormatada;
-      minuInputlogueManual.placeholder = minutoFormatado;
-      CConfig.ValorLogueManual = horarioFormatado;
-      SalvarLogueManual(1);
-    }
-
     function ContlogueManual() {
+      function salvarHorariologueManual() {
+        const hora = parseInt(
+          horaInputlogueManual.value || horaInputlogueManual.placeholder
+        );
+        const minuto = parseInt(
+          minuInputlogueManual.value || minuInputlogueManual.placeholder
+        );
+        const horaFormatada = String(hora).padStart(2, "0");
+        const minutoFormatado = String(minuto).padStart(2, "0");
+        const segundos = "00";
+        const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
+        horaInputlogueManual.placeholder = horaFormatada;
+        minuInputlogueManual.placeholder = minutoFormatado;
+        CConfig.ValorLogueManual = horarioFormatado;
+        SalvarLogueManual(1);
+      }
       const InputCailogueManual = document.createElement("div");
       InputCailogueManual.style.cssText = `display: flex; align-items: center;`;
       const horaInputlogueManual = entradatempo(
@@ -3471,12 +3470,14 @@
       } else {
         x = 1;
       }
+    } else if (dadosPrimLogue) {
+      Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.hora);
     }
     if (x) {
       dadosPrimLogue = valorEdata;
       await AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
+      Segun.LogouSalvo = converterParaSegundos(valorEdata.hora);
     }
-    Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.hora);
   }
 
   /**
