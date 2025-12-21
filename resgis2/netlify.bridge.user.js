@@ -8,6 +8,8 @@
 // @match        https://registrodechamadas.netlify.app/*
 // @run-at       document-idle
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis2/netlify.bridge.user.js
+// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis2/netlify.bridge.user.js
 // ==/UserScript==
 
 (function () {

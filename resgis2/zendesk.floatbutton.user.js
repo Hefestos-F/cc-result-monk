@@ -7,6 +7,8 @@
 // @match        https://smileshelp.zendesk.com/*
 // @run-at       document-idle
 // @grant        GM_addStyle
+// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis2/zendesk.floatbutton.user.js
+// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis2/zendesk.floatbutton.user.js
 // ==/UserScript==
 
 (function () {
@@ -359,7 +361,7 @@
       mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="%23000" viewBox="0 0 24 24"><path d="M4 4h16v2H4V4zm0 6h16v2H4v-2zm0 6h16v2H4v-2z"/></svg>') no-repeat center / contain;
     }
     #rc-panel {
-      position: fixed; right: 70px; bottom: 70px; width: ${PANEL_WIDTH}px; height: ${PANEL_HEIGHT}px;
+      position: fixed; left: 70px; top: 70px; width: ${PANEL_WIDTH}px; height: ${PANEL_HEIGHT}px;
       z-index: 999998; background: #0f1115; color: #e6e8ea; border-radius: 12px;
       border: 1px solid #2a2f3a; box-shadow: 0 10px 32px rgba(0,0,0,0.35); display: none; overflow: hidden;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
