@@ -16,6 +16,10 @@
 (function () {
   const stt = { observa: 1 };
 
+  const TempoPausas = {
+    Online:
+  }
+
   // Chaves usadas no IndexedDB/local storage
   const ChavePausas = "DadosDePausas";
   const ChaveConfig = "Configuções";
@@ -109,7 +113,7 @@
     );
     if (el) {
       const status = el.textContent.trim(); // <-- aqui sai "Offline"
-      stt.observa = 0; // sinaliza para desativar o observer
+      //stt.observa = 0; // sinaliza para desativar o observer
       console.log(`HefestoLog: Status: ${status}`);
       // Se quiser "retornar" via callback, faça aqui:
       // meuCallback(status);
