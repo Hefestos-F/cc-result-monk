@@ -14,11 +14,16 @@
 // ==/UserScript==
 
 (function () {
-  const stt = { observa: 1 };
+  const stt = {
+    observa: 1,
+    Status: "",
+    StatusANT: "",
+    NumeroCon: 1,
+  };
 
   const TempoPausas = {
-    Online:
-  }
+    Online: 0,
+  };
 
   // Chaves usadas no IndexedDB/local storage
   const ChavePausas = "DadosDePausas";
@@ -112,9 +117,20 @@
       '[data-test-id="toolbar-profile-menu-view-profile"] span'
     );
     if (el) {
-      const status = el.textContent.trim(); // <-- aqui sai "Offline"
+      stt.Status = el.textContent.trim(); // <-- aqui sai "Offline"
       //stt.observa = 0; // sinaliza para desativar o observer
-      console.log(`HefestoLog: Status: ${status}`);
+      console.log(`HefestoLog: Status: ${stt.Status}`);
+      if (!stt.Status.includes("Offline") && stt.StatusANT !== stt.Status) {
+        stt.NumeroCon += stt.NumeroCon;
+
+        if (stt.Status.includes("Lanche")) {
+        } else if (stt.Status.includes("Descanso")) {
+        } else if (stt.Status.includes("Particular")) {
+        } else if (stt.Status.includes("Online")) {
+        }
+      }
+      stt.StatusANT = stt.Status;
+
       // Se quiser "retornar" via callback, faça aqui:
       // meuCallback(status);
     } else {
@@ -122,11 +138,53 @@
     }
   });
 
+  async function AddouAtualizarPausas(id, pausa, Inicio, Fim, Duracao) {
+    const novoItem = { id, pausa, Inicio, Fim, Duracao };
+
+    // Garante que dadosdePausas seja um array
+    if (!Array.isArray(dadosdePausas)) {
+      dadosdePausas = [];
+    }
+
+    const index = dadosdePausas.findIndex((item) => item.id === id);
+
+    if (index !== -1) {
+      dadosdePausas[index] = { ...dadosdePausas[index], ...novoItem };
+    } else {
+      dadosdePausas.push(novoItem);
+    }
+
+    await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
+  }
+
+  async function atualizarCampos(id, campo, valor) {
+    const index = dadosdePausas.findIndex((item) => item.id === id);
+
+    if (index !== -1) {
+      dadosdePausas[index][campo] = valor; // Atualiza o campo dinamicamente
+    } else {
+      // Cria novo item com o campo e valor fornecidos
+      const novoItem = { id };
+      novoItem[campo] = valor;
+      dadosdePausas.push(novoItem);
+    }
+
+    try {
+      await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
+    } catch (err) {
+      console.error("NiceMonk Erro ao atualizar campos no IndexedDB:", err);
+    }
+
+    if (campo === "Duracao") {
+      console.debug(`NiceMonk Tabela salva : `, ChavePausas);
+    }
+  }
+
   /**
    * abrirDB - abre ou cria IndexedDB para persistência de dados
    * @param {Function} callback - função a executar com banco de dados aberto
    */
-  
+
   function abrirDB(callback) {
     const requisicao_bd = indexedDB.open(nomeBD, 1);
 
