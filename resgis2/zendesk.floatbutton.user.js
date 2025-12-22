@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Zendesk: Painel 580px + enviar ticket e contato (CONFIG + helpers revisados)
 // @namespace    franciel.zendesk.ticket.bridge
-// @version      1.5.0
+// @version      1.5.1
 // @description  Extrai ticket e nome do solicitante (via encontrarNome + helpers), aplica localmente (se existirem inputs) e envia ao Registro via postMessage.
 // @author       Franciel
 // @match        https://smileshelp.zendesk.com/*
@@ -398,7 +398,7 @@
     <div id="rc-panel-header">
       <div style="font-size:13px;font-weight:600;">Registro de Chamadas</div>
       <div id="rc-panel-actions">
-        <button id="rc-refresh" class="rc-btn">Atualizar</button>
+        
         <button id="rc-close" class="rc-btn primary">Fechar</button>
       </div>
     </div>
@@ -422,9 +422,7 @@
   panel
     .querySelector("#rc-close")
     .addEventListener("click", () => (panel.style.display = "none"));
-  panel
-    .querySelector("#rc-refresh")
-    .addEventListener("click", () => iframe.contentWindow?.location.reload());
+  
 
   // Drag do botão flutuante
   (function dragFloatButton() {
@@ -508,46 +506,12 @@
   })();
 
   /** ===========================
-   *  Aplicar número do ticket no input5 local (opcional)
-   *  =========================== */
-  function applyTicketToInput5(ticketStr) {
-    try {
-      const elHere = document.querySelector(CONFIG.input5Selector);
-      const elTop = document.querySelector(CONFIG.input5Selector);
-      const input5 = elHere || elTop;
-      if (!input5) return;
-
-      const mode = CONFIG.input5Mode;
-      const nToApply = ticketStr || "000000";
-      if (mode === "value") {
-        input5.value = nToApply;
-      } else if (mode === "placeholder") {
-        input5.placeholder = nToApply;
-      } else if (mode === "valueIfEmpty") {
-        const current = (input5.value ?? "").trim();
-        if (!current) {
-          input5.value = nToApply;
-        } else if (!input5.placeholder) {
-          input5.placeholder = nToApply;
-        }
-      }
-      input5.dispatchEvent(new Event("input", { bubbles: true }));
-      input5.dispatchEvent(new Event("change", { bubbles: true }));
-    } catch (e) {
-      warn("Falha ao aplicar no input5:", e);
-    }
-  }
-
-  /** ===========================
    *  Enviar dados ao Registro (postMessage)
    *  =========================== */
   async function enviarDadosParaRegistro() {
     const href = window.location.href || "";
     const numero = extrairTicketDaURL(href);
     const ticket = numero || "000000";
-
-    // Aplica localmente (se seus #input1/#input5 existirem no DOM atual)
-    applyTicketToInput5(ticket);
 
     let contato = "";
     try {
