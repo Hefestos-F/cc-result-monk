@@ -74,6 +74,7 @@
   var entrada1 = "";
   var entrada2 = "";
   var entrada3 = "";
+  var assinatura = "";
 
   SalvarVari(0);
 
@@ -84,6 +85,7 @@
       entrada1: entrada1,
       entrada2: entrada2,
       entrada3: entrada3,
+      assinatura: assinatura,
     };
 
     if (x || !DS) {
@@ -92,6 +94,7 @@
       entrada1 = DS.entrada1;
       entrada2 = DS.entrada2;
       entrada3 = DS.entrada3;
+      assinatura = DS.assinatura;
     }
   }
 
@@ -266,8 +269,19 @@
       if (predescricao) {
         descricao.value = textToCopy;
       }
+      const assinatura3 = document.getElementById("assinatura");
+
+      if (assinatura3.value !== "") {
+        assinatura = assinatura3;
+      }
     }
     preencheregis();
+
+    const assinatura2 = document.getElementById("assinatura");
+
+    if (assinatura2 && assinatura) {
+      assinatura2.value = assinatura;
+    }
 
     return contentBox;
   }
