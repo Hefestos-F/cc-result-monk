@@ -199,7 +199,7 @@
 
     const linha5 = CriarLinha(5);
     const linha5T1 = document.createElement("p");
-    linha5T1.textContent = "A solicitação foi atendida da seguinte forma:";
+    linha5T1.textContent = ", A solicitação foi atendida da seguinte forma:";
     linha5.appendChild(linha5T1);
     dd1.appendChild(linha5);
 
