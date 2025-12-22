@@ -271,7 +271,7 @@
       }
       const assinatura3 = document.getElementById("assinatura");
 
-      if (assinatura3.value !== "") {
+      if (assinatura3 && assinatura3.value !== "") {
         assinatura = assinatura3;
       }
     }
