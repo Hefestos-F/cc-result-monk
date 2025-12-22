@@ -1,76 +1,19 @@
 // ==UserScript==
-// @name         Registro de Chamadas: receber ticket e contato do Zendesk
-// @namespace    franciel.registro.ticket.receiver
-// @version      1.1.3
-// @description  Recebe {ticket, contato} via postMessage e preenche #ticket e #contato.
-// @author       Franciel
-// @match        https://registrodechamadas.netlify.app/*
+// @name         Nice_test3
+// @namespace    https://github.com/Hefestos-F/cc-result-monk
+// @version      1
+// @description  that's all folks!
+// @author       almaviva.fpsilva
+// @match        https://www.google.com/*
+// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
+// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes3.user.js
+// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes3.user.js
+// @grant        GM_openInTab
 // @run-at       document-idle
-// @grant        none
-// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis2/netlify.bridge.user.js
-// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis2/netlify.bridge.user.js
+
 // ==/UserScript==
 
 (function () {
-  "use strict";
-
-  const ZENDESK_ORIGIN = "https://smileshelp.zendesk.com";
-  const LOG_PREFIX = "[Registro←ZD]";
-  const log = (...a) => console.log(LOG_PREFIX, ...a);
-  const warn = (...a) => console.warn(LOG_PREFIX, ...a);
-
-  function setInputValue(el, value) {
-    if (!el) return;
-    el.focus();
-    el.value = value ?? "";
-    el.dispatchEvent(new Event("input", { bubbles: true }));
-    el.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-
-  window.addEventListener("message", (ev) => {
-    if (ev.origin !== ZENDESK_ORIGIN) return;
-    const data = ev.data || {};
-    if (data.type === "preencher") {
-      const { ticket, contato } = data;
-      const tkEl = document.getElementById("ticket");
-      const ctEl = document.getElementById("contato");
-
-      if (!tkEl) {
-        warn("Input #ticket não encontrado");
-      } else {
-        if (tkEl.value === "") setInputValue(tkEl, ticket);
-      }
-
-      if (!ctEl) {
-        warn("Input #contato não encontrado");
-      } else {
-        if (ctEl.value === "") setInputValue(ctEl, contato);
-      }
-
-      log("Aplicados:", { ticket, contato });
-      ev.source?.postMessage(
-        { type: "status", status: "ok", fields: ["ticket", "contato"] },
-        ZENDESK_ORIGIN
-      );
-    }
-  });
-
-  // Handshake inicial
-  if (window.parent) {
-    window.parent.postMessage({ type: "ready" }, ZENDESK_ORIGIN);
-  }
-
-  // Fallback por query string (?ticket=123&contato=Fulano)
-  (function applyFromQuery() {
-    const p = new URLSearchParams(location.search);
-    const tk = p.get("ticket");
-    const ct = p.get("contato");
-    const tkEl = document.getElementById("ticket");
-    const ctEl = document.getElementById("contato");
-    if (tk && tkEl) setInputValue(tkEl, tk);
-    if (ct && ctEl) setInputValue(ctEl, ct);
-  })();
-
   var entrada1 = "";
   var entrada2 = "";
   var entrada3 = "";
@@ -283,6 +226,7 @@
 
       const item4 = body.children[4];
       item4.appendChild(novoItem);
+    
     } else {
       // Se não houver 3 elementos, apenas adiciona no final
       body.appendChild(novoItem);

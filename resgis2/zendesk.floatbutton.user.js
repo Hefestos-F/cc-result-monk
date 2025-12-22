@@ -516,7 +516,7 @@
     let contato = "";
     try {
       const res = await encontrarNome(ticket);
-      contato = res && res.nomeCompleto ? res.nomeCompleto : "";
+      contato = res && res.primeiroNomeFmt ? res.primeiroNomeFmt : "";
     } catch (e) {
       warn("Falha ao obter contato via encontrarNome():", e);
     }

@@ -169,6 +169,33 @@
     return additionalContent;
   }
 
+  function CriarInput(textarea, Aplaceholder) {
+    var a = textarea ? "textarea" : "input";
+    var b = document.createElement(a);
+    b.style.cssText = `
+
+        margin: 0px 5px;
+        width: 80px;
+        border-radius: 10px;
+        padding: 1px;
+        text-align: center;
+        border-bottom: 2px solid rgb(209, 0, 0);
+        `;
+    b.placeholder = Aplaceholder;
+    if (textarea) {
+      b.style.maxHeight = "75px";
+      b.style.width = "100%";
+      b.style.height = "25px";
+      b.style.overflow = "auto";
+      b.style.resize = "none";
+      b.addEventListener("input", () => {
+        b.style.height = "auto"; // Reset height
+        b.style.height = b.scrollHeight + "px"; // Set new height
+      });
+    }
+    return b;
+  }
+
   function CriarLinha(x) {
     var a = document.createElement("div");
     a.id = `CReglinha${x}`;
@@ -203,9 +230,9 @@
 
     const linha1in = CriarInput(0, "");
     linha1in.id = "input1";
-    linha1in.value = nome;
+    //linha1in.value = nome;
     linha1in.addEventListener("input", () => {
-      nome = linha1in.value;
+      //nome = linha1in.value;
       SalvarVari(1);
     });
 
@@ -732,6 +759,7 @@
     return contentBox;
   }
 
+
   function CriarBotCopiar() {
     var a = document.createElement("button");
     a.style.cssText = `
@@ -762,32 +790,7 @@
     return a;
   }
 
-  function CriarInput(textarea, Aplaceholder) {
-    var a = textarea ? "textarea" : "input";
-    var b = document.createElement(a);
-    b.style.cssText = `
-
-        margin: 0px 5px;
-        width: 80px;
-        border-radius: 10px;
-        padding: 1px;
-        text-align: center;
-        border-bottom: 2px solid rgb(209, 0, 0);
-        `;
-    b.placeholder = Aplaceholder;
-    if (textarea) {
-      b.style.maxHeight = "75px";
-      b.style.width = "100%";
-      b.style.height = "25px";
-      b.style.overflow = "auto";
-      b.style.resize = "none";
-      b.addEventListener("input", () => {
-        b.style.height = "auto"; // Reset height
-        b.style.height = b.scrollHeight + "px"; // Set new height
-      });
-    }
-    return b;
-  }
+  
 
   function Criarselect(...opcoes) {
     var select = document.createElement("select");
