@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Zendesk: Painel 580px + enviar ticket e contato (CONFIG + helpers revisados)
 // @namespace    franciel.zendesk.ticket.bridge
-// @version      1.5.1
+// @version      1.5.2
 // @description  Extrai ticket e nome do solicitante (via encontrarNome + helpers), aplica localmente (se existirem inputs) e envia ao Registro via postMessage.
 // @author       Franciel
 // @match        https://smileshelp.zendesk.com/*

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Registro de Chamadas: receber ticket e contato do Zendesk
 // @namespace    franciel.registro.ticket.receiver
-// @version      1.1.3
+// @version      1.1.4
 // @description  Recebe {ticket, contato} via postMessage e preenche #ticket e #contato.
 // @author       Franciel
 // @match        https://registrodechamadas.netlify.app/*
