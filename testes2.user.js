@@ -96,8 +96,11 @@
   }
 
   function observarItem(aoMudar) {
-    const alvo = document.querySelector(
+    /*const alvo = document.querySelector(
       '[data-test-id="toolbar-profile-menu"]'
+    );*/
+    const alvo = document.querySelector(
+      '[data-test-id="toolbar-profile-menu-button-tooltip"]'
     );
     if (!alvo) {
       console.warn("HefestoLog: alvo toolbar-profile-menu não encontrado.");
@@ -122,54 +125,109 @@
     return item?.["inicio"];
   }
 
+  const formatPrimeiroNome = (txt) => {
+    const t = (txt || "").trim();
+    if (!t) return "";
+    // Extrai a primeira "palavra" (até espaço)
+    const first = t.split(/\s+/)[0];
+    const lower = first.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  };
+
   observarItem(() => {
+    //const el = document.querySelector('[data-garden-id="typography.font"]');
     const el = document.querySelector(
-      '[data-test-id="toolbar-profile-menu-view-profile"] span'
+      '[data-test-id="toolbar-profile-menu-button-tooltip"] div'
     );
+    /*const el = document.querySelector(
+      '[data-test-id="toolbar-profile-menu-view-profile"] span'
+    );*/
+
     if (!el) {
       console.log("HefestoLog: Alteração aconteceu, mas ainda sem status");
       return;
     }
 
-    stt.Status = el.textContent.trim();
+    const statusAtual = formatPrimeiroNome(el.textContent.trim());
+
+    if (!statusAtual) return;
+
+    // Se não mudou, não faz nada
+    if (stt.StatusANT === statusAtual) return;
+
+    stt.Status = statusAtual;
     console.log(`HefestoLog: Status: ${stt.Status}`);
 
-    if (!stt.Status.includes("Offline") && stt.StatusANT !== stt.Status) {
-      const deh = gerarDataHora();
+    // Helpers
 
-      // Fecha pausa atual
-      atualizarCampos(DDPausa.numero, "Fim", deh);
+    const duracaoPrevistaPorStatus = (s) => {
+      if (s.includes("Lanche")) return "00:20:00";
+      if (s.includes("Descanso")) return "00:10:00";
+      return null;
+    };
 
-      const ini = getValorinicio(DDPausa.numero);
-      const durac = ini ? exibirHora(deh, 0, ini) : "00:00:00";
-      atualizarCampos(DDPausa.numero, "Duração", durac);
+    // Executa sem estourar "Uncaught (in promise)"
+    (async () => {
+      const agora = gerarDataHora(); // { data, hora }
 
-      // Se for abrir nova pausa, incremente o id corretamente:
-      DDPausa.numero += 1; // <-- ajuste aqui conforme sua regra
+      // ==========================================================
+      // 1) FECHAR pausa atual (registro do DDPausa.numero atual)
+      //    - Faz sentido quando:
+      //      a) houve uma pausa aberta antes (existe "inicio")
+      //      b) e estamos mudando de status (já garantimos que mudou)
+      // ==========================================================
+      // Tentamos fechar o registro atual (se tiver inicio salvo)
+      // OBS: isso mantém seu comportamento de "fecha pausa atual" a cada mudança
+      // (desde que exista início registrado).
+      const inicioObj = getValorinicio(DDPausa.numero); // {data,hora} ou undefined
 
-      let fim = "---";
-      let duracao = "---";
-      let time = 0;
+      if (inicioObj) {
+        // Salva fim (objeto)
+        await atualizarCampos(DDPausa.numero, "fim", agora);
 
-      if (stt.Status.includes("Lanche")) {
-        duracao = "00:20:00";
-        time = exibirHora(deh, 1, duracao);
-        fim = time.hora;
-      } else if (stt.Status.includes("Descanso")) {
-        duracao = "00:10:00";
-        time = exibirHora(deh, 1, duracao);
-        fim = time.hora;
+        // Calcula duração real (string HH:MM:SS)
+        const duracaoReal = calcularDuracao(inicioObj, agora);
+        await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
       }
 
-      AddouAtualizarPausas(DDPausa.numero, stt.Status, deh, fim, duracao);
-    }
+      // Só executa lógica se NÃO estiver Offline e se houve mudança
+      if (stt.Status.includes("Offline")) {
+        stt.StatusANT = stt.Status;
+        return;
+      }
 
-    stt.StatusANT = stt.Status;
+      // Seu comentário original: "Se for abrir nova pausa, incremente o id"
+      DDPausa.numero += 1;
+      if (DDPausa.numero > 15) DDPausa.numero = 0;
+
+      const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
+      let fimPrevistoObj = null;
+
+      if (duracaoPrevista) {
+        // exibirHora soma duracaoPrevista ao "agora"
+        fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
+      }
+
+      // Cria/atualiza pausa no array + IndexedDB
+      await AddouAtualizarPausas(
+        DDPausa.numero,
+        stt.Status,
+        agora, // inicio: {data,hora}
+        fimPrevistoObj, // fim previsto: {data,hora} ou null
+        duracaoPrevista || "---" // duracao prevista: "HH:MM:SS" ou "---"
+      );
+
+      // ==========================================================
+      // 3) Atualiza status anterior
+      // ==========================================================
+      stt.StatusANT = stt.Status;
+    })().catch((err) =>
+      console.error("HefestoLog: erro no observer async:", err)
+    );
   });
 
   function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
     function parseOffset(offsetStr) {
-      // Suporta formatos com sinal: +HH:MM, -HH:MM:SS, etc.
       const m = String(offsetStr || "").match(
         /^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/
       );
@@ -182,7 +240,6 @@
     }
 
     function parseDuration(durationStr) {
-      // 'HH:MM' or 'HH:MM:SS' -> seconds (always positive)
       if (!durationStr) return 0;
       const m = String(durationStr).match(/^(\d{1,2}):?(\d{2})(?::?(\d{2}))?$/);
       if (!m) return 0;
@@ -193,16 +250,17 @@
     }
 
     function buildDateTime(obj) {
-      // obj: { data: 'YYYY-MM-DD', hora: 'HH:MM:SS' }
-      const dparts = String(obj.data || "")
+      const dparts = String(obj?.data || "")
         .split("-")
         .map(Number);
-      const tparts = String(obj.hora || "00:00:00")
+      const tparts = String(obj?.hora || "00:00:00")
         .split(":")
         .map(Number);
+
       if (dparts.length < 3) return new Date();
       let [year, month, day] = dparts;
       let [hh = 0, mm = 0, ss = 0] = tparts;
+
       if (hh === 24) {
         hh = 0;
         const tmp = new Date(year, month - 1, day);
@@ -214,38 +272,29 @@
       return new Date(year, month - 1, day, hh, mm, ss);
     }
 
-    function formatDateTime(date) {
-      const d = date.toISOString().split("T")[0];
-      const t = date.toTimeString().split(" ")[0];
-      return { date: d, time: t };
+    function formatObj(date) {
+      const data = date.toISOString().split("T")[0];
+      const hora = date.toTimeString().split(" ")[0];
+      return { data, hora };
     }
 
-    // Determina offset em segundos. Suporta duas formas de chamada:
-    // 1) exibirHora(base, "+HH:MM:SS") -> usa sinal embutido
-    // 2) exibirHora(base, maisoumenosBool, "HH:MM:SS") -> usa boolean para sinal
     let offsetSec = 0;
+
     if (typeof maisoumenos === "string" && valordeacrecimo === undefined) {
-      // segunda forma usada anteriormente: passou o valor com sinal
       offsetSec = parseOffset(maisoumenos);
     } else {
       const dur = parseDuration(valordeacrecimo || "00:00:00");
-      // aceita booleano ou números 0/1 usados pelo código chamador
       const isNegative =
         maisoumenos === false ||
         (typeof maisoumenos === "number" && Number(maisoumenos) === 0) ||
         (typeof maisoumenos === "string" && maisoumenos === "0");
-      const sign = isNegative ? -1 : 1; // default '+'
+      const sign = isNegative ? -1 : 1;
       offsetSec = sign * dur;
     }
 
     const base = buildDateTime(horaedataparacalculo);
     const adjusted = new Date(base.getTime() + offsetSec * 1000);
-    const out = formatDateTime(adjusted);
-    /*console.debug(
-     * `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`
-    );*/
-
-    return { date: out.date, hora: out.time };
+    return formatObj(adjusted);
   }
 
   function gerarDataHora() {
@@ -260,15 +309,14 @@
     };
   }
 
-  async function AddouAtualizarPausas(id, pausa, Inicio, Fim, Duracao) {
-    const novoItem = { id, pausa, Inicio, Fim, Duracao };
+  async function AddouAtualizarPausas(id, pausa, inicio, fim, duracao) {
+    const novoItem = { id, pausa, inicio, fim, duracao };
 
-    // Garante que dadosdePausas seja um array
-    if (!Array.isArray(dadosdePausas)) {
-      dadosdePausas = [];
-    }
+    if (!Array.isArray(dadosdePausas)) dadosdePausas = [];
 
-    const index = dadosdePausas.findIndex((item) => item.id === id);
+    const index = dadosdePausas.findIndex(
+      (item) => String(item?.id) === String(id)
+    );
 
     if (index !== -1) {
       dadosdePausas[index] = { ...dadosdePausas[index], ...novoItem };
@@ -279,15 +327,78 @@
     await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
   }
 
+  function normalizarCampo(campo) {
+    // remove acentos e padroniza
+    const c = String(campo || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .trim()
+      .toLowerCase();
+
+    // mapeia para o padrão final
+    if (c === "inicio") return "inicio";
+    if (c === "fim") return "fim";
+    if (c === "duracao" || c === "duracao") return "duracao";
+    if (c === "pausa") return "pausa";
+
+    // se vier outro campo qualquer, usa como está (sem acento e lower)
+    return c;
+  }
+
+  function buildDateTime(obj) {
+    const [y, m, d] = String(obj?.data || "")
+      .split("-")
+      .map(Number);
+    const [hh = 0, mm = 0, ss = 0] = String(obj?.hora || "00:00:00")
+      .split(":")
+      .map(Number);
+    if (!y || !m || !d) return new Date();
+    return new Date(y, m - 1, d, hh, mm, ss);
+  }
+
+  function formatHHMMSS(totalSeconds) {
+    const s = Math.max(0, Math.floor(totalSeconds));
+    const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+    const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+    const ss = String(s % 60).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function calcularDuracao(inicioObj, fimObj) {
+    const inicio = buildDateTime(inicioObj);
+    const fim = buildDateTime(fimObj);
+    const diffSec = Math.round((fim.getTime() - inicio.getTime()) / 1000);
+    return formatHHMMSS(diffSec);
+  }
+
+  function normalizarCampo(campo) {
+    return String(campo || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .trim()
+      .toLowerCase();
+  }
+
+  function normalizarArrayPausas(valor) {
+    if (Array.isArray(valor)) return valor;
+    if (valor === false || valor == null) return [];
+    if (typeof valor === "object") return Object.values(valor);
+    return [];
+  }
+
   async function atualizarCampos(id, campo, valor) {
-    const index = dadosdePausas.findIndex((item) => item.id === id);
+    dadosdePausas = normalizarArrayPausas(dadosdePausas);
+
+    const c = normalizarCampo(campo); // "inicio" | "fim" | "duracao" | ...
+    const idKey = String(id);
+
+    const index = dadosdePausas.findIndex((item) => String(item?.id) === idKey);
 
     if (index !== -1) {
-      dadosdePausas[index][campo] = valor; // Atualiza o campo dinamicamente
+      dadosdePausas[index][c] = valor;
     } else {
-      // Cria novo item com o campo e valor fornecidos
       const novoItem = { id };
-      novoItem[campo] = valor;
+      novoItem[c] = valor;
       dadosdePausas.push(novoItem);
     }
 
@@ -297,15 +408,15 @@
       console.error("NiceMonk Erro ao atualizar campos no IndexedDB:", err);
     }
 
-    if (campo === "Duracao") {
-      console.debug(`NiceMonk Tabela salva : `, ChavePausas);
+    if (c === "duracao") {
+      console.debug("NiceMonk Tabela salva:", ChavePausas);
     }
   }
 
   function getValorinicio(id) {
-    const item = dadosdePausas.find((obj) => obj.id === id);
-    // Retorna undefined se não existir ou se o campo não estiver no objeto
-    return item?.["inicio"];
+    dadosdePausas = normalizarArrayPausas(dadosdePausas);
+    const item = dadosdePausas.find((obj) => String(obj?.id) === String(id));
+    return item?.inicio; // objeto {data,hora}
   }
 
   /**
