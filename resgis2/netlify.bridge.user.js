@@ -19,6 +19,10 @@
   const log = (...a) => console.log(LOG_PREFIX, ...a);
   const warn = (...a) => console.warn(LOG_PREFIX, ...a);
 
+  const stt = {
+    observ: 1,
+  };
+
   function setInputValue(el, value) {
     if (!el) return;
     el.focus();
@@ -26,6 +30,35 @@
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
   }
+
+  function ObservarItem(aoMudar) {
+    const observer = new MutationObserver(() => {
+      aoMudar();
+      if (!stt.observ) {
+        observer.disconnect();
+        console.log(`NiceMonk observer Desconectado`);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  ObservarItem(() => {
+    const ass = document.getElementById("assinatura");
+
+    if (ass) {
+      if (assinatura) {
+        ass.value = assinatura;
+      } else {
+        ass.value = "Vazio";
+      }
+      ass.addEventListener("input", () => {
+        assinatura = ass.value;
+        SalvarVari(1);
+      });
+      stt.observ = 0;
+    }
+  });
 
   window.addEventListener("message", (ev) => {
     if (ev.origin !== ZENDESK_ORIGIN) return;
@@ -182,7 +215,7 @@
 
     const linha3T1 = document.createElement("p");
     linha3T1.textContent =
-      "Foi realizada a verificação no sistema e constatado que:";
+      ", Foi realizada a verificação no sistema e constatado que:";
 
     linha3.appendChild(linha3T1);
     dd1.appendChild(linha3);
@@ -269,19 +302,8 @@
       if (predescricao) {
         descricao.value = textToCopy;
       }
-      const assinatura3 = document.getElementById("assinatura");
-
-      if (assinatura3 && assinatura3.value !== "") {
-        assinatura = assinatura3;
-      }
     }
     preencheregis();
-
-    const assinatura2 = document.getElementById("assinatura");
-
-    if (assinatura2 && assinatura) {
-      assinatura2.value = assinatura;
-    }
 
     return contentBox;
   }

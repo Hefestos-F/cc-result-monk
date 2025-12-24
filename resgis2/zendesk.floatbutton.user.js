@@ -351,7 +351,7 @@
   // CSS do botão/painel
   const cssUI = `
     #rc-float-btn {
-      position: fixed; right: 16px; bottom: 16px; width: 44px; height: 44px;
+      position: fixed; left: 8px; top: 6px; width: 44px; height: 44px;
       border-radius: 50%; background: #2b6cb0; color: #fff; display: flex; align-items: center; justify-content: center;
       box-shadow: 0 10px 32px rgba(0,0,0,0.35); cursor: grab; z-index: 999999; user-select: none;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
