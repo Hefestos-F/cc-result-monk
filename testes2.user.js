@@ -15,13 +15,19 @@
 
 (function () {
   const stt = {
+    TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
     observa: 1,
     Status: "",
     StatusANT: "",
+    andament: 1,
   };
 
   const TempoPausas = {
+    Logou: 0,
+    Logado: 0,
+    Falta: 0,
     Online: 0,
+    Pausas: 0,
   };
 
   const DDPausa = {
@@ -98,17 +104,21 @@
   function observarItem(aoMudar) {
     /*const alvo = document.querySelector(
       '[data-test-id="toolbar-profile-menu"]'
-    );*/
-    const alvo = document.querySelector(
+    );
+    const alvo1 = document.querySelector(
       '[data-test-id="toolbar-profile-menu-button-tooltip"]'
     );
+
     if (!alvo) {
       console.warn("HefestoLog: alvo toolbar-profile-menu não encontrado.");
       return;
-    }
+    }*/
 
     const observer = new MutationObserver(() => {
-      aoMudar();
+      if (stt.andament) {
+        stt.andament = 0;
+        aoMudar();
+      }
       // Desconecta somente se já achamos o valor (stt.observa = 0)
       if (stt.observa === 0) {
         observer.disconnect();
@@ -116,7 +126,7 @@
       }
     });
 
-    observer.observe(alvo, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   function getValorinicio(id) {
@@ -139,27 +149,50 @@
     const el = document.querySelector(
       '[data-test-id="toolbar-profile-menu-button-tooltip"] div'
     );
-    /*const el = document.querySelector(
-      '[data-test-id="toolbar-profile-menu-view-profile"] span'
-    );*/
 
     if (!el) {
       console.log("HefestoLog: Alteração aconteceu, mas ainda sem status");
-      return;
+      return (stt.andament = 1);
     }
 
+    //const statusAtual = formatPrimeiroNome(el.textContent.trim());
     const statusAtual = formatPrimeiroNome(el.textContent.trim());
-
-    if (!statusAtual) return;
+    //console.log(`HefestoLog: Status: ${statusAtual}`);
 
     // Se não mudou, não faz nada
-    if (stt.StatusANT === statusAtual) return;
 
     stt.Status = statusAtual;
-    console.log(`HefestoLog: Status: ${stt.Status}`);
+    if (stt.StatusANT === stt.Status) {
+      return (stt.andament = 1);
+    }
+
+    const agora = gerarDataHora(); // { data, hora }
+
+    const tempo = somarDuracoes();
+
+    TempoPausas.Logado = tempo.totalFormatado;
+
+    const Logou = exibirHora(agora, 0, TempoPausas.Logado);
+    TempoPausas.Logou = Logou.hora;
+
+    const Saida = exibirHora(TempoPausas.Logou, 1, stt.TempoEscaladoHoras);
+    TempoPausas.Saida = Saida;
+
+    const Falta = exibirHora(TempoPausas.Saida, 0, agora);
+    TempoPausas.Falta = Falta;
+
+    console.log(`HefestoLog: 
+      Logou: ${TempoPausas.Logou}, 
+      Logado: ${TempoPausas.Logado}, 
+      Falta: ${TempoPausas.Falta}, 
+      Saida: ${TempoPausas.Saida}, 
+      `);
+    // ==========================================================
+    // 3) Atualiza status anterior
+    // ==========================================================
+    stt.StatusANT = stt.Status;
 
     // Helpers
-
     const duracaoPrevistaPorStatus = (s) => {
       if (s.includes("Lanche")) return "00:20:00";
       if (s.includes("Descanso")) return "00:10:00";
@@ -168,8 +201,6 @@
 
     // Executa sem estourar "Uncaught (in promise)"
     (async () => {
-      const agora = gerarDataHora(); // { data, hora }
-
       // ==========================================================
       // 1) FECHAR pausa atual (registro do DDPausa.numero atual)
       //    - Faz sentido quando:
@@ -192,8 +223,7 @@
 
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
-        stt.StatusANT = stt.Status;
-        return;
+        return (stt.andament = 1);
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
@@ -213,18 +243,45 @@
         DDPausa.numero,
         stt.Status,
         agora, // inicio: {data,hora}
-        fimPrevistoObj, // fim previsto: {data,hora} ou null
+        fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
         duracaoPrevista || "---" // duracao prevista: "HH:MM:SS" ou "---"
       );
-
-      // ==========================================================
-      // 3) Atualiza status anterior
-      // ==========================================================
-      stt.StatusANT = stt.Status;
     })().catch((err) =>
       console.error("HefestoLog: erro no observer async:", err)
     );
+    stt.andament = 1;
   });
+
+  // Converte "HH:MM:SS" -> segundos
+  function hhmmssParaSegundos(str) {
+    if (typeof str !== "string") return 0;
+    const m = str.trim().match(/^(\d{1,2}):([0-5]\d):([0-5]\d)$/);
+    if (!m) return 0;
+    const [_, hh, mm, ss] = m;
+    return Number(hh) * 3600 + Number(mm) * 60 + Number(ss);
+  }
+
+  // Converte segundos -> "HH:MM:SS"
+  function segundosParaHhmmss(total) {
+    const hh = Math.floor(total / 3600);
+    const mm = Math.floor((total % 3600) / 60);
+    const ss = total % 60;
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+  }
+
+  // Soma as durações do array (campo "duracao")
+  function somarDuracoes() {
+    const totalSegundos = dadosdePausas.reduce((acc, item) => {
+      const s = hhmmssParaSegundos(item?.duracao);
+      return acc + s;
+    }, 0);
+
+    return {
+      totalSegundos,
+      totalFormatado: segundosParaHhmmss(totalSegundos),
+    };
+  }
 
   function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
     function parseOffset(offsetStr) {
