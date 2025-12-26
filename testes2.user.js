@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1
+// @version      1.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
-// @match        https://www.google.com/*
+// @match        https://smileshelp.zendesk.com/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes2.user.js
 // @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes2.user.js
@@ -27,7 +27,8 @@
     Logado: 0,
     Falta: 0,
     Online: 0,
-    Pausas: 0,
+    Time: 0,
+    inicioUltimaP: 0,
   };
 
   const DDPausa = {
@@ -162,31 +163,11 @@
     // Se não mudou, não faz nada
 
     stt.Status = statusAtual;
+
     if (stt.StatusANT === stt.Status) {
       return (stt.andament = 1);
     }
 
-    const agora = gerarDataHora(); // { data, hora }
-
-    const tempo = somarDuracoes();
-
-    TempoPausas.Logado = tempo.totalFormatado;
-
-    const Logou = exibirHora(agora, 0, TempoPausas.Logado);
-    TempoPausas.Logou = Logou.hora;
-
-    const Saida = exibirHora(TempoPausas.Logou, 1, stt.TempoEscaladoHoras);
-    TempoPausas.Saida = Saida;
-
-    const Falta = exibirHora(TempoPausas.Saida, 0, agora);
-    TempoPausas.Falta = Falta;
-
-    console.log(`HefestoLog: 
-      Logou: ${TempoPausas.Logou}, 
-      Logado: ${TempoPausas.Logado}, 
-      Falta: ${TempoPausas.Falta}, 
-      Saida: ${TempoPausas.Saida}, 
-      `);
     // ==========================================================
     // 3) Atualiza status anterior
     // ==========================================================
@@ -221,8 +202,35 @@
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
       }
 
+      const agora = gerarDataHora(); // { data, hora }
+
+      const tempo = somarDuracoes();
+
+      TempoPausas.Logado = tempo.totalFormatado;
+
+      const Logou = exibirHora(agora, 0, TempoPausas.Logado);
+      TempoPausas.Logou = Logou.hora;
+
+      const agora1 = gerarDataHora();
+
+      agora1.hora = TempoPausas.Logou;
+
+      const Saida = exibirHora(agora1, 1, stt.TempoEscaladoHoras);
+      TempoPausas.Saida = Saida.hora;
+
+      const Falta = exibirHora(Saida, 0, agora.hora);
+      TempoPausas.Falta = Falta.hora;
+
+      console.log(`HefestoLog: 
+      Logou: ${TempoPausas.Logou}, 
+      Logado: ${TempoPausas.Logado}, 
+      Falta: ${TempoPausas.Falta}, 
+      Saida: ${TempoPausas.Saida}
+      `);
+
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
+        console.log(`HefestoLog: Inclui Off ${stt.Status}`);
         return (stt.andament = 1);
       }
 
@@ -238,6 +246,7 @@
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
       }
 
+      TempoPausas.inicioUltimaP = agora;
       // Cria/atualiza pausa no array + IndexedDB
       await AddouAtualizarPausas(
         DDPausa.numero,
@@ -253,28 +262,39 @@
   });
 
   // Converte "HH:MM:SS" -> segundos
-  function hhmmssParaSegundos(str) {
-    if (typeof str !== "string") return 0;
-    const m = str.trim().match(/^(\d{1,2}):([0-5]\d):([0-5]\d)$/);
-    if (!m) return 0;
-    const [_, hh, mm, ss] = m;
-    return Number(hh) * 3600 + Number(mm) * 60 + Number(ss);
+  function hhmmssParaSegundosSegura(valor) {
+    if (typeof valor !== "string") return 0;
+    const parts = valor.split(":");
+    if (parts.length !== 3) return 0;
+    const [hh, mm, ss] = parts.map((n) => Number(n));
+    // Verifica se são números válidos
+    if ([hh, mm, ss].some((n) => Number.isNaN(n) || n < 0)) return 0;
+    return hh * 3600 + mm * 60 + ss;
   }
 
-  // Converte segundos -> "HH:MM:SS"
-  function segundosParaHhmmss(total) {
-    const hh = Math.floor(total / 3600);
-    const mm = Math.floor((total % 3600) / 60);
-    const ss = total % 60;
-    const pad = (n) => String(n).padStart(2, "0");
-    return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+  // Formata segundos para "HH:MM:SS" (aceita 0)
+  function segundosParaHhmmss(segundos) {
+    const s = Math.max(0, Number(segundos) || 0);
+    const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+    const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+    const ss = String(s % 60).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
   }
 
   // Soma as durações do array (campo "duracao")
   function somarDuracoes() {
+    // Se não é array ou está vazio, retorna zero direto
+    if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
+      return {
+        totalSegundos: 0,
+        totalFormatado: "00:00:00",
+      };
+    }
+
     const totalSegundos = dadosdePausas.reduce((acc, item) => {
-      const s = hhmmssParaSegundos(item?.duracao);
-      return acc + s;
+      // tenta pegar o campo; qualquer coisa inválida vira 0
+      const s = hhmmssParaSegundosSegura(item?.duracao);
+      return acc + (Number.isFinite(s) ? s : 0);
     }, 0);
 
     return {
@@ -354,6 +374,80 @@
     return formatObj(adjusted);
   }
 
+  function criarObjetoFlutuante(id = "timerFlutuante") {
+    // Evita duplicar
+    if (document.getElementById(id)) return;
+
+    const div = document.createElement("div");
+    div.id = id;
+    div.textContent = "00:00:00";
+
+    // Estilo inicial
+    Object.assign(div.style, {
+      position: "fixed",
+      bottom: "20px",
+      right: "20px",
+      background: "#222",
+      color: "#fff",
+      padding: "10px 15px",
+      borderRadius: "8px",
+      fontFamily: "monospace",
+      fontSize: "18px",
+      zIndex: "9999",
+      cursor: "move",
+      boxSizing: "border-box", // evita crescer por padding/borda
+      userSelect: "none",
+      // Preparar para transform
+      transform: "translate(0px, 0px)",
+      willChange: "transform",
+    });
+
+    // Estado interno do deslocamento
+    let offsetX = 0;
+    let offsetY = 0;
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    function onPointerDown(e) {
+      dragging = true;
+      // Posição do ponteiro no início
+      startX = e.clientX;
+      startY = e.clientY;
+      div.setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    }
+
+    function onPointerMove(e) {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      div.style.transform = `translate(${offsetX + dx}px, ${offsetY + dy}px)`;
+    }
+
+    function onPointerUp(e) {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      // acumula deslocamento
+      offsetX += dx;
+      offsetY += dy;
+      dragging = false;
+      div.releasePointerCapture?.(e.pointerId);
+    }
+
+    // Pointer Events (funciona para mouse e touch)
+    div.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+
+    // Desativa arrastar nativo
+    div.ondragstart = () => false;
+
+    document.body.appendChild(div);
+  }
+  criarObjetoFlutuante();
+
   function gerarDataHora() {
     const agora = new Date();
 
@@ -365,6 +459,14 @@
       data: data,
     };
   }
+
+  setInterval(() => {
+    const time = document.getElementById("timerFlutuante");
+    if (time) {
+      const agora = gerarDataHora();
+      time.value = exibirHora(agora, 0, TempoPausas.inicioUltimaP);
+    }
+  }, 1000);
 
   async function AddouAtualizarPausas(id, pausa, inicio, fim, duracao) {
     const novoItem = { id, pausa, inicio, fim, duracao };
