@@ -304,40 +304,87 @@
   }
 
   function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
+    // Parse "YYYY-MM-DD" ou "DD/MM/YYYY"
+    function parseDateFlexible(dateStr) {
+      const s = String(dateStr || "").trim();
+      if (!s) return null;
+
+      // YYYY-MM-DD
+      let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) {
+        const [_, y, mo, d] = m;
+        return { year: +y, month: +mo, day: +d };
+      }
+
+      // DD/MM/YYYY
+      m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (m) {
+        const [_, d, mo, y] = m;
+        return { year: +y, month: +mo, day: +d };
+      }
+
+      return null;
+    }
+
+    // Parse "HH:MM:SS" (aceita "HH:MM" também) — retorna {hh,mm,ss}
+    function parseTimeFlexible(timeStr) {
+      const s = String(timeStr || "").trim();
+      if (!s) return { hh: 0, mm: 0, ss: 0 };
+
+      const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+      if (!m) return { hh: 0, mm: 0, ss: 0 };
+
+      const hh = +m[1],
+        mm = +m[2],
+        ss = m[3] ? +m[3] : 0;
+      return { hh, mm, ss };
+    }
+
+    // Offset string "+HH:MM[:SS]" | "-HH:MM[:SS]" => segundos
     function parseOffset(offsetStr) {
       const m = String(offsetStr || "").match(
-        /^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/
+        /^([+-])(\d{1,2}):(\d{2})(?::(\d{2}))?$/
       );
       if (!m) return 0;
       const sign = m[1] === "-" ? -1 : 1;
-      const hours = parseInt(m[2], 10);
-      const minutes = parseInt(m[3], 10);
-      const seconds = m[4] ? parseInt(m[4], 10) : 0;
-      return sign * (hours * 3600 + minutes * 60 + seconds);
+      const h = +m[2],
+        mi = +m[3],
+        s = m[4] ? +m[4] : 0;
+      return sign * (h * 3600 + mi * 60 + s);
     }
 
-    function parseDuration(durationStr) {
-      if (!durationStr) return 0;
-      const m = String(durationStr).match(/^(\d{1,2}):?(\d{2})(?::?(\d{2}))?$/);
-      if (!m) return 0;
-      const hours = parseInt(m[1], 10);
-      const minutes = parseInt(m[2], 10);
-      const seconds = m[3] ? parseInt(m[3], 10) : 0;
-      return hours * 3600 + minutes * 60 + seconds;
+    // Duração em segundos — aceita string "HH:MM[:SS]" ou objeto com {hora:"HH:MM[:SS]"}
+    function parseDurationFlexible(durationOrObj) {
+      if (durationOrObj == null) return 0;
+
+      if (typeof durationOrObj === "string") {
+        const { hh, mm, ss } = parseTimeFlexible(durationOrObj);
+        return hh * 3600 + mm * 60 + ss;
+      }
+
+      if (typeof durationOrObj === "object") {
+        // Se vier um objeto { hora: "HH:MM[:SS]" }, usamos como duração
+        const { hh, mm, ss } = parseTimeFlexible(durationOrObj.hora || "");
+        return hh * 3600 + mm * 60 + ss;
+      }
+
+      return 0;
     }
 
+    // Constrói Date a partir de {data, hora} aceitando os dois formatos de data
     function buildDateTime(obj) {
-      const dparts = String(obj?.data || "")
-        .split("-")
-        .map(Number);
-      const tparts = String(obj?.hora || "00:00:00")
-        .split(":")
-        .map(Number);
+      const d = parseDateFlexible(obj?.data || "");
+      const t = parseTimeFlexible(obj?.hora || "00:00:00");
 
-      if (dparts.length < 3) return new Date();
-      let [year, month, day] = dparts;
-      let [hh = 0, mm = 0, ss = 0] = tparts;
+      if (!d) {
+        // Se a data não bate, retorna Date atual
+        return new Date();
+      }
 
+      let { year, month, day } = d;
+      let { hh, mm, ss } = t;
+
+      // Regra especial: "24:00:00" => vira 00:00:00 do dia seguinte
       if (hh === 24) {
         hh = 0;
         const tmp = new Date(year, month - 1, day);
@@ -346,21 +393,25 @@
         month = tmp.getMonth() + 1;
         day = tmp.getDate();
       }
+
       return new Date(year, month - 1, day, hh, mm, ss);
     }
 
     function formatObj(date) {
-      const data = date.toISOString().split("T")[0];
-      const hora = date.toTimeString().split(" ")[0];
+      const data = date.toISOString().split("T")[0]; // YYYY-MM-DD
+      const hora = date.toTimeString().split(" ")[0]; // HH:MM:SS
       return { data, hora };
     }
 
+    // Determina offset em segundos
     let offsetSec = 0;
 
+    // Caso 1: segundo parâmetro é uma string de offset "+/-HH:MM[:SS]"
     if (typeof maisoumenos === "string" && valordeacrecimo === undefined) {
       offsetSec = parseOffset(maisoumenos);
     } else {
-      const dur = parseDuration(valordeacrecimo || "00:00:00");
+      // Caso 2: sinal pelo maisoumenos (false/0/"0" => negativo; demais => positivo)
+      const dur = parseDurationFlexible(valordeacrecimo || "00:00:00");
       const isNegative =
         maisoumenos === false ||
         (typeof maisoumenos === "number" && Number(maisoumenos) === 0) ||
