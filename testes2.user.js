@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.1.1
+// @version      1.1.2
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -28,11 +28,12 @@
     Falta: 0,
     Online: 0,
     Time: 0,
-    inicioUltimaP: 0,
   };
 
   const DDPausa = {
     numero: 1,
+    Data: 1,
+    inicioUltimaP: 0,
   };
 
   // Chaves usadas no IndexedDB/local storage
@@ -102,6 +103,8 @@
     }
   }
 
+  atualizarvaraveis();
+
   function observarItem(aoMudar) {
     /*const alvo = document.querySelector(
       '[data-test-id="toolbar-profile-menu"]'
@@ -144,6 +147,20 @@
     const lower = first.toLowerCase();
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   };
+
+  async function atualizarvaraveis(a = 0) {
+    if (a) {
+      atualizarCampos(0, "NumerodPausa", DDPausa.numero);
+      atualizarCampos(0, "inicioUltimaP", DDPausa.inicioUltimaP);
+      atualizarCampos(0, "Status", stt.Status);
+      atualizarCampos(0, "StatusANT", stt.StatusANT);
+    } else {
+      DDPausa.numero = Encontrarcampo(0, "NumerodPausa");
+      DDPausa.inicioUltimaP = Encontrarcampo(0, "inicioUltimaP");
+      stt.Status = Encontrarcampo(0, "Status");
+      stt.StatusANT = Encontrarcampo(0, "StatusANT");
+    }
+  }
 
   observarItem(() => {
     //const el = document.querySelector('[data-garden-id="typography.font"]');
@@ -231,15 +248,13 @@
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
         console.log(`HefestoLog: Inclui Off ${stt.Status}`);
+        await atualizarvaraveis(1);
         return (stt.andament = 1);
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
       DDPausa.numero += 1;
       if (DDPausa.numero > 15) DDPausa.numero = 1;
-
-      await atualizarCampos(0, "NumerodPausa", DDPausa.numero);
-      await atualizarCampos(0, "Data", DDPausa.numero);
 
       const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
       let fimPrevistoObj = null;
@@ -249,9 +264,11 @@
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
       }
 
-      TempoPausas.inicioUltimaP = agora;
+      DDPausa.inicioUltimaP = agora;
 
-      console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
+      await atualizarvaraveis(1);
+
+      //console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
       // Cria/atualiza pausa no array + IndexedDB
       await AddouAtualizarPausas(
         DDPausa.numero,
@@ -426,8 +443,13 @@
     if (document.getElementById(id)) return;
 
     const div = document.createElement("div");
-    div.id = id;
-    div.textContent = "00:00:00";
+
+    const div2 = document.createElement("div");
+    div2.id = `T${id}`;
+    div2.textContent = "";
+    const div3 = document.createElement("div");
+    div3.id = id;
+    div3.textContent = "00:00:00";
 
     // Estilo inicial
     Object.assign(div.style, {
@@ -447,6 +469,9 @@
       // Preparar para transform
       transform: "translate(0px, 0px)",
       willChange: "transform",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
     });
 
     // Estado interno do deslocamento
@@ -491,6 +516,8 @@
     // Desativa arrastar nativo
     div.ondragstart = () => false;
 
+    div.appendChild(div2);
+    div.appendChild(div3);
     document.body.appendChild(div);
   }
 
@@ -609,15 +636,17 @@
   // Atualiza o timer a cada segundo
   setInterval(() => {
     const time = document.getElementById("timerFlutuante");
-    if (!time) return;
+    const titulo = document.getElementById("TtimerFlutuante");
+    if (!time || !titulo) return;
 
     // Se ainda não há início de pausa definido, mostra zero
     if (
-      !TempoPausas.inicioUltimaP ||
-      !TempoPausas.inicioUltimaP.data ||
+      !DDPausa.inicioUltimaP ||
+      !DDPausa.inicioUltimaP.data ||
       stt.Status.includes("Offline")
     ) {
       time.textContent = "00:00:00";
+      titulo.textContent = stt.Status;
       return;
     }
 
@@ -631,7 +660,8 @@
         TempoPausas.inicioUltimaP
       )}`
           );*/
-    time.textContent = exibirAHora(agora, 0, TempoPausas.inicioUltimaP).hora;
+    titulo.textContent = stt.Status;
+    time.textContent = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
     //time.textContent = agora.hora;
   }, 1000);
 
@@ -651,6 +681,12 @@
     }
 
     await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
+  }
+
+  function Encontrarcampo(id, campo) {
+    const item = dadosdePausas.find((obj) => obj.id === id);
+    if (!item) return null;
+    return campo in item ? item[campo] : null;
   }
 
   function normalizarCampo(campo) {

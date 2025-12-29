@@ -33,10 +33,9 @@
     const time = document.getElementById("timerFlutuante");
     if (!time) {
       console.log(`HefestoLog:time falso`);
-    }else{
-
+    } else {
       console.log(`HefestoLog:time true ${time.textContent}`);
-    };
+    }
 
     const agora = gerarDataHora();
 
@@ -120,4 +119,21 @@
   }
 
   criarObjetoFlutuante();
+
+  function atualizarCampos(id, campo, valor) {
+    const index = dadosdePausas.findIndex((item) => item.id === id);
+
+    if (index !== -1) {
+      dadosdePausas[index][campo] = valor; // Atualiza o campo dinamicamente
+    } else {
+      // Cria novo item com o campo e valor fornecidos
+      const novoItem = { id };
+      novoItem[campo] = valor;
+      dadosdePausas.push(novoItem);
+    }
+  }
+
+  const valordocampo = atualizarCampos(id, campo);
+
+
 })();
