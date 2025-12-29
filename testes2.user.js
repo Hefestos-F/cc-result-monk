@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.1.2
+// @version      1.1.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -20,6 +20,7 @@
     Status: "",
     StatusANT: "",
     andament: 1,
+    logueEntreDatas: 0,
   };
 
   const TempoPausas = {
@@ -149,7 +150,7 @@
   };
 
   async function atualizarvaraveis(a = 0) {
-    if (a) {
+    if (a || !dadosdePausas) {
       atualizarCampos(0, "NumerodPausa", DDPausa.numero);
       atualizarCampos(0, "inicioUltimaP", DDPausa.inicioUltimaP);
       atualizarCampos(0, "Status", stt.Status);
@@ -244,6 +245,15 @@
       Falta: ${TempoPausas.Falta}, 
       Saida: ${TempoPausas.Saida}
       `);
+      if (dadosPrimLogue) {
+        const c = hhmmssParaSegundosSegura(dadosPrimLogue.hora);
+        const d = hhmmssParaSegundosSegura(TempoPausas.Logou);
+
+        if (d < c) {
+          dadosPrimLogue.hora = TempoPausas.Logou;
+          verifiDataLogue(1);
+        }
+      }
 
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
@@ -282,6 +292,30 @@
     );
     stt.andament = 1;
   });
+
+  function verifiDataLogue(x = 0) {
+    const a = gerarDataHora();
+    const e = exibirHora(a, 0, "23:59:59");
+
+    if (
+      dadosPrimLogue ||
+      (dadosPrimLogue.data !== a.data && dadosPrimLogue.data !== e.data)
+    ) {
+      dadosPrimLogue = a;
+      dadosPrimLogue.hora =
+        TempoPausas.Logou !== 0 ? TempoPausas.Logou : "23:59:59";
+      x = 1;
+      ApagarChaveIndexDB(ChavePausas);
+    }
+    if (x) AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
+
+    const b = exibirHora(dadosPrimLogue, 1, stt.TempoEscaladoHoras);
+
+    stt.logueEntreDatas = dadosPrimLogue.data === b.data ? 1 : 0;
+    if (!stt.logueEntreDatas && dadosPrimLogue.data !== a.data) {
+      ApagarChaveIndexDB(ChavePausas);
+    }
+  }
 
   // Converte "HH:MM:SS" -> segundos
   function hhmmssParaSegundosSegura(valor) {
