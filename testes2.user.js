@@ -26,6 +26,7 @@
   const TempoPausas = {
     Logou: 0,
     Logado: 0,
+    LogadoPe: 0,
     Falta: 0,
     Online: 0,
     Time: 0,
@@ -239,12 +240,16 @@
       const Falta = exibirHora(Saida, 0, agora.hora);
       TempoPausas.Falta = Falta.hora;
 
+      document.getElementById("vLogou").textContent = TempoPausas.Logou;
+      document.getElementById("vSaida").textContent = TempoPausas.Saida;
+
       console.log(`HefestoLog: 
       Logou: ${TempoPausas.Logou}, 
       Logado: ${TempoPausas.Logado}, 
       Falta: ${TempoPausas.Falta}, 
       Saida: ${TempoPausas.Saida}
       `);
+
       if (dadosPrimLogue) {
         const c = hhmmssParaSegundosSegura(dadosPrimLogue.hora);
         const d = hhmmssParaSegundosSegura(TempoPausas.Logou);
@@ -555,7 +560,7 @@
     document.body.appendChild(div);
   }
 
-  criarObjetoFlutuante();
+  //criarObjetoFlutuante();
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
   function gerarDataHora() {
@@ -669,8 +674,8 @@
 
   // Atualiza o timer a cada segundo
   setInterval(() => {
-    const time = document.getElementById("timerFlutuante");
-    const titulo = document.getElementById("TtimerFlutuante");
+    const time = document.getElementById("vTMA");
+    const titulo = document.getElementById("tTMA");
     if (!time || !titulo) return;
 
     // Se ainda não há início de pausa definido, mostra zero
@@ -694,6 +699,15 @@
         TempoPausas.inicioUltimaP
       )}`
           );*/
+
+    const LogadoPe = exibirAHora(agora, 0, dadosPrimLogue);
+    TempoPausas.LogadoPe = LogadoPe.hora;
+
+    const Falta = exibirHora(TempoPausas.Saida, 0, agora.hora);
+    TempoPausas.Falta = Falta.hora;
+
+    document.getElementById("vLogado").textContent = TempoPausas.LogadoPe;
+    document.getElementById("vFalta").textContent = TempoPausas.Falta;
     titulo.textContent = stt.Status;
     time.textContent = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
     //time.textContent = agora.hora;
@@ -924,4 +938,363 @@
       };
     });
   }
+
+  /**
+   * Ccor - Cores usadas na interface (valores em hex)
+   */
+  const Ccor = {
+    Offline: "#3a82cf",
+    Atualizando: "#c97123ff",
+    Erro: "#992e2e",
+    MetaTMA: "#229b8d",
+    Principal: "#4c95bd",
+    Config: "#96a8bb",
+    Varian: "",
+    TVarian: "",
+  };
+
+  /**
+   * PCcor - Cores padrão (backup)
+   */
+  const PCcor = {
+    Offline: "#3a82cf",
+    Atualizando: "#c97123ff",
+    Erro: "#992e2e",
+    MetaTMA: "#229b8d",
+    Principal: "#4c95bd",
+    Config: "#96a8bb",
+    Varian: "",
+    TVarian: "",
+  };
+
+  /**
+   * criarSeparadorCV - cria um separador visual entre os valores
+   * @param {number} x - índice usado para id do elemento
+   * @returns {HTMLElement}
+   */
+  function criarSeparadorCV(x) {
+    const separador = document.createElement("div");
+    separador.setAttribute("id", `SepCVal${x}`);
+    separador.classList.add("separadorC");
+    return separador;
+  }
+
+  /**
+   * ADDBotPa - cria botão para mostrar/ocultar painel de pausas
+   * Exibe "Pausas"/"Fechar" ou "P"/"F" dependendo do espaço
+   * @returns {HTMLElement} botão de pausas
+   */
+  function ADDBotPa() {
+    const caixa = document.createElement("div");
+    caixa.id = "BotPa";
+    caixa.innerHTML = "P";
+    caixa.style.cssText = `
+        background: ${Ccor.Principal};
+        height: 20px;
+        width: 20px;
+        border-radius: 15px;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        transition: all 0.5s ease;
+        visibility: hidden;
+        opacity: 0;
+        cursor: pointer;
+        justify-content: center;
+        margin-left: auto;
+       margin-right: 5px;
+        margin-top: -20px;
+        margin-bottom: 20px;
+        `;
+
+    caixa.addEventListener("click", function () {
+      AtualizarConf(17);
+      ControleFront(3);
+      const CaiDPa = document.getElementById("CaiDPa");
+      if (CaiDPa) AtuaPausas();
+      Controle(1);
+    });
+
+    // Adiciona o evento de mouseover ao botão
+    caixa.addEventListener("mouseover", function () {
+      Controle(1);
+    });
+
+    // Adiciona o evento de mouseout ao botão
+    caixa.addEventListener("mouseout", function () {
+      Controle(0);
+    });
+
+    /**
+     * Controle - alterna entre modo compacto/expandido do botão
+     * @param {number} mostrarTextoCompleto - 1 para expandido, 0 para compacto
+     */
+    function Controle(mostrarTextoCompleto) {
+      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
+      caixa.innerHTML = mostrarTextoCompleto
+        ? stt.AbaPausas
+          ? "Fechar"
+          : "Pausas"
+        : stt.AbaPausas
+        ? "F"
+        : "P";
+    }
+
+    return caixa;
+  }
+
+  /**
+   * StyleSlide - injeta CSS para buttons sliders na página (executa uma única vez)
+   * Define estilos para:
+   * - .slider-button27: dimensões e transição da barra
+   * - .slider-circle: círculo que se move ao clicar
+   * - .slider-button27.active: cor ativa
+   */
+  function StyleSlide() {
+    if (!document.getElementById("estilo-slide")) {
+      const elementoEstilo = document.createElement("style");
+      elementoEstilo.id = "estilo-slide";
+      elementoEstilo.textContent = `
+          .slider-button27 {
+            position: relative;
+            width: 26px;
+            height: 14px;
+            background-color: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+          }
+
+          .slider-circle {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 12px;
+            height: 12px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+          }
+
+          .slider-button27.active {
+            background-color: ${Ccor.Principal};
+          }
+
+          .slider-button27.active .slider-circle {
+            transform: translateX(12px);
+          }
+
+          .status {
+            margin-left: 10px;
+            font-size: 16px;
+          }
+
+          .toggle-container {
+            display: flex;
+            align-items: center;
+          }
+        `;
+      const elementoHead = document.getElementsByTagName("head")[0];
+      elementoHead.appendChild(elementoEstilo);
+    }
+  }
+
+  /**
+   * criarBotaoSlide - cria um botão slider que dispara modo de AtualizarConf
+   * @param {number} IdBot - id único do slider (modo a chamar em AtualizarConf)
+   * @returns {HTMLElement} container do toggle criado
+   */
+  function criarBotaoSlide(IdBot) {
+    // Adiciona estilos apenas uma vez
+    StyleSlide();
+
+    const toggleContainer = document.createElement("div");
+    toggleContainer.className = "toggle-container";
+
+    const slider = document.createElement("div");
+    slider.className = "slider-button27";
+    slider.id = `Bot${IdBot}`;
+
+    const circle = document.createElement("div");
+    circle.className = "slider-circle";
+
+    slider.appendChild(circle);
+    toggleContainer.appendChild(slider);
+
+    slider.addEventListener("click", () => {
+      AtualizarConf(IdBot);
+    });
+
+    return toggleContainer;
+  }
+
+  /**
+   * criarCaixaDCv - cria um elemento de exibição de valor com título
+   * @param {string} n - prefixo/id do elemento
+   * @param {string} titulo - texto do título exibido
+   * @returns {HTMLElement} div formatada
+   */
+  function criarCaixaDCv(n, titulo) {
+    const caixa = document.createElement("div");
+    caixa.classList.add("info-caixa");
+    caixa.style.transition = "all 0.5s ease";
+    caixa.id = `${n}${titulo}`;
+    caixa.innerHTML = `
+        <div id="t${titulo}">${titulo}:</div>
+        <div id="v${titulo}">...</div>
+        `;
+
+    return caixa;
+  }
+
+  function AdicionarCaixaAtualizada() {
+    function criarLinhaFixa(x, titulo) {
+      const caixa = document.createElement("div");
+      caixa.id = `c${titulo}`;
+      caixa.style.cssText = `
+            transition: all 0.5s ease;
+            border-radius: 6px;
+            padding: 0px 3px;
+            display: flex;
+            `;
+
+      const caixa2 = document.createElement("div");
+      caixa2.id = `t${titulo}`;
+      caixa2.style.marginRight = "6px";
+      caixa2.textContent = `${titulo}:`;
+
+      const caixa3 = document.createElement("div");
+      caixa3.id = `v${titulo}`;
+      caixa3.textContent = "...";
+
+      if (x) {
+        const botao = criarBotaoSlide(14);
+        botao.style.marginRight = "6px";
+        caixa.appendChild(botao);
+      }
+
+      // Adiciona os elementos corretamente
+      caixa.appendChild(caixa2);
+      caixa.appendChild(caixa3);
+
+      return caixa;
+    }
+
+    // Função para criar a classe dinamicamente
+    function criarClasse() {
+      const style = document.createElement("style");
+      style.type = "text/css";
+      style.innerHTML = `
+            .info-caixa {
+                text-align: center;
+            }
+            .separadorC {
+                width: 100%;
+                height: 1px;
+                background: #ffffffff;
+                margin: 2px;
+                transition: all 0.5s ease;
+            }
+
+            @keyframes rotate {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            .iconec {
+                background: white;
+            }
+        `;
+      document.getElementsByTagName("head")[0].appendChild(style);
+    }
+
+    // Cria a classe
+    criarClasse();
+
+    // Cria as caixas com as informações
+    const logou = criarCaixaDCv("c", "Logou");
+    const logado = criarCaixaDCv("c", "Logado");
+    const tma = criarCaixaDCv("c", "TMA");
+    const falta = criarCaixaDCv("c", "Falta");
+    const saida = criarCaixaDCv("c", "Saida");
+    const Offline = criarLinhaFixa(1, "Offline");
+    Offline.style.background = Ccor.Offline;
+    const Estouro = criarLinhaFixa(0, "Estouro");
+    Estouro.style.background = Ccor.Erro;
+
+    // Cria um contêiner para agrupar as caixas
+    const container = document.createElement("div");
+    container.setAttribute("id", "contValores");
+    container.style.cssText = `
+        display: flex;
+        opacity: 1;
+        background: ${Ccor.Principal};
+        padding: 6px;
+        align-items: center;
+        justify-content: space-evenly;
+        transition: all 0.5s ease;
+        border-radius: 15px;
+        visibility: visible;
+        flex-direction: column;
+        `;
+
+    // Adiciona as caixas e separadores ao contêiner
+    container.appendChild(logou);
+    container.appendChild(criarSeparadorCV(1));
+    container.appendChild(saida);
+    container.appendChild(criarSeparadorCV(2));
+    container.appendChild(tma);
+    container.appendChild(criarSeparadorCV(3));
+    container.appendChild(logado);
+    container.appendChild(criarSeparadorCV(4));
+    container.appendChild(falta);
+
+    // Cria um contêiner principal para agrupar tudo
+    const minhaCaixa = document.createElement("div");
+    minhaCaixa.setAttribute("id", "minhaCaixa");
+    minhaCaixa.style.cssText = `
+        display: flex;
+        color: white;
+        flex-direction: column;
+        position: absolute;
+        bottom: 0%;
+        z-index: 9999;
+        font-size: 12px;
+        transition: all 0.5s ease;
+        align-items: center;
+        `;
+
+    function linha(a) {
+      const x = document.createElement("div");
+      x.id = a;
+      x.style.cssText = `
+        display: flex;
+        justify-content: center;
+        visibility: hidden;
+        opacity: 0;
+        margin-bottom: -18px;
+        visibility: hidden;
+        transition: opacity 0.5s ease, margin-top 0.5s ease, margin-bottom 0.5s ease;
+        `;
+      return x;
+    }
+    // Adiciona o contêiner ao contêiner principal
+
+    const Alinha1 = linha("Alinha1");
+    const Alinha2 = linha("Alinha2");
+    Alinha1.appendChild(Offline);
+    Alinha2.appendChild(Estouro);
+    //minhaCaixa.appendChild(Alinha1);
+    //minhaCaixa.appendChild(Alinha2);
+    minhaCaixa.appendChild(container);
+    minhaCaixa.appendChild(ADDBotPa());
+
+    // Adiciona o contêiner principal ao elemento LDCaixa
+    document.body.appendChild(minhaCaixa);
+
+    minhaCaixa.addEventListener("mouseover", function () {});
+
+    minhaCaixa.addEventListener("mouseout", function () {});
+  }
+
+  AdicionarCaixaAtualizada();
 })();
