@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.1.4
+// @version      1.1.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -102,6 +102,11 @@
       );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
+    }
+    try {
+      await verifiDataLogue();
+    } catch (e) {
+      console.error("NiceMonk Erro ao recuperar verifiDataLogue:", e);
     }
   }
 
@@ -298,21 +303,20 @@
     stt.andament = 1;
   });
 
-  function verifiDataLogue(x = 0) {
+  async function verifiDataLogue(x = 0) {
     const a = gerarDataHora();
     const e = exibirHora(a, 0, "23:59:59");
 
     if (
-      dadosPrimLogue ||
+      !dadosPrimLogue ||
       (dadosPrimLogue.data !== a.data && dadosPrimLogue.data !== e.data)
     ) {
       dadosPrimLogue = a;
-      dadosPrimLogue.hora =
-        TempoPausas.Logou !== 0 ? TempoPausas.Logou : "23:59:59";
+      dadosPrimLogue.hora = TempoPausas.Logou ? TempoPausas.Logou : "23:59:59";
       x = 1;
       ApagarChaveIndexDB(ChavePausas);
     }
-    if (x) AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
+    if (x) await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
 
     const b = exibirHora(dadosPrimLogue, 1, stt.TempoEscaladoHoras);
 
@@ -699,6 +703,18 @@
         TempoPausas.inicioUltimaP
       )}`
           );*/
+    console.log(
+      `HefestoLog: dadosPrimLogue:${dadosPrimLogue} / ${JSON.stringify(
+        dadosPrimLogue
+      )}`
+    );
+
+    titulo.textContent = stt.Status;
+    time.textContent = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
+
+    /*if (!dadosPrimLogue) {
+      dadosPrimLogue = agora;
+    }*/
 
     const LogadoPe = exibirAHora(agora, 0, dadosPrimLogue);
     TempoPausas.LogadoPe = LogadoPe.hora;
@@ -708,8 +724,7 @@
 
     document.getElementById("vLogado").textContent = TempoPausas.LogadoPe;
     document.getElementById("vFalta").textContent = TempoPausas.Falta;
-    titulo.textContent = stt.Status;
-    time.textContent = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
+
     //time.textContent = agora.hora;
   }, 1000);
 
