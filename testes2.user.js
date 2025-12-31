@@ -56,7 +56,6 @@
   const nomeBD = "MeuBDZen";
   const StoreBD = "LogueMonk";
 
-  RecuperarTVariaveis();
 
   /**
    * RecuperarTVariaveis - recupera as variáveis persistidas do indexedDB
@@ -65,52 +64,53 @@
   async function RecuperarTVariaveis() {
     try {
       dadosdePausas = await RecDadosindexdb(ChavePausas);
-      console.debug("NiceMonk Encontrados em dadosdePausas:", dadosdePausas);
+      console.debug("HefestoLog: Encontrados em dadosdePausas:", dadosdePausas);
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosdePausas:", e);
+      console.error("HefestoLog: Erro ao recuperar dadosdePausas:", e);
     }
 
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
       console.debug(
-        "NiceMonk Encontrados em dadosSalvosConfi:",
+        "HefestoLog: Encontrados em dadosSalvosConfi:",
         dadosSalvosConfi
       );
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosSalvosConfi:", e);
+      console.error("HefestoLog: Erro ao recuperar dadosSalvosConfi:", e);
     }
 
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      console.debug("NiceMonk Encontrados em dadosPrimLogue:", dadosPrimLogue);
+      console.debug(
+        "HefestoLog: Encontrados em dadosPrimLogue:",
+        dadosPrimLogue
+      );
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosPrimLogue:", e);
+      console.error("HefestoLog: Erro ao recuperar dadosPrimLogue:", e);
     }
 
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      console.debug("NiceMonk Encontrados em dadosLogueManu:", dadosLogueManu);
+      console.debug(
+        "HefestoLog: Encontrados em dadosLogueManu:",
+        dadosLogueManu
+      );
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosLogueManu:", e);
+      console.error("HefestoLog: Erro ao recuperar dadosLogueManu:", e);
     }
 
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
       console.debug(
-        "NiceMonk Encontrados em dadosPrimLogueOnt:",
+        "HefestoLog: Encontrados em dadosPrimLogueOnt:",
         dadosPrimLogueOnt
       );
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
+      console.error("HefestoLog: Erro ao recuperar dadosPrimLogueOnt:", e);
     }
-    try {
-      await verifiDataLogue();
-    } catch (e) {
-      console.error("NiceMonk Erro ao recuperar verifiDataLogue:", e);
-    }
+    await verifiDataLogue();
+    await atualizarvaraveis();
   }
-
-  atualizarvaraveis();
 
   function observarItem(aoMudar) {
     /*const alvo = document.querySelector(
@@ -140,12 +140,6 @@
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
-  function getValorinicio(id) {
-    const item = dadosdePausas.find((obj) => obj.id === id);
-    // Retorna undefined se não existir ou se o campo não estiver no objeto
-    return item?.["inicio"];
-  }
-
   const formatPrimeiroNome = (txt) => {
     const t = (txt || "").trim();
     if (!t) return "";
@@ -161,147 +155,156 @@
       atualizarCampos(0, "inicioUltimaP", DDPausa.inicioUltimaP);
       atualizarCampos(0, "Status", stt.Status);
       atualizarCampos(0, "StatusANT", stt.StatusANT);
+      //atualizarCampos(0, "TempoPausa", TempoPausas.Time);
     } else {
       DDPausa.numero = Encontrarcampo(0, "NumerodPausa");
       DDPausa.inicioUltimaP = Encontrarcampo(0, "inicioUltimaP");
       stt.Status = Encontrarcampo(0, "Status");
       stt.StatusANT = Encontrarcampo(0, "StatusANT");
+      //TempoPausas.Time = Encontrarcampo(0, "TempoPausa");
     }
   }
 
-  observarItem(() => {
-    //const el = document.querySelector('[data-garden-id="typography.font"]');
-    const el = document.querySelector(
-      '[data-test-id="toolbar-profile-menu-button-tooltip"] div'
-    );
+  (async () => {
+    await RecuperarTVariaveis();
 
-    if (!el) {
-      console.log("HefestoLog: Alteração aconteceu, mas ainda sem status");
-      return (stt.andament = 1);
-    }
+    observarItem(() => {
+      //const el = document.querySelector('[data-garden-id="typography.font"]');
+      const el = document.querySelector(
+        '[data-test-id="toolbar-profile-menu-button-tooltip"] div'
+      );
 
-    //const statusAtual = formatPrimeiroNome(el.textContent.trim());
-    const statusAtual = formatPrimeiroNome(el.textContent.trim());
-    //console.log(`HefestoLog: Status: ${statusAtual}`);
-
-    // Se não mudou, não faz nada
-
-    stt.Status = statusAtual;
-
-    if (stt.StatusANT === stt.Status) {
-      return (stt.andament = 1);
-    }
-
-    // ==========================================================
-    // 3) Atualiza status anterior
-    // ==========================================================
-    stt.StatusANT = stt.Status;
-
-    // Helpers
-    const duracaoPrevistaPorStatus = (s) => {
-      if (s.includes("Lanche")) return "00:20:00";
-      if (s.includes("Descanso")) return "00:10:00";
-      return null;
-    };
-
-    // Executa sem estourar "Uncaught (in promise)"
-    (async () => {
-      // ==========================================================
-      // 1) FECHAR pausa atual (registro do DDPausa.numero atual)
-      //    - Faz sentido quando:
-      //      a) houve uma pausa aberta antes (existe "inicio")
-      //      b) e estamos mudando de status (já garantimos que mudou)
-      // ==========================================================
-      // Tentamos fechar o registro atual (se tiver inicio salvo)
-      // OBS: isso mantém seu comportamento de "fecha pausa atual" a cada mudança
-      // (desde que exista início registrado).
-      const inicioObj = getValorinicio(DDPausa.numero); // {data,hora} ou undefined
-
-      const agora = gerarDataHora(); // { data, hora }
-
-      if (inicioObj) {
-        // Salva fim (objeto)
-        await atualizarCampos(DDPausa.numero, "fim", agora);
-
-        // Calcula duração real (string HH:MM:SS)
-        const duracaoReal = calcularDuracao(inicioObj, agora);
-        await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
-      }
-
-      const tempo = somarDuracoes();
-
-      TempoPausas.Logado = tempo.totalFormatado;
-
-      const Logou = exibirHora(agora, 0, TempoPausas.Logado);
-      TempoPausas.Logou = Logou.hora;
-
-      const agora1 = gerarDataHora();
-
-      agora1.hora = TempoPausas.Logou;
-
-      const Saida = exibirHora(agora1, 1, stt.TempoEscaladoHoras);
-      TempoPausas.Saida = Saida.hora;
-
-      const Falta = exibirHora(Saida, 0, agora.hora);
-      TempoPausas.Falta = Falta.hora;
-
-      document.getElementById("vLogou").textContent = TempoPausas.Logou;
-      document.getElementById("vSaida").textContent = TempoPausas.Saida;
-
-      console.log(`HefestoLog: 
-      Logou: ${TempoPausas.Logou}, 
-      Logado: ${TempoPausas.Logado}, 
-      Falta: ${TempoPausas.Falta}, 
-      Saida: ${TempoPausas.Saida}
-      `);
-
-      if (dadosPrimLogue) {
-        const c = hhmmssParaSegundosSegura(dadosPrimLogue.hora);
-        const d = hhmmssParaSegundosSegura(TempoPausas.Logou);
-
-        if (d < c) {
-          dadosPrimLogue.hora = TempoPausas.Logou;
-          verifiDataLogue(1);
-        }
-      }
-
-      // Só executa lógica se NÃO estiver Offline e se houve mudança
-      if (stt.Status.includes("Offline")) {
-        console.log(`HefestoLog: Inclui Off ${stt.Status}`);
-        await atualizarvaraveis(1);
+      if (!el) {
+        console.log("HefestoLog: Alteração aconteceu, mas ainda sem status");
         return (stt.andament = 1);
       }
 
-      // Seu comentário original: "Se for abrir nova pausa, incremente o id"
-      DDPausa.numero += 1;
-      if (DDPausa.numero > 15) DDPausa.numero = 1;
+      //const statusAtual = formatPrimeiroNome(el.textContent.trim());
+      const statusAtual = formatPrimeiroNome(el.textContent.trim());
+      //console.log(`HefestoLog: Status: ${statusAtual}`);
 
-      const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
-      let fimPrevistoObj = null;
+      // Se não mudou, não faz nada
 
-      if (duracaoPrevista) {
-        // exibirHora soma duracaoPrevista ao "agora"
-        fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
+      stt.Status = statusAtual;
+
+      if (stt.StatusANT === stt.Status) {
+        return (stt.andament = 1);
       }
 
-      DDPausa.inicioUltimaP = agora;
+      // ==========================================================
+      // 3) Atualiza status anterior
+      // ==========================================================
+      stt.StatusANT = stt.Status;
 
-      await atualizarvaraveis(1);
+      // Helpers
+      const duracaoPrevistaPorStatus = (s) => {
+        if (s.includes("Lanche")) return "00:20:00";
+        if (s.includes("Descanso")) return "00:10:00";
+        return null;
+      };
 
-      //console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
-      // Cria/atualiza pausa no array + IndexedDB
-      await AddouAtualizarPausas(
-        DDPausa.numero,
-        stt.Status,
-        agora, // inicio: {data,hora}
-        fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
-        duracaoPrevista || "---" // duracao prevista: "HH:MM:SS" ou "---"
+      // Executa sem estourar "Uncaught (in promise)"
+      (async () => {
+        // ==========================================================
+        // 1) FECHAR pausa atual (registro do DDPausa.numero atual)
+        //    - Faz sentido quando:
+        //      a) houve uma pausa aberta antes (existe "inicio")
+        //      b) e estamos mudando de status (já garantimos que mudou)
+        // ==========================================================
+        // Tentamos fechar o registro atual (se tiver inicio salvo)
+        // OBS: isso mantém seu comportamento de "fecha pausa atual" a cada mudança
+        // (desde que exista início registrado).
+        const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
+
+        const agora = await gerarDataHora(); // { data, hora }
+
+        console.log(
+          `HefestoLog: id:${DDPausa.numero}, inicioObj: ${JSON.stringify(
+            inicioObj
+          )}`
+        );
+        if (inicioObj) {
+          // Salva fim (objeto)
+          await atualizarCampos(DDPausa.numero, "fim", agora);
+
+          // Calcula duração real (string HH:MM:SS)
+          const duracaoReal = calcularDuracao(inicioObj, agora);
+          await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
+
+          console.log(`HefestoLog: fim: ${JSON.stringify(agora)}`);
+        }
+
+        const Logou = exibirHora(agora, 0, TempoPausas.Logado);
+        TempoPausas.Logou = Logou.hora;
+
+        const agora1 = gerarDataHora();
+
+        agora1.hora = TempoPausas.Logou;
+
+        TempoPausas.Saida = exibirHora(agora1, 1, stt.TempoEscaladoHoras);
+        TempoPausas.Saida.hora;
+
+        const Falta = exibirHora(TempoPausas.Saida, 0, agora.hora);
+        TempoPausas.Falta = Falta.hora;
+
+        document.getElementById("vLogou").textContent = TempoPausas.Logou;
+        document.getElementById("vSaida").textContent = TempoPausas.Saida.hora;
+
+        console.log(`HefestoLog: 
+      Logou: ${TempoPausas.Logou}, 
+      Logado: ${TempoPausas.Logado}, 
+      Falta: ${TempoPausas.Falta}, 
+      Saida: ${TempoPausas.Saida.hora}
+      `);
+
+        if (dadosPrimLogue) {
+          const c = converterParaSegundos(dadosPrimLogue.hora);
+          const d = converterParaSegundos(TempoPausas.Logou);
+
+          if (d < c) {
+            dadosPrimLogue.hora = TempoPausas.Logou;
+            verifiDataLogue(1);
+          }
+        }
+
+        // Só executa lógica se NÃO estiver Offline e se houve mudança
+        if (stt.Status.includes("Offline")) {
+          console.log(`HefestoLog: Inclui Off ${stt.Status}`);
+          await atualizarvaraveis(1);
+          return (stt.andament = 1);
+        }
+
+        // Seu comentário original: "Se for abrir nova pausa, incremente o id"
+        DDPausa.numero = DDPausa.numero + 1;
+        if (DDPausa.numero > 30) DDPausa.numero = 1;
+
+        const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
+        let fimPrevistoObj = null;
+
+        if (duracaoPrevista) {
+          // exibirHora soma duracaoPrevista ao "agora"
+          fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
+        }
+
+        DDPausa.inicioUltimaP = agora;
+
+        await atualizarvaraveis(1);
+
+        //console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
+        // Cria/atualiza pausa no array + IndexedDB
+        await AddouAtualizarPausas(
+          DDPausa.numero,
+          stt.Status,
+          agora, // inicio: {data,hora}
+          fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
+          "---" // duracao prevista: "HH:MM:SS" ou "---"
+        );
+      })().catch((err) =>
+        console.error("HefestoLog: erro no observer async:", err)
       );
-    })().catch((err) =>
-      console.error("HefestoLog: erro no observer async:", err)
-    );
-    stt.andament = 1;
-  });
+      stt.andament = 1;
+    });
+  })();
 
   async function verifiDataLogue(x = 0) {
     const a = gerarDataHora();
@@ -316,34 +319,78 @@
       x = 1;
       ApagarChaveIndexDB(ChavePausas);
     }
-    if (x) await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
 
     const b = exibirHora(dadosPrimLogue, 1, stt.TempoEscaladoHoras);
 
-    stt.logueEntreDatas = dadosPrimLogue.data === b.data ? 1 : 0;
+    stt.logueEntreDatas = dadosPrimLogue.data !== b.data ? 1 : 0;
     if (!stt.logueEntreDatas && dadosPrimLogue.data !== a.data) {
       ApagarChaveIndexDB(ChavePausas);
+      dadosPrimLogue = a;
+      x = 1;
     }
+    console.log(`HefestoLog: 
+      stt.logueEntreDatas = ${stt.logueEntreDatas} /
+      dadosPrimLogue.data = ${dadosPrimLogue.data} / 
+      b.data = ${b.data}
+      `);
+    if (x) await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
   }
 
-  // Converte "HH:MM:SS" -> segundos
-  function hhmmssParaSegundosSegura(valor) {
-    if (typeof valor !== "string") return 0;
-    const parts = valor.split(":");
-    if (parts.length !== 3) return 0;
-    const [hh, mm, ss] = parts.map((n) => Number(n));
-    // Verifica se são números válidos
-    if ([hh, mm, ss].some((n) => Number.isNaN(n) || n < 0)) return 0;
-    return hh * 3600 + mm * 60 + ss;
+  function converterParaSegundos(tempo) {
+    // Mais tolerante: aceita "HH:MM:SS", "MM:SS" e números; retorna segundos inteiros.
+    if (tempo == null || tempo === "") return 0;
+    if (typeof tempo === "number") return Math.floor(tempo);
+    if (typeof tempo === "string") {
+      const parts = tempo
+        .trim()
+        .split(":")
+        .map((p) => Number(p.trim()));
+      if (parts.length === 3) {
+        const [h, m, s] = parts;
+        return (
+          (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0)
+        );
+      }
+      if (parts.length === 2) {
+        const [m, s] = parts;
+        return (Number(m) || 0) * 60 + (Number(s) || 0);
+      }
+      if (/^\d+$/.test(tempo.trim())) {
+        return Number(tempo.trim());
+      }
+    }
+    return 0;
   }
 
-  // Formata segundos para "HH:MM:SS" (aceita 0)
-  function segundosParaHhmmss(segundos) {
-    const s = Math.max(0, Number(segundos) || 0);
-    const hh = String(Math.floor(s / 3600)).padStart(2, "0");
-    const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-    const ss = String(s % 60).padStart(2, "0");
-    return `${hh}:${mm}:${ss}`;
+  function converterParaTempo(input) {
+    if (input == null) return "00:00";
+    // aceita número (segundos) ou string ("HH:MM:SS" / "MM:SS" / "SS")
+    let total = Number(input);
+    if (Number.isNaN(total)) {
+      if (typeof input === "string" && input.includes(":")) {
+        const parts = input.split(":").map((p) => Number(p.trim()));
+        if (parts.length === 3)
+          total = parts[0] * 3600 + parts[1] * 60 + parts[2];
+        else if (parts.length === 2) total = parts[0] * 60 + parts[1];
+        else total = 0;
+      } else {
+        total = 0;
+      }
+    }
+    total = Math.max(0, Math.floor(total));
+    const horas = Math.floor(total / 3600);
+    const minutos = Math.floor((total % 3600) / 60);
+    const segundos = total % 60;
+    if (horas > 0) {
+      return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(
+        2,
+        "0"
+      )}:${String(segundos).padStart(2, "0")}`;
+    }
+    return `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(
+      2,
+      "0"
+    )}`;
   }
 
   // Soma as durações do array (campo "duracao")
@@ -358,13 +405,13 @@
 
     const totalSegundos = dadosdePausas.reduce((acc, item) => {
       // tenta pegar o campo; qualquer coisa inválida vira 0
-      const s = hhmmssParaSegundosSegura(item?.duracao);
+      const s = converterParaSegundos(item?.duracao);
       return acc + (Number.isFinite(s) ? s : 0);
     }, 0);
 
     return {
       totalSegundos,
-      totalFormatado: segundosParaHhmmss(totalSegundos),
+      totalFormatado: converterParaTempo(totalSegundos),
     };
   }
 
@@ -499,8 +546,6 @@
       position: "fixed",
       bottom: "4px",
       left: "4px",
-      background: "#222",
-      color: "#fff",
       padding: "10px 15px",
       borderRadius: "8px",
       fontFamily: "monospace",
@@ -564,7 +609,7 @@
     document.body.appendChild(div);
   }
 
-  //criarObjetoFlutuante();
+  criarObjetoFlutuante();
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
   function gerarDataHora() {
@@ -682,14 +727,22 @@
     const titulo = document.getElementById("tTMA");
     if (!time || !titulo) return;
 
+    let ContAtual = "00:00:00";
     // Se ainda não há início de pausa definido, mostra zero
+
+    titulo.textContent = stt.Status;
+
+    document.getElementById("vLogado").textContent =
+      TempoPausas.Logado || "00:00:00";
+    document.getElementById("vFalta").textContent =
+      TempoPausas.Falta || "00:00:00";
     if (
       !DDPausa.inicioUltimaP ||
       !DDPausa.inicioUltimaP.data ||
       stt.Status.includes("Offline")
     ) {
-      time.textContent = "00:00:00";
-      titulo.textContent = stt.Status;
+      time.textContent = ContAtual;
+
       return;
     }
 
@@ -702,28 +755,31 @@
       `HefestoLog: TempoPausas.inicioUltimaP: ${JSON.stringify(
         TempoPausas.inicioUltimaP
       )}`
-          );*/
+          );
     console.log(
       `HefestoLog: dadosPrimLogue:${dadosPrimLogue} / ${JSON.stringify(
         dadosPrimLogue
       )}`
-    );
+    );*/
 
-    titulo.textContent = stt.Status;
-    time.textContent = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
+    const tempo = somarDuracoes().totalFormatado;
+
+    //console.log(`HefestoLog: TempoPausas.Logado : ${TempoPausas.Logado}`);
+
+    ContAtual = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
+    const LogadoSegun = converterParaSegundos(tempo);
+    const LogadoSegunCAtual = LogadoSegun + converterParaSegundos(ContAtual);
+
+    TempoPausas.Logado = converterParaTempo(LogadoSegunCAtual);
+
+    time.textContent = ContAtual;
 
     /*if (!dadosPrimLogue) {
       dadosPrimLogue = agora;
     }*/
 
-    const LogadoPe = exibirAHora(agora, 0, dadosPrimLogue);
-    TempoPausas.LogadoPe = LogadoPe.hora;
-
-    const Falta = exibirHora(TempoPausas.Saida, 0, agora.hora);
+    const Falta = exibirAHora(TempoPausas.Saida, 0, agora);
     TempoPausas.Falta = Falta.hora;
-
-    document.getElementById("vLogado").textContent = TempoPausas.LogadoPe;
-    document.getElementById("vFalta").textContent = TempoPausas.Falta;
 
     //time.textContent = agora.hora;
   }, 1000);
@@ -830,18 +886,18 @@
     try {
       await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } catch (err) {
-      console.error("NiceMonk Erro ao atualizar campos no IndexedDB:", err);
+      console.error("HefestoLog: Erro ao atualizar campos no IndexedDB:", err);
     }
 
     if (c === "duracao") {
-      console.debug("NiceMonk Tabela salva:", ChavePausas);
+      console.debug("HefestoLog: Tabela salva:", ChavePausas);
     }
   }
 
-  function getValorinicio(id) {
-    dadosdePausas = normalizarArrayPausas(dadosdePausas);
+  function getValorDadosPausa(id, campo) {
     const item = dadosdePausas.find((obj) => String(obj?.id) === String(id));
-    return item?.inicio; // objeto {data,hora}
+    // Usa indexação dinâmica e retorna null se não existir
+    return item ? item?.[campo] ?? null : null;
   }
 
   /**
@@ -866,7 +922,7 @@
 
     requisicao_bd.onerror = function (event) {
       console.error(
-        "NiceMonk Erro ao abrir o banco de dados:",
+        "HefestoLog: Erro ao abrir o banco de dados:",
         event.target.errorCode
       );
     };
@@ -887,21 +943,21 @@
 
           request.onsuccess = function () {
             console.debug(
-              `NiceMonk Dados salvos com sucesso na chave "${nomechave}"`
+              `HefestoLog: Dados salvos com sucesso na chave "${nomechave}"`
             );
             resolve(true);
           };
 
           request.onerror = function (event) {
             console.error(
-              "NiceMonk Erro ao salvar os dados:",
+              "HefestoLog: Erro ao salvar os dados:",
               event.target?.errorCode || event
             );
             reject(event);
           };
         });
       } catch (err) {
-        console.error("NiceMonk AddOuAtuIindexdb erro:", err);
+        console.error("HefestoLog: AddOuAtuIindexdb erro:", err);
         reject(err);
       }
     });
@@ -942,12 +998,12 @@
       const request = store.delete(nomechave);
 
       request.onsuccess = function () {
-        console.log(`NiceMonk Chave "${nomechave}" apagada com sucesso.`);
+        console.log(`HefestoLog: Chave "${nomechave}" apagada com sucesso.`);
       };
 
       request.onerror = function (event) {
         console.error(
-          "NiceMonk Erro ao apagar a chave:",
+          "HefestoLog: Erro ao apagar a chave:",
           event.target.errorCode
         );
       };
@@ -1309,6 +1365,8 @@
     minhaCaixa.addEventListener("mouseover", function () {});
 
     minhaCaixa.addEventListener("mouseout", function () {});
+
+  
   }
 
   AdicionarCaixaAtualizada();
