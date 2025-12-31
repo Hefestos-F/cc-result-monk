@@ -38,6 +38,35 @@
     inicioUltimaP: 0,
   };
 
+
+   /**
+   * Ccor - Cores usadas na interface (valores em hex)
+   */
+  const Ccor = {
+    Offline: "#3a82cf",
+    Atualizando: "#c97123ff",
+    Erro: "#992e2e",
+    MetaTMA: "#229b8d",
+    Principal: "#4c95bd",
+    Config: "#96a8bb",
+    Varian: "",
+    TVarian: "",
+  };
+
+  /**
+   * PCcor - Cores padrão (backup)
+   */
+  const PCcor = {
+    Offline: "#3a82cf",
+    Atualizando: "#c97123ff",
+    Erro: "#992e2e",
+    MetaTMA: "#229b8d",
+    Principal: "#4c95bd",
+    Config: "#96a8bb",
+    Varian: "",
+    TVarian: "",
+  };
+
   // Chaves usadas no IndexedDB/local storage
   const ChavePausas = "DadosDePausas";
   const ChaveConfig = "Configuções";
@@ -55,7 +84,6 @@
   // Configuração do IndexedDB
   const nomeBD = "MeuBDZen";
   const StoreBD = "LogueMonk";
-
 
   /**
    * RecuperarTVariaveis - recupera as variáveis persistidas do indexedDB
@@ -536,17 +564,14 @@
 
     const div2 = document.createElement("div");
     div2.id = `T${id}`;
-    div2.textContent = "";
     const div3 = document.createElement("div");
     div3.id = id;
-    div3.textContent = "00:00:00";
 
     // Estilo inicial
     Object.assign(div.style, {
       position: "fixed",
-      bottom: "4px",
-      left: "4px",
-      padding: "10px 15px",
+      bottom: "15px",
+      left: "15px",
       borderRadius: "8px",
       fontFamily: "monospace",
       fontSize: "16px",
@@ -606,6 +631,7 @@
 
     div.appendChild(div2);
     div.appendChild(div3);
+    div.appendChild(AdicionarCaixaAtualizada());
     document.body.appendChild(div);
   }
 
@@ -1010,33 +1036,7 @@
     });
   }
 
-  /**
-   * Ccor - Cores usadas na interface (valores em hex)
-   */
-  const Ccor = {
-    Offline: "#3a82cf",
-    Atualizando: "#c97123ff",
-    Erro: "#992e2e",
-    MetaTMA: "#229b8d",
-    Principal: "#4c95bd",
-    Config: "#96a8bb",
-    Varian: "",
-    TVarian: "",
-  };
-
-  /**
-   * PCcor - Cores padrão (backup)
-   */
-  const PCcor = {
-    Offline: "#3a82cf",
-    Atualizando: "#c97123ff",
-    Erro: "#992e2e",
-    MetaTMA: "#229b8d",
-    Principal: "#4c95bd",
-    Config: "#96a8bb",
-    Varian: "",
-    TVarian: "",
-  };
+ 
 
   /**
    * criarSeparadorCV - cria um separador visual entre os valores
@@ -1326,8 +1326,6 @@
         display: flex;
         color: white;
         flex-direction: column;
-        position: absolute;
-        bottom: 0%;
         z-index: 9999;
         font-size: 12px;
         transition: all 0.5s ease;
@@ -1359,15 +1357,10 @@
     minhaCaixa.appendChild(container);
     minhaCaixa.appendChild(ADDBotPa());
 
-    // Adiciona o contêiner principal ao elemento LDCaixa
-    document.body.appendChild(minhaCaixa);
-
     minhaCaixa.addEventListener("mouseover", function () {});
 
     minhaCaixa.addEventListener("mouseout", function () {});
 
-  
+    return minhaCaixa;
   }
-
-  AdicionarCaixaAtualizada();
 })();
