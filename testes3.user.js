@@ -14,126 +14,64 @@
 // ==/UserScript==
 
 (function () {
-  // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
-  function gerarDataHora() {
-    const agora = new Date();
-
-    const hora = agora.toLocaleTimeString("pt-BR", { hour12: false }); // HH:MM:SS
-
-    // Gera YYYY-MM-DD em fuso local:
-    const ano = agora.getFullYear();
-    const mes = String(agora.getMonth() + 1).padStart(2, "0");
-    const dia = String(agora.getDate()).padStart(2, "0");
-    const data = `${ano}-${mes}-${dia}`;
-
-    return { hora, data };
+  function normalizarCampo(campo) {
+    return String(campo || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .trim()
+      .toLowerCase();
   }
-  // Atualiza o timer a cada segundo
-  setInterval(() => {
-    const time = document.getElementById("timerFlutuante");
-    if (!time) {
-      console.log(`HefestoLog:time falso`);
-    } else {
-      console.log(`HefestoLog:time true ${time.textContent}`);
-    }
-
-    const agora = gerarDataHora();
-
-    // exibirHora precisa ser a versão que calcula a diferença quando o 3º parâmetro é objeto absoluto
-    // Pegamos apenas a 'hora' do retorno (formato HH:MM:SS) para servir como cronômetro
-    //time.value = exibirHora(agora, 0, TempoPausas.inicioUltimaP).hora;
-    time.textContent = agora.hora;
-  }, 1000);
-
-  function criarObjetoFlutuante(id = "timerFlutuante") {
-    // Evita duplicar
-    if (document.getElementById(id)) return;
-
-    const div = document.createElement("div");
-    div.id = id;
-    div.textContent = "00:00:00";
-
-    // Estilo inicial
-    Object.assign(div.style, {
-      position: "fixed",
-      bottom: "20px",
-      right: "20px",
-      background: "#222",
-      color: "#fff",
-      padding: "10px 15px",
-      borderRadius: "8px",
-      fontFamily: "monospace",
-      fontSize: "18px",
-      zIndex: "9999",
-      cursor: "move",
-      boxSizing: "border-box", // evita crescer por padding/borda
-      userSelect: "none",
-      // Preparar para transform
-      transform: "translate(0px, 0px)",
-      willChange: "transform",
-    });
-
-    // Estado interno do deslocamento
-    let offsetX = 0;
-    let offsetY = 0;
-    let dragging = false;
-    let startX = 0;
-    let startY = 0;
-
-    function onPointerDown(e) {
-      dragging = true;
-      // Posição do ponteiro no início
-      startX = e.clientX;
-      startY = e.clientY;
-      div.setPointerCapture?.(e.pointerId);
-      e.preventDefault();
-    }
-
-    function onPointerMove(e) {
-      if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      div.style.transform = `translate(${offsetX + dx}px, ${offsetY + dy}px)`;
-    }
-
-    function onPointerUp(e) {
-      if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      // acumula deslocamento
-      offsetX += dx;
-      offsetY += dy;
-      dragging = false;
-      div.releasePointerCapture?.(e.pointerId);
-    }
-
-    // Pointer Events (funciona para mouse e touch)
-    div.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-
-    // Desativa arrastar nativo
-    div.ondragstart = () => false;
-
-    document.body.appendChild(div);
+  function normalizarArrayPausas(valor) {
+    if (Array.isArray(valor)) return valor;
+    if (valor === false || valor == null) return [];
+    if (typeof valor === "object") return Object.values(valor);
+    return [];
   }
+  async function atualizarCampos(id, campo, valor) {
+    dadosdePausas = normalizarArrayPausas(dadosdePausas);
 
-  criarObjetoFlutuante();
+    const c = normalizarCampo(campo); // "inicio" | "fim" | "duracao" | ...
+    const idKey = String(id);
 
-  function atualizarCampos(id, campo, valor) {
-    const index = dadosdePausas.findIndex((item) => item.id === id);
+    const index = dadosdePausas.findIndex((item) => String(item?.id) === idKey);
 
     if (index !== -1) {
-      dadosdePausas[index][campo] = valor; // Atualiza o campo dinamicamente
+      dadosdePausas[index][c] = valor;
     } else {
-      // Cria novo item com o campo e valor fornecidos
       const novoItem = { id };
-      novoItem[campo] = valor;
+      novoItem[c] = valor;
       dadosdePausas.push(novoItem);
     }
+
+    try {
+      await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
+    } catch (err) {
+      console.error("HefestoLog: Erro ao atualizar campos no IndexedDB:", err);
+    }
+
+    if (c === "duracao") {
+      console.debug("HefestoLog: Tabela salva:", ChavePausas);
+    }
   }
+  async function atualizarvaraveis(a = 0) {
+    if (a || !dadosdePausas) {
+      atualizarCampos(0, "NumerodPausa", DDPausa.numero);
+      atualizarCampos(0, "inicioUltimaP", DDPausa.inicioUltimaP);
+      atualizarCampos(0, "Status", stt.Status);
+      atualizarCampos(0, "StatusANT", stt.StatusANT);
+      //atualizarCampos(0, "TempoPausa", TempoPausas.Time);
+    } else {
+      DDPausa.numero = await Encontrarcampo(0, "NumerodPausa");
+      DDPausa.inicioUltimaP = await Encontrarcampo(0, "inicioUltimaP");
+      stt.Status = await Encontrarcampo(0, "Status");
+      stt.StatusANT = await Encontrarcampo(0, "StatusANT");
+      //TempoPausas.Time = Encontrarcampo(0, "TempoPausa");
+    }
 
-  const valordocampo = atualizarCampos(id, campo);
-
-
+    console.log(
+      `HefestoLog: DDPausa.numero: ${DDPausa.numero} /
+        DDPausa.inicioUltimaP: ${DDPausa.inicioUltimaP}/
+        stt.Status: ${stt.StatusANT}`
+    );
+  }
 })();

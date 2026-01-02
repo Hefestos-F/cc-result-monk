@@ -38,8 +38,7 @@
     inicioUltimaP: 0,
   };
 
-
-   /**
+  /**
    * Ccor - Cores usadas na interface (valores em hex)
    */
   const Ccor = {
@@ -84,6 +83,8 @@
   // Configuração do IndexedDB
   const nomeBD = "MeuBDZen";
   const StoreBD = "LogueMonk";
+
+  RecuperarTVariaveis();
 
   /**
    * RecuperarTVariaveis - recupera as variáveis persistidas do indexedDB
@@ -185,154 +186,155 @@
       atualizarCampos(0, "StatusANT", stt.StatusANT);
       //atualizarCampos(0, "TempoPausa", TempoPausas.Time);
     } else {
-      DDPausa.numero = Encontrarcampo(0, "NumerodPausa");
-      DDPausa.inicioUltimaP = Encontrarcampo(0, "inicioUltimaP");
-      stt.Status = Encontrarcampo(0, "Status");
-      stt.StatusANT = Encontrarcampo(0, "StatusANT");
+      DDPausa.numero = await Encontrarcampo(0, "NumerodPausa");
+      DDPausa.inicioUltimaP = await Encontrarcampo(0, "inicioUltimaP");
+      stt.Status = await Encontrarcampo(0, "Status");
+      stt.StatusANT = await Encontrarcampo(0, "StatusANT");
       //TempoPausas.Time = Encontrarcampo(0, "TempoPausa");
     }
+
+    console.log(
+        `HefestoLog: DDPausa.numero: ${DDPausa.numero} /
+        DDPausa.inicioUltimaP: ${DDPausa.inicioUltimaP}/
+        stt.Status: ${stt.StatusANT}`);
   }
 
-  (async () => {
-    await RecuperarTVariaveis();
+  observarItem(() => {
+    //const el = document.querySelector('[data-garden-id="typography.font"]');
+    const el = document.querySelector(
+      '[data-test-id="toolbar-profile-menu-button-tooltip"] div'
+    );
 
-    observarItem(() => {
-      //const el = document.querySelector('[data-garden-id="typography.font"]');
-      const el = document.querySelector(
-        '[data-test-id="toolbar-profile-menu-button-tooltip"] div'
+    if (!el) {
+      console.log("HefestoLog: Alteração aconteceu, mas ainda sem status");
+      return (stt.andament = 1);
+    }
+
+    //const statusAtual = formatPrimeiroNome(el.textContent.trim());
+    const statusAtual = formatPrimeiroNome(el.textContent.trim());
+    //console.log(`HefestoLog: Status: ${statusAtual}`);
+
+    // Se não mudou, não faz nada
+
+    stt.Status = statusAtual;
+
+    if (stt.StatusANT === stt.Status) {
+      return (stt.andament = 1);
+    }
+
+    // ==========================================================
+    // 3) Atualiza status anterior
+    // ==========================================================
+    stt.StatusANT = stt.Status;
+
+    // Helpers
+    const duracaoPrevistaPorStatus = (s) => {
+      if (s.includes("Lanche")) return "00:20:00";
+      if (s.includes("Descanso")) return "00:10:00";
+      return null;
+    };
+
+    // Executa sem estourar "Uncaught (in promise)"
+    (async () => {
+      // ==========================================================
+      // 1) FECHAR pausa atual (registro do DDPausa.numero atual)
+      //    - Faz sentido quando:
+      //      a) houve uma pausa aberta antes (existe "inicio")
+      //      b) e estamos mudando de status (já garantimos que mudou)
+      // ==========================================================
+      // Tentamos fechar o registro atual (se tiver inicio salvo)
+      // OBS: isso mantém seu comportamento de "fecha pausa atual" a cada mudança
+      // (desde que exista início registrado).
+      const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
+
+      const agora = await gerarDataHora(); // { data, hora }
+
+      console.log(
+        `HefestoLog: id:${DDPausa.numero}, inicioObj: ${JSON.stringify(
+          inicioObj
+        )}`
       );
+      if (inicioObj) {
+        // Salva fim (objeto)
+        await atualizarCampos(DDPausa.numero, "fim", agora);
 
-      if (!el) {
-        console.log("HefestoLog: Alteração aconteceu, mas ainda sem status");
-        return (stt.andament = 1);
+        // Calcula duração real (string HH:MM:SS)
+        const duracaoReal = calcularDuracao(inicioObj, agora);
+        await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
+
+        console.log(`HefestoLog: fim: ${JSON.stringify(agora)}`);
       }
 
-      //const statusAtual = formatPrimeiroNome(el.textContent.trim());
-      const statusAtual = formatPrimeiroNome(el.textContent.trim());
-      //console.log(`HefestoLog: Status: ${statusAtual}`);
+      const Logou = exibirHora(agora, 0, TempoPausas.Logado);
+      TempoPausas.Logou = Logou.hora;
 
-      // Se não mudou, não faz nada
+      const agora1 = gerarDataHora();
 
-      stt.Status = statusAtual;
+      agora1.hora = TempoPausas.Logou;
 
-      if (stt.StatusANT === stt.Status) {
-        return (stt.andament = 1);
-      }
+      TempoPausas.Saida = exibirHora(agora1, 1, stt.TempoEscaladoHoras);
+      TempoPausas.Saida.hora;
 
-      // ==========================================================
-      // 3) Atualiza status anterior
-      // ==========================================================
-      stt.StatusANT = stt.Status;
+      const Falta = exibirHora(TempoPausas.Saida, 0, agora.hora);
+      TempoPausas.Falta = Falta.hora;
 
-      // Helpers
-      const duracaoPrevistaPorStatus = (s) => {
-        if (s.includes("Lanche")) return "00:20:00";
-        if (s.includes("Descanso")) return "00:10:00";
-        return null;
-      };
+      document.getElementById("vLogou").textContent = TempoPausas.Logou;
+      document.getElementById("vSaida").textContent = TempoPausas.Saida.hora;
 
-      // Executa sem estourar "Uncaught (in promise)"
-      (async () => {
-        // ==========================================================
-        // 1) FECHAR pausa atual (registro do DDPausa.numero atual)
-        //    - Faz sentido quando:
-        //      a) houve uma pausa aberta antes (existe "inicio")
-        //      b) e estamos mudando de status (já garantimos que mudou)
-        // ==========================================================
-        // Tentamos fechar o registro atual (se tiver inicio salvo)
-        // OBS: isso mantém seu comportamento de "fecha pausa atual" a cada mudança
-        // (desde que exista início registrado).
-        const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
-
-        const agora = await gerarDataHora(); // { data, hora }
-
-        console.log(
-          `HefestoLog: id:${DDPausa.numero}, inicioObj: ${JSON.stringify(
-            inicioObj
-          )}`
-        );
-        if (inicioObj) {
-          // Salva fim (objeto)
-          await atualizarCampos(DDPausa.numero, "fim", agora);
-
-          // Calcula duração real (string HH:MM:SS)
-          const duracaoReal = calcularDuracao(inicioObj, agora);
-          await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
-
-          console.log(`HefestoLog: fim: ${JSON.stringify(agora)}`);
-        }
-
-        const Logou = exibirHora(agora, 0, TempoPausas.Logado);
-        TempoPausas.Logou = Logou.hora;
-
-        const agora1 = gerarDataHora();
-
-        agora1.hora = TempoPausas.Logou;
-
-        TempoPausas.Saida = exibirHora(agora1, 1, stt.TempoEscaladoHoras);
-        TempoPausas.Saida.hora;
-
-        const Falta = exibirHora(TempoPausas.Saida, 0, agora.hora);
-        TempoPausas.Falta = Falta.hora;
-
-        document.getElementById("vLogou").textContent = TempoPausas.Logou;
-        document.getElementById("vSaida").textContent = TempoPausas.Saida.hora;
-
-        console.log(`HefestoLog: 
+      console.log(`HefestoLog: 
       Logou: ${TempoPausas.Logou}, 
       Logado: ${TempoPausas.Logado}, 
       Falta: ${TempoPausas.Falta}, 
       Saida: ${TempoPausas.Saida.hora}
       `);
 
-        if (dadosPrimLogue) {
-          const c = converterParaSegundos(dadosPrimLogue.hora);
-          const d = converterParaSegundos(TempoPausas.Logou);
+      if (dadosPrimLogue) {
+        const c = converterParaSegundos(dadosPrimLogue.hora);
+        const d = converterParaSegundos(TempoPausas.Logou);
 
-          if (d < c) {
-            dadosPrimLogue.hora = TempoPausas.Logou;
-            verifiDataLogue(1);
-          }
+        if (d < c) {
+          dadosPrimLogue.hora = TempoPausas.Logou;
+          verifiDataLogue(1);
         }
+      }
 
-        // Só executa lógica se NÃO estiver Offline e se houve mudança
-        if (stt.Status.includes("Offline")) {
-          console.log(`HefestoLog: Inclui Off ${stt.Status}`);
-          await atualizarvaraveis(1);
-          return (stt.andament = 1);
-        }
-
-        // Seu comentário original: "Se for abrir nova pausa, incremente o id"
-        DDPausa.numero = DDPausa.numero + 1;
-        if (DDPausa.numero > 30) DDPausa.numero = 1;
-
-        const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
-        let fimPrevistoObj = null;
-
-        if (duracaoPrevista) {
-          // exibirHora soma duracaoPrevista ao "agora"
-          fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
-        }
-
-        DDPausa.inicioUltimaP = agora;
-
+      // Só executa lógica se NÃO estiver Offline e se houve mudança
+      if (stt.Status.includes("Offline")) {
+        console.log(`HefestoLog: Inclui Off ${stt.Status}`);
         await atualizarvaraveis(1);
+        return (stt.andament = 1);
+      }
 
-        //console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
-        // Cria/atualiza pausa no array + IndexedDB
-        await AddouAtualizarPausas(
-          DDPausa.numero,
-          stt.Status,
-          agora, // inicio: {data,hora}
-          fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
-          "---" // duracao prevista: "HH:MM:SS" ou "---"
-        );
-      })().catch((err) =>
-        console.error("HefestoLog: erro no observer async:", err)
+      // Seu comentário original: "Se for abrir nova pausa, incremente o id"
+      DDPausa.numero = DDPausa.numero + 1;
+      if (DDPausa.numero > 30) DDPausa.numero = 1;
+
+      const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
+      let fimPrevistoObj = null;
+
+      if (duracaoPrevista) {
+        // exibirHora soma duracaoPrevista ao "agora"
+        fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
+      }
+
+      DDPausa.inicioUltimaP = agora;
+
+      await atualizarvaraveis(1);
+
+      //console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
+      // Cria/atualiza pausa no array + IndexedDB
+      await AddouAtualizarPausas(
+        DDPausa.numero,
+        stt.Status,
+        agora, // inicio: {data,hora}
+        fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
+        "---" // duracao prevista: "HH:MM:SS" ou "---"
       );
-      stt.andament = 1;
-    });
-  })();
+    })().catch((err) =>
+      console.error("HefestoLog: erro no observer async:", err)
+    );
+    stt.andament = 1;
+  });
 
   async function verifiDataLogue(x = 0) {
     const a = gerarDataHora();
@@ -573,8 +575,6 @@
       bottom: "15px",
       left: "15px",
       borderRadius: "8px",
-      fontFamily: "monospace",
-      fontSize: "16px",
       zIndex: "9999",
       cursor: "move",
       boxSizing: "border-box", // evita crescer por padding/borda
@@ -1036,8 +1036,6 @@
     });
   }
 
- 
-
   /**
    * criarSeparadorCV - cria um separador visual entre os valores
    * @param {number} x - índice usado para id do elemento
@@ -1362,5 +1360,32 @@
     minhaCaixa.addEventListener("mouseout", function () {});
 
     return minhaCaixa;
+  }
+
+
+  async function SalvandoVari(modo) {
+    const AsVari = {
+      CConfig: { ...CConfig },
+      Ccor: { ...Ccor },
+    };
+
+    /**
+     * aplicarConfiguracao - aplica dados de configuração aos objetos globais
+     * @param {Object} dados - objeto com CConfig e Ccor
+     */
+    function aplicarConfiguracao(dados) {
+      if (dados.CConfig) Object.assign(CConfig, dados.CConfig);
+      if (dados.Ccor) Object.assign(Ccor, dados.Ccor);
+    }
+
+    (modo){
+
+      await AddOuAtuIindexdb(ChaveConfig, AsVari);
+    }else{
+      
+    }
+
+    
+
   }
 })();
