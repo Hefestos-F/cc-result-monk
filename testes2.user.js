@@ -14,13 +14,15 @@
 // ==/UserScript==
 
 (function () {
-  const stt = {
+  const config = {
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
+    logueEntreDatas: 0,
+  };
+
+  const stt = {
     observa: 1,
     Status: "",
-    StatusANT: "",
     andament: 1,
-    logueEntreDatas: 0,
   };
 
   const TempoPausas = {
@@ -34,8 +36,8 @@
 
   const DDPausa = {
     numero: 1,
-    Data: 1,
     inicioUltimaP: 0,
+    StatusANT: "",
   };
 
   /**
@@ -138,7 +140,7 @@
       console.error("HefestoLog: Erro ao recuperar dadosPrimLogueOnt:", e);
     }
     await verifiDataLogue();
-    await atualizarvaraveis();
+    await SalvandoVariConfig(0);
   }
 
   function observarItem(aoMudar) {
@@ -178,27 +180,6 @@
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   };
 
-  async function atualizarvaraveis(a = 0) {
-    if (a || !dadosdePausas) {
-      atualizarCampos(0, "NumerodPausa", DDPausa.numero);
-      atualizarCampos(0, "inicioUltimaP", DDPausa.inicioUltimaP);
-      atualizarCampos(0, "Status", stt.Status);
-      atualizarCampos(0, "StatusANT", stt.StatusANT);
-      //atualizarCampos(0, "TempoPausa", TempoPausas.Time);
-    } else {
-      DDPausa.numero = await Encontrarcampo(0, "NumerodPausa");
-      DDPausa.inicioUltimaP = await Encontrarcampo(0, "inicioUltimaP");
-      stt.Status = await Encontrarcampo(0, "Status");
-      stt.StatusANT = await Encontrarcampo(0, "StatusANT");
-      //TempoPausas.Time = Encontrarcampo(0, "TempoPausa");
-    }
-
-    console.log(
-        `HefestoLog: DDPausa.numero: ${DDPausa.numero} /
-        DDPausa.inicioUltimaP: ${DDPausa.inicioUltimaP}/
-        stt.Status: ${stt.StatusANT}`);
-  }
-
   observarItem(() => {
     //const el = document.querySelector('[data-garden-id="typography.font"]');
     const el = document.querySelector(
@@ -218,14 +199,18 @@
 
     stt.Status = statusAtual;
 
-    if (stt.StatusANT === stt.Status) {
+    if (DDPausa.StatusANT === stt.Status) {
       return (stt.andament = 1);
     }
 
     // ==========================================================
     // 3) Atualiza status anterior
     // ==========================================================
-    stt.StatusANT = stt.Status;
+
+    console.log(
+      `HefestoLog: Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`
+    );
+    DDPausa.StatusANT = stt.Status;
 
     // Helpers
     const duracaoPrevistaPorStatus = (s) => {
@@ -247,7 +232,7 @@
       // (desde que exista início registrado).
       const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
 
-      const agora = await gerarDataHora(); // { data, hora }
+      const agora = gerarDataHora(); // { data, hora }
 
       console.log(
         `HefestoLog: id:${DDPausa.numero}, inicioObj: ${JSON.stringify(
@@ -272,7 +257,7 @@
 
       agora1.hora = TempoPausas.Logou;
 
-      TempoPausas.Saida = exibirHora(agora1, 1, stt.TempoEscaladoHoras);
+      TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
       TempoPausas.Saida.hora;
 
       const Falta = exibirHora(TempoPausas.Saida, 0, agora.hora);
@@ -301,7 +286,6 @@
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
         console.log(`HefestoLog: Inclui Off ${stt.Status}`);
-        await atualizarvaraveis(1);
         return (stt.andament = 1);
       }
 
@@ -319,7 +303,7 @@
 
       DDPausa.inicioUltimaP = agora;
 
-      await atualizarvaraveis(1);
+      SalvandoVariConfig(1);
 
       //console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
       // Cria/atualiza pausa no array + IndexedDB
@@ -350,16 +334,16 @@
       ApagarChaveIndexDB(ChavePausas);
     }
 
-    const b = exibirHora(dadosPrimLogue, 1, stt.TempoEscaladoHoras);
+    const b = exibirHora(dadosPrimLogue, 1, config.TempoEscaladoHoras);
 
-    stt.logueEntreDatas = dadosPrimLogue.data !== b.data ? 1 : 0;
-    if (!stt.logueEntreDatas && dadosPrimLogue.data !== a.data) {
+    config.logueEntreDatas = dadosPrimLogue.data !== b.data ? 1 : 0;
+    if (!config.logueEntreDatas && dadosPrimLogue.data !== a.data) {
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = a;
       x = 1;
     }
     console.log(`HefestoLog: 
-      stt.logueEntreDatas = ${stt.logueEntreDatas} /
+      config.logueEntreDatas = ${config.logueEntreDatas} /
       dadosPrimLogue.data = ${dadosPrimLogue.data} / 
       b.data = ${b.data}
       `);
@@ -806,8 +790,6 @@
 
     const Falta = exibirAHora(TempoPausas.Saida, 0, agora);
     TempoPausas.Falta = Falta.hora;
-
-    //time.textContent = agora.hora;
   }, 1000);
 
   async function AddouAtualizarPausas(id, pausa, inicio, fim, duracao) {
@@ -829,6 +811,7 @@
   }
 
   function Encontrarcampo(id, campo) {
+    if (!dadosdePausas) return null;
     const item = dadosdePausas.find((obj) => obj.id === id);
     if (!item) return null;
     return campo in item ? item[campo] : null;
@@ -921,6 +904,7 @@
   }
 
   function getValorDadosPausa(id, campo) {
+    if (!dadosdePausas) return null;
     const item = dadosdePausas.find((obj) => String(obj?.id) === String(id));
     // Usa indexação dinâmica e retorna null se não existir
     return item ? item?.[campo] ?? null : null;
@@ -1362,11 +1346,12 @@
     return minhaCaixa;
   }
 
-
-  async function SalvandoVari(modo) {
+  async function SalvandoVariConfig(modo) {
     const AsVari = {
-      CConfig: { ...CConfig },
+      DDPausa: { ...DDPausa },
       Ccor: { ...Ccor },
+      TempoPausas: { ...TempoPausas },
+      config: { ...config },
     };
 
     /**
@@ -1374,18 +1359,32 @@
      * @param {Object} dados - objeto com CConfig e Ccor
      */
     function aplicarConfiguracao(dados) {
-      if (dados.CConfig) Object.assign(CConfig, dados.CConfig);
-      if (dados.Ccor) Object.assign(Ccor, dados.Ccor);
+      if (dados.DDPausa) {
+        Object.assign(DDPausa, dados.DDPausa);
+        a("dados.DDPausa", dados.DDPausa);
+      }
+      if (dados.Ccor) {
+        Object.assign(Ccor, dados.Ccor);
+        a("dados.Ccor", dados.Ccor);
+      }
+      if (dados.TempoPausas) {
+        Object.assign(TempoPausas, dados.TempoPausas);
+        a("dados.TempoPausas", dados.TempoPausas);
+      }
+      if (dados.config) {
+        Object.assign(config, dados.config);
+        a("dados.config", dados.config);
+      }
+
+      function a(b, c) {
+        console.log(`HefestoLog: Recuperado ${b}: ${JSON.stringify(c)}`);
+      }
     }
 
-    (modo){
-
+    if (modo) {
       await AddOuAtuIindexdb(ChaveConfig, AsVari);
-    }else{
-      
+    } else {
+      aplicarConfiguracao(dadosSalvosConfi);
     }
-
-    
-
   }
 })();
