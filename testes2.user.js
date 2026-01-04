@@ -27,8 +27,10 @@
 
   const TempoPausas = {
     Logou: 0,
+    LogouA: 0,
     Logado: 0,
-    LogadoPe: 0,
+    Saida: 0,
+    SaidaA: 0,
     Falta: 0,
     Online: 0,
     Time: 0,
@@ -262,9 +264,6 @@
 
       const Falta = exibirHora(TempoPausas.Saida, 0, agora.hora);
       TempoPausas.Falta = Falta.hora;
-
-      document.getElementById("vLogou").textContent = TempoPausas.Logou;
-      document.getElementById("vSaida").textContent = TempoPausas.Saida.hora;
 
       console.log(`HefestoLog: 
       Logou: ${TempoPausas.Logou}, 
@@ -735,17 +734,32 @@
   setInterval(() => {
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
-    if (!time || !titulo) return;
+    const vLogou = document.getElementById("vLogou");
+    const vSaida = document.getElementById("vSaida");
+    const vLogado = document.getElementById("vLogado");
+    const vFalta = document.getElementById("vFalta");
+
+    if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vLogado) return;
 
     let ContAtual = "00:00:00";
     // Se ainda não há início de pausa definido, mostra zero
 
-    titulo.textContent = stt.Status;
+    titulo.textContent = stt.Status || DDPausa.StatusANT;
 
-    document.getElementById("vLogado").textContent =
-      TempoPausas.Logado || "00:00:00";
-    document.getElementById("vFalta").textContent =
-      TempoPausas.Falta || "00:00:00";
+    if (
+      TempoPausas.Logou !== TempoPausas.LogouA ||
+      TempoPausas.Saida.hora !== TempoPausas.SaidaA
+    ) {
+      vLogou.textContent = TempoPausas.Logou || "00:00:00";
+      vSaida.textContent = TempoPausas.Saida.hora || "00:00:00";
+    }else{
+      TempoPausas.LogouA = TempoPausas.Logou;
+      TempoPausas.SaidaA = TempoPausas.Saida.hora;
+    }
+
+    vLogado.textContent = TempoPausas.Logado || "00:00:00";
+    vFalta.textContent = TempoPausas.Falta || "00:00:00";
+
     if (
       !DDPausa.inicioUltimaP ||
       !DDPausa.inicioUltimaP.data ||
