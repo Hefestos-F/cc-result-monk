@@ -23,6 +23,7 @@
     observa: 1,
     Status: "",
     andament: 1,
+    ocultarValor: 0,
   };
 
   const TempoPausas = {
@@ -616,6 +617,14 @@
     div.appendChild(div3);
     div.appendChild(AdicionarCaixaAtualizada());
     document.body.appendChild(div);
+
+    div.addEventListener("mouseover", function () {
+      stt.ocultarValor = 1;
+    });
+
+    div.addEventListener("mouseout", function () {
+      stt.ocultarValor = 0;
+    });
   }
 
   criarObjetoFlutuante();
@@ -730,6 +739,28 @@
     return { hora: outHora, data: outData };
   }
 
+  async function verificarMause(b) {
+    const repit = [
+      "cFalta",
+      "cLogado",
+      "cSaida",
+      "cLogou",
+      "SepCVal4",
+      "SepCVal1",
+    ];
+
+    function verificar(v) {
+      const a = document.getElementById(v);
+      if (a) {
+        a.style.display = b ? "flex" : "none";
+      }
+    }
+
+    for (const tipo of repit) {
+      await verificar(tipo);
+    }
+  }
+
   // Atualiza o timer a cada segundo
   setInterval(() => {
     const time = document.getElementById("vTMA");
@@ -752,7 +783,7 @@
     ) {
       vLogou.textContent = TempoPausas.Logou || "00:00:00";
       vSaida.textContent = TempoPausas.Saida.hora || "00:00:00";
-    }else{
+    } else {
       TempoPausas.LogouA = TempoPausas.Logou;
       TempoPausas.SaidaA = TempoPausas.Saida.hora;
     }
@@ -1352,10 +1383,6 @@
     //minhaCaixa.appendChild(Alinha2);
     minhaCaixa.appendChild(container);
     minhaCaixa.appendChild(ADDBotPa());
-
-    minhaCaixa.addEventListener("mouseover", function () {});
-
-    minhaCaixa.addEventListener("mouseout", function () {});
 
     return minhaCaixa;
   }
