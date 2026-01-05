@@ -767,6 +767,8 @@
 
       // Se você realmente precisa de flex para esses elementos, mantenha "flex".
       // Caso contrário, prefira "block" ou recuperar o display original.
+      //el.style.opacity = exibir ? "1" : "0";
+      //el.style.visibility = exibir ? "visible" : "hidden";
       el.style.display = exibir ? "" : "none";
     }
   }
@@ -1339,6 +1341,7 @@
         border-radius: 15px;
         visibility: visible;
         flex-direction: column;
+        overflow: hidden;
         `;
 
     // Adiciona as caixas e separadores ao contêiner
