@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5
+// @version      1.2.5.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -191,6 +191,7 @@
 
     if (!el) {
       console.log("HefestoLog: Alteração aconteceu, mas ainda sem status");
+      stt.Status = "---";
       return (stt.andament = 1);
     }
 
@@ -332,6 +333,9 @@
       dadosPrimLogue.hora = TempoPausas.Logou ? TempoPausas.Logou : "23:59:59";
       x = 1;
       ApagarChaveIndexDB(ChavePausas);
+      dadosdePausas = [{}, {}, {}];
+      TempoPausas = [];
+      SalvandoVariConfig(1);
     }
 
     const b = exibirHora(dadosPrimLogue, 1, config.TempoEscaladoHoras);
@@ -340,6 +344,9 @@
     if (!config.logueEntreDatas && dadosPrimLogue.data !== a.data) {
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = a;
+      dadosdePausas = [{}, {}, {}];
+      TempoPausas = [];
+      SalvandoVariConfig(1);
       x = 1;
     }
     console.log(`HefestoLog: 
@@ -619,11 +626,13 @@
     document.body.appendChild(div);
 
     div.addEventListener("mouseover", function () {
-      stt.ocultarValor = 1;
+      if (stt.Status === "---") return;
+      verificarMouse(1);
     });
 
     div.addEventListener("mouseout", function () {
-      stt.ocultarValor = 0;
+      if (stt.Status === "---") return;
+      verificarMouse(0);
     });
   }
 
@@ -739,25 +748,26 @@
     return { hora: outHora, data: outData };
   }
 
-  async function verificarMause(b) {
-    const repit = [
+  function verificarMouse(mostrar) {
+    const ids = [
       "cFalta",
       "cLogado",
       "cSaida",
       "cLogou",
       "SepCVal4",
+      "SepCVal3",
+      "SepCVal2",
       "SepCVal1",
     ];
+    const exibir = !!mostrar; // garante booleano
 
-    function verificar(v) {
-      const a = document.getElementById(v);
-      if (a) {
-        a.style.display = b ? "flex" : "none";
-      }
-    }
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (!el) continue; // se não existir, apenas pulaa
 
-    for (const tipo of repit) {
-      await verificar(tipo);
+      // Se você realmente precisa de flex para esses elementos, mantenha "flex".
+      // Caso contrário, prefira "block" ou recuperar o display original.
+      el.style.display = exibir ? "" : "none";
     }
   }
 
@@ -772,10 +782,12 @@
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vLogado) return;
 
-    let ContAtual = "00:00:00";
+    let ContAtual = stt.Status === "---" ? "Encontrado" : "00:00:00";
     // Se ainda não há início de pausa definido, mostra zero
 
-    titulo.textContent = stt.Status || DDPausa.StatusANT;
+    titulo.textContent = stt.Status === "---" ? "Não" : stt.Status;
+
+    if (stt.Status === "---") verificarMouse(0);
 
     if (
       TempoPausas.Logou !== TempoPausas.LogouA ||
@@ -794,7 +806,8 @@
     if (
       !DDPausa.inicioUltimaP ||
       !DDPausa.inicioUltimaP.data ||
-      stt.Status.includes("Offline")
+      stt.Status.includes("Offline") ||
+      stt.Status === "---"
     ) {
       time.textContent = ContAtual;
 
@@ -853,13 +866,6 @@
     }
 
     await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
-  }
-
-  function Encontrarcampo(id, campo) {
-    if (!dadosdePausas) return null;
-    const item = dadosdePausas.find((obj) => obj.id === id);
-    if (!item) return null;
-    return campo in item ? item[campo] : null;
   }
 
   function normalizarCampo(campo) {
