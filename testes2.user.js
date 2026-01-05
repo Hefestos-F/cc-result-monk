@@ -264,8 +264,7 @@
       TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
       TempoPausas.Saida.hora;
 
-      const Falta = exibirHora(TempoPausas.Saida, 0, agora.hora);
-      TempoPausas.Falta = Falta.hora;
+    
 
       console.log(`HefestoLog: 
       Logou: ${TempoPausas.Logou}, 
@@ -802,8 +801,8 @@
       TempoPausas.SaidaA = TempoPausas.Saida.hora;
     }
 
-    vLogado.textContent = TempoPausas.Logado || "00:00:00";
-    vFalta.textContent = TempoPausas.Falta || "00:00:00";
+    vLogado.textContent = "00:00:00";
+    vFalta.textContent = "00:00:00";
 
     if (
       !DDPausa.inicioUltimaP ||
@@ -850,6 +849,9 @@
 
     const Falta = exibirAHora(TempoPausas.Saida, 0, agora);
     TempoPausas.Falta = Falta.hora;
+
+    vLogado.textContent = TempoPausas.Logado;
+    vFalta.textContent = TempoPausas.Falta;
   }, 1000);
 
   async function AddouAtualizarPausas(id, pausa, inicio, fim, duracao) {
