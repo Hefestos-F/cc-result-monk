@@ -36,7 +36,6 @@
     Online: 0,
     Time: 0,
   };
-  
 
   const DDPausa = {
     numero: 1,
@@ -768,11 +767,7 @@
       //el.style.opacity = exibir ? "1" : "0";
       //el.style.visibility = exibir ? "visible" : "hidden";
 
-      let a = exibir ? "block" : "none";
-
-      if (el.style.display === a) return;
-
-      el.style.display = a;
+      el.style.display = exibir ? "block" : "none";
     }
   }
 
