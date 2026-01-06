@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5.2
+// @version      1.2.5.3
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -26,7 +26,7 @@
     ocultarValor: 0,
   };
 
-  const TempoPausas = {
+  let TempoPausas = {
     Logou: 0,
     LogouA: 0,
     Logado: 0,
@@ -36,6 +36,7 @@
     Online: 0,
     Time: 0,
   };
+  
 
   const DDPausa = {
     numero: 1,
@@ -264,8 +265,6 @@
       TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
       TempoPausas.Saida.hora;
 
-    
-
       console.log(`HefestoLog: 
       Logou: ${TempoPausas.Logou}, 
       Logado: ${TempoPausas.Logado}, 
@@ -333,7 +332,7 @@
       x = 1;
       ApagarChaveIndexDB(ChavePausas);
       dadosdePausas = [{}, {}, {}];
-      TempoPausas = [];
+      TempoPausas = {};
       SalvandoVariConfig(1);
     }
 
@@ -344,7 +343,7 @@
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = a;
       dadosdePausas = [{}, {}, {}];
-      TempoPausas = [];
+      TempoPausas = {};
       SalvandoVariConfig(1);
       x = 1;
     }
@@ -625,14 +624,15 @@
     document.body.appendChild(div);
 
     div.addEventListener("mouseover", function () {
-      if (stt.Status === "---") return;
-      verificarMouse(1);
+      //if (stt.Status === "---") return;
+      //verificarMouse(1);
     });
 
     div.addEventListener("mouseout", function () {
-      if (stt.Status === "---") return;
-      verificarMouse(0);
+      //if (stt.Status === "---") return;
+      //verificarMouse(0);
     });
+    verificarMouse(1);
   }
 
   criarObjetoFlutuante();
@@ -659,7 +659,6 @@
    * op: 1 para soma (a + b), 0 para subtração (a - b)
    * Retorna: {hora:"HH:MM:SS", data:"(mesmo formato de a)"}
    */
-
   function exibirAHora(a, op, b) {
     const pad2 = (n) => String(n).padStart(2, "0");
 
@@ -768,7 +767,12 @@
       // Caso contrário, prefira "block" ou recuperar o display original.
       //el.style.opacity = exibir ? "1" : "0";
       //el.style.visibility = exibir ? "visible" : "hidden";
-      el.style.display = exibir ? "" : "none";
+
+      let a = exibir ? "block" : "none";
+
+      if (el.style.display === a) return;
+
+      el.style.display = a;
     }
   }
 
@@ -788,7 +792,7 @@
 
     titulo.textContent = stt.Status === "---" ? "Não" : stt.Status;
 
-    if (stt.Status === "---") verificarMouse(0);
+    verificarMouse(!stt.Status === "---");
 
     if (
       TempoPausas.Logou !== TempoPausas.LogouA ||
@@ -969,7 +973,6 @@
    * abrirDB - abre ou cria IndexedDB para persistência de dados
    * @param {Function} callback - função a executar com banco de dados aberto
    */
-
   function abrirDB(callback) {
     const requisicao_bd = indexedDB.open(nomeBD, 1);
 
@@ -992,6 +995,7 @@
       );
     };
   }
+
   /**
    * AddOuAtuIindexdb - salva ou atualiza dados no IndexedDB
    * @param {string} nomechave - chave de armazenamento
