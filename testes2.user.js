@@ -769,7 +769,7 @@
     const vLogado = document.getElementById("vLogado");
     const vFalta = document.getElementById("vFalta");
 
-    if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vLogado) return;
+    if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
 
     const agora = gerarDataHora();
     let Encontrado = stt.Status === "---" ? 0 : 1;
@@ -781,17 +781,6 @@
 
     verificarMouse(Encontrado);
 
-    if (
-      TempoPausas.Logou !== TempoPausas.LogouA ||
-      TempoPausas.Saida.hora !== TempoPausas.SaidaA
-    ) {
-      vLogou.textContent = TempoPausas.Logou || "00:00:00";
-      vSaida.textContent = TempoPausas.Saida.hora || "00:00:00";
-    } else {
-      TempoPausas.LogouA = TempoPausas.Logou;
-      TempoPausas.SaidaA = TempoPausas.Saida.hora;
-    }
-
     TempoPausas.Logou = exibirHora(agora, 0, TempoPausas.Logado).hora;
 
     const agora1 = gerarDataHora();
@@ -799,6 +788,16 @@
     agora1.hora = TempoPausas.Logou;
 
     TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
+
+    if (
+      TempoPausas.Logou !== TempoPausas.LogouA ||
+      TempoPausas.Saida.hora !== TempoPausas.SaidaA
+    ) {
+      vLogou.textContent = TempoPausas.Logou || "00:00:00";
+      vSaida.textContent = TempoPausas.Saida.hora || "00:00:00";
+      TempoPausas.LogouA = TempoPausas.Logou;
+      TempoPausas.SaidaA = TempoPausas.Saida.hora;
+    }
 
     if (
       !DDPausa.inicioUltimaP ||
@@ -823,13 +822,12 @@
       )}`
     );*/
 
-    const tempo = somarDuracoes().totalFormatado;
+    const tempo = somarDuracoes().totalSegundos;
 
     //console.log(`HefestoLog: TempoPausas.Logado : ${TempoPausas.Logado}`);
 
     ContAtual = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
-    const LogadoSegun = converterParaSegundos(tempo);
-    const LogadoSegunCAtual = LogadoSegun + converterParaSegundos(ContAtual);
+    const LogadoSegunCAtual = tempo + converterParaSegundos(ContAtual);
 
     TempoPausas.Logado = converterParaTempo(LogadoSegunCAtual);
 
