@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5.3
+// @version      1.2.5.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -253,16 +253,6 @@
 
         console.log(`HefestoLog: fim: ${JSON.stringify(agora)}`);
       }
-
-      const Logou = exibirHora(agora, 0, TempoPausas.Logado);
-      TempoPausas.Logou = Logou.hora;
-
-      const agora1 = gerarDataHora();
-
-      agora1.hora = TempoPausas.Logou;
-
-      TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
-      TempoPausas.Saida.hora;
 
       console.log(`HefestoLog: 
       Logou: ${TempoPausas.Logou}, 
@@ -631,7 +621,6 @@
       //if (stt.Status === "---") return;
       //verificarMouse(0);
     });
-    verificarMouse(1);
   }
 
   criarObjetoFlutuante();
@@ -782,11 +771,13 @@
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vLogado) return;
 
+    const agora = gerarDataHora();
     let Encontrado = stt.Status === "---" ? 0 : 1;
     let ContAtual = Encontrado ? "00:00:00" : "Encontrado";
     // Se ainda não há início de pausa definido, mostra zero
 
     titulo.textContent = Encontrado ? stt.Status : "Não";
+    time.textContent = ContAtual;
 
     verificarMouse(Encontrado);
 
@@ -801,21 +792,22 @@
       TempoPausas.SaidaA = TempoPausas.Saida.hora;
     }
 
-    vLogado.textContent = "00:00:00";
-    vFalta.textContent = "00:00:00";
+    TempoPausas.Logou = exibirHora(agora, 0, TempoPausas.Logado).hora;
+
+    const agora1 = gerarDataHora();
+
+    agora1.hora = TempoPausas.Logou;
+
+    TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
 
     if (
       !DDPausa.inicioUltimaP ||
       !DDPausa.inicioUltimaP.data ||
       stt.Status.includes("Offline") ||
-      stt.Status === "---"
+      !Encontrado
     ) {
-      time.textContent = ContAtual;
-
       return;
     }
-
-    const agora = gerarDataHora();
 
     // exibirHora precisa ser a versão que calcula a diferença quando o 3º parâmetro é objeto absoluto
     // Pegamos apenas a 'hora' do retorno (formato HH:MM:SS) para servir como cronômetro
@@ -843,12 +835,7 @@
 
     time.textContent = ContAtual;
 
-    /*if (!dadosPrimLogue) {
-      dadosPrimLogue = agora;
-    }*/
-
-    const Falta = exibirAHora(TempoPausas.Saida, 0, agora);
-    TempoPausas.Falta = Falta.hora;
+    TempoPausas.Falta = exibirAHora(TempoPausas.Saida, 0, agora).hora;
 
     vLogado.textContent = TempoPausas.Logado;
     vFalta.textContent = TempoPausas.Falta;
@@ -1082,8 +1069,9 @@
    */
   function criarSeparadorCV(x) {
     const separador = document.createElement("div");
-    separador.setAttribute("id", `SepCVal${x}`);
+    separador.id = `SepCVal${x}`;
     separador.classList.add("separadorC");
+    separador.style.display = "none";
     return separador;
   }
 
@@ -1247,7 +1235,9 @@
     caixa.classList.add("info-caixa");
     caixa.style.transition = "all 0.5s ease";
     caixa.id = `${n}${titulo}`;
-    
+    if (titulo !== "TMA") {
+      caixa.style.display = "none";
+    }
     caixa.innerHTML = `
         <div id="t${titulo}">${titulo}:</div>
         <div id="v${titulo}">...</div>
