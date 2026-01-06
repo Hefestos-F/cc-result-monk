@@ -782,12 +782,13 @@
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vLogado) return;
 
-    let ContAtual = stt.Status === "---" ? "Encontrado" : "00:00:00";
+    let Encontrado = stt.Status === "---" ? 0 : 1;
+    let ContAtual = Encontrado ? "00:00:00" : "Encontrado";
     // Se ainda não há início de pausa definido, mostra zero
 
-    titulo.textContent = stt.Status === "---" ? "Não" : stt.Status;
+    titulo.textContent = Encontrado ? stt.Status : "Não";
 
-    verificarMouse(!stt.Status === "---");
+    verificarMouse(Encontrado);
 
     if (
       TempoPausas.Logou !== TempoPausas.LogouA ||
@@ -1246,6 +1247,7 @@
     caixa.classList.add("info-caixa");
     caixa.style.transition = "all 0.5s ease";
     caixa.id = `${n}${titulo}`;
+    
     caixa.innerHTML = `
         <div id="t${titulo}">${titulo}:</div>
         <div id="v${titulo}">...</div>
