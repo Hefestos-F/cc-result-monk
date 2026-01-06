@@ -781,14 +781,6 @@
 
     verificarMouse(Encontrado);
 
-    TempoPausas.Logou = exibirHora(agora, 0, TempoPausas.Logado).hora;
-
-    const agora1 = gerarDataHora();
-
-    agora1.hora = TempoPausas.Logou;
-
-    TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
-
     if (
       TempoPausas.Logou !== TempoPausas.LogouA ||
       TempoPausas.Saida.hora !== TempoPausas.SaidaA
@@ -830,6 +822,14 @@
     const LogadoSegunCAtual = tempo + converterParaSegundos(ContAtual);
 
     TempoPausas.Logado = converterParaTempo(LogadoSegunCAtual);
+
+    TempoPausas.Logou = exibirHora(agora, 0, TempoPausas.Logado).hora;
+
+    const agora1 = gerarDataHora();
+
+    agora1.hora = TempoPausas.Logou;
+
+    TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
 
     time.textContent = ContAtual;
 
