@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5.4
+// @version      1.2.5.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -40,6 +40,7 @@
   const DDPausa = {
     numero: 1,
     inicioUltimaP: 0,
+    inicioUltimaPa: 0,
     StatusANT: "",
   };
 
@@ -254,13 +255,6 @@
         console.log(`HefestoLog: fim: ${JSON.stringify(agora)}`);
       }
 
-      console.log(`HefestoLog: 
-      Logou: ${TempoPausas.Logou}, 
-      Logado: ${TempoPausas.Logado}, 
-      Falta: ${TempoPausas.Falta}, 
-      Saida: ${TempoPausas.Saida.hora}
-      `);
-
       if (dadosPrimLogue) {
         const c = converterParaSegundos(dadosPrimLogue.hora);
         const d = converterParaSegundos(TempoPausas.Logou);
@@ -317,10 +311,9 @@
       (dadosPrimLogue.data !== a.data && dadosPrimLogue.data !== e.data)
     ) {
       dadosPrimLogue = a;
-      dadosPrimLogue.hora = TempoPausas.Logou ? TempoPausas.Logou : "23:59:59";
       x = 1;
       ApagarChaveIndexDB(ChavePausas);
-      dadosdePausas = [{}, {}, {}];
+      dadosdePausas = [];
       TempoPausas = {};
       SalvandoVariConfig(1);
     }
@@ -331,7 +324,7 @@
     if (!config.logueEntreDatas && dadosPrimLogue.data !== a.data) {
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = a;
-      dadosdePausas = [{}, {}, {}];
+      dadosdePausas = [];
       TempoPausas = {};
       SalvandoVariConfig(1);
       x = 1;
@@ -371,34 +364,42 @@
   }
 
   function converterParaTempo(input) {
-    if (input == null) return "00:00";
+    if (input == null) return "00:00:00";
+
     // aceita número (segundos) ou string ("HH:MM:SS" / "MM:SS" / "SS")
     let total = Number(input);
+
     if (Number.isNaN(total)) {
       if (typeof input === "string" && input.includes(":")) {
         const parts = input.split(":").map((p) => Number(p.trim()));
-        if (parts.length === 3)
+        if (parts.length === 3) {
           total = parts[0] * 3600 + parts[1] * 60 + parts[2];
-        else if (parts.length === 2) total = parts[0] * 60 + parts[1];
-        else total = 0;
+        } else if (parts.length === 2) {
+          total = parts[0] * 60 + parts[1];
+        } else {
+          total = 0;
+        }
       } else {
-        total = 0;
+        // caso seja string só com segundos ("15", "90") ou inválida
+        const onlyNum = Number(String(input).trim());
+        total = Number.isFinite(onlyNum) ? onlyNum : 0;
       }
     }
+
+    // normaliza para inteiro e evita negativo
     total = Math.max(0, Math.floor(total));
+
     const horas = Math.floor(total / 3600);
     const minutos = Math.floor((total % 3600) / 60);
     const segundos = total % 60;
-    if (horas > 0) {
-      return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(
-        2,
-        "0"
-      )}:${String(segundos).padStart(2, "0")}`;
-    }
-    return `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(
-      2,
-      "0"
-    )}`;
+
+    return (
+      String(horas).padStart(2, "0") +
+      ":" +
+      String(minutos).padStart(2, "0") +
+      ":" +
+      String(segundos).padStart(2, "0")
+    );
   }
 
   // Soma as durações do array (campo "duracao")
@@ -774,22 +775,11 @@
     const agora = gerarDataHora();
     let Encontrado = stt.Status === "---" ? 0 : 1;
     let ContAtual = Encontrado ? "00:00:00" : "Encontrado";
-    // Se ainda não há início de pausa definido, mostra zero
 
     titulo.textContent = Encontrado ? stt.Status : "Não";
     time.textContent = ContAtual;
 
     verificarMouse(Encontrado);
-
-    if (
-      TempoPausas.Logou !== TempoPausas.LogouA ||
-      TempoPausas.Saida.hora !== TempoPausas.SaidaA
-    ) {
-      vLogou.textContent = TempoPausas.Logou || "00:00:00";
-      vSaida.textContent = TempoPausas.Saida.hora || "00:00:00";
-      TempoPausas.LogouA = TempoPausas.Logou;
-      TempoPausas.SaidaA = TempoPausas.Saida.hora;
-    }
 
     if (
       !DDPausa.inicioUltimaP ||
@@ -800,26 +790,14 @@
       return;
     }
 
-    // exibirHora precisa ser a versão que calcula a diferença quando o 3º parâmetro é objeto absoluto
-    // Pegamos apenas a 'hora' do retorno (formato HH:MM:SS) para servir como cronômetro
-    /*console.log(`HefestoLog: agora: ${JSON.stringify(agora)}`);
-    console.log(
-      `HefestoLog: TempoPausas.inicioUltimaP: ${JSON.stringify(
-        TempoPausas.inicioUltimaP
-      )}`
-          );
-    console.log(
-      `HefestoLog: dadosPrimLogue:${dadosPrimLogue} / ${JSON.stringify(
-        dadosPrimLogue
-      )}`
-    );*/
-
-    const tempo = somarDuracoes().totalSegundos;
-
-    //console.log(`HefestoLog: TempoPausas.Logado : ${TempoPausas.Logado}`);
+    if (DDPausa.inicioUltimaP !== DDPausa.inicioUltimaPa) {
+      TempoPausas.Online = somarDuracoes().totalSegundos;
+      DDPausa.inicioUltimaPa = DDPausa.inicioUltimaP;
+    }
 
     ContAtual = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
-    const LogadoSegunCAtual = tempo + converterParaSegundos(ContAtual);
+    const LogadoSegunCAtual =
+      TempoPausas.Online + converterParaSegundos(ContAtual);
 
     TempoPausas.Logado = converterParaTempo(LogadoSegunCAtual);
 
@@ -830,6 +808,16 @@
     agora1.hora = TempoPausas.Logou;
 
     TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
+
+    if (
+      TempoPausas.Logou !== TempoPausas.LogouA ||
+      TempoPausas.Saida.hora !== TempoPausas.SaidaA
+    ) {
+      vLogou.textContent = TempoPausas.Logou || "00:00:00";
+      vSaida.textContent = TempoPausas.Saida.hora || "00:00:00";
+      TempoPausas.LogouA = TempoPausas.Logou;
+      TempoPausas.SaidaA = TempoPausas.Saida.hora;
+    }
 
     time.textContent = ContAtual;
 
