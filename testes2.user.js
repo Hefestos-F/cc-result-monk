@@ -285,6 +285,8 @@
 
       DDPausa.inicioUltimaP = agora;
 
+      TempoPausas.Online = somarDuracoes().totalSegundos;
+
       SalvandoVariConfig(1);
 
       //console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
@@ -790,11 +792,6 @@
       return;
     }
 
-    if (DDPausa.inicioUltimaP !== DDPausa.inicioUltimaPa) {
-      TempoPausas.Online = somarDuracoes().totalSegundos;
-      DDPausa.inicioUltimaPa = DDPausa.inicioUltimaP;
-    }
-
     ContAtual = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
     const LogadoSegunCAtual =
       TempoPausas.Online + converterParaSegundos(ContAtual);
@@ -813,11 +810,17 @@
       TempoPausas.Logou !== TempoPausas.LogouA ||
       TempoPausas.Saida.hora !== TempoPausas.SaidaA
     ) {
-      vLogou.textContent = TempoPausas.Logou || "00:00:00";
-      vSaida.textContent = TempoPausas.Saida.hora || "00:00:00";
+      console.log(`HefestoLog: 
+        TempoPausas.LogouA : ${TempoPausas.LogouA} /
+        TempoPausas.Logou : ${TempoPausas.Logou} /
+        TempoPausas.SaidaA : ${TempoPausas.SaidaA} /
+        TempoPausas.Saida.hora : ${TempoPausas.Saida.hora}
+        `);
       TempoPausas.LogouA = TempoPausas.Logou;
       TempoPausas.SaidaA = TempoPausas.Saida.hora;
     }
+    vLogou.textContent = TempoPausas.LogouA || "00:00:00";
+    vSaida.textContent = TempoPausas.SaidaA || "00:00:00";
 
     time.textContent = ContAtual;
 
