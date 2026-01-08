@@ -292,7 +292,6 @@
         TempoPausas.Estouro = fimPrevistoObj;
       } else {
         TempoPausas.Estouro = 0;
-        config.pausalimitada = 0;
       }
 
       DDPausa.inicioUltimaP = agora;
@@ -806,12 +805,12 @@
       dadosPrimLogue = Logou;
       verifiDataLogue(1);
     }
-    /*
-    if (config.pausalimitada) {
-      if (stt.estouro && compararDatas(agora, TempoPausas.Estouro)) {
 
-      }
-    }*/
+    if (config.pausalimitada) {
+      stt.estouro = compararDatas(agora, TempoPausas.Estouro);
+      atualizarComoff("cTMA");
+      if (!TempoPausas.Estouro) config.pausalimitada = 0;
+    }
 
     if (
       TempoPausas.Logou !== TempoPausas.LogouA ||
@@ -851,6 +850,16 @@
     vLogado.textContent = TempoPausas.Logado;
     vFalta.textContent = TempoPausas.Falta;
   }, 1000);
+
+  function atualizarComoff(caixa) {
+    var x = document.getElementById(caixa);
+    if (x) {
+      x.style.background = stt.estouro ? Ccor.Erro : "";
+      x.style.borderRadius = stt.estouro ? "6px" : "";
+      x.style.padding = stt.estouro ? "0px 4px" : "";
+      x.style.margin = stt.estouro ? "0px -4px" : "";
+    }
+  }
 
   function compararDatas(a, b) {
     // Validação básica
