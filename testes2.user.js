@@ -785,13 +785,19 @@
 
     verificarMouse(Encontrado);
 
-    TempoPausas.Logou = exibirHora(agora, 0, TempoPausas.Logado).hora;
+    const Logou = exibirHora(agora, 0, TempoPausas.Logado);
+    TempoPausas.Logou = Logou.hora;
 
     const agora1 = gerarDataHora();
 
     agora1.hora = TempoPausas.Logou;
 
     TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
+
+    if (compararDatas(dadosPrimLogue, Logou)) {
+      dadosPrimLogue = Logou;
+      verifiDataLogue(1);
+    }
 
     if (
       TempoPausas.Logou !== TempoPausas.LogouA ||
@@ -831,6 +837,28 @@
     vLogado.textContent = TempoPausas.Logado;
     vFalta.textContent = TempoPausas.Falta;
   }, 1000);
+
+  function compararDatas(a, b) {
+    // Validação básica
+    if (!a?.data || !a?.hora || !b?.data || !b?.hora) {
+      throw new Error(
+        "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}"
+      );
+    }
+
+    // Usa horário local (interpretação padrão do JS para strings ISO sem timezone)
+    const da = new Date(`${a.data}T${a.hora}`);
+    const db = new Date(`${b.data}T${b.hora}`);
+
+    // Verifica se datas são válidas
+    if (isNaN(da) || isNaN(db)) {
+      throw new Error(
+        "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'."
+      );
+    }
+
+    return da.getTime() > db.getTime();
+  }
 
   async function AddouAtualizarPausas(id, pausa, inicio, fim, duracao) {
     const novoItem = { id, pausa, inicio, fim, duracao };
