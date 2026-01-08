@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5.5
+// @version      1.2.5.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -237,6 +237,9 @@
       // (desde que exista início registrado).
       const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
 
+      const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
+
+      //console.log(`HefestoLog: fimObj: ${JSON.stringify(fimObj)}`);
       const agora = gerarDataHora(); // { data, hora }
 
       console.log(
@@ -244,7 +247,7 @@
           inicioObj
         )}`
       );
-      if (inicioObj) {
+      if (inicioObj && duracaoObj === "---") {
         // Salva fim (objeto)
         await atualizarCampos(DDPausa.numero, "fim", agora);
 
@@ -253,9 +256,10 @@
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
 
         console.log(`HefestoLog: fim: ${JSON.stringify(agora)}`);
+        TempoPausas.Online = somarDuracoes().totalSegundos;
       }
 
-      if (dadosPrimLogue) {
+      /*if (dadosPrimLogue) {
         const c = converterParaSegundos(dadosPrimLogue.hora);
         const d = converterParaSegundos(TempoPausas.Logou);
 
@@ -263,7 +267,7 @@
           dadosPrimLogue.hora = TempoPausas.Logou;
           verifiDataLogue(1);
         }
-      }
+      }*/
 
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
@@ -284,8 +288,6 @@
       }
 
       DDPausa.inicioUltimaP = agora;
-
-      TempoPausas.Online = somarDuracoes().totalSegundos;
 
       SalvandoVariConfig(1);
 
@@ -783,6 +785,30 @@
 
     verificarMouse(Encontrado);
 
+    TempoPausas.Logou = exibirHora(agora, 0, TempoPausas.Logado).hora;
+
+    const agora1 = gerarDataHora();
+
+    agora1.hora = TempoPausas.Logou;
+
+    TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
+
+    if (
+      TempoPausas.Logou !== TempoPausas.LogouA ||
+      TempoPausas.Saida.hora !== TempoPausas.SaidaA
+    ) {
+      /*console.log(`HefestoLog: 
+        TempoPausas.LogouA : ${TempoPausas.LogouA} /
+        TempoPausas.Logou : ${TempoPausas.Logou} /
+        TempoPausas.SaidaA : ${TempoPausas.SaidaA} /
+        TempoPausas.Saida.hora : ${TempoPausas.Saida.hora}
+        `);*/
+      TempoPausas.LogouA = TempoPausas.Logou;
+      TempoPausas.SaidaA = TempoPausas.Saida.hora;
+    }
+    vLogou.textContent = TempoPausas.LogouA || "00:00:00";
+    vSaida.textContent = TempoPausas.SaidaA || "00:00:00";
+
     if (
       !DDPausa.inicioUltimaP ||
       !DDPausa.inicioUltimaP.data ||
@@ -797,30 +823,6 @@
       TempoPausas.Online + converterParaSegundos(ContAtual);
 
     TempoPausas.Logado = converterParaTempo(LogadoSegunCAtual);
-
-    TempoPausas.Logou = exibirHora(agora, 0, TempoPausas.Logado).hora;
-
-    const agora1 = gerarDataHora();
-
-    agora1.hora = TempoPausas.Logou;
-
-    TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
-
-    if (
-      TempoPausas.Logou !== TempoPausas.LogouA ||
-      TempoPausas.Saida.hora !== TempoPausas.SaidaA
-    ) {
-      console.log(`HefestoLog: 
-        TempoPausas.LogouA : ${TempoPausas.LogouA} /
-        TempoPausas.Logou : ${TempoPausas.Logou} /
-        TempoPausas.SaidaA : ${TempoPausas.SaidaA} /
-        TempoPausas.Saida.hora : ${TempoPausas.Saida.hora}
-        `);
-      TempoPausas.LogouA = TempoPausas.Logou;
-      TempoPausas.SaidaA = TempoPausas.Saida.hora;
-    }
-    vLogou.textContent = TempoPausas.LogouA || "00:00:00";
-    vSaida.textContent = TempoPausas.SaidaA || "00:00:00";
 
     time.textContent = ContAtual;
 
