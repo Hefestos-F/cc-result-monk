@@ -805,12 +805,12 @@
       dadosPrimLogue = Logou;
       verifiDataLogue(1);
     }
-
+/*
     if (config.pausalimitada) {
       stt.estouro = compararDatas(agora, TempoPausas.Estouro);
       atualizarComoff("cTMA");
       if (!TempoPausas.Estouro) config.pausalimitada = 0;
-    }
+    }*/
 
     if (
       TempoPausas.Logou !== TempoPausas.LogouA ||
