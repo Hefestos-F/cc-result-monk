@@ -17,6 +17,7 @@
   const config = {
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
     logueEntreDatas: 0,
+    pausalimitada: 0,
   };
 
   const stt = {
@@ -24,6 +25,7 @@
     Status: "",
     andament: 1,
     ocultarValor: 0,
+    estouro: 0,
   };
 
   let TempoPausas = {
@@ -35,6 +37,7 @@
     Falta: 0,
     Online: 0,
     Time: 0,
+    Estouro: 0,
   };
 
   const DDPausa = {
@@ -283,8 +286,13 @@
       let fimPrevistoObj = null;
 
       if (duracaoPrevista) {
+        config.pausalimitada = 1;
         // exibirHora soma duracaoPrevista ao "agora"
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
+        TempoPausas.Estouro = fimPrevistoObj;
+      } else {
+        TempoPausas.Estouro = 0;
+        config.pausalimitada = 0;
       }
 
       DDPausa.inicioUltimaP = agora;
@@ -798,6 +806,12 @@
       dadosPrimLogue = Logou;
       verifiDataLogue(1);
     }
+    /*
+    if (config.pausalimitada) {
+      if (stt.estouro && compararDatas(agora, TempoPausas.Estouro)) {
+
+      }
+    }*/
 
     if (
       TempoPausas.Logou !== TempoPausas.LogouA ||
