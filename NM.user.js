@@ -234,6 +234,13 @@
     Indisponivel: 0,
   };
 
+  const horasEDatas = {
+    QualLogou: 0,
+    Logou: 0,
+    Saida: 0,
+    Falta: 0,
+  };
+
   // Chaves usadas no IndexedDB/local storage
   const ChavePausas = "DadosDePausas";
   const ChaveConfig = "Configuções";
@@ -748,34 +755,42 @@
   // Converte segundos (number) ou string ("HH:MM:SS"/"MM:SS"/"SS") para uma string formatada "MM:SS" ou "HH:MM:SS"
 
   function converterParaTempo(input) {
-    if (input == null) return "00:00";
+    if (input == null) return "00:00:00";
+
     // aceita número (segundos) ou string ("HH:MM:SS" / "MM:SS" / "SS")
     let total = Number(input);
+
     if (Number.isNaN(total)) {
       if (typeof input === "string" && input.includes(":")) {
         const parts = input.split(":").map((p) => Number(p.trim()));
-        if (parts.length === 3)
+        if (parts.length === 3) {
           total = parts[0] * 3600 + parts[1] * 60 + parts[2];
-        else if (parts.length === 2) total = parts[0] * 60 + parts[1];
-        else total = 0;
+        } else if (parts.length === 2) {
+          total = parts[0] * 60 + parts[1];
+        } else {
+          total = 0;
+        }
       } else {
-        total = 0;
+        // caso seja string só com segundos ("15", "90") ou inválida
+        const onlyNum = Number(String(input).trim());
+        total = Number.isFinite(onlyNum) ? onlyNum : 0;
       }
     }
+
+    // normaliza para inteiro e evita negativo
     total = Math.max(0, Math.floor(total));
+
     const horas = Math.floor(total / 3600);
     const minutos = Math.floor((total % 3600) / 60);
     const segundos = total % 60;
-    if (horas > 0) {
-      return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(
-        2,
-        "0"
-      )}:${String(segundos).padStart(2, "0")}`;
-    }
-    return `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(
-      2,
-      "0"
-    )}`;
+
+    return (
+      String(horas).padStart(2, "0") +
+      ":" +
+      String(minutos).padStart(2, "0") +
+      ":" +
+      String(segundos).padStart(2, "0")
+    );
   }
 
   /**
@@ -1312,27 +1327,28 @@
       }
     }
 
-    Segun.Hora = converterParaSegundos(mostrarHora());
-
-    const novo = exibirHora(
-      gerarDataHora(),
-      0,
-      converterParaTempo(Segun.NewLogado)
+    const horari = horarios(
+      converterParaTempo(Segun.NewLogado),
+      CConfig.TempoEscaladoHoras
     );
 
-    Segun.Logou = converterParaSegundos(novo.hora);
-
-    if (Segun.Logou < Segun.LogouSalvo) {
+    if (compararDatas(dadosPrimLogue, horari.Logou)) {
       verificarESalvar(1);
     }
 
-    Segun.QualLogou = CConfig.LogueManual
-      ? converterParaSegundos(CConfig.ValorLogueManual)
+    horasEDatas.QualLogou = CConfig.LogueManual
+      ? dadosLogueManu
       : CConfig.ModoSalvo
-      ? Segun.LogouSalvo
-      : Segun.Logou;
-    Segun.Offline = Segun.Logou - Segun.QualLogou;
+      ? dadosPrimLogue
+      : horari.Logou;
 
+    horasEDatas.Logou = horari.Logou;
+    horasEDatas.Saida = horari.Saida;
+    horasEDatas.logado = horari.logado;
+    horasEDatas.Falta = horari.Falta;
+
+    //Segun.Offline = Segun.Logou - Segun.QualLogou;
+    /*
     stt.offForaDToler =
       Segun.Offline > CConfig.TolerOff &&
       (CConfig.ModoSalvo || CConfig.LogueManual) &&
@@ -1348,10 +1364,35 @@
 
     if (!CConfig.MostraOff && !stt.Atualizando) {
       CConfig.MostraValorOff = 0;
-    }
+    }*/
 
     AtualizarInfo();
     observarDisponibilidade();
+  }
+
+  function horarios(logado, escalado) {
+    const agora = gerarDataHora();
+
+    console.log(`NiceMonk: logado:${JSON.stringify(logado)}`);
+    
+    const Logou = exibirHora(agora, 0, logado);
+
+    console.log(`NiceMonk: Logou:${JSON.stringify(Logou)}`);
+
+    const Saida = exibirHora(Logou, 1, escalado);
+
+    console.log(`NiceMonk: Saida:${JSON.stringify(Saida)}`);
+
+    const Falta = exibirAHora(Saida, 0, agora);
+
+    console.log(`NiceMonk: Falta:${JSON.stringify(Falta)}`);
+
+    return {
+      Logou: Logou,
+      Saida: Saida,
+      logado: logado,
+      Falta: Falta,
+    };
   }
 
   /**
@@ -1364,76 +1405,16 @@
     let tempoCumprido = false;
     let temHorasExtras = false;
 
-    const logadoSegundos = exibirHora(
-      gerarDataHora(),
-      0,
-      converterParaTempo(Segun.QualLogou)
-    );
-
-    const dataehora = gerarDataHora();
-    dataehora.hora = converterParaTempo(Segun.QualLogou);
-
-    const dataehora2 = exibirHora(dataehora, 1, CConfig.TempoEscaladoHoras);
-
-    let saidaSegundos = converterParaSegundos(dataehora2.hora);
-    saidaSegundos =
-      !stt.offForaDToler &&
-      !stt.ErroAtu &&
-      !CConfig.LogueManual &&
-      !CConfig.IgnorarOff &&
-      !stt.ErroVerif
-        ? saidaSegundos + Segun.Offline
-        : saidaSegundos;
-
-    let faltaSegundos;
-
-    const dataehora3 = gerarDataHora();
-
-    if (CConfig.logueEntreDatas) {
-      if (dataehora3.data === dadosPrimLogue.data) {
-        faltaSegundos = Segun.QualLogou - Segun.Hora + saidaSegundos;
-      } else {
-        faltaSegundos = saidaSegundos - Segun.Hora;
-      }
-    } else {
-      faltaSegundos = saidaSegundos - Segun.Hora;
-    }
-
-    const saidaComOfflineSegundos = saidaSegundos + Segun.Offline;
-    const faltaComOfflineSegundos = faltaSegundos + Segun.Offline;
-    const dezMinutosSegundos = converterParaSegundos("00:10:00");
-
-    const saidaAExibir = CConfig.MostraValorOff
-      ? saidaComOfflineSegundos
-      : saidaSegundos;
-    const faltaAExibir = CConfig.MostraValorOff
-      ? faltaComOfflineSegundos
-      : faltaSegundos;
-
-    if (Segun.Hora > saidaAExibir + dezMinutosSegundos) {
-      temHorasExtras = true;
-      tempoHorasExtras = Segun.Hora - saidaAExibir;
-    } else if (Segun.Hora > saidaAExibir) {
-      tempoCumprido = true;
-    }
-
-    const logouFormatado = converterParaTempo(Segun.QualLogou);
     const vLogou = document.getElementById("vLogou");
-    vLogou.textContent = logouFormatado;
+    vLogou.textContent = horasEDatas.QualLogou.hora;
 
-    const logadoExibido = CConfig.MostraValorOff
-      ? Segun.NewLogado
-      : logadoSegundos.hora;
-    const logadoFormatado = converterParaTempo(logadoExibido);
     const vLogado = document.getElementById("vLogado");
-    vLogado.textContent = logadoFormatado;
+    vLogado.textContent = converterParaTempo(Segun.NewLogado);
 
-    const saidaFormatada = converterParaTempo(saidaAExibir);
     const vSaida = document.getElementById("vSaida");
-    vSaida.textContent = saidaFormatada;
+    vSaida.textContent = horasEDatas.Saida.hora;
 
-    const faltaOuHE = temHorasExtras ? tempoHorasExtras : faltaAExibir;
-    const faltaOuHEFormatada = converterParaTempo(faltaOuHE);
+    const faltaOuHEFormatada = horasEDatas.Falta.hora;
     const vFalta = document.getElementById("vFalta");
     const tFalta = document.getElementById("tFalta");
     tFalta.textContent = temHorasExtras
@@ -1477,6 +1458,28 @@
       }
       stt.temOcul = 0;
     }, CConfig.tempoPOcul * 1000);
+  }
+
+  function compararDatas(a, b) {
+    // Validação básica
+    if (!a?.data || !a?.hora || !b?.data || !b?.hora) {
+      throw new Error(
+        "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}"
+      );
+    }
+
+    // Usa horário local (interpretação padrão do JS para strings ISO sem timezone)
+    const da = new Date(`${a.data}T${a.hora}`);
+    const db = new Date(`${b.data}T${b.hora}`);
+
+    // Verifica se datas são válidas
+    if (isNaN(da) || isNaN(db)) {
+      throw new Error(
+        "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'."
+      );
+    }
+
+    return da.getTime() > db.getTime();
   }
 
   /**
@@ -3425,6 +3428,100 @@
     );*/
 
     return { date: out.date, hora: out.time };
+  }
+
+  /**
+   * exibirHora(a, op, b)
+   * a: {hora:"HH:MM:SS", data:"YYYY-MM-DD" | "DD/MM/YYYY"}
+   * b: {hora:"HH:MM:SS", data:"YYYY-MM-DD" | "DD/MM/YYYY"}
+   * op: 1 para soma (a + b), 0 para subtração (a - b)
+   * Retorna: {hora:"HH:MM:SS", data:"(mesmo formato de a)"}
+   */
+  function exibirAHora(a, op, b) {
+    const pad2 = (n) => String(n).padStart(2, "0");
+
+    const isISO = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d);
+    const isBR = (d) => /^\d{2}\/\d{2}\/\d{4}$/.test(d);
+
+    function parseDate(d) {
+      if (isISO(d)) {
+        const [Y, M, D] = d.split("-").map(Number);
+        return new Date(Y, M - 1, D);
+      }
+      if (isBR(d)) {
+        const [D, M, Y] = d.split("/").map(Number);
+        return new Date(Y, M - 1, D);
+      }
+      throw new Error(
+        "Formato de data inválido. Use YYYY-MM-DD ou DD/MM/YYYY."
+      );
+    }
+
+    function formatDate(date, keepISO) {
+      const Y = date.getFullYear();
+      const M = pad2(date.getMonth() + 1);
+      const D = pad2(date.getDate());
+      return keepISO ? `${Y}-${M}-${D}` : `${D}/${M}/${Y}`;
+    }
+
+    function parseTime(h) {
+      if (!/^\d{2}:\d{2}:\d{2}$/.test(h)) {
+        throw new Error("Formato de hora inválido. Use HH:MM:SS.");
+      }
+      const [HH, MM, SS] = h.split(":").map(Number);
+      if (HH < 0 || HH > 23 || MM < 0 || MM > 59 || SS < 0 || SS > 59) {
+        throw new Error("Hora fora do intervalo válido.");
+      }
+      return { HH, MM, SS };
+    }
+
+    function toEpochMs(obj) {
+      const dt = parseDate(obj.data);
+      const { HH, MM, SS } = parseTime(obj.hora);
+      dt.setHours(HH, MM, SS, 0); // local time
+      return dt.getTime();
+    }
+
+    if (typeof op !== "number" || (op !== 0 && op !== 1)) {
+      throw new Error(
+        "Operação inválida. Use 1 para soma ou 0 para subtração."
+      );
+    }
+
+    const keepISO = isISO(a.data);
+    const epochA = toEpochMs(a);
+    const epochB = toEpochMs(b);
+
+    let outHora, outData;
+
+    if (op === 1) {
+      // Soma: adiciona o "tempo" de b como delta a 'a'
+      const midnightB = new Date(parseDate(b.data));
+      midnightB.setHours(0, 0, 0, 0);
+      const deltaB = toEpochMs(b) - midnightB.getTime(); // ms desde meia-noite
+      const resultDate = new Date(epochA + deltaB);
+      outHora = `${pad2(resultDate.getHours())}:${pad2(
+        resultDate.getMinutes()
+      )}:${pad2(resultDate.getSeconds())}`;
+      outData = formatDate(resultDate, keepISO);
+    } else {
+      // Subtração (delta de tempo): usa UTC para evitar offset do fuso
+      let diffMs = epochA - epochB;
+      const sign = diffMs < 0 ? -1 : 1;
+      diffMs = Math.abs(diffMs);
+
+      const h = Math.floor(diffMs / 3600000);
+      const m = Math.floor((diffMs % 3600000) / 60000);
+      const s = Math.floor((diffMs % 60000) / 1000);
+
+      // Se quiser sinal, pode incorporar ao formato. Aqui retornamos só o valor absoluto.
+      outHora = `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+
+      // Para delta, manter a data de 'a' (ou escolha outra regra, se preferir)
+      outData = a.data;
+    }
+
+    return { hora: outHora, data: outData };
   }
 
   /**

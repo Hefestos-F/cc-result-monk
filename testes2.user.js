@@ -805,28 +805,15 @@
       dadosPrimLogue = Logou;
       verifiDataLogue(1);
     }
-/*
+    /*
     if (config.pausalimitada) {
       stt.estouro = compararDatas(agora, TempoPausas.Estouro);
       atualizarComoff("cTMA");
       if (!TempoPausas.Estouro) config.pausalimitada = 0;
     }*/
 
-    if (
-      TempoPausas.Logou !== TempoPausas.LogouA ||
-      TempoPausas.Saida.hora !== TempoPausas.SaidaA
-    ) {
-      /*console.log(`HefestoLog: 
-        TempoPausas.LogouA : ${TempoPausas.LogouA} /
-        TempoPausas.Logou : ${TempoPausas.Logou} /
-        TempoPausas.SaidaA : ${TempoPausas.SaidaA} /
-        TempoPausas.Saida.hora : ${TempoPausas.Saida.hora}
-        `);*/
-      TempoPausas.LogouA = TempoPausas.Logou;
-      TempoPausas.SaidaA = TempoPausas.Saida.hora;
-    }
-    vLogou.textContent = TempoPausas.LogouA || "00:00:00";
-    vSaida.textContent = TempoPausas.SaidaA || "00:00:00";
+    vLogou.textContent = TempoPausas.Logou || "00:00:00";
+    vSaida.textContent = TempoPausas.Saida || "00:00:00";
 
     if (
       !DDPausa.inicioUltimaP ||
