@@ -1289,7 +1289,7 @@
 
     if (stt.NBT) {
       stt.NBT = 0;
-      verificarESalvar(0);
+      //verificarESalvar(0);
       setInterval(() => {
         if (!stt.Atualizando) {
           VerificacoesN1();
@@ -1345,16 +1345,16 @@
       CConfig.TempoEscaladoHoras
     );
 
-    console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
+    //console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
     //console.log(`NiceMonk: horari.Logou:${JSON.stringify(horari.Logou)}`);
-
+/*
     if (
       dadosPrimLogue &&
       horari.Logou &&
       compararDatas(dadosPrimLogue, horari.Logou)
     ) {
-      verificarESalvar(1);
-    }
+      //verificarESalvar(1);
+    }*/
 
     horasEDatas.Logou = horari.Logou;
     horasEDatas.Saida = horari.Saida;
