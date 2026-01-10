@@ -1327,44 +1327,39 @@
       }
     }
 
+    let pelologue = 0;
+    const agora = gerarDataHora();
+
+    if (CConfig.LogueManual) {
+      horasEDatas.QualLogou = dadosLogueManu;
+      pelologue = 1;
+    } else if (CConfig.ModoSalvo) {
+      horasEDatas.QualLogou = dadosPrimLogue;
+      pelologue = 1;
+    }
+
     const horari = horarios(
-      converterParaTempo(Segun.NewLogado),
+      pelologue
+        ? exibirAHora(agora, 0, horasEDatas.QualLogou).hora
+        : converterParaTempo(Segun.NewLogado),
       CConfig.TempoEscaladoHoras
     );
 
-    if (compararDatas(dadosPrimLogue, horari.Logou)) {
+    console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
+    //console.log(`NiceMonk: horari.Logou:${JSON.stringify(horari.Logou)}`);
+
+    if (
+      dadosPrimLogue &&
+      horari.Logou &&
+      compararDatas(dadosPrimLogue, horari.Logou)
+    ) {
       verificarESalvar(1);
     }
-
-    horasEDatas.QualLogou = CConfig.LogueManual
-      ? dadosLogueManu
-      : CConfig.ModoSalvo
-      ? dadosPrimLogue
-      : horari.Logou;
 
     horasEDatas.Logou = horari.Logou;
     horasEDatas.Saida = horari.Saida;
     horasEDatas.logado = horari.logado;
     horasEDatas.Falta = horari.Falta;
-
-    //Segun.Offline = Segun.Logou - Segun.QualLogou;
-    /*
-    stt.offForaDToler =
-      Segun.Offline > CConfig.TolerOff &&
-      (CConfig.ModoSalvo || CConfig.LogueManual) &&
-      (CConfig.Vigia || stt.Atualizando) &&
-      !stt.ErroAtu &&
-      !stt.ErroVerif &&
-      stt.timeReal &&
-      !CConfig.IgnorarOff
-        ? 1
-        : 0;
-
-    CConfig.MostraOff = stt.offForaDToler;
-
-    if (!CConfig.MostraOff && !stt.Atualizando) {
-      CConfig.MostraValorOff = 0;
-    }*/
 
     AtualizarInfo();
     observarDisponibilidade();
@@ -1373,19 +1368,20 @@
   function horarios(logado, escalado) {
     const agora = gerarDataHora();
 
-    console.log(`NiceMonk: logado:${JSON.stringify(logado)}`);
-    
+    //console.log(`NiceMonk: logado:${JSON.stringify(logado)}`);
+
     const Logou = exibirHora(agora, 0, logado);
 
-    console.log(`NiceMonk: Logou:${JSON.stringify(Logou)}`);
+    //console.log(`NiceMonk: Logou:${JSON.stringify(Logou)}`);
 
     const Saida = exibirHora(Logou, 1, escalado);
 
-    console.log(`NiceMonk: Saida:${JSON.stringify(Saida)}`);
+    //console.log(`NiceMonk: Saida:${JSON.stringify(Saida)}`);
+    //console.log(`NiceMonk: agora:${JSON.stringify(agora)}`);
 
     const Falta = exibirAHora(Saida, 0, agora);
 
-    console.log(`NiceMonk: Falta:${JSON.stringify(Falta)}`);
+    //console.log(`NiceMonk: Falta:${JSON.stringify(Falta)}`);
 
     return {
       Logou: Logou,
@@ -1405,8 +1401,11 @@
     let tempoCumprido = false;
     let temHorasExtras = false;
 
+    //console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
+    //console.log(`NiceMonk: horasEDatas.QualLogou.hora:${JSON.stringify(horasEDatas.QualLogou)}`);
+
     const vLogou = document.getElementById("vLogou");
-    vLogou.textContent = horasEDatas.QualLogou.hora;
+    vLogou.textContent = horasEDatas.Logou.hora;
 
     const vLogado = document.getElementById("vLogado");
     vLogado.textContent = converterParaTempo(Segun.NewLogado);
@@ -3344,92 +3343,6 @@
     }
   }
 
-  /*
-   *horaedataparacalculo: { hora: 'HH:MM:SS', data: 'YYYY-MM-DD' }
-   *maisoumenos: true para '+' ou false para '-'
-   *valordeacrecimo: string no formato 'HH:MM', 'HH:MM:SS'
-   */
-  function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
-    function parseOffset(offsetStr) {
-      // Suporta formatos com sinal: +HH:MM, -HH:MM:SS, etc.
-      const m = String(offsetStr || "").match(
-        /^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/
-      );
-      if (!m) return 0;
-      const sign = m[1] === "-" ? -1 : 1;
-      const hours = parseInt(m[2], 10);
-      const minutes = parseInt(m[3], 10);
-      const seconds = m[4] ? parseInt(m[4], 10) : 0;
-      return sign * (hours * 3600 + minutes * 60 + seconds);
-    }
-
-    function parseDuration(durationStr) {
-      // 'HH:MM' or 'HH:MM:SS' -> seconds (always positive)
-      if (!durationStr) return 0;
-      const m = String(durationStr).match(/^(\d{1,2}):?(\d{2})(?::?(\d{2}))?$/);
-      if (!m) return 0;
-      const hours = parseInt(m[1], 10);
-      const minutes = parseInt(m[2], 10);
-      const seconds = m[3] ? parseInt(m[3], 10) : 0;
-      return hours * 3600 + minutes * 60 + seconds;
-    }
-
-    function buildDateTime(obj) {
-      // obj: { data: 'YYYY-MM-DD', hora: 'HH:MM:SS' }
-      const dparts = String(obj.data || "")
-        .split("-")
-        .map(Number);
-      const tparts = String(obj.hora || "00:00:00")
-        .split(":")
-        .map(Number);
-      if (dparts.length < 3) return new Date();
-      let [year, month, day] = dparts;
-      let [hh = 0, mm = 0, ss = 0] = tparts;
-      if (hh === 24) {
-        hh = 0;
-        const tmp = new Date(year, month - 1, day);
-        tmp.setDate(tmp.getDate() + 1);
-        year = tmp.getFullYear();
-        month = tmp.getMonth() + 1;
-        day = tmp.getDate();
-      }
-      return new Date(year, month - 1, day, hh, mm, ss);
-    }
-
-    function formatDateTime(date) {
-      const d = date.toISOString().split("T")[0];
-      const t = date.toTimeString().split(" ")[0];
-      return { date: d, time: t };
-    }
-
-    // Determina offset em segundos. Suporta duas formas de chamada:
-    // 1) exibirHora(base, "+HH:MM:SS") -> usa sinal embutido
-    // 2) exibirHora(base, maisoumenosBool, "HH:MM:SS") -> usa boolean para sinal
-    let offsetSec = 0;
-    if (typeof maisoumenos === "string" && valordeacrecimo === undefined) {
-      // segunda forma usada anteriormente: passou o valor com sinal
-      offsetSec = parseOffset(maisoumenos);
-    } else {
-      const dur = parseDuration(valordeacrecimo || "00:00:00");
-      // aceita booleano ou números 0/1 usados pelo código chamador
-      const isNegative =
-        maisoumenos === false ||
-        (typeof maisoumenos === "number" && Number(maisoumenos) === 0) ||
-        (typeof maisoumenos === "string" && maisoumenos === "0");
-      const sign = isNegative ? -1 : 1; // default '+'
-      offsetSec = sign * dur;
-    }
-
-    const base = buildDateTime(horaedataparacalculo);
-    const adjusted = new Date(base.getTime() + offsetSec * 1000);
-    const out = formatDateTime(adjusted);
-    /*console.debug(
-     * `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`
-    );*/
-
-    return { date: out.date, hora: out.time };
-  }
-
   /**
    * exibirHora(a, op, b)
    * a: {hora:"HH:MM:SS", data:"YYYY-MM-DD" | "DD/MM/YYYY"}
@@ -3453,7 +3366,7 @@
         return new Date(Y, M - 1, D);
       }
       throw new Error(
-        "Formato de data inválido. Use YYYY-MM-DD ou DD/MM/YYYY."
+        `Formato de data inválido "${d}". Use YYYY-MM-DD ou DD/MM/YYYY .`
       );
     }
 
@@ -3466,7 +3379,7 @@
 
     function parseTime(h) {
       if (!/^\d{2}:\d{2}:\d{2}$/.test(h)) {
-        throw new Error("Formato de hora inválido. Use HH:MM:SS.");
+        throw new Error(`Formato de hora inválido "${h}". Use HH:MM:SS.`);
       }
       const [HH, MM, SS] = h.split(":").map(Number);
       if (HH < 0 || HH > 23 || MM < 0 || MM > 59 || SS < 0 || SS > 59) {
@@ -3524,12 +3437,127 @@
     return { hora: outHora, data: outData };
   }
 
+  function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
+    // --- Parsers de data/hora flexíveis ---
+    function parseDateFlexible(dateStr) {
+      const s = String(dateStr || "").trim();
+
+      // YYYY-MM-DD
+      let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) return { year: +m[1], month: +m[2], day: +m[3] };
+
+      // DD/MM/YYYY
+      m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (m) return { year: +m[3], month: +m[2], day: +m[1] };
+
+      return null;
+    }
+
+    function parseTimeFlexible(timeStr) {
+      const m = String(timeStr || "")
+        .trim()
+        .match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+      if (!m) return { hh: 0, mm: 0, ss: 0 };
+      return { hh: +m[1], mm: +m[2], ss: m[3] ? +m[3] : 0 };
+    }
+
+    // --- Constrói Date a partir de {data, hora} ---
+    function buildDateTime(obj) {
+      const d = parseDateFlexible(obj?.data || "");
+      const t = parseTimeFlexible(obj?.hora || "00:00:00");
+      if (!d) return new Date(); // fallback: agora
+
+      let { year, month, day } = d;
+      let { hh, mm, ss } = t;
+
+      // Trate "24:00:00" como 00:00:00 do dia seguinte
+      if (hh === 24) {
+        hh = 0;
+        const tmp = new Date(year, month - 1, day);
+        tmp.setDate(tmp.getDate() + 1);
+        year = tmp.getFullYear();
+        month = tmp.getMonth() + 1;
+        day = tmp.getDate();
+      }
+
+      return new Date(year, month - 1, day, hh, mm, ss);
+    }
+
+    // --- Offset string "+HH:MM[:SS]" | "-HH:MM[:SS]" => segundos ---
+    function parseOffset(offsetStr) {
+      const m = String(offsetStr || "").match(
+        /^([+-])(\d{1,2}):(\d{2})(?::(\d{2}))?$/
+      );
+      if (!m) return 0;
+      const sign = m[1] === "-" ? -1 : 1;
+      const h = +m[2],
+        mi = +m[3],
+        s = m[4] ? +m[4] : 0;
+      return sign * (h * 3600 + mi * 60 + s);
+    }
+
+    // --- Duração em segundos a partir de string ou objeto absoluto ---
+    // String "HH:MM[:SS]" => duração direta
+    // Objeto {data, hora} => usa a diferença ABS entre val e base (1º parâmetro)
+    function durationFromAbsoluteOrString(val, baseObj) {
+      if (typeof val === "string") {
+        const t = parseTimeFlexible(val);
+        return t.hh * 3600 + t.mm * 60 + t.ss;
+      }
+      if (typeof val === "object" && val) {
+        const dVal = buildDateTime(val);
+        const dBase = buildDateTime(
+          baseObj || { data: "1970-01-01", hora: "00:00:00" }
+        );
+        return Math.abs(Math.floor((dVal.getTime() - dBase.getTime()) / 1000));
+      }
+      return 0;
+    }
+
+    // --- Formata retorno {data:'YYYY-MM-DD', hora:'HH:MM:SS'} em fuso local ---
+    function formatObj(date) {
+      const data = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      const hora = `${String(date.getHours()).padStart(2, "0")}:${String(
+        date.getMinutes()
+      ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
+      return { data, hora };
+    }
+
+    // --- Determina offset em segundos ---
+    let offsetSec = 0;
+
+    // Caso 1: maisoumenos é uma offset string e não há 3º parâmetro
+    if (typeof maisoumenos === "string" && valordeacrecimo === undefined) {
+      offsetSec = parseOffset(maisoumenos);
+    } else {
+      // Caso 2: sinal via maisoumenos (false/0/"0" => negativo; demais => positivo)
+      const dur = durationFromAbsoluteOrString(
+        valordeacrecimo || "00:00:00",
+        horaedataparacalculo
+      );
+      const isNegative =
+        maisoumenos === false ||
+        (typeof maisoumenos === "number" && Number(maisoumenos) === 0) ||
+        (typeof maisoumenos === "string" && maisoumenos === "0");
+      const sign = isNegative ? -1 : 1;
+      offsetSec = sign * dur;
+    }
+
+    const base = buildDateTime(horaedataparacalculo);
+    const adjusted = new Date(base.getTime() + offsetSec * 1000);
+    return formatObj(adjusted);
+  }
+
   /**
    * verificarESalvar - verifica e salva primeiro login do dia no IndexedDB
    * Se data mudou, movimenta registro anterior para "Ontem"
    * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
    */
   async function verificarESalvar(x) {
+    return;
+
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
@@ -3539,12 +3567,15 @@
     const valorFormatado = converterParaTempo(Segun.Logou);
     const valorEdata = { hora: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
+    const agora = gerarDataHora();
+
     if (
       !dadosPrimLogue ||
+      !dadosPrimLogue.hora ||
       (dadosPrimLogue.data !== hojeFormatado &&
         dadosPrimLogue.data !== ontemFormatado)
     ) {
-      valorEdata.hora = mostrarHora();
+      valorEdata = agora;
       x = 1;
     }
 
@@ -3568,12 +3599,11 @@
         x = 1;
       }
     } else if (dadosPrimLogue) {
-      Segun.LogouSalvo = converterParaSegundos(dadosPrimLogue.hora);
+      horasEDatas.Logou = dadosPrimLogue;
     }
     if (x) {
-      dadosPrimLogue = valorEdata;
-      await AddOuAtuIindexdb(ChavePrimLogue, valorEdata);
-      Segun.LogouSalvo = converterParaSegundos(valorEdata.hora);
+      dadosPrimLogue = horasEDatas.Logou;
+      await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
     }
   }
 

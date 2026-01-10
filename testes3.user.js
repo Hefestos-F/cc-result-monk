@@ -52,7 +52,7 @@
         return new Date(Y, M - 1, D);
       }
       throw new Error(
-        "Formato de data inválido. Use YYYY-MM-DD ou DD/MM/YYYY."
+        `Formato de data inválido "${d}". Use YYYY-MM-DD ou DD/MM/YYYY .`
       );
     }
 
@@ -65,7 +65,7 @@
 
     function parseTime(h) {
       if (!/^\d{2}:\d{2}:\d{2}$/.test(h)) {
-        throw new Error("Formato de hora inválido. Use HH:MM:SS.");
+        throw new Error(`Formato de hora inválido "${h}". Use HH:MM:SS.`);
       }
       const [HH, MM, SS] = h.split(":").map(Number);
       if (HH < 0 || HH > 23 || MM < 0 || MM > 59 || SS < 0 || SS > 59) {
@@ -236,25 +236,25 @@
     return formatObj(adjusted);
   }
 
-  function horarios(logado,escalado) {
-    const agora = gerarDataHora();
 
+  function horarios(logado, escalado) {
+    const agora = gerarDataHora();
 
     const Logou = exibirHora(agora, 0, logado);
 
     const Saida = exibirHora(Logou, 1, escalado);
 
-    const Falta = exibirAHora(Saida, 0, agora)
+    const Falta = exibirAHora(Saida, 0, agora);
 
-    return{
-      Logou:Logou,
-      Saida:Saida,
-      logado:logado,
-      Falta:Falta,
-
-    }
+    return {
+      Logou: Logou,
+      Saida: Saida,
+      logado: logado,
+      Falta: Falta,
+    };
   }
 
-  horarios("02:00:00","06:00:00");
+  horarios("02:00:00", "06:00:00");
+
 
 })();
