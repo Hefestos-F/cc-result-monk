@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5.6
+// @version      1.2.5.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -19,6 +19,11 @@
     logueEntreDatas: 0,
     pausalimitada: 0,
   };
+  const configPadrao = {
+    TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
+    logueEntreDatas: 0,
+    pausalimitada: 0,
+  };
 
   const stt = {
     observa: 1,
@@ -26,6 +31,7 @@
     andament: 1,
     ocultarValor: 0,
     estouro: 0,
+    AbaPausas: 0,
   };
 
   let TempoPausas = {
@@ -799,8 +805,9 @@
 
     agora1.hora = TempoPausas.Logou;
 
-    TempoPausas.Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
+    const Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
 
+    TempoPausas.Saida = Saida.hora;
     if (compararDatas(dadosPrimLogue, Logou)) {
       dadosPrimLogue = Logou;
       verifiDataLogue(1);
@@ -832,7 +839,7 @@
 
     time.textContent = ContAtual;
 
-    TempoPausas.Falta = exibirAHora(TempoPausas.Saida, 0, agora).hora;
+    TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
 
     vLogado.textContent = TempoPausas.Logado;
     vFalta.textContent = TempoPausas.Falta;
@@ -1111,7 +1118,7 @@
    */
   function ADDBotPa() {
     const caixa = document.createElement("div");
-    caixa.id = "BotPa";
+    caixa.id = "BPausa";
     caixa.innerHTML = "P";
     caixa.style.cssText = `
         background: ${Ccor.Principal};
@@ -1122,22 +1129,12 @@
         display: flex;
         align-items: center;
         transition: all 0.5s ease;
-        visibility: hidden;
-        opacity: 0;
         cursor: pointer;
         justify-content: center;
-        margin-left: auto;
-       margin-right: 5px;
-        margin-top: -20px;
-        margin-bottom: 20px;
         `;
 
     caixa.addEventListener("click", function () {
-      AtualizarConf(17);
-      ControleFront(3);
-      const CaiDPa = document.getElementById("CaiDPa");
-      if (CaiDPa) AtuaPausas();
-      Controle(1);
+      //Controle(1);
     });
 
     // Adiciona o evento de mouseover ao botão
@@ -1163,6 +1160,70 @@
         : stt.AbaPausas
         ? "F"
         : "P";
+    }
+
+    return caixa;
+  }
+
+  function ADDBotConfig() {
+    const caixa = document.createElement("div");
+    caixa.id = "BConfig";
+    caixa.innerHTML = "C";
+    caixa.style.cssText = `
+        background: ${Ccor.Principal};
+        height: 20px;
+        width: 20px;
+        border-radius: 15px;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        transition: all 0.5s ease;
+        cursor: pointer;
+        justify-content: center;
+        
+        `;
+
+    caixa.addEventListener("click", function () {
+      //Controle(1);
+      const a = document.getElementById("minhaCaixa");
+      const b = document.getElementById("CaixaConfig");
+      if (b) {
+        b.remove();
+      } else if (a) {
+        // Verifica se já existe pelo menos um filho
+        if (a.children.length >= 1) {
+          // Insere antes do segundo filho atual (índice 1)
+          a.insertBefore(criarC(), div.children[1]);
+        } else {
+          // Caso não tenha filhos suficientes, apenas adiciona
+          a.appendChild(criarC());
+        }
+      }
+    });
+
+    // Adiciona o evento de mouseover ao botão
+    caixa.addEventListener("mouseover", function () {
+      Controle(1);
+    });
+
+    // Adiciona o evento de mouseout ao botão
+    caixa.addEventListener("mouseout", function () {
+      Controle(0);
+    });
+
+    /**
+     * Controle - alterna entre modo compacto/expandido do botão
+     * @param {number} mostrarTextoCompleto - 1 para expandido, 0 para compacto
+     */
+    function Controle(mostrarTextoCompleto) {
+      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
+      caixa.innerHTML = mostrarTextoCompleto
+        ? stt.AbaPausas
+          ? "Fechar"
+          : "Config"
+        : stt.AbaPausas
+        ? "F"
+        : "C";
     }
 
     return caixa;
@@ -1344,10 +1405,6 @@
     const tma = criarCaixaDCv("c", "TMA");
     const falta = criarCaixaDCv("c", "Falta");
     const saida = criarCaixaDCv("c", "Saida");
-    const Offline = criarLinhaFixa(1, "Offline");
-    Offline.style.background = Ccor.Offline;
-    const Estouro = criarLinhaFixa(0, "Estouro");
-    Estouro.style.background = Ccor.Erro;
 
     // Cria um contêiner para agrupar as caixas
     const container = document.createElement("div");
@@ -1383,11 +1440,10 @@
     minhaCaixa.style.cssText = `
         display: flex;
         color: white;
-        flex-direction: column;
+        flex-direction: row;
         z-index: 9999;
         font-size: 12px;
         transition: all 0.5s ease;
-        align-items: center;
         `;
 
     function linha(a) {
@@ -1406,14 +1462,41 @@
     }
     // Adiciona o contêiner ao contêiner principal
 
-    const Alinha1 = linha("Alinha1");
-    const Alinha2 = linha("Alinha2");
-    Alinha1.appendChild(Offline);
-    Alinha2.appendChild(Estouro);
-    //minhaCaixa.appendChild(Alinha1);
-    //minhaCaixa.appendChild(Alinha2);
+    // Adiciona o evento de mouseover ao botão
+    minhaCaixa.addEventListener("mouseover", function () {
+      BotPacontrole(1, "ContPaCo");
+    });
+
+    // Adiciona o evento de mouseout ao botão
+    minhaCaixa.addEventListener("mouseout", function () {
+      BotPacontrole(0, "ContPaCo");
+    });
+    function BotPacontrole(x, z) {
+      const a = document.getElementById(z);
+      if (a) {
+        a.style.opacity = x ? "1" : "0";
+        a.style.visibility = x ? "visible" : "hidden";
+        a.style.marginLeft = x ? "5px" : "-35px";
+      }
+    }
+
     minhaCaixa.appendChild(container);
-    minhaCaixa.appendChild(ADDBotPa());
+
+    const Divbot = document.createElement("div");
+    Divbot.id = "ContPaCo";
+    Divbot.style.cssText = `
+   margin-left: -35px;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.5s;
+    display: grid;
+    gap: 5px;
+    height: max-content;
+    `;
+
+    Divbot.appendChild(ADDBotConfig());
+    Divbot.appendChild(ADDBotPa());
+    //minhaCaixa.appendChild(Divbot);
 
     return minhaCaixa;
   }
@@ -1459,4 +1542,633 @@
       aplicarConfiguracao(dadosSalvosConfi);
     }
   }
+
+  function criarC() {
+    const style = document.createElement("style");
+    style.textContent = `
+        .placeholderPerso::placeholder {
+        color: #6d4500;
+        opacity: 1;
+        font-size: 12px;
+        }
+        `;
+
+    const caixa = document.createElement("div");
+    caixa.id = "CaixaConfig";
+    caixa.style.cssText = `
+        height: 170px;
+        margin-top: -15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        background: ${Ccor.Config};
+        transition: all 0.5s ease;
+        opacity: 1;
+        flex-direction: column;
+        padding: 10px;
+        overflow: auto;
+        width: 210px;
+        border: solid steelblue;
+        `;
+
+    function criarCaixaSeg() {
+      const caixa = document.createElement("div");
+      caixa.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            `;
+      return caixa;
+    }
+
+    function CaixaDeOcultar(titulo, objeto) {
+      const Titulofeito = titulo;
+      const CaixaPrincipal = criarCaixaSeg();
+      Titulofeito.style.cssText = `
+            padding: 2px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-size: 12px;
+            height: 22px;
+            `;
+      Titulofeito.addEventListener("click", function () {
+        const a = document.getElementById(objeto.id);
+        const b = document.getElementById(Titulofeito.id);
+        if (!a) {
+          CaixaPrincipal.append(objeto);
+        } else {
+          a.remove();
+        }
+        b.style.marginBottom = a ? "0px" : "6px";
+        AtualizarConf();
+      });
+      CaixaPrincipal.append(Titulofeito);
+      return CaixaPrincipal;
+    }
+
+    function entradatempo(idV, houm, placeholderV) {
+      const input = document.createElement("input");
+      input.className = "placeholderPerso";
+      input.id = `Input${idV}`;
+      input.type = "number";
+      input.placeholder = placeholderV;
+      input.min = 0;
+      input.max = houm ? 23 : 59;
+      input.style.cssText = `
+                width: 42px;
+                background: #ffffff00;
+                border: solid 1px white;
+                color: white;
+                font-size: 12px;
+            `;
+      return input;
+    }
+    // Criar separador visual ":"
+    function doispontos() {
+      const DoisP = document.createElement("span");
+      DoisP.textContent = ":";
+      DoisP.style.cssText = `
+                color: white;
+                padding: 0 5px;
+                font-size: 20px;
+            `;
+      return DoisP;
+    }
+
+    function ContTempEsc() {
+      const horaInputCai = document.createElement("div");
+      horaInputCai.style.cssText = `
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        `;
+      horaInputCai.id = "inputEscala";
+      const SalvarHora = criarBotSalv(13, "Salvar");
+      SalvarHora.style.marginLeft = "5px";
+      SalvarHora.addEventListener("click", function () {
+        salvarHorario();
+        ControleFront();
+        SalvandoVari(1);
+      });
+      const horaInputCaiHM = document.createElement("div");
+      horaInputCaiHM.style.cssText = `display: flex; align-items: center;`;
+      const [horasS, minutosS, segundosS] =
+        CConfig.TempoEscaladoHoras.split(":").map(Number);
+      const horaInputTE = entradatempo(
+        "HoraEsc",
+        1,
+        String(horasS).padStart(2, "0")
+      );
+      const minuInputTE = entradatempo(
+        "MinuEsc",
+        0,
+        String(minutosS).padStart(2, "0")
+      );
+
+      function salvarHorario() {
+        const hora = parseInt(horaInputTE.value) || horasS;
+        const minuto = parseInt(minuInputTE.value) || minutosS;
+
+        const horaFormatada = String(hora).padStart(2, "0");
+        const minutoFormatado = String(minuto).padStart(2, "0");
+        const segundos = "00";
+
+        const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
+
+        // Salva na variável
+        CConfig.TempoEscaladoHoras = horarioFormatado;
+
+        horaInputTE.value = "";
+        minuInputTE.value = "";
+        horaInputTE.placeholder = horaFormatada;
+        minuInputTE.placeholder = minutoFormatado;
+      }
+      horaInputCaiHM.append(horaInputTE, doispontos(), minuInputTE);
+      horaInputCai.append(horaInputCaiHM, SalvarHora);
+      const a = CaixaDeOcultar(
+        criarBotSalv(28, "Tempo Escalado"),
+        horaInputCai
+      );
+      return a;
+    }
+
+    function ContlogueManual() {
+      function salvarHorariologueManual() {
+        const hora = parseInt(
+          horaInputlogueManual.value || horaInputlogueManual.placeholder
+        );
+        const minuto = parseInt(
+          minuInputlogueManual.value || minuInputlogueManual.placeholder
+        );
+        const horaFormatada = String(hora).padStart(2, "0");
+        const minutoFormatado = String(minuto).padStart(2, "0");
+        const segundos = "00";
+        const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
+        horaInputlogueManual.placeholder = horaFormatada;
+        minuInputlogueManual.placeholder = minutoFormatado;
+        CConfig.ValorLogueManual = horarioFormatado;
+        SalvarLogueManual(1);
+      }
+      const InputCailogueManual = document.createElement("div");
+      InputCailogueManual.style.cssText = `display: flex; align-items: center;`;
+      const horaInputlogueManual = entradatempo(
+        "HLManual",
+        1,
+        String("0").padStart(2, "0")
+      );
+      horaInputlogueManual.addEventListener("input", function () {
+        salvarHorariologueManual();
+      });
+      const minuInputlogueManual = entradatempo(
+        "MLManual",
+        0,
+        String("0").padStart(2, "0")
+      );
+      minuInputlogueManual.addEventListener("input", function () {
+        salvarHorariologueManual();
+      });
+      InputCailogueManual.append(
+        horaInputlogueManual,
+        doispontos(),
+        minuInputlogueManual
+      );
+
+      const horaInputCailogueManual = document.createElement("div");
+      horaInputCailogueManual.style.cssText = `
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        `;
+      horaInputCailogueManual.id = "CinputLogueManual";
+      const logueManualC = criarBotaoSlide2(13, () => {
+        CConfig.LogueManual = !CConfig.LogueManual;
+        if (CConfig.LogueManual) {
+          const [horasIm, minutosIm, segundosIm] = converterParaTempo(
+            Segun.QualLogou
+          )
+            .split(":")
+            .map(Number);
+          horaInputlogueManual.value = String(horasIm).padStart(2, "0");
+          minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
+        } else {
+          iniciarBusca();
+        }
+        SalvarLogueManual(1);
+        AtualizarConf();
+      });
+      logueManualC.style.cssText = `
+        margin-left: 6px;
+        `;
+
+      horaInputCailogueManual.append(InputCailogueManual, logueManualC);
+      const a = CaixaDeOcultar(
+        criarBotSalv(27, "Logue Manual"),
+        horaInputCailogueManual
+      );
+      return a;
+    }
+
+    function ContModoTeste() {
+      const area = criarCaixaSeg();
+      area.id = "CModoTeste";
+
+      const linha = document.createElement("div");
+      linha.style.cssText = `
+        display: flex;
+        align-items: center;
+        width: 100%;
+        margin-top: 6px;
+      `;
+
+      const dateInput = document.createElement("input");
+      dateInput.type = "date";
+      dateInput.id = "InputModoTesteDate";
+      dateInput.style.cssText = `background: #ffffff00; border: solid 1px white; color: white; padding:2px;`;
+      dateInput.value =
+        VariavelmodoTeste && VariavelmodoTeste.data
+          ? VariavelmodoTeste.data
+          : "";
+
+      // Criar inputs separados para hora e minuto (como em ContlogueManual)
+      const existingHoraRaw =
+        (VariavelmodoTeste &&
+          (VariavelmodoTeste.hora || VariavelmodoTeste.fuso)) ||
+        "+00:00:00";
+      // preserva sinal (+/-) se houver
+      const signMatch = /^[+-]/.test(existingHoraRaw) ? existingHoraRaw[0] : "";
+      const existingHora = signMatch
+        ? existingHoraRaw.slice(1)
+        : existingHoraRaw;
+      const [existH = "00", existM = "00"] = existingHora
+        .split(":")
+        .map((v) => String(v).padStart(2, "0"));
+
+      const horaInputModoTeste = entradatempo(
+        "HModoTeste",
+        1,
+        String(existH).padStart(2, "0")
+      );
+      const minuInputModoTeste = entradatempo(
+        "MModoTeste",
+        0,
+        String(existM).padStart(2, "0")
+      );
+      horaInputModoTeste.style.marginRight = "4px";
+
+      function salvarHorarioModoTeste() {
+        const hora =
+          parseInt(horaInputModoTeste.value) || parseInt(existH) || 0;
+        const minuto =
+          parseInt(minuInputModoTeste.value) || parseInt(existM) || 0;
+        const horaFormatada = String(hora).padStart(2, "0");
+        const minutoFormatado = String(minuto).padStart(2, "0");
+        const segundos = "00";
+        const horarioFormatado = `${signMatch}${horaFormatada}:${minutoFormatado}:${segundos}`;
+        // salva em ambas propriedades para manter compatibilidade
+        VariavelmodoTeste.hora = horarioFormatado;
+        VariavelmodoTeste.fuso = horarioFormatado;
+        SalvandoVari(1);
+      }
+
+      const salvarBot = criarBotSalv(35, "Salvar");
+      salvarBot.addEventListener("click", function () {
+        VariavelmodoTeste.data =
+          dateInput.value || VariavelmodoTeste.data || "";
+        salvarHorarioModoTeste();
+        // garante que CConfig.modoTeste siga o toggle
+        CConfig.modoTeste = CConfig.modoTeste ? 1 : 0;
+        AtualizarConf();
+      });
+
+      const toggle = criarBotaoSlide2(34, () => {
+        CConfig.modoTeste = !CConfig.modoTeste;
+        if (CConfig.modoTeste) {
+          // quando ativar, preenche inputs com valores atuais se vazio
+          if (!dateInput.value && VariavelmodoTeste.data)
+            dateInput.value = VariavelmodoTeste.data;
+          const raw =
+            VariavelmodoTeste.hora || VariavelmodoTeste.fuso || "+00:00:00";
+          const sign = /^[+-]/.test(raw) ? raw[0] : "";
+          const parts = sign ? raw.slice(1) : raw;
+          const [hh = "00", mm = "00"] = parts.split(":");
+          if (!horaInputModoTeste.value)
+            horaInputModoTeste.value = String(hh).padStart(2, "0");
+          if (!minuInputModoTeste.value)
+            minuInputModoTeste.value = String(mm).padStart(2, "0");
+        }
+        SalvandoVari(1);
+        AtualizarConf();
+      });
+
+      // Atualiza VariavelmodoTeste quando inputs mudam
+      dateInput.addEventListener("change", () => {
+        VariavelmodoTeste.data = dateInput.value;
+        SalvandoVari(1);
+      });
+      horaInputModoTeste.addEventListener("input", () => {
+        salvarHorarioModoTeste();
+      });
+      minuInputModoTeste.addEventListener("input", () => {
+        salvarHorarioModoTeste();
+      });
+
+      // monta a linha com inputs separados e o botão salvar
+      linha.append(
+        horaInputModoTeste,
+        doispontos(),
+        minuInputModoTeste,
+        salvarBot
+      );
+      area.appendChild(dateInput);
+      area.appendChild(linha);
+      area.appendChild(toggle);
+
+      const a = CaixaDeOcultar(c1riarBotSalv(34, "Modo Teste"), area);
+      return a;
+    }
+
+    function criarSeparador() {
+      const separador = document.createElement("div");
+      separador.style.cssText = `
+            width: 100%;
+            margin: 8px 0px;
+            outline: 1px dashed white;
+            `;
+      return separador;
+    }
+
+    function caixaDeCor() {
+      const c1aixaDeCor = criarCaixaSeg();
+      c1aixaDeCor.id = "c1aixaDeCor";
+      c1aixaDeCor.append(
+        LinhaSelCor(7, "Principal", Ccor.Principal),
+        LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
+        LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
+        LinhaSelCor(10, "Erro", Ccor.Erro),
+        LinhaSelCor(11, "Offline", Ccor.Offline),
+        LinhaSelCor(12, "Config", Ccor.Config)
+      );
+
+      const a = CaixaDeOcultar(criarBotSalv(25, "Cores"), c1aixaDeCor);
+      return a;
+    }
+
+    const CIgOffline = criarCaixaSeg();
+    const IgOffline = criarLinhaTextoComBot(16, "Ignorar Offline");
+    CIgOffline.append(IgOffline);
+
+    const CIgTMA = aixaSeg();
+    const IgTMA = criarLinhaTextoComBot(19, "Ignorar TMA");
+    CIgTMA.append(IgTMA);
+
+    const CIgErro = criarCaixaSeg();
+    const IgErro = criarLinhaTextoComBot(20, "Ignorar Erro Nice");
+    CIgErro.append(IgErro);
+
+    const IgEst = criarLinhaTextoComBot(22, "Notificar Estouro");
+    const IgEstSom = criarLinhaTextoComBot(23, "Som");
+
+    function c1riarBotSalv(a, b) {
+      const c = criarBotSalv(a, b);
+      c.style.cssText = `
+            padding: 2px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-size: 12px;
+            height: 22px;
+            `;
+      return c;
+    }
+
+    function Cbotavan() {
+      const CBancDa = criarCaixaSeg();
+      CBancDa.id = "CBancDa";
+
+      const BBancDa = c1riarBotSalv(31, "Banco de Dados");
+      BBancDa.addEventListener("click", function () {
+        if (CBancDa.innerHTML === "") {
+          listarChavesEConteudos(); // Preenche o conteúdo
+        } else {
+          CBancDa.innerHTML = ""; // Limpa o conteúdo
+        }
+      });
+
+      const CBBancDa = criarCaixaSeg();
+      CBBancDa.append(BBancDa);
+      CBBancDa.append(CBancDa);
+
+      const C2ValoresEnc = criarCaixaSeg();
+      C2ValoresEnc.style.alignItems = "center";
+
+      const tValoresEnc = c1riarBotSalv(30, "Valores Encontrados");
+      tValoresEnc.addEventListener("click", function () {
+        if (C2ValoresEnc.innerHTML === "") {
+          C2ValoresEnc.innerHTML = `
+        <div>Disponivel = ${Htime.Disponivel}</div>
+        <div>Trabalhando = ${Htime.Trabalhando}</div>
+        <div>Indisponivel = ${Htime.Indisponivel}</div>
+        <div>Atendidas = ${stt.vAtendidas}</div>
+        `;
+        } else {
+          C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
+        }
+      });
+
+      const CValoresEnc = criarCaixaSeg();
+      //CValoresEnc.append(tValoresEnc);
+      CValoresEnc.append(C2ValoresEnc);
+
+      const BotaoResetT = c1riarBotSalv(15, "Restaurar Config");
+      BotaoResetT.addEventListener("click", function () {
+        caixa.appendChild(
+          ADDCaixaDAviso("Restaurar Config", () => {
+            SalvandoVari(2);
+            iniciarBusca();
+          })
+        );
+      });
+
+      const caixaDeBotres = criarCaixaSeg();
+      caixaDeBotres.append(BotaoResetT);
+
+      const Cavancado = criarCaixaSeg();
+      Cavancado.id = "Cavancado";
+      Cavancado.style.padding = "0px 8px";
+      Cavancado.append(
+        criarSeparador(),
+        CBBancDa,
+        criarSeparador(),
+        ContModoTeste(),
+        criarSeparador(),
+        CValoresEnc,
+        criarSeparador(),
+        caixaDeBotres
+      );
+
+      const a = CaixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
+
+      a.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      width: 90%;
+      background: #ff000a3d;
+      border-radius: 10px;
+      `;
+      return a;
+    }
+
+    function Faixa() {
+      const b = criarCaixaSeg();
+      b.id = "ContFaixa";
+
+      const fixar = criarLinhaTextoComBot(18, "Faixar Valor");
+
+      const ocultar = document.createElement("div");
+      ocultar.textContent = "Ocultar em ";
+
+      const c = criarCaixaSeg();
+      c.id = "C2ontFaixa";
+      c.style.flexDirection = "";
+      c.style.justifyContent = "space-between";
+
+      const InputMin = document.createElement("input");
+      InputMin.className = "placeholderPerso";
+      InputMin.placeholder = CConfig.tempoPOcul;
+      InputMin.type = "number";
+      InputMin.min = "3";
+      InputMin.max = "99";
+      InputMin.style.cssText = `
+        width: 40px;
+        height: 16px;
+        color: white;
+        background: #ffffff00;
+        border: solid 1px white;
+        margin: 0px 3px;
+        `;
+      InputMin.addEventListener("input", function () {
+        CConfig.tempoPOcul = InputMin.value || InputMin.min;
+      });
+
+      c.append(ocultar);
+      c.append(InputMin);
+      const d = criarBotaoSlide2(33, () => {
+        CConfig.temOcul = !CConfig.temOcul;
+        if (CConfig.temOcul) CConfig.FaixaFixa = 0;
+        AtualizarConf();
+      });
+      const text = document.createElement("div");
+      text.textContent = "seg";
+      c.append(text);
+      c.append(d);
+
+      b.append(fixar);
+      b.append(c);
+
+      const a = CaixaDeOcultar(criarBotSalv(32, "Faixa"), b);
+
+      return a;
+    }
+
+    caixa.append(
+      //caixaDeCor(),
+      //criarSeparador(),
+      //Faixa(),
+      //criarSeparador(),
+      //CIgOffline,
+      //CIgTMA,
+      //CIgErro,
+
+      //criarSeparador(),
+      ContTempEsc()
+      // criarSeparador(),
+      // ContlogueManual(),
+
+      //criarSeparador(),
+      // Cbotavan()
+    );
+
+    //document.body.appendChild(caixa);
+
+    // Função auxiliar para criar linha com texto e bolinha
+    function criarLinhaTextoComBot(idbola, texto) {
+      const linha = document.createElement("div");
+      linha.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin: 3px 0px;
+            `;
+
+      const textoDiv = document.createElement("div");
+      textoDiv.textContent = texto;
+
+      const botao = criarBotaoSlide(idbola);
+
+      linha.append(textoDiv, botao);
+      return linha;
+    }
+
+    function LinhaSelCor(a, b, c) {
+      const div1 = document.createElement("div");
+      div1.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 5px;
+            `;
+
+      const inputCor = document.createElement("input");
+      inputCor.id = `cor${a}`;
+      inputCor.type = "color";
+      inputCor.value = c; // Corrigido aqui
+
+      inputCor.style.cssText = `
+            height: 20px;
+            width: 20px;
+            padding: 0px;
+            border: none;
+            background: none;
+            cursor: pointer;
+             `;
+
+      const textoDiv = document.createElement("div");
+      textoDiv.textContent = b;
+
+      const botao = criarBotSalv(a, "Aplicar");
+
+      botao.addEventListener("click", function () {
+        Ccor.Varian = inputCor.value;
+        copiarTexto(Ccor.Varian);
+        AtualizarConf(a);
+        ControleFront();
+        SalvandoVari(1);
+      });
+
+      div1.append(inputCor, textoDiv, botao);
+      return div1;
+    }
+
+    return caixa;
+  }
 })();
+
+/**
+ * copiarTexto - copia texto para clipboard
+ * @param {string} texto - texto a copiar
+ */
+async function copiarTexto(texto) {
+  try {
+    await navigator.clipboard.writeText(texto);
+    console.log("Texto copiado com sucesso!");
+  } catch (err) {
+    console.error("Erro ao copiar texto: ", err);
+  }
+}
