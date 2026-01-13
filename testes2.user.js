@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5.7
+// @version      1.2.5.8
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -19,6 +19,7 @@
     logueEntreDatas: 0,
     pausalimitada: 0,
   };
+
   const configPadrao = {
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
     logueEntreDatas: 0,
@@ -648,47 +649,52 @@
     return formatObj(adjusted);
   }
 
-  function criarObjetoFlutuante(id = "timerFlutuante") {
-    // Evita duplicar
-    if (document.getElementById(id)) return;
+  function criarObjetoFlutuante() {
+    if (document.getElementById("FlutOB")) return;
 
     const div = document.createElement("div");
+    div.id = "FlutOB";
+    const handle = document.createElement("div"); // Área para arrastar
 
-    const div2 = document.createElement("div");
-    div2.id = `T${id}`;
-    const div3 = document.createElement("div");
-    div3.id = id;
-
-    // Estilo inicial
+    // Estilo do container principal
     Object.assign(div.style, {
       position: "fixed",
-      bottom: "15px",
-      left: "15px",
+      bottom: "1px",
+      left: "1px",
       borderRadius: "8px",
-      zIndex: "9999",
-      cursor: "move",
-      boxSizing: "border-box", // evita crescer por padding/borda
+      zIndex: "16",
+      boxSizing: "border-box",
       userSelect: "none",
-      // Preparar para transform
       transform: "translate(0px, 0px)",
       willChange: "transform",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
+      background: "#2c3e50",
+      padding: "3px",
     });
 
-    // Estado interno do deslocamento
-    let offsetX = 0;
-    let offsetY = 0;
-    let dragging = false;
-    let startX = 0;
-    let startY = 0;
+    // Estilo da área de arrasto
+    Object.assign(handle.style, {
+      width: "100%",
+      height: "5px",
+      background: "#34495e",
+      cursor: "grab",
+      borderRadius: "4px",
+      marginBottom: "5px",
+    });
+
+    let offsetX = 0,
+      offsetY = 0,
+      dragging = false,
+      startX = 0,
+      startY = 0;
 
     function onPointerDown(e) {
       dragging = true;
-      // Posição do ponteiro no início
       startX = e.clientX;
       startY = e.clientY;
+      handle.style.cursor = "grabbing";
       div.setPointerCapture?.(e.pointerId);
       e.preventDefault();
     }
@@ -704,35 +710,24 @@
       if (!dragging) return;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      // acumula deslocamento
       offsetX += dx;
       offsetY += dy;
       dragging = false;
+      handle.style.cursor = "grab";
       div.releasePointerCapture?.(e.pointerId);
     }
 
-    // Pointer Events (funciona para mouse e touch)
-    div.addEventListener("pointerdown", onPointerDown);
+    // Eventos apenas na área de arrasto
+    handle.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
 
-    // Desativa arrastar nativo
     div.ondragstart = () => false;
 
-    div.appendChild(div2);
-    div.appendChild(div3);
+    // Monta estrutura
+    div.appendChild(handle);
     div.appendChild(AdicionarCaixaAtualizada());
     document.body.appendChild(div);
-
-    div.addEventListener("mouseover", function () {
-      //if (stt.Status === "---") return;
-      //verificarMouse(1);
-    });
-
-    div.addEventListener("mouseout", function () {
-      //if (stt.Status === "---") return;
-      //verificarMouse(0);
-    });
   }
 
   criarObjetoFlutuante();
@@ -1170,58 +1165,58 @@
     caixa.id = "BConfig";
     caixa.innerHTML = "C";
     caixa.style.cssText = `
-        background: ${Ccor.Principal};
-        height: 20px;
-        width: 20px;
-        border-radius: 15px;
-        padding: 5px;
-        display: flex;
-        align-items: center;
-        transition: all 0.5s ease;
-        cursor: pointer;
-        justify-content: center;
-        
-        `;
+    background: ${Ccor?.Principal || "#007bff"};
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    transition: all 0.5s ease;
+    cursor: pointer;
+    justify-content: center;
+    position: relative;
+    z-index: 17;
+    pointer-events: auto;
+    `;
 
     caixa.addEventListener("click", function () {
-      //Controle(1);
+      console.log("BConfig clicado");
       const a = document.getElementById("minhaCaixa");
+      if (!a) {
+        console.warn("minhaCaixa não encontrada");
+        return;
+      }
+
       const b = document.getElementById("CaixaConfig");
       if (b) {
         b.remove();
-      } else if (a) {
-        // Verifica se já existe pelo menos um filho
-        if (a.children.length >= 1) {
-          // Insere antes do segundo filho atual (índice 1)
-          a.insertBefore(criarC(), div.children[1]);
-        } else {
-          // Caso não tenha filhos suficientes, apenas adiciona
-          a.appendChild(criarC());
+        console.log("CaixaConfig removida");
+      } else {
+        const novoElemento = criarC();
+        if (!novoElemento) {
+          console.error("criarC() não retornou um elemento válido");
+          return;
         }
+        if (a.children.length >= 2) {
+          a.insertBefore(novoElemento, a.children[1]);
+        } else {
+          a.appendChild(novoElemento);
+        }
+        console.log("CaixaConfig adicionada");
       }
     });
 
-    // Adiciona o evento de mouseover ao botão
-    caixa.addEventListener("mouseover", function () {
-      Controle(1);
-    });
+    caixa.addEventListener("mouseover", () => Controle(1));
+    caixa.addEventListener("mouseout", () => Controle(0));
 
-    // Adiciona o evento de mouseout ao botão
-    caixa.addEventListener("mouseout", function () {
-      Controle(0);
-    });
-
-    /**
-     * Controle - alterna entre modo compacto/expandido do botão
-     * @param {number} mostrarTextoCompleto - 1 para expandido, 0 para compacto
-     */
     function Controle(mostrarTextoCompleto) {
       caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
       caixa.innerHTML = mostrarTextoCompleto
-        ? stt.AbaPausas
+        ? stt?.AbaPausas
           ? "Fechar"
           : "Config"
-        : stt.AbaPausas
+        : stt?.AbaPausas
         ? "F"
         : "C";
     }
@@ -1337,38 +1332,6 @@
   }
 
   function AdicionarCaixaAtualizada() {
-    function criarLinhaFixa(x, titulo) {
-      const caixa = document.createElement("div");
-      caixa.id = `c${titulo}`;
-      caixa.style.cssText = `
-            transition: all 0.5s ease;
-            border-radius: 6px;
-            padding: 0px 3px;
-            display: flex;
-            `;
-
-      const caixa2 = document.createElement("div");
-      caixa2.id = `t${titulo}`;
-      caixa2.style.marginRight = "6px";
-      caixa2.textContent = `${titulo}:`;
-
-      const caixa3 = document.createElement("div");
-      caixa3.id = `v${titulo}`;
-      caixa3.textContent = "...";
-
-      if (x) {
-        const botao = criarBotaoSlide(14);
-        botao.style.marginRight = "6px";
-        caixa.appendChild(botao);
-      }
-
-      // Adiciona os elementos corretamente
-      caixa.appendChild(caixa2);
-      caixa.appendChild(caixa3);
-
-      return caixa;
-    }
-
     // Função para criar a classe dinamicamente
     function criarClasse() {
       const style = document.createElement("style");
@@ -1441,25 +1404,11 @@
         display: flex;
         color: white;
         flex-direction: row;
-        z-index: 9999;
+        z-index: 16;
         font-size: 12px;
         transition: all 0.5s ease;
         `;
 
-    function linha(a) {
-      const x = document.createElement("div");
-      x.id = a;
-      x.style.cssText = `
-        display: flex;
-        justify-content: center;
-        visibility: hidden;
-        opacity: 0;
-        margin-bottom: -18px;
-        visibility: hidden;
-        transition: opacity 0.5s ease, margin-top 0.5s ease, margin-bottom 0.5s ease;
-        `;
-      return x;
-    }
     // Adiciona o contêiner ao contêiner principal
 
     // Adiciona o evento de mouseover ao botão
@@ -1476,7 +1425,7 @@
       if (a) {
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
-        a.style.marginLeft = x ? "5px" : "-35px";
+        a.style.marginLeft = x ? "5px" : "-30px";
       }
     }
 
@@ -1485,18 +1434,20 @@
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
-   margin-left: -35px;
+   margin-left: -30px;
     opacity: 0;
     visibility: hidden;
     transition: 0.5s;
     display: grid;
     gap: 5px;
     height: max-content;
+    
+
     `;
 
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
-    //minhaCaixa.appendChild(Divbot);
+    minhaCaixa.appendChild(Divbot);
 
     return minhaCaixa;
   }
@@ -1511,7 +1462,7 @@
 
     /**
      * aplicarConfiguracao - aplica dados de configuração aos objetos globais
-     * @param {Object} dados - objeto com CConfig e Ccor
+     * @param {Object} dados - objeto com config e Ccor
      */
     function aplicarConfiguracao(dados) {
       if (dados.DDPausa) {
@@ -1547,7 +1498,7 @@
     const style = document.createElement("style");
     style.textContent = `
         .placeholderPerso::placeholder {
-        color: #6d4500;
+        color: #242421;
         opacity: 1;
         font-size: 12px;
         }
@@ -1557,18 +1508,17 @@
     caixa.id = "CaixaConfig";
     caixa.style.cssText = `
         height: 170px;
-        margin-top: -15px;
         border-radius: 8px;
         display: flex;
         align-items: center;
         background: ${Ccor.Config};
         transition: all 0.5s ease;
-        opacity: 1;
         flex-direction: column;
         padding: 10px;
         overflow: auto;
         width: 210px;
         border: solid steelblue;
+        margin-left: 5px;
         `;
 
     function criarCaixaSeg() {
@@ -1603,7 +1553,6 @@
           a.remove();
         }
         b.style.marginBottom = a ? "0px" : "6px";
-        AtualizarConf();
       });
       CaixaPrincipal.append(Titulofeito);
       return CaixaPrincipal;
@@ -1650,13 +1599,12 @@
       SalvarHora.style.marginLeft = "5px";
       SalvarHora.addEventListener("click", function () {
         salvarHorario();
-        ControleFront();
-        SalvandoVari(1);
+        SalvandoVariConfig(1);
       });
       const horaInputCaiHM = document.createElement("div");
       horaInputCaiHM.style.cssText = `display: flex; align-items: center;`;
       const [horasS, minutosS, segundosS] =
-        CConfig.TempoEscaladoHoras.split(":").map(Number);
+        config.TempoEscaladoHoras.split(":").map(Number);
       const horaInputTE = entradatempo(
         "HoraEsc",
         1,
@@ -1679,7 +1627,7 @@
         const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
 
         // Salva na variável
-        CConfig.TempoEscaladoHoras = horarioFormatado;
+        config.TempoEscaladoHoras = horarioFormatado;
 
         horaInputTE.value = "";
         minuInputTE.value = "";
@@ -1709,7 +1657,7 @@
         const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
         horaInputlogueManual.placeholder = horaFormatada;
         minuInputlogueManual.placeholder = minutoFormatado;
-        CConfig.ValorLogueManual = horarioFormatado;
+        config.ValorLogueManual = horarioFormatado;
         SalvarLogueManual(1);
       }
       const InputCailogueManual = document.createElement("div");
@@ -1744,8 +1692,8 @@
         `;
       horaInputCailogueManual.id = "CinputLogueManual";
       const logueManualC = criarBotaoSlide2(13, () => {
-        CConfig.LogueManual = !CConfig.LogueManual;
-        if (CConfig.LogueManual) {
+        config.LogueManual = !config.LogueManual;
+        if (config.LogueManual) {
           const [horasIm, minutosIm, segundosIm] = converterParaTempo(
             Segun.QualLogou
           )
@@ -1830,7 +1778,7 @@
         // salva em ambas propriedades para manter compatibilidade
         VariavelmodoTeste.hora = horarioFormatado;
         VariavelmodoTeste.fuso = horarioFormatado;
-        SalvandoVari(1);
+        SalvandoVariConfig(1);
       }
 
       const salvarBot = criarBotSalv(35, "Salvar");
@@ -1838,14 +1786,14 @@
         VariavelmodoTeste.data =
           dateInput.value || VariavelmodoTeste.data || "";
         salvarHorarioModoTeste();
-        // garante que CConfig.modoTeste siga o toggle
-        CConfig.modoTeste = CConfig.modoTeste ? 1 : 0;
+        // garante que config.modoTeste siga o toggle
+        config.modoTeste = config.modoTeste ? 1 : 0;
         AtualizarConf();
       });
 
       const toggle = criarBotaoSlide2(34, () => {
-        CConfig.modoTeste = !CConfig.modoTeste;
-        if (CConfig.modoTeste) {
+        config.modoTeste = !config.modoTeste;
+        if (config.modoTeste) {
           // quando ativar, preenche inputs com valores atuais se vazio
           if (!dateInput.value && VariavelmodoTeste.data)
             dateInput.value = VariavelmodoTeste.data;
@@ -1859,14 +1807,14 @@
           if (!minuInputModoTeste.value)
             minuInputModoTeste.value = String(mm).padStart(2, "0");
         }
-        SalvandoVari(1);
+        SalvandoVariConfig(1);
         AtualizarConf();
       });
 
       // Atualiza VariavelmodoTeste quando inputs mudam
       dateInput.addEventListener("change", () => {
         VariavelmodoTeste.data = dateInput.value;
-        SalvandoVari(1);
+        SalvandoVariConfig(1);
       });
       horaInputModoTeste.addEventListener("input", () => {
         salvarHorarioModoTeste();
@@ -1920,7 +1868,7 @@
     const IgOffline = criarLinhaTextoComBot(16, "Ignorar Offline");
     CIgOffline.append(IgOffline);
 
-    const CIgTMA = aixaSeg();
+    const CIgTMA = criarCaixaSeg();
     const IgTMA = criarLinhaTextoComBot(19, "Ignorar TMA");
     CIgTMA.append(IgTMA);
 
@@ -2039,7 +1987,7 @@
 
       const InputMin = document.createElement("input");
       InputMin.className = "placeholderPerso";
-      InputMin.placeholder = CConfig.tempoPOcul;
+      InputMin.placeholder = config.tempoPOcul;
       InputMin.type = "number";
       InputMin.min = "3";
       InputMin.max = "99";
@@ -2052,14 +2000,14 @@
         margin: 0px 3px;
         `;
       InputMin.addEventListener("input", function () {
-        CConfig.tempoPOcul = InputMin.value || InputMin.min;
+        config.tempoPOcul = InputMin.value || InputMin.min;
       });
 
       c.append(ocultar);
       c.append(InputMin);
       const d = criarBotaoSlide2(33, () => {
-        CConfig.temOcul = !CConfig.temOcul;
-        if (CConfig.temOcul) CConfig.FaixaFixa = 0;
+        config.temOcul = !config.temOcul;
+        if (config.temOcul) config.FaixaFixa = 0;
         AtualizarConf();
       });
       const text = document.createElement("div");
@@ -2149,7 +2097,7 @@
         copiarTexto(Ccor.Varian);
         AtualizarConf(a);
         ControleFront();
-        SalvandoVari(1);
+        SalvandoVariConfig(1);
       });
 
       div1.append(inputCor, textoDiv, botao);
@@ -2158,17 +2106,42 @@
 
     return caixa;
   }
-})();
 
-/**
- * copiarTexto - copia texto para clipboard
- * @param {string} texto - texto a copiar
- */
-async function copiarTexto(texto) {
-  try {
-    await navigator.clipboard.writeText(texto);
-    console.log("Texto copiado com sucesso!");
-  } catch (err) {
-    console.error("Erro ao copiar texto: ", err);
+  /**
+   * criarBotSalv - cria um botão estilizado simples
+   * @param {number} idBot - id único do botão
+   * @param {string} texto - texto a exibir
+   * @returns {HTMLElement} botão criado
+   */
+  function criarBotSalv(idBot, texto) {
+    const Botao = document.createElement("button");
+    Botao.id = `Botao${idBot}`;
+    Botao.style.cssText = `
+            padding: 1px 3px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-size: 10px;
+            height: 22px;
+            `;
+
+    Botao.textContent = `${texto}`;
+
+    return Botao;
   }
-}
+
+  /**
+   * copiarTexto - copia texto para clipboard
+   * @param {string} texto - texto a copiar
+   */
+  async function copiarTexto(texto) {
+    try {
+      await navigator.clipboard.writeText(texto);
+      console.log("Texto copiado com sucesso!");
+    } catch (err) {
+      console.error("Erro ao copiar texto: ", err);
+    }
+  }
+})();
