@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5.8
+// @version      1.2.5.9
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -18,6 +18,8 @@
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
     logueEntreDatas: 0,
     pausalimitada: 0,
+    ValorLogueManual: 0,
+    LogueManual: 0,
   };
 
   const configPadrao = {
@@ -33,6 +35,7 @@
     ocultarValor: 0,
     estouro: 0,
     AbaPausas: 0,
+    AbaConfig: 0,
   };
 
   let TempoPausas = {
@@ -832,6 +835,9 @@
 
     TempoPausas.Logado = converterParaTempo(LogadoSegunCAtual);
 
+    if (config.LogueManual) {
+    }
+
     time.textContent = ContAtual;
 
     TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
@@ -1114,7 +1120,7 @@
   function ADDBotPa() {
     const caixa = document.createElement("div");
     caixa.id = "BPausa";
-    caixa.innerHTML = "P";
+    caixa.textContent = "P";
     caixa.style.cssText = `
         background: ${Ccor.Principal};
         height: 20px;
@@ -1148,7 +1154,7 @@
      */
     function Controle(mostrarTextoCompleto) {
       caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
-      caixa.innerHTML = mostrarTextoCompleto
+      caixa.textContent = mostrarTextoCompleto
         ? stt.AbaPausas
           ? "Fechar"
           : "Pausas"
@@ -1163,7 +1169,7 @@
   function ADDBotConfig() {
     const caixa = document.createElement("div");
     caixa.id = "BConfig";
-    caixa.innerHTML = "C";
+    caixa.textContent = "C";
     caixa.style.cssText = `
     background: ${Ccor?.Principal || "#007bff"};
     height: 20px;
@@ -1175,9 +1181,7 @@
     transition: all 0.5s ease;
     cursor: pointer;
     justify-content: center;
-    position: relative;
-    z-index: 17;
-    pointer-events: auto;
+
     `;
 
     caixa.addEventListener("click", function () {
@@ -1191,7 +1195,8 @@
       const b = document.getElementById("CaixaConfig");
       if (b) {
         b.remove();
-        console.log("CaixaConfig removida");
+        stt.AbaConfig = 0;
+        //console.log("CaixaConfig removida");
       } else {
         const novoElemento = criarC();
         if (!novoElemento) {
@@ -1203,7 +1208,8 @@
         } else {
           a.appendChild(novoElemento);
         }
-        console.log("CaixaConfig adicionada");
+        stt.AbaConfig = 1;
+        //console.log("CaixaConfig adicionada");
       }
     });
 
@@ -1212,11 +1218,11 @@
 
     function Controle(mostrarTextoCompleto) {
       caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
-      caixa.innerHTML = mostrarTextoCompleto
-        ? stt?.AbaPausas
+      caixa.textContent = mostrarTextoCompleto
+        ? stt.AbaConfig
           ? "Fechar"
           : "Config"
-        : stt?.AbaPausas
+        : stt.AbaConfig
         ? "F"
         : "C";
     }
@@ -1420,7 +1426,9 @@
     minhaCaixa.addEventListener("mouseout", function () {
       BotPacontrole(0, "ContPaCo");
     });
-    function BotPacontrole(x, z) {
+    function BotPacontrole(b, z) {
+      let x = stt.AbaPausas || stt.AbaConfig ? 1 : b;
+
       const a = document.getElementById(z);
       if (a) {
         a.style.opacity = x ? "1" : "0";
@@ -1514,9 +1522,9 @@
         background: ${Ccor.Config};
         transition: all 0.5s ease;
         flex-direction: column;
-        padding: 10px;
+        padding: 6px;
         overflow: auto;
-        width: 210px;
+        width: max-content;
         border: solid steelblue;
         margin-left: 5px;
         `;
@@ -1535,7 +1543,7 @@
       const Titulofeito = titulo;
       const CaixaPrincipal = criarCaixaSeg();
       Titulofeito.style.cssText = `
-            padding: 2px;
+            padding: 2px 4px;
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
@@ -1543,6 +1551,9 @@
             color: white;
             font-size: 12px;
             height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             `;
       Titulofeito.addEventListener("click", function () {
         const a = document.getElementById(objeto.id);
@@ -1572,9 +1583,12 @@
                 border: solid 1px white;
                 color: white;
                 font-size: 12px;
+                border-radius: 8px;
             `;
       return input;
     }
+
+    
     // Criar separador visual ":"
     function doispontos() {
       const DoisP = document.createElement("span");
@@ -1636,6 +1650,7 @@
       }
       horaInputCaiHM.append(horaInputTE, doispontos(), minuInputTE);
       horaInputCai.append(horaInputCaiHM, SalvarHora);
+
       const a = CaixaDeOcultar(
         criarBotSalv(28, "Tempo Escalado"),
         horaInputCai
@@ -1651,67 +1666,92 @@
         const minuto = parseInt(
           minuInputlogueManual.value || minuInputlogueManual.placeholder
         );
+
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
         const segundos = "00";
         const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
+
+        // Data do input ou atual
+        const dataSelecionada =
+          dataInputlogueManual.value || new Date().toISOString().split("T")[0];
+
+        // Atualiza placeholders
         horaInputlogueManual.placeholder = horaFormatada;
         minuInputlogueManual.placeholder = minutoFormatado;
+
+        // Salva no config
         config.ValorLogueManual = horarioFormatado;
-        SalvarLogueManual(1);
+
+        // Objeto completo
+        dadosLogueManu = {
+          hora: horarioFormatado,
+          data: dataSelecionada,
+        };
+
+        console.log("Dados salvos:", dadosLogueManu);
       }
+
+      // Container principal
       const InputCailogueManual = document.createElement("div");
-      InputCailogueManual.style.cssText = `display: flex; align-items: center;`;
-      const horaInputlogueManual = entradatempo(
-        "HLManual",
-        1,
-        String("0").padStart(2, "0")
-      );
-      horaInputlogueManual.addEventListener("input", function () {
-        salvarHorariologueManual();
-      });
-      const minuInputlogueManual = entradatempo(
-        "MLManual",
-        0,
-        String("0").padStart(2, "0")
-      );
-      minuInputlogueManual.addEventListener("input", function () {
-        salvarHorariologueManual();
-      });
+      InputCailogueManual.style.cssText = `display: flex; align-items: center; gap: 6px;`;
+
+      // Input de data
+      const dataInputlogueManual = document.createElement("input");
+      dataInputlogueManual.type = "date";
+      dataInputlogueManual.value = new Date().toISOString().split("T")[0];
+      dataInputlogueManual.addEventListener("change", salvarHorariologueManual);
+
+      dataInputlogueManual.style.cssText = `
+      background: #fffefe00;
+      border: solid 1px white;
+      border-radius: 8px;
+      `;
+
+      // Inputs de hora e minuto
+      const horaInputlogueManual = entradatempo("HLManual", 1, "00");
+      horaInputlogueManual.addEventListener("input", salvarHorariologueManual);
+
+      const minuInputlogueManual = entradatempo("MLManual", 0, "00");
+      minuInputlogueManual.addEventListener("input", salvarHorariologueManual);
+
+      // Monta os inputs
       InputCailogueManual.append(
         horaInputlogueManual,
         doispontos(),
         minuInputlogueManual
       );
 
+      // Botão slide
       const horaInputCailogueManual = document.createElement("div");
-      horaInputCailogueManual.style.cssText = `
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        `;
+      horaInputCailogueManual.style.cssText = `display: flex; justify-content: center; align-items: center;`;
       horaInputCailogueManual.id = "CinputLogueManual";
-      const logueManualC = criarBotaoSlide2(13, () => {
+
+      const logueManualC = criarBotaoSlide2(13,config.LogueManual, () => {
         config.LogueManual = !config.LogueManual;
         if (config.LogueManual) {
-          const [horasIm, minutosIm, segundosIm] = converterParaTempo(
-            Segun.QualLogou
-          )
-            .split(":")
-            .map(Number);
+          const [horasIm, minutosIm] = TempoPausas.Logou.split(":").map(Number);
           horaInputlogueManual.value = String(horasIm).padStart(2, "0");
           minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
-        } else {
-          iniciarBusca();
+          dataInputlogueManual.value = new Date().toISOString().split("T")[0];
         }
-        SalvarLogueManual(1);
-        AtualizarConf();
+        atualizarVisual("Bot13",config.LogueManual);
       });
-      logueManualC.style.cssText = `
-        margin-left: 6px;
-        `;
 
-      horaInputCailogueManual.append(InputCailogueManual, logueManualC);
+      
+      logueManualC.style.cssText = `margin-left: 6px;`;
+
+      const ContDataHoralogueManual = document.createElement("div");
+
+      ContDataHoralogueManual.style.cssText = `
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      `;
+
+      ContDataHoralogueManual.append(dataInputlogueManual, InputCailogueManual);
+
+      horaInputCailogueManual.append(ContDataHoralogueManual, logueManualC);
       const a = CaixaDeOcultar(
         criarBotSalv(27, "Logue Manual"),
         horaInputCailogueManual
@@ -1791,7 +1831,7 @@
         AtualizarConf();
       });
 
-      const toggle = criarBotaoSlide2(34, () => {
+      const toggle = criarBotaoSlide2(34,config.modoTeste, () => {
         config.modoTeste = !config.modoTeste;
         if (config.modoTeste) {
           // quando ativar, preenche inputs com valores atuais se vazio
@@ -2031,12 +2071,10 @@
       //CIgOffline,
       //CIgTMA,
       //CIgErro,
-
       //criarSeparador(),
-      ContTempEsc()
-      // criarSeparador(),
-      // ContlogueManual(),
-
+      ContTempEsc(),
+      //criarSeparador(),
+      //ContlogueManual()
       //criarSeparador(),
       // Cbotavan()
     );
@@ -2108,6 +2146,70 @@
   }
 
   /**
+   * atualizarVisual - atualiza estado visual de um botão slide
+   * @param {string} idBotao - id do botão (ex: "Bot14")
+   * @param {boolean} estaAtivo - se botão deve estar ativo/não ativo
+   */
+  function atualizarVisual(idBotao, estaAtivo) {
+    const elemento = document.getElementById(idBotao);
+    if (!elemento) {
+      return;
+    }
+    if (estaAtivo) {
+      if (!elemento.classList.contains("active")) {
+        elemento.classList.add("active");
+        elemento.style.backgroundColor = Ccor.Principal;
+      }
+    } else {
+      if (elemento.classList.contains("active")) {
+        elemento.classList.remove("active");
+        elemento.style.backgroundColor = "#ccc";
+      }
+    }
+  }
+
+  /**
+   * criarBotaoSlide2 - cria um botão slider/toggle estilizado
+   * @param {number} IdBot - id único do slider
+   * @param {Function} funcao - callback a executar ao clicar
+   * @returns {HTMLElement} container do toggle criado
+   */
+  function criarBotaoSlide2(IdBot,estaAtivo, funcao) {
+    // Adiciona estilos apenas uma vez
+    StyleSlide();
+
+    const toggleContainer = document.createElement("div");
+    toggleContainer.className = "toggle-container";
+
+    const slider = document.createElement("div");
+    slider.className = "slider-button27";
+    slider.id = `Bot${IdBot}`;
+    if (estaAtivo) {
+      if (!slider.classList.contains("active")) {
+        slider.classList.add("active");
+        slider.style.backgroundColor = Ccor.Principal;
+      }
+    } else {
+      if (slider.classList.contains("active")) {
+        slider.classList.remove("active");
+        slider.style.backgroundColor = "#ccc";
+      }
+    }
+
+    const circle = document.createElement("div");
+    circle.className = "slider-circle";
+
+    slider.appendChild(circle);
+    toggleContainer.appendChild(slider);
+
+    slider.addEventListener("click", () => {
+      funcao();
+    });
+
+    return toggleContainer;
+  }
+
+  /**
    * criarBotSalv - cria um botão estilizado simples
    * @param {number} idBot - id único do botão
    * @param {string} texto - texto a exibir
@@ -2117,7 +2219,7 @@
     const Botao = document.createElement("button");
     Botao.id = `Botao${idBot}`;
     Botao.style.cssText = `
-            padding: 1px 3px;
+            padding: 2px 4px;
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
@@ -2125,6 +2227,8 @@
             color: white;
             font-size: 10px;
             height: 22px;
+            display: flex;
+            align-items: center;
             `;
 
     Botao.textContent = `${texto}`;
