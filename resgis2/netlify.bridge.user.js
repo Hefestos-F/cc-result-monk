@@ -173,16 +173,7 @@
   function criarContentBox() {
     var contentBox = document.createElement("div");
     contentBox.id = "contentBox";
-    contentBox.style.cssText = `
-        display: flex;
-        background-color: rgb(255, 236, 209);
-        border: 3px solid rgb(255, 112, 32);
-        border-radius: 15px;
-        padding: 8px 0px;
-        flex-direction: column;
-        align-items: center;
-    justify-content: center;
-        `;
+    
     var dd1 = document.createElement("div");
     var dd2 = document.createElement("div");
 

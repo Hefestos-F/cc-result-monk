@@ -18,7 +18,6 @@
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
     logueEntreDatas: 0,
     pausalimitada: 0,
-    ValorLogueManual: 0,
     LogueManual: 0,
   };
 
@@ -1135,7 +1134,34 @@
         `;
 
     caixa.addEventListener("click", function () {
-      //Controle(1);
+      const a = document.getElementById("minhaCaixa");
+      if (!a) {
+        console.warn("minhaCaixa não encontrada");
+        return;
+      }
+
+      const b = document.getElementById("CaiDPa");
+      if (b) {
+        b.remove();
+        stt.AbaPausas = 0;
+      } else {
+        const c = document.getElementById("CaixaConfig");
+        if (c) {
+          c.remove();
+          stt.AbaConfig = 0;
+        }
+        const novoElemento = ADDCaiPausas();
+        if (!novoElemento) {
+          console.error("criarC() não retornou um elemento válido");
+          return;
+        }
+        if (a.children.length >= 2) {
+          a.insertBefore(novoElemento, a.children[1]);
+        } else {
+          a.appendChild(novoElemento);
+        }
+        stt.AbaPausas = 1;
+      }
     });
 
     // Adiciona o evento de mouseover ao botão
@@ -1196,8 +1222,12 @@
       if (b) {
         b.remove();
         stt.AbaConfig = 0;
-        //console.log("CaixaConfig removida");
       } else {
+        const c = document.getElementById("CaiDPa");
+        if (c) {
+          c.remove();
+          stt.AbaPausas = 0;
+        }
         const novoElemento = criarC();
         if (!novoElemento) {
           console.error("criarC() não retornou um elemento válido");
@@ -1588,7 +1618,6 @@
       return input;
     }
 
-    
     // Criar separador visual ":"
     function doispontos() {
       const DoisP = document.createElement("span");
@@ -1680,15 +1709,13 @@
         horaInputlogueManual.placeholder = horaFormatada;
         minuInputlogueManual.placeholder = minutoFormatado;
 
-        // Salva no config
-        config.ValorLogueManual = horarioFormatado;
-
         // Objeto completo
         dadosLogueManu = {
           hora: horarioFormatado,
           data: dataSelecionada,
         };
 
+        AddOuAtuIindexdb(ChavelogueManu, dadosLogueManu);
         console.log("Dados salvos:", dadosLogueManu);
       }
 
@@ -1727,7 +1754,7 @@
       horaInputCailogueManual.style.cssText = `display: flex; justify-content: center; align-items: center;`;
       horaInputCailogueManual.id = "CinputLogueManual";
 
-      const logueManualC = criarBotaoSlide2(13,config.LogueManual, () => {
+      const logueManualC = criarBotaoSlide2(13, config.LogueManual, () => {
         config.LogueManual = !config.LogueManual;
         if (config.LogueManual) {
           const [horasIm, minutosIm] = TempoPausas.Logou.split(":").map(Number);
@@ -1735,10 +1762,9 @@
           minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
           dataInputlogueManual.value = new Date().toISOString().split("T")[0];
         }
-        atualizarVisual("Bot13",config.LogueManual);
+        atualizarVisual("Bot13", config.LogueManual);
       });
 
-      
       logueManualC.style.cssText = `margin-left: 6px;`;
 
       const ContDataHoralogueManual = document.createElement("div");
@@ -1831,7 +1857,7 @@
         AtualizarConf();
       });
 
-      const toggle = criarBotaoSlide2(34,config.modoTeste, () => {
+      const toggle = criarBotaoSlide2(34, config.modoTeste, () => {
         config.modoTeste = !config.modoTeste;
         if (config.modoTeste) {
           // quando ativar, preenche inputs com valores atuais se vazio
@@ -2073,8 +2099,8 @@
       //CIgErro,
       //criarSeparador(),
       ContTempEsc(),
-      //criarSeparador(),
-      //ContlogueManual()
+      criarSeparador(),
+      ContlogueManual()
       //criarSeparador(),
       // Cbotavan()
     );
@@ -2174,7 +2200,7 @@
    * @param {Function} funcao - callback a executar ao clicar
    * @returns {HTMLElement} container do toggle criado
    */
-  function criarBotaoSlide2(IdBot,estaAtivo, funcao) {
+  function criarBotaoSlide2(IdBot, estaAtivo, funcao) {
     // Adiciona estilos apenas uma vez
     StyleSlide();
 
@@ -2247,5 +2273,140 @@
     } catch (err) {
       console.error("Erro ao copiar texto: ", err);
     }
+  }
+
+  /**
+   * ADDCaiPausas - cria container para exibir tabela de pausas
+   * Define 5 colunas: Excluir, Pausa, Início, Fim, Duração
+   * @returns {HTMLElement} caixa container das pausas
+   */
+  function ADDCaiPausas() {
+    const caixa = document.createElement("div");
+    caixa.id = "CaiDPa";
+    caixa.style.cssText = `
+        background: ${Ccor.Config};
+        max-height: 170px;
+        margin-left: 5px;
+        border-radius: 8px;
+        padding: 5px;
+        width: auto;
+        border: solid steelblue;
+        transition: 0.5s;
+        flex-direction: row;
+        overflow: auto;
+        display: grid;
+        grid-template-rows: repeat(5, auto); /* 5 linhas */
+        grid-auto-flow: column; /* Preenche colunas automaticamente */
+        gap: 10px; /* Espaçamento entre itens */
+       `;
+
+    /**
+     * ADDCaixa1 - cria coluna interna para tabela de pausas
+     * @param {string} idColuna - id da coluna
+     * @returns {HTMLElement} div coluna
+     */
+    function ADDCaixa1(idColuna) {
+      const caixa = document.createElement("div");
+      caixa.id = idColuna;
+      caixa.style.cssText = `
+            display: flex;
+            align-items: center;
+           justify-content: center;
+            
+        `;
+      return caixa;
+    }
+
+    // Criar colunas
+    const CPausa = ADDCaixa1("CPausa");
+    const CExcl = ADDCaixa1("CExcl");
+    const CInicio = ADDCaixa1("CInicio");
+    const CFim = ADDCaixa1("CFim");
+    const CDuracao = ADDCaixa1("CDuracao");
+
+    /**
+     * AddTituloCp - cria um elemento título para seção na configuração
+     * @param {string} titulo - texto do título
+     * @returns {HTMLElement} div formatada com título
+     */
+    function AddTituloCp(titulo) {
+      const caixa = document.createElement("div");
+      caixa.innerHTML = `${titulo}`;
+      caixa.style.cssText = `
+        font-size: 14px;
+            border-bottom-style: dashed;
+            border-width: 1px;
+            display: flex;
+        align-items: center;
+        justify-content: center;
+        `;
+      return caixa;
+    }
+
+    caixa.append(
+      AddTituloCp("Pausa"),
+      AddTituloCp("Duração"),
+      AddTituloCp("Início"),
+      AddTituloCp("Fim"),
+      AddTituloCp("Excl")
+    );
+
+    /**
+     * criarItemTabela - cria célula de tabela com ícone ou texto
+     * @param {number} id - id da pausa
+     * @param {string} campo - tipo de campo (id, pausa, etc)
+     * @param {string} textoExibicao - texto a exibir
+     * @returns {HTMLElement} célula formatada
+     */
+    function criarItemTabela(id, campo, textoExibicao) {
+      const caixa = document.createElement("div");
+      caixa.id = `${campo}${id}`;
+      caixa.innerHTML = textoExibicao;
+      caixa.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        `;
+
+      if (campo === "id") {
+        caixa.style.cursor = `pointer`;
+
+        caixa.addEventListener("click", () => {
+          const CaiDPa = document.getElementById("CaiDPa");
+          CaiDPa.appendChild(
+            ADDCaixaDAviso("Excluir", () => {
+              removerPausaPorId(id);
+            })
+          );
+        });
+      }
+
+      return caixa;
+    }
+
+    if (Array.isArray(dadosdePausas) && dadosdePausas.length > 0) {
+      const ordenado = [...dadosdePausas].sort(
+        (a, b) => Number(a.id) - Number(b.id)
+      );
+
+      ordenado.forEach((item) => {
+        const inicioHora = item?.Inicio?.hora ?? "<--->";
+        const fimHora = item?.Fim?.hora ?? "<--->";
+        const duracao = item?.Duracao ?? "<--->";
+        const pausa = item?.pausa ?? "";
+
+        console.log(`Pausas ${inicioHora}/${fimHora}`);
+
+        caixa.append(
+          criarItemTabela(item.id, "pausa", pausa),
+          criarItemTabela(item.id, "duracao", duracao),
+          criarItemTabela(item.id, "inicio", inicioHora),
+          criarItemTabela(item.id, "fim", fimHora),
+          criarItemTabela(item.id, "id", "❌")
+        );
+      });
+    }
+
+    return caixa;
   }
 })();
