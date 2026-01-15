@@ -2285,19 +2285,18 @@
     caixa.id = "CaiDPa";
     caixa.style.cssText = `
         background: ${Ccor.Config};
-        max-height: 170px;
         margin-left: 5px;
         border-radius: 8px;
         padding: 5px;
-        width: auto;
+        max-width: 400px;
+        height: max-content;
         border: solid steelblue;
         transition: 0.5s;
-        flex-direction: row;
         overflow: auto;
         display: grid;
         grid-template-rows: repeat(5, auto); /* 5 linhas */
         grid-auto-flow: column; /* Preenche colunas automaticamente */
-        gap: 10px; /* Espaçamento entre itens */
+        gap: 2px 6px; /* Espaçamento entre itens */
        `;
 
     /**
@@ -2317,13 +2316,6 @@
       return caixa;
     }
 
-    // Criar colunas
-    const CPausa = ADDCaixa1("CPausa");
-    const CExcl = ADDCaixa1("CExcl");
-    const CInicio = ADDCaixa1("CInicio");
-    const CFim = ADDCaixa1("CFim");
-    const CDuracao = ADDCaixa1("CDuracao");
-
     /**
      * AddTituloCp - cria um elemento título para seção na configuração
      * @param {string} titulo - texto do título
@@ -2340,6 +2332,10 @@
         align-items: center;
         justify-content: center;
         `;
+      if (titulo === "Excl") {
+        caixa.style.height = "14px";
+      }
+
       return caixa;
     }
 
@@ -2370,6 +2366,8 @@
 
       if (campo === "id") {
         caixa.style.cursor = `pointer`;
+        caixa.style.fontSize = "8px";
+        caixa.style.height = "14px";
 
         caixa.addEventListener("click", () => {
           const CaiDPa = document.getElementById("CaiDPa");
@@ -2390,12 +2388,11 @@
       );
 
       ordenado.forEach((item) => {
-        const inicioHora = item?.Inicio?.hora ?? "<--->";
-        const fimHora = item?.Fim?.hora ?? "<--->";
-        const duracao = item?.Duracao ?? "<--->";
+        // Usa as chaves em minúsculas conforme seu objeto atual
+        const inicioHora = item?.inicio?.hora ?? "<--->";
+        const fimHora = item?.fim?.hora ?? "<--->";
+        const duracao = item?.duracao ?? "<--->";
         const pausa = item?.pausa ?? "";
-
-        console.log(`Pausas ${inicioHora}/${fimHora}`);
 
         caixa.append(
           criarItemTabela(item.id, "pausa", pausa),
@@ -2406,6 +2403,8 @@
         );
       });
     }
+
+    //console.log(`Pausas ${JSON.stringify(dadosdePausas)}`);
 
     return caixa;
   }
