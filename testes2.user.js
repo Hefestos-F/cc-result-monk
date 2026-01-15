@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5.9
+// @version      1.2.5.10
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
