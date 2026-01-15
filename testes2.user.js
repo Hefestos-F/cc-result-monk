@@ -35,6 +35,7 @@
     estouro: 0,
     AbaPausas: 0,
     AbaConfig: 0,
+    CargaCumprida: 0,
   };
 
   let TempoPausas = {
@@ -782,6 +783,7 @@
     const vLogou = document.getElementById("vLogou");
     const vSaida = document.getElementById("vSaida");
     const vLogado = document.getElementById("vLogado");
+    const tFalta = document.getElementById("tFalta");
     const vFalta = document.getElementById("vFalta");
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
@@ -843,6 +845,13 @@
 
     vLogado.textContent = TempoPausas.Logado;
     vFalta.textContent = TempoPausas.Falta;
+
+    if (compararDatas(agora, exibirHora(Saida, 1, "00:10:00"))) {
+      tFalta.textContent = "HE";
+    } else if (compararDatas(agora, Saida)) {
+      tFalta.textContent = "Tempo";
+      vFalta.textContent = "Cumprido";
+    }
   }, 1000);
 
   function atualizarComoff(caixa) {
