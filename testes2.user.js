@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.6.0
+// @version      1.2.6.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -265,6 +265,8 @@
         // Salva fim (objeto)
         await atualizarCampos(DDPausa.numero, "fim", agora);
 
+        config.pausalimitada = 0;
+        atualizarComoff(0,"cTMA");
         // Calcula duração real (string HH:MM:SS)
         const duracaoReal = calcularDuracao(inicioObj, agora);
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
@@ -301,8 +303,6 @@
         // exibirHora soma duracaoPrevista ao "agora"
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
         TempoPausas.Estouro = fimPrevistoObj;
-      } else {
-        TempoPausas.Estouro = 0;
       }
 
       DDPausa.inicioUltimaP = agora;
@@ -812,12 +812,6 @@
       dadosPrimLogue = Logou;
       verifiDataLogue(1);
     }
-    /*
-    if (config.pausalimitada) {
-      stt.estouro = compararDatas(agora, TempoPausas.Estouro);
-      atualizarComoff("cTMA");
-      if (!TempoPausas.Estouro) config.pausalimitada = 0;
-    }*/
 
     vLogou.textContent = TempoPausas.Logou || "00:00:00";
     vSaida.textContent = TempoPausas.Saida || "00:00:00";
@@ -863,15 +857,19 @@
       : "Falta:";
 
     vFalta.textContent = stt.tempoCumprido ? "Cumprido" : TempoPausas.Falta;
+
+    if (config.pausalimitada) {
+      atualizarComoff(compararDatas(agora, TempoPausas.Estouro), "cTMA");
+    }
   }, 1000);
 
-  function atualizarComoff(caixa) {
+  function atualizarComoff(ar, caixa) {
     var x = document.getElementById(caixa);
     if (x) {
-      x.style.background = stt.estouro ? Ccor.Erro : "";
-      x.style.borderRadius = stt.estouro ? "6px" : "";
-      x.style.padding = stt.estouro ? "0px 4px" : "";
-      x.style.margin = stt.estouro ? "0px -4px" : "";
+      x.style.background = ar ? Ccor.Erro : "";
+      x.style.borderRadius = ar ? "6px" : "";
+      x.style.padding = ar ? "0px 4px" : "";
+      x.style.margin = ar ? "0px -4px" : "";
     }
   }
 
