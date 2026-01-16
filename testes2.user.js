@@ -2303,7 +2303,7 @@
         transition: 0.5s;
         overflow: auto;
         display: grid;
-        grid-template-rows: repeat(5, auto); /* 5 linhas */
+        grid-template-rows: repeat(4, auto); /* 5 linhas */
         grid-auto-flow: column; /* Preenche colunas automaticamente */
         gap: 2px 6px; /* Espaçamento entre itens */
        `;
