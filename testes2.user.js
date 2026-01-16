@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_test2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.5.10
+// @version      1.2.6.0
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -2308,22 +2308,7 @@
         gap: 2px 6px; /* Espaçamento entre itens */
        `;
 
-    /**
-     * ADDCaixa1 - cria coluna interna para tabela de pausas
-     * @param {string} idColuna - id da coluna
-     * @returns {HTMLElement} div coluna
-     */
-    function ADDCaixa1(idColuna) {
-      const caixa = document.createElement("div");
-      caixa.id = idColuna;
-      caixa.style.cssText = `
-            display: flex;
-            align-items: center;
-           justify-content: center;
-            
-        `;
-      return caixa;
-    }
+    
 
     /**
      * AddTituloCp - cria um elemento título para seção na configuração
@@ -2353,7 +2338,7 @@
       AddTituloCp("Duração"),
       AddTituloCp("Início"),
       AddTituloCp("Fim"),
-      AddTituloCp("Excl")
+      //AddTituloCp("Excl")
     );
 
     /**
@@ -2408,7 +2393,7 @@
           criarItemTabela(item.id, "duracao", duracao),
           criarItemTabela(item.id, "inicio", inicioHora),
           criarItemTabela(item.id, "fim", fimHora),
-          criarItemTabela(item.id, "id", "❌")
+          //criarItemTabela(item.id, "id", "❌")
         );
       });
     }
