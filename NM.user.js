@@ -213,6 +213,8 @@
     temOcul: 0,
     contarSalvar: 0,
     timeReal: 0,
+    tempoCumprido: 0,
+    temHorasExtras: 0,
   };
 
   /**
@@ -1356,6 +1358,16 @@
       //verificarESalvar(1);
     }*/
 
+    if (compararDatas(agora, exibirHora(horari.Saida, 1, "00:10:00"))) {
+      stt.temHorasExtras = 1;
+      stt.tempoCumprido = 0;
+    } else if (compararDatas(agora, horari.Saida)) {
+      stt.tempoCumprido = 1;
+    } else {
+      stt.temHorasExtras = 0;
+      stt.tempoCumprido = 0;
+    }
+
     horasEDatas.Logou = horari.Logou;
     horasEDatas.Saida = horari.Saida;
     horasEDatas.logado = horari.logado;
@@ -1397,10 +1409,6 @@
    * - Atualiza display dos valores no painel principal
    */
   function AtualizarInfo() {
-    let tempoHorasExtras;
-    let tempoCumprido = false;
-    let temHorasExtras = false;
-
     //console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
     //console.log(`NiceMonk: horasEDatas.QualLogou.hora:${JSON.stringify(horasEDatas.QualLogou)}`);
 
@@ -1416,16 +1424,12 @@
     const faltaOuHEFormatada = horasEDatas.Falta.hora;
     const vFalta = document.getElementById("vFalta");
     const tFalta = document.getElementById("tFalta");
-    tFalta.textContent = temHorasExtras
+    tFalta.textContent = stt.temHorasExtras
       ? "HE:"
-      : tempoCumprido
+      : stt.tempoCumprido
       ? "Tempo"
       : "Falta:";
-    vFalta.textContent = temHorasExtras
-      ? faltaOuHEFormatada
-      : tempoCumprido
-      ? "Cumprido"
-      : faltaOuHEFormatada;
+    vFalta.textContent = stt.tempoCumprido ? "Cumprido" : faltaOuHEFormatada;
 
     if (stt.Busc5s) {
       AtualizarTMA(0);

@@ -35,7 +35,8 @@
     estouro: 0,
     AbaPausas: 0,
     AbaConfig: 0,
-    CargaCumprida: 0,
+    tempoCumprido: 0,
+    temHorasExtras: 0,
   };
 
   let TempoPausas = {
@@ -844,14 +845,24 @@
     TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
 
     vLogado.textContent = TempoPausas.Logado;
-    vFalta.textContent = TempoPausas.Falta;
 
     if (compararDatas(agora, exibirHora(Saida, 1, "00:10:00"))) {
-      tFalta.textContent = "HE";
+      stt.temHorasExtras = 1;
+      stt.tempoCumprido = 0;
     } else if (compararDatas(agora, Saida)) {
-      tFalta.textContent = "Tempo";
-      vFalta.textContent = "Cumprido";
+      stt.tempoCumprido = 1;
+    } else {
+      stt.tempoCumprido = 0;
+      stt.temHorasExtras = 0;
     }
+
+    tFalta.textContent = stt.temHorasExtras
+      ? "HE"
+      : stt.tempoCumprido
+      ? "Tempo"
+      : "Falta:";
+
+    vFalta.textContent = stt.tempoCumprido ? "Cumprido" : TempoPausas.Falta;
   }, 1000);
 
   function atualizarComoff(caixa) {
@@ -2308,8 +2319,6 @@
         gap: 2px 6px; /* Espaçamento entre itens */
        `;
 
-    
-
     /**
      * AddTituloCp - cria um elemento título para seção na configuração
      * @param {string} titulo - texto do título
@@ -2337,7 +2346,7 @@
       AddTituloCp("Pausa"),
       AddTituloCp("Duração"),
       AddTituloCp("Início"),
-      AddTituloCp("Fim"),
+      AddTituloCp("Fim")
       //AddTituloCp("Excl")
     );
 
@@ -2392,7 +2401,7 @@
           criarItemTabela(item.id, "pausa", pausa),
           criarItemTabela(item.id, "duracao", duracao),
           criarItemTabela(item.id, "inicio", inicioHora),
-          criarItemTabela(item.id, "fim", fimHora),
+          criarItemTabela(item.id, "fim", fimHora)
           //criarItemTabela(item.id, "id", "❌")
         );
       });
