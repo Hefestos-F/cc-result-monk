@@ -844,7 +844,7 @@
 
     TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
 
-    vLogado.textContent = TempoPausas.Logado;
+    vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
 
     if (compararDatas(agora, exibirHora(Saida, 1, "00:10:00"))) {
       stt.temHorasExtras = 1;
@@ -862,21 +862,22 @@
         ? "Tempo"
         : "Falta:";
 
-    vFalta.textContent = stt.tempoCumprido ? "Cumprido" : TempoPausas.Falta;
+    vFalta.textContent = stt.tempoCumprido
+      ? "Cumprido"
+      : tempoEncurtado(TempoPausas.Falta);
 
     if (config.pausalimitada && config.notiEstouro) {
       stt.Estouro = compararDatas(agora, TempoPausas.Estouro);
       atualizarComoff(stt.Estouro, "cTMA");
 
-      if (!stt.Estour1 && CConfig.SomEstouro) {
+      /*if (!stt.Estour1 && config.SomEstouro) {
         stt.Estour1 = 1;
         tocarBeep();
         setTimeout(function () {
           stt.intervaloBeep = 3;
           RepetirBeep();
         }, 15000);
-        
-      }
+      }*/
     }
   }, 1000);
 
@@ -2473,6 +2474,81 @@
     //console.log(`Pausas ${JSON.stringify(dadosdePausas)}`);
 
     return caixa;
+  }
+
+  /**
+   * Encurta um tempo para o menor formato possível.
+   * Entrada: "HH:MM:SS" | "MM:SS" | "SS" (string) OU número de segundos (inteiro).
+   * Saída: "HH:MM:SS" | "MM:SS" | "SS"
+   */
+  function tempoEncurtado(input) {
+    // --- Normaliza entrada para total de segundos (inteiro) ---
+    let totalSeg;
+
+    if (typeof input === "number" && Number.isFinite(input)) {
+      totalSeg = Math.trunc(input);
+    } else if (typeof input === "string") {
+      const str = input.trim();
+      // Detecta sinal
+      const negativo = str.startsWith("-");
+      const limpo = negativo ? str.slice(1) : str;
+
+      const partes = limpo.split(":").map((p) => p.trim());
+      if (partes.some((p) => p === "" || isNaN(Number(p)))) {
+        throw new Error(`Formato inválido: "${input}"`);
+      }
+
+      let h = 0,
+        m = 0,
+        s = 0;
+      if (partes.length === 3) {
+        [h, m, s] = partes.map(Number);
+      } else if (partes.length === 2) {
+        [m, s] = partes.map(Number);
+      } else if (partes.length === 1) {
+        [s] = partes.map(Number);
+      } else {
+        throw new Error(`Formato inválido: "${input}"`);
+      }
+
+      if (m < 0 || s < 0 || h < 0)
+        throw new Error(
+          `Valores negativos não são permitidos nas partes: "${input}"`,
+        );
+      if (m >= 60 || s >= 60) {
+        // Aceitamos mm/ss >= 60? Se preferir, pode normalizar; aqui vamos rejeitar:
+        // para normalizar, comente o throw e deixe passar (iremos somar abaixo).
+        // throw new Error(`Minutos/segundos devem ser < 60: "${input}"`);
+      }
+
+      totalSeg = h * 3600 + m * 60 + s;
+      if (negativo) totalSeg = -totalSeg;
+    } else {
+      throw new Error(
+        'Entrada deve ser string "HH:MM:SS" | "MM:SS" | "SS" ou número de segundos.',
+      );
+    }
+
+    // --- Constrói saída no menor formato possível ---
+    const negativo = totalSeg < 0;
+    const abs = Math.abs(totalSeg);
+
+    const horas = Math.floor(abs / 3600);
+    const minutos = Math.floor((abs % 3600) / 60);
+    const segundos = abs % 60;
+
+    const pad2 = (n) => String(n).padStart(2, "0");
+
+    let corpo;
+    if (horas > 0) {
+      corpo = `${horas}:${pad2(minutos)}:${pad2(segundos)}`;
+    } else if (minutos > 0) {
+      corpo = `${minutos}:${pad2(segundos)}`;
+    } else {
+      corpo = `${segundos}`; // sem zero-padding em SS puro
+    }
+
+    return negativo ? `-${corpo}` : corpo;
   }
 
   /**
