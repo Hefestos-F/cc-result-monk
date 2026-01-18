@@ -3559,8 +3559,7 @@
    * Se data mudou, movimenta registro anterior para "Ontem"
    * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
    */
-  async function verificarESalvar(x) {
-    return;
+  async function verificarESalvar(x,valor) {
 
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];

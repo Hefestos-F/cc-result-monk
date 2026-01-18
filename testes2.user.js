@@ -19,6 +19,8 @@
     logueEntreDatas: 0,
     pausalimitada: 0,
     LogueManual: 0,
+    SomEstouro: 1,
+    notiEstouro: 1,
   };
 
   const configPadrao = {
@@ -32,11 +34,13 @@
     Status: "",
     andament: 1,
     ocultarValor: 0,
-    estouro: 0,
+    Estouro: 0,
     AbaPausas: 0,
     AbaConfig: 0,
     tempoCumprido: 0,
     temHorasExtras: 0,
+    Estour1: 0,
+    intervaloBeep: 1,
   };
 
   let TempoPausas = {
@@ -122,7 +126,7 @@
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
       console.debug(
         "HefestoLog: Encontrados em dadosSalvosConfi:",
-        dadosSalvosConfi
+        dadosSalvosConfi,
       );
     } catch (e) {
       console.error("HefestoLog: Erro ao recuperar dadosSalvosConfi:", e);
@@ -132,7 +136,7 @@
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
       console.debug(
         "HefestoLog: Encontrados em dadosPrimLogue:",
-        dadosPrimLogue
+        dadosPrimLogue,
       );
     } catch (e) {
       console.error("HefestoLog: Erro ao recuperar dadosPrimLogue:", e);
@@ -142,7 +146,7 @@
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
       console.debug(
         "HefestoLog: Encontrados em dadosLogueManu:",
-        dadosLogueManu
+        dadosLogueManu,
       );
     } catch (e) {
       console.error("HefestoLog: Erro ao recuperar dadosLogueManu:", e);
@@ -152,7 +156,7 @@
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
       console.debug(
         "HefestoLog: Encontrados em dadosPrimLogueOnt:",
-        dadosPrimLogueOnt
+        dadosPrimLogueOnt,
       );
     } catch (e) {
       console.error("HefestoLog: Erro ao recuperar dadosPrimLogueOnt:", e);
@@ -201,7 +205,7 @@
   observarItem(() => {
     //const el = document.querySelector('[data-garden-id="typography.font"]');
     const el = document.querySelector(
-      '[data-test-id="toolbar-profile-menu-button-tooltip"] div'
+      '[data-test-id="toolbar-profile-menu-button-tooltip"] div',
     );
 
     if (!el) {
@@ -227,7 +231,7 @@
     // ==========================================================
 
     console.log(
-      `HefestoLog: Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`
+      `HefestoLog: Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`,
     );
     DDPausa.StatusANT = stt.Status;
 
@@ -258,15 +262,17 @@
 
       console.log(
         `HefestoLog: id:${DDPausa.numero}, inicioObj: ${JSON.stringify(
-          inicioObj
-        )}`
+          inicioObj,
+        )}`,
       );
       if (inicioObj && duracaoObj === "---") {
         // Salva fim (objeto)
         await atualizarCampos(DDPausa.numero, "fim", agora);
 
         config.pausalimitada = 0;
-        atualizarComoff(0,"cTMA");
+        stt.Estouro = 0;
+        stt.Estour1 = 0;
+        atualizarComoff(0, "cTMA");
         // Calcula duração real (string HH:MM:SS)
         const duracaoReal = calcularDuracao(inicioObj, agora);
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
@@ -316,10 +322,10 @@
         stt.Status,
         agora, // inicio: {data,hora}
         fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
-        "---" // duracao prevista: "HH:MM:SS" ou "---"
+        "---", // duracao prevista: "HH:MM:SS" ou "---"
       );
     })().catch((err) =>
-      console.error("HefestoLog: erro no observer async:", err)
+      console.error("HefestoLog: erro no observer async:", err),
     );
     stt.andament = 1;
   });
@@ -469,7 +475,7 @@
         return new Date(Y, M - 1, D);
       }
       throw new Error(
-        `Formato de data inválido "${d}". Use YYYY-MM-DD ou DD/MM/YYYY .`
+        `Formato de data inválido "${d}". Use YYYY-MM-DD ou DD/MM/YYYY .`,
       );
     }
 
@@ -500,7 +506,7 @@
 
     if (typeof op !== "number" || (op !== 0 && op !== 1)) {
       throw new Error(
-        "Operação inválida. Use 1 para soma ou 0 para subtração."
+        "Operação inválida. Use 1 para soma ou 0 para subtração.",
       );
     }
 
@@ -517,7 +523,7 @@
       const deltaB = toEpochMs(b) - midnightB.getTime(); // ms desde meia-noite
       const resultDate = new Date(epochA + deltaB);
       outHora = `${pad2(resultDate.getHours())}:${pad2(
-        resultDate.getMinutes()
+        resultDate.getMinutes(),
       )}:${pad2(resultDate.getSeconds())}`;
       outData = formatDate(resultDate, keepISO);
     } else {
@@ -589,7 +595,7 @@
     // --- Offset string "+HH:MM[:SS]" | "-HH:MM[:SS]" => segundos ---
     function parseOffset(offsetStr) {
       const m = String(offsetStr || "").match(
-        /^([+-])(\d{1,2}):(\d{2})(?::(\d{2}))?$/
+        /^([+-])(\d{1,2}):(\d{2})(?::(\d{2}))?$/,
       );
       if (!m) return 0;
       const sign = m[1] === "-" ? -1 : 1;
@@ -610,7 +616,7 @@
       if (typeof val === "object" && val) {
         const dVal = buildDateTime(val);
         const dBase = buildDateTime(
-          baseObj || { data: "1970-01-01", hora: "00:00:00" }
+          baseObj || { data: "1970-01-01", hora: "00:00:00" },
         );
         return Math.abs(Math.floor((dVal.getTime() - dBase.getTime()) / 1000));
       }
@@ -620,10 +626,10 @@
     // --- Formata retorno {data:'YYYY-MM-DD', hora:'HH:MM:SS'} em fuso local ---
     function formatObj(date) {
       const data = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
+        date.getMonth() + 1,
       ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       const hora = `${String(date.getHours()).padStart(2, "0")}:${String(
-        date.getMinutes()
+        date.getMinutes(),
       ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
       return { data, hora };
     }
@@ -638,7 +644,7 @@
       // Caso 2: sinal via maisoumenos (false/0/"0" => negativo; demais => positivo)
       const dur = durationFromAbsoluteOrString(
         valordeacrecimo || "00:00:00",
-        horaedataparacalculo
+        horaedataparacalculo,
       );
       const isNegative =
         maisoumenos === false ||
@@ -853,13 +859,24 @@
     tFalta.textContent = stt.temHorasExtras
       ? "HE"
       : stt.tempoCumprido
-      ? "Tempo"
-      : "Falta:";
+        ? "Tempo"
+        : "Falta:";
 
     vFalta.textContent = stt.tempoCumprido ? "Cumprido" : TempoPausas.Falta;
 
-    if (config.pausalimitada) {
-      atualizarComoff(compararDatas(agora, TempoPausas.Estouro), "cTMA");
+    if (config.pausalimitada && config.notiEstouro) {
+      stt.Estouro = compararDatas(agora, TempoPausas.Estouro);
+      atualizarComoff(stt.Estouro, "cTMA");
+
+      if (!stt.Estour1 && CConfig.SomEstouro) {
+        stt.Estour1 = 1;
+        tocarBeep();
+        setTimeout(function () {
+          stt.intervaloBeep = 3;
+          RepetirBeep();
+        }, 15000);
+        
+      }
     }
   }, 1000);
 
@@ -877,7 +894,7 @@
     // Validação básica
     if (!a?.data || !a?.hora || !b?.data || !b?.hora) {
       throw new Error(
-        "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}"
+        "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}",
       );
     }
 
@@ -888,7 +905,7 @@
     // Verifica se datas são válidas
     if (isNaN(da) || isNaN(db)) {
       throw new Error(
-        "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'."
+        "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'.",
       );
     }
 
@@ -901,7 +918,7 @@
     if (!Array.isArray(dadosdePausas)) dadosdePausas = [];
 
     const index = dadosdePausas.findIndex(
-      (item) => String(item?.id) === String(id)
+      (item) => String(item?.id) === String(id),
     );
 
     if (index !== -1) {
@@ -1003,7 +1020,7 @@
     if (!dadosdePausas) return null;
     const item = dadosdePausas.find((obj) => String(obj?.id) === String(id));
     // Usa indexação dinâmica e retorna null se não existir
-    return item ? item?.[campo] ?? null : null;
+    return item ? (item?.[campo] ?? null) : null;
   }
 
   /**
@@ -1028,7 +1045,7 @@
     requisicao_bd.onerror = function (event) {
       console.error(
         "HefestoLog: Erro ao abrir o banco de dados:",
-        event.target.errorCode
+        event.target.errorCode,
       );
     };
   }
@@ -1049,7 +1066,7 @@
 
           request.onsuccess = function () {
             console.debug(
-              `HefestoLog: Dados salvos com sucesso na chave "${nomechave}"`
+              `HefestoLog: Dados salvos com sucesso na chave "${nomechave}"`,
             );
             resolve(true);
           };
@@ -1057,7 +1074,7 @@
           request.onerror = function (event) {
             console.error(
               "HefestoLog: Erro ao salvar os dados:",
-              event.target?.errorCode || event
+              event.target?.errorCode || event,
             );
             reject(event);
           };
@@ -1110,7 +1127,7 @@
       request.onerror = function (event) {
         console.error(
           "HefestoLog: Erro ao apagar a chave:",
-          event.target.errorCode
+          event.target.errorCode,
         );
       };
     });
@@ -1203,8 +1220,8 @@
           ? "Fechar"
           : "Pausas"
         : stt.AbaPausas
-        ? "F"
-        : "P";
+          ? "F"
+          : "P";
     }
 
     return caixa;
@@ -1271,8 +1288,8 @@
           ? "Fechar"
           : "Config"
         : stt.AbaConfig
-        ? "F"
-        : "C";
+          ? "F"
+          : "C";
     }
 
     return caixa;
@@ -1669,12 +1686,12 @@
       const horaInputTE = entradatempo(
         "HoraEsc",
         1,
-        String(horasS).padStart(2, "0")
+        String(horasS).padStart(2, "0"),
       );
       const minuInputTE = entradatempo(
         "MinuEsc",
         0,
-        String(minutosS).padStart(2, "0")
+        String(minutosS).padStart(2, "0"),
       );
 
       function salvarHorario() {
@@ -1700,7 +1717,7 @@
 
       const a = CaixaDeOcultar(
         criarBotSalv(28, "Tempo Escalado"),
-        horaInputCai
+        horaInputCai,
       );
       return a;
     }
@@ -1708,10 +1725,10 @@
     function ContlogueManual() {
       function salvarHorariologueManual() {
         const hora = parseInt(
-          horaInputlogueManual.value || horaInputlogueManual.placeholder
+          horaInputlogueManual.value || horaInputlogueManual.placeholder,
         );
         const minuto = parseInt(
-          minuInputlogueManual.value || minuInputlogueManual.placeholder
+          minuInputlogueManual.value || minuInputlogueManual.placeholder,
         );
 
         const horaFormatada = String(hora).padStart(2, "0");
@@ -1764,7 +1781,7 @@
       InputCailogueManual.append(
         horaInputlogueManual,
         doispontos(),
-        minuInputlogueManual
+        minuInputlogueManual,
       );
 
       // Botão slide
@@ -1798,7 +1815,7 @@
       horaInputCailogueManual.append(ContDataHoralogueManual, logueManualC);
       const a = CaixaDeOcultar(
         criarBotSalv(27, "Logue Manual"),
-        horaInputCailogueManual
+        horaInputCailogueManual,
       );
       return a;
     }
@@ -1841,12 +1858,12 @@
       const horaInputModoTeste = entradatempo(
         "HModoTeste",
         1,
-        String(existH).padStart(2, "0")
+        String(existH).padStart(2, "0"),
       );
       const minuInputModoTeste = entradatempo(
         "MModoTeste",
         0,
-        String(existM).padStart(2, "0")
+        String(existM).padStart(2, "0"),
       );
       horaInputModoTeste.style.marginRight = "4px";
 
@@ -1912,7 +1929,7 @@
         horaInputModoTeste,
         doispontos(),
         minuInputModoTeste,
-        salvarBot
+        salvarBot,
       );
       area.appendChild(dateInput);
       area.appendChild(linha);
@@ -1941,7 +1958,7 @@
         LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
         LinhaSelCor(10, "Erro", Ccor.Erro),
         LinhaSelCor(11, "Offline", Ccor.Offline),
-        LinhaSelCor(12, "Config", Ccor.Config)
+        LinhaSelCor(12, "Config", Ccor.Config),
       );
 
       const a = CaixaDeOcultar(criarBotSalv(25, "Cores"), c1aixaDeCor);
@@ -1960,8 +1977,35 @@
     const IgErro = criarLinhaTextoComBot(20, "Ignorar Erro Nice");
     CIgErro.append(IgErro);
 
-    const IgEst = criarLinhaTextoComBot(22, "Notificar Estouro");
-    const IgEstSom = criarLinhaTextoComBot(23, "Som");
+    const IgEst = criarLinhaTextoComBot2(
+      22,
+      "Notificar Estouro",
+      config.notiEstouro,
+      () => {
+        config.notiEstouro = !config.notiEstouro;
+        atualizarVisual("Bot22", config.notiEstouro);
+      },
+    );
+    const IgEstSom = criarLinhaTextoComBot2(
+      23,
+      "Som",
+      config.SomEstouro,
+      () => {
+        config.SomEstouro = !config.SomEstouro;
+        atualizarVisual("Bot23", config.SomEstouro);
+      },
+    );
+
+    const CigEstDep = criarCaixaSeg();
+
+    CigEstDep.id = "idcaixaEstouro";
+
+    CigEstDep.append(IgEst, IgEstSom);
+
+    const CIgEst = CaixaDeOcultar(
+      criarBotSalv(24, "Estouro de Pausa"),
+      CigEstDep,
+    );
 
     function c1riarBotSalv(a, b) {
       const c = criarBotSalv(a, b);
@@ -2022,7 +2066,7 @@
           ADDCaixaDAviso("Restaurar Config", () => {
             SalvandoVari(2);
             iniciarBusca();
-          })
+          }),
         );
       });
 
@@ -2040,7 +2084,7 @@
         criarSeparador(),
         CValoresEnc,
         criarSeparador(),
-        caixaDeBotres
+        caixaDeBotres,
       );
 
       const a = CaixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
@@ -2118,8 +2162,9 @@
       //criarSeparador(),
       ContTempEsc(),
       criarSeparador(),
-      ContlogueManual()
-      //criarSeparador(),
+      ContlogueManual(),
+      criarSeparador(),
+      CIgEst,
       // Cbotavan()
     );
 
@@ -2140,6 +2185,26 @@
       textoDiv.textContent = texto;
 
       const botao = criarBotaoSlide(idbola);
+
+      linha.append(textoDiv, botao);
+      return linha;
+    }
+
+    // Função auxiliar para criar linha com texto e bolinha
+    function criarLinhaTextoComBot2(idbola, texto, estaAtivo, funcao) {
+      const linha = document.createElement("div");
+      linha.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin: 3px 0px;
+            `;
+
+      const textoDiv = document.createElement("div");
+      textoDiv.textContent = texto;
+
+      const botao = criarBotaoSlide2(idbola, estaAtivo, funcao);
 
       linha.append(textoDiv, botao);
       return linha;
@@ -2344,7 +2409,7 @@
       AddTituloCp("Pausa"),
       AddTituloCp("Duração"),
       AddTituloCp("Início"),
-      AddTituloCp("Fim")
+      AddTituloCp("Fim"),
       //AddTituloCp("Excl")
     );
 
@@ -2375,7 +2440,7 @@
           CaiDPa.appendChild(
             ADDCaixaDAviso("Excluir", () => {
               removerPausaPorId(id);
-            })
+            }),
           );
         });
       }
@@ -2385,7 +2450,7 @@
 
     if (Array.isArray(dadosdePausas) && dadosdePausas.length > 0) {
       const ordenado = [...dadosdePausas].sort(
-        (a, b) => Number(a.id) - Number(b.id)
+        (a, b) => Number(a.id) - Number(b.id),
       );
 
       ordenado.forEach((item) => {
@@ -2399,7 +2464,7 @@
           criarItemTabela(item.id, "pausa", pausa),
           criarItemTabela(item.id, "duracao", duracao),
           criarItemTabela(item.id, "inicio", inicioHora),
-          criarItemTabela(item.id, "fim", fimHora)
+          criarItemTabela(item.id, "fim", fimHora),
           //criarItemTabela(item.id, "id", "❌")
         );
       });
@@ -2408,5 +2473,42 @@
     //console.log(`Pausas ${JSON.stringify(dadosdePausas)}`);
 
     return caixa;
+  }
+
+  /**
+   * tocarBeep - toca tom de alerta via Web Audio API
+   * Frequência: 700Hz, duração: 0.5s, volume: 0.6
+   */
+  function tocarBeep() {
+    const contextoAudio = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
+    const nodoOscilador = contextoAudio.createOscillator();
+    const nodoGanho = contextoAudio.createGain();
+
+    nodoOscilador.type = "sine"; // Tipo de onda
+    nodoOscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
+    nodoGanho.gain.setValueAtTime(0.6, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
+
+    nodoOscilador.connect(nodoGanho);
+    nodoGanho.connect(contextoAudio.destination);
+
+    nodoOscilador.start();
+    nodoOscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
+  }
+
+  /**
+   * RepetirBeep - toca beep repetidamente enquanto pausa estiver em estouro
+   * Intervalo configurável via stt.intervaloBeep (em segundos)
+   */
+  function RepetirBeep() {
+    if (stt.estouro && config.SomEstouro && !stt.BeepRet) {
+      stt.BeepRet = 1;
+      setTimeout(function () {
+        stt.BeepRet = 0;
+        tocarBeep();
+        RepetirBeep();
+      }, stt.intervaloBeep * 1000);
+    }
   }
 })();
