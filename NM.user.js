@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_NM
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      4.3.7.6
+// @version      4.3.7.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -305,7 +305,7 @@
     console.debug(`NiceMonk observer Iniciado`);
     ObservarItem(() => {
       const elementoReferencia = document.querySelector(
-        LugarJS.elementoReferencia
+        LugarJS.elementoReferencia,
       );
       // Verifica se o elemento de referência existe e se os componentes já não foram criados
       if (
@@ -342,7 +342,7 @@
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
       console.debug(
         "NiceMonk Encontrados em dadosSalvosConfi:",
-        dadosSalvosConfi
+        dadosSalvosConfi,
       );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosSalvosConfi:", e);
@@ -366,7 +366,7 @@
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
       console.debug(
         "NiceMonk Encontrados em dadosPrimLogueOnt:",
-        dadosPrimLogueOnt
+        dadosPrimLogueOnt,
       );
     } catch (e) {
       console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
@@ -827,7 +827,7 @@
           await clicarElementoQuerySelector(LugarJS.abaProdutividade);
         } else {
           console.error(
-            "NiceMonk Erro ao clicar no último elemento: abaProdutividade"
+            "NiceMonk Erro ao clicar no último elemento: abaProdutividade",
           );
           return false;
         }
@@ -836,7 +836,7 @@
           await clicarElementoQuerySelector(LugarJS.abaDesempenho);
         } else {
           console.error(
-            "NiceMonk Erro ao clicar no último elemento: abaDesempenho"
+            "NiceMonk Erro ao clicar no último elemento: abaDesempenho",
           );
           return false;
         }
@@ -851,7 +851,7 @@
       }
     } else {
       console.error(
-        "NiceMonk Erro ao clicar no primeiro elemento: abaRelatorio"
+        "NiceMonk Erro ao clicar no primeiro elemento: abaRelatorio",
       );
       return false;
     }
@@ -869,7 +869,7 @@
       const intervalo = setInterval(function () {
         const elemento = document.querySelector(seletor);
         const nomeElemento = Object.keys(LugarJS).filter(
-          (chave) => LugarJS[chave] === seletor
+          (chave) => LugarJS[chave] === seletor,
         );
 
         if (elemento) {
@@ -880,7 +880,7 @@
           if (tentativas >= maxAttempts) {
             clearInterval(intervalo);
             console.error(
-              `NiceMonk Elemento de referência não encontrado: ${nomeElemento}`
+              `NiceMonk Elemento de referência não encontrado: ${nomeElemento}`,
             );
             resolve(false);
           }
@@ -953,7 +953,7 @@
       const s = total % 60;
       return `${String(h).padStart(2, "0")}:${String(m).padStart(
         2,
-        "0"
+        "0",
       )}:${String(s).padStart(2, "0")}`;
     }
     return "00:00:00";
@@ -996,7 +996,7 @@
   async function AtualizarContAtual() {
     if (await seExiste(LugarJS.lContAtual)) {
       const tempoFormatado = formatTime(
-        document.querySelector(LugarJS.lContAtual).textContent
+        document.querySelector(LugarJS.lContAtual).textContent,
       );
       Segun.ContAtual = converterParaSegundos(tempoFormatado);
       return true;
@@ -1118,7 +1118,7 @@
       if (tempoEncontrado) {
         resultados[nomeStatus] = tempoEncontrado;
         console.log(
-          `NiceMonk Status: ${nomeStatus} → Tempo: ${tempoEncontrado}`
+          `NiceMonk Status: ${nomeStatus} → Tempo: ${tempoEncontrado}`,
         );
         if (nomeStatus === "Disponível") {
           Htime.Disponivel = tempoEncontrado;
@@ -1136,7 +1136,7 @@
     const encontrou = Object.keys(resultados).length > 0;
     if (!encontrou) {
       console.warn(
-        "NiceMonk Nenhum tempo encontrado usando os IDs dos ícones."
+        "NiceMonk Nenhum tempo encontrado usando os IDs dos ícones.",
       );
     }
 
@@ -1188,8 +1188,8 @@
       valorTMA.innerHTML = stt.Busc5s
         ? stt.Busc5sTem
         : stt.ErroAtu || temErro
-        ? "Atualize !!"
-        : tmaCalculado;
+          ? "Atualize !!"
+          : tmaCalculado;
       caixaTMAAtualizada.style.background =
         (tmaCalculado > CConfig.ValorMetaTMA &&
           !stt.ErroAtu &&
@@ -1344,7 +1344,7 @@
       pelologue
         ? exibirAHora(agora, 0, horasEDatas.QualLogou).hora
         : converterParaTempo(Segun.NewLogado),
-      CConfig.TempoEscaladoHoras
+      CConfig.TempoEscaladoHoras,
     );
 
     //console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
@@ -1416,19 +1416,19 @@
     vLogou.textContent = horasEDatas.Logou.hora;
 
     const vLogado = document.getElementById("vLogado");
-    vLogado.textContent = converterParaTempo(Segun.NewLogado);
+    vLogado.textContent = tempoEncurtado(converterParaTempo(Segun.NewLogado));
 
     const vSaida = document.getElementById("vSaida");
     vSaida.textContent = horasEDatas.Saida.hora;
 
-    const faltaOuHEFormatada = horasEDatas.Falta.hora;
+    const faltaOuHEFormatada = tempoEncurtado(horasEDatas.Falta.hora);
     const vFalta = document.getElementById("vFalta");
     const tFalta = document.getElementById("tFalta");
     tFalta.textContent = stt.temHorasExtras
       ? "HE:"
       : stt.tempoCumprido
-      ? "Tempo"
-      : "Falta:";
+        ? "Tempo"
+        : "Falta:";
     vFalta.textContent = stt.tempoCumprido ? "Cumprido" : faltaOuHEFormatada;
 
     if (stt.Busc5s) {
@@ -1467,7 +1467,7 @@
     // Validação básica
     if (!a?.data || !a?.hora || !b?.data || !b?.hora) {
       throw new Error(
-        "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}"
+        "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}",
       );
     }
 
@@ -1478,7 +1478,7 @@
     // Verifica se datas são válidas
     if (isNaN(da) || isNaN(db)) {
       throw new Error(
-        "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'."
+        "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'.",
       );
     }
 
@@ -1524,10 +1524,10 @@
     textCC1.innerHTML = stt.ErroAtu
       ? "Atualizar!!"
       : stt.Atualizando
-      ? "Atualizando..."
-      : a === 2
-      ? "Atualizado"
-      : "Atualizar";
+        ? "Atualizando..."
+        : a === 2
+          ? "Atualizado"
+          : "Atualizar";
 
     if (a === 1) {
       stt.Atualizando = 1;
@@ -1598,8 +1598,8 @@
       circuloclick2.style.width = stt.DentrodCC2
         ? "auto"
         : stt.AbaConfig
-        ? "24px"
-        : "17px";
+          ? "24px"
+          : "17px";
       circuloclick2.style.height =
         stt.DentrodCC2 || stt.AbaConfig ? "24px" : "17px";
       circuloclick2.style.borderRadius =
@@ -1638,8 +1638,8 @@
         (stt.DentrodMC && stt.CVAtivo) || stt.AbaPausas
           ? "-5px"
           : !stt.AbaPausas && !stt.AbaConfig
-          ? ""
-          : "20px";
+            ? ""
+            : "20px";
     }
 
     function MostarcontValores(x) {
@@ -1763,7 +1763,7 @@
       CmodoCalculo.append(recalculando, primeiroLogue);
       const a = CaixaDeOcultar(
         c1riarBotSalv(29, "Modo de Calculo"),
-        CmodoCalculo
+        CmodoCalculo,
       );
       return a;
     }
@@ -1888,12 +1888,12 @@
       const horaInputTE = entradatempo(
         "HoraEsc",
         1,
-        String(horasS).padStart(2, "0")
+        String(horasS).padStart(2, "0"),
       );
       const minuInputTE = entradatempo(
         "MinuEsc",
         0,
-        String(minutosS).padStart(2, "0")
+        String(minutosS).padStart(2, "0"),
       );
 
       function salvarHorario() {
@@ -1918,7 +1918,7 @@
       horaInputCai.append(horaInputCaiHM, SalvarHora);
       const a = CaixaDeOcultar(
         criarBotSalv(28, "Tempo Escalado"),
-        horaInputCai
+        horaInputCai,
       );
       return a;
     }
@@ -1926,10 +1926,10 @@
     function ContlogueManual() {
       function salvarHorariologueManual() {
         const hora = parseInt(
-          horaInputlogueManual.value || horaInputlogueManual.placeholder
+          horaInputlogueManual.value || horaInputlogueManual.placeholder,
         );
         const minuto = parseInt(
-          minuInputlogueManual.value || minuInputlogueManual.placeholder
+          minuInputlogueManual.value || minuInputlogueManual.placeholder,
         );
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
@@ -1945,7 +1945,7 @@
       const horaInputlogueManual = entradatempo(
         "HLManual",
         1,
-        String("0").padStart(2, "0")
+        String("0").padStart(2, "0"),
       );
       horaInputlogueManual.addEventListener("input", function () {
         salvarHorariologueManual();
@@ -1953,7 +1953,7 @@
       const minuInputlogueManual = entradatempo(
         "MLManual",
         0,
-        String("0").padStart(2, "0")
+        String("0").padStart(2, "0"),
       );
       minuInputlogueManual.addEventListener("input", function () {
         salvarHorariologueManual();
@@ -1961,7 +1961,7 @@
       InputCailogueManual.append(
         horaInputlogueManual,
         doispontos(),
-        minuInputlogueManual
+        minuInputlogueManual,
       );
 
       const horaInputCailogueManual = document.createElement("div");
@@ -1975,7 +1975,7 @@
         CConfig.LogueManual = !CConfig.LogueManual;
         if (CConfig.LogueManual) {
           const [horasIm, minutosIm, segundosIm] = converterParaTempo(
-            Segun.QualLogou
+            Segun.QualLogou,
           )
             .split(":")
             .map(Number);
@@ -1994,7 +1994,7 @@
       horaInputCailogueManual.append(InputCailogueManual, logueManualC);
       const a = CaixaDeOcultar(
         criarBotSalv(27, "Logue Manual"),
-        horaInputCailogueManual
+        horaInputCailogueManual,
       );
       return a;
     }
@@ -2037,12 +2037,12 @@
       const horaInputModoTeste = entradatempo(
         "HModoTeste",
         1,
-        String(existH).padStart(2, "0")
+        String(existH).padStart(2, "0"),
       );
       const minuInputModoTeste = entradatempo(
         "MModoTeste",
         0,
-        String(existM).padStart(2, "0")
+        String(existM).padStart(2, "0"),
       );
       horaInputModoTeste.style.marginRight = "4px";
 
@@ -2108,7 +2108,7 @@
         horaInputModoTeste,
         doispontos(),
         minuInputModoTeste,
-        salvarBot
+        salvarBot,
       );
       area.appendChild(dateInput);
       area.appendChild(linha);
@@ -2196,7 +2196,7 @@
         LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
         LinhaSelCor(10, "Erro", Ccor.Erro),
         LinhaSelCor(11, "Offline", Ccor.Offline),
-        LinhaSelCor(12, "Config", Ccor.Config)
+        LinhaSelCor(12, "Config", Ccor.Config),
       );
 
       const a = CaixaDeOcultar(criarBotSalv(25, "Cores"), c1aixaDeCor);
@@ -2226,7 +2226,7 @@
 
     const CIgEst = CaixaDeOcultar(
       criarBotSalv(24, "Estouro de Pausa"),
-      CigEstDep
+      CigEstDep,
     );
 
     function c1riarBotSalv(a, b) {
@@ -2288,7 +2288,7 @@
           ADDCaixaDAviso("Restaurar Config", () => {
             SalvandoVari(2);
             iniciarBusca();
-          })
+          }),
         );
       });
 
@@ -2306,7 +2306,7 @@
         criarSeparador(),
         CValoresEnc,
         criarSeparador(),
-        caixaDeBotres
+        caixaDeBotres,
       );
 
       const a = CaixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
@@ -2394,7 +2394,7 @@
       criarSeparador(),
       modoCalculo(),
       criarSeparador(),
-      Cbotavan()
+      Cbotavan(),
     );
 
     document.body.appendChild(caixa);
@@ -2903,7 +2903,7 @@
 
       if (idRegistroPausa === 2)
         console.log(
-          `NiceMonk Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`
+          `NiceMonk Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`,
         );
 
       await atualizarCampos(idRegistroPausa, "Fim", mostrarHora());
@@ -2960,7 +2960,7 @@
               nomePausa,
               mostrarHora(),
               tempoPrevistoFim,
-              notaRetorno
+              notaRetorno,
             );
           }
 
@@ -3100,8 +3100,8 @@
           ? "Fechar"
           : "Pausas"
         : stt.AbaPausas
-        ? "F"
-        : "P";
+          ? "F"
+          : "P";
     }
 
     return caixa;
@@ -3129,7 +3129,7 @@
     requisicao_bd.onerror = function (event) {
       console.error(
         "NiceMonk Erro ao abrir o banco de dados:",
-        event.target.errorCode
+        event.target.errorCode,
       );
     };
   }
@@ -3150,7 +3150,7 @@
 
           request.onsuccess = function () {
             console.debug(
-              `NiceMonk Dados salvos com sucesso na chave "${nomechave}"`
+              `NiceMonk Dados salvos com sucesso na chave "${nomechave}"`,
             );
             resolve(true);
           };
@@ -3158,7 +3158,7 @@
           request.onerror = function (event) {
             console.error(
               "NiceMonk Erro ao salvar os dados:",
-              event.target?.errorCode || event
+              event.target?.errorCode || event,
             );
             reject(event);
           };
@@ -3268,7 +3268,7 @@
                   ApagarChaveIndexDB(nomeChave);
                   CBancDa.innerHTML = "";
                   listarChavesEConteudos();
-                })
+                }),
               );
             });
 
@@ -3305,7 +3305,7 @@
       request.onerror = function (event) {
         console.error(
           "NiceMonk Erro ao apagar a chave:",
-          event.target.errorCode
+          event.target.errorCode,
         );
       };
     });
@@ -3370,7 +3370,7 @@
         return new Date(Y, M - 1, D);
       }
       throw new Error(
-        `Formato de data inválido "${d}". Use YYYY-MM-DD ou DD/MM/YYYY .`
+        `Formato de data inválido "${d}". Use YYYY-MM-DD ou DD/MM/YYYY .`,
       );
     }
 
@@ -3401,7 +3401,7 @@
 
     if (typeof op !== "number" || (op !== 0 && op !== 1)) {
       throw new Error(
-        "Operação inválida. Use 1 para soma ou 0 para subtração."
+        "Operação inválida. Use 1 para soma ou 0 para subtração.",
       );
     }
 
@@ -3418,7 +3418,7 @@
       const deltaB = toEpochMs(b) - midnightB.getTime(); // ms desde meia-noite
       const resultDate = new Date(epochA + deltaB);
       outHora = `${pad2(resultDate.getHours())}:${pad2(
-        resultDate.getMinutes()
+        resultDate.getMinutes(),
       )}:${pad2(resultDate.getSeconds())}`;
       outData = formatDate(resultDate, keepISO);
     } else {
@@ -3490,7 +3490,7 @@
     // --- Offset string "+HH:MM[:SS]" | "-HH:MM[:SS]" => segundos ---
     function parseOffset(offsetStr) {
       const m = String(offsetStr || "").match(
-        /^([+-])(\d{1,2}):(\d{2})(?::(\d{2}))?$/
+        /^([+-])(\d{1,2}):(\d{2})(?::(\d{2}))?$/,
       );
       if (!m) return 0;
       const sign = m[1] === "-" ? -1 : 1;
@@ -3511,7 +3511,7 @@
       if (typeof val === "object" && val) {
         const dVal = buildDateTime(val);
         const dBase = buildDateTime(
-          baseObj || { data: "1970-01-01", hora: "00:00:00" }
+          baseObj || { data: "1970-01-01", hora: "00:00:00" },
         );
         return Math.abs(Math.floor((dVal.getTime() - dBase.getTime()) / 1000));
       }
@@ -3521,10 +3521,10 @@
     // --- Formata retorno {data:'YYYY-MM-DD', hora:'HH:MM:SS'} em fuso local ---
     function formatObj(date) {
       const data = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
+        date.getMonth() + 1,
       ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       const hora = `${String(date.getHours()).padStart(2, "0")}:${String(
-        date.getMinutes()
+        date.getMinutes(),
       ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
       return { data, hora };
     }
@@ -3539,7 +3539,7 @@
       // Caso 2: sinal via maisoumenos (false/0/"0" => negativo; demais => positivo)
       const dur = durationFromAbsoluteOrString(
         valordeacrecimo || "00:00:00",
-        horaedataparacalculo
+        horaedataparacalculo,
       );
       const isNegative =
         maisoumenos === false ||
@@ -3559,8 +3559,7 @@
    * Se data mudou, movimenta registro anterior para "Ontem"
    * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
    */
-  async function verificarESalvar(x,valor) {
-
+  async function verificarESalvar(x, valor) {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
@@ -3659,7 +3658,7 @@
         } else {
           console.log(
             `NiceMonk Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão:`,
-            dadosSalvosConfi
+            dadosSalvosConfi,
           );
           await SalvandoVari(2);
         }
@@ -3863,7 +3862,7 @@
           CaiDPa.appendChild(
             ADDCaixaDAviso("Excluir", () => {
               removerPausaPorId(id);
-            })
+            }),
           );
         });
       }
@@ -3880,11 +3879,11 @@
         CExcl.appendChild(criarItemTabela(item.id, "id", "❌"));
         CPausa.appendChild(criarItemTabela(item.id, "pausa", item.pausa || ""));
         CInicio.appendChild(
-          criarItemTabela(item.id, "inicio", item.Inicio || "<---->")
+          criarItemTabela(item.id, "inicio", item.Inicio || "<---->"),
         );
         CFim.appendChild(criarItemTabela(item.id, "fim", item.Fim || "<---->"));
         CDuracao.appendChild(
-          criarItemTabela(item.id, "duracao", item.Duracao || "<---->")
+          criarItemTabela(item.id, "duracao", item.Duracao || "<---->"),
         );
       });
     }
@@ -3980,8 +3979,9 @@
    * Frequência: 700Hz, duração: 0.5s, volume: 0.6
    */
   function tocarBeep() {
-    const contextoAudio = new (window.AudioContext ||
-      window.webkitAudioContext)();
+    const contextoAudio = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
     const nodoOscilador = contextoAudio.createOscillator();
     const nodoGanho = contextoAudio.createGain();
 
@@ -4009,6 +4009,81 @@
         RepetirBeep();
       }, stt.intervaloBeep * 1000);
     }
+  }
+
+  /**
+   * Encurta um tempo para o menor formato possível.
+   * Entrada: "HH:MM:SS" | "MM:SS" | "SS" (string) OU número de segundos (inteiro).
+   * Saída: "HH:MM:SS" | "MM:SS" | "SS"
+   */
+  function tempoEncurtado(input) {
+    // --- Normaliza entrada para total de segundos (inteiro) ---
+    let totalSeg;
+
+    if (typeof input === "number" && Number.isFinite(input)) {
+      totalSeg = Math.trunc(input);
+    } else if (typeof input === "string") {
+      const str = input.trim();
+      // Detecta sinal
+      const negativo = str.startsWith("-");
+      const limpo = negativo ? str.slice(1) : str;
+
+      const partes = limpo.split(":").map((p) => p.trim());
+      if (partes.some((p) => p === "" || isNaN(Number(p)))) {
+        throw new Error(`Formato inválido: "${input}"`);
+      }
+
+      let h = 0,
+        m = 0,
+        s = 0;
+      if (partes.length === 3) {
+        [h, m, s] = partes.map(Number);
+      } else if (partes.length === 2) {
+        [m, s] = partes.map(Number);
+      } else if (partes.length === 1) {
+        [s] = partes.map(Number);
+      } else {
+        throw new Error(`Formato inválido: "${input}"`);
+      }
+
+      if (m < 0 || s < 0 || h < 0)
+        throw new Error(
+          `Valores negativos não são permitidos nas partes: "${input}"`,
+        );
+      if (m >= 60 || s >= 60) {
+        // Aceitamos mm/ss >= 60? Se preferir, pode normalizar; aqui vamos rejeitar:
+        // para normalizar, comente o throw e deixe passar (iremos somar abaixo).
+        // throw new Error(`Minutos/segundos devem ser < 60: "${input}"`);
+      }
+
+      totalSeg = h * 3600 + m * 60 + s;
+      if (negativo) totalSeg = -totalSeg;
+    } else {
+      throw new Error(
+        'Entrada deve ser string "HH:MM:SS" | "MM:SS" | "SS" ou número de segundos.',
+      );
+    }
+
+    // --- Constrói saída no menor formato possível ---
+    const negativo = totalSeg < 0;
+    const abs = Math.abs(totalSeg);
+
+    const horas = Math.floor(abs / 3600);
+    const minutos = Math.floor((abs % 3600) / 60);
+    const segundos = abs % 60;
+
+    const pad2 = (n) => String(n).padStart(2, "0");
+
+    let corpo;
+    if (horas > 0) {
+      corpo = `${horas}:${pad2(minutos)}:${pad2(segundos)}`;
+    } else if (minutos > 0) {
+      corpo = `${minutos}:${pad2(segundos)}`;
+    } else {
+      corpo = `${segundos}`; // sem zero-padding em SS puro
+    }
+
+    return negativo ? `-${corpo}` : corpo;
   }
 
   // Your code here...
