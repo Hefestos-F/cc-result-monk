@@ -40,7 +40,7 @@
     tempoCumprido: 0,
     temHorasExtras: 0,
     Estour1: 0,
-    intervaloBeep: 1,
+    BeepRet: 0,
   };
 
   let TempoPausas = {
@@ -238,7 +238,7 @@
     // Helpers
     const duracaoPrevistaPorStatus = (s) => {
       if (s.includes("Lanche")) return "00:20:00";
-      if (s.includes("Descanso")) return "00:10:00";
+      if (s.includes("Descanso")) return "00:00:05";
       return null;
     };
 
@@ -273,6 +273,7 @@
         stt.Estouro = 0;
         stt.Estour1 = 0;
         atualizarComoff(0, "cTMA");
+        SalvandoVariConfig(1);
         // Calcula duração real (string HH:MM:SS)
         const duracaoReal = calcularDuracao(inicioObj, agora);
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
@@ -797,7 +798,7 @@
 
     const agora = gerarDataHora();
     let Encontrado = stt.Status === "---" ? 0 : 1;
-    let ContAtual = Encontrado ? "00:00:00" : "Encontrado";
+    let ContAtual = Encontrado ? "0" : "Encontrado";
 
     titulo.textContent = Encontrado ? stt.Status : "Não";
     time.textContent = ContAtual;
@@ -840,7 +841,7 @@
     if (config.LogueManual) {
     }
 
-    time.textContent = ContAtual;
+    time.textContent = tempoEncurtado(ContAtual);
 
     TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
 
@@ -870,14 +871,13 @@
       stt.Estouro = compararDatas(agora, TempoPausas.Estouro);
       atualizarComoff(stt.Estouro, "cTMA");
 
-      /*if (!stt.Estour1 && config.SomEstouro) {
+      if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         stt.Estour1 = 1;
         tocarBeep();
         setTimeout(function () {
-          stt.intervaloBeep = 3;
           RepetirBeep();
         }, 15000);
-      }*/
+      }
     }
   }, 1000);
 
@@ -1567,7 +1567,6 @@
       aplicarConfiguracao(dadosSalvosConfi);
     }
   }
-
   function criarC() {
     const style = document.createElement("style");
     style.textContent = `
@@ -1985,6 +1984,7 @@
       () => {
         config.notiEstouro = !config.notiEstouro;
         atualizarVisual("Bot22", config.notiEstouro);
+        if (!config.notiEstouro) atualizarComoff(0, "cTMA");
       },
     );
     const IgEstSom = criarLinhaTextoComBot2(
@@ -1994,6 +1994,7 @@
       () => {
         config.SomEstouro = !config.SomEstouro;
         atualizarVisual("Bot23", config.SomEstouro);
+        RepetirBeep();
       },
     );
 
@@ -2575,16 +2576,20 @@
 
   /**
    * RepetirBeep - toca beep repetidamente enquanto pausa estiver em estouro
-   * Intervalo configurável via stt.intervaloBeep (em segundos)
    */
   function RepetirBeep() {
-    if (stt.estouro && config.SomEstouro && !stt.BeepRet) {
+    if (
+      !stt.BeepRet &&
+      stt.Estouro &&
+      config.SomEstouro &&
+      config.notiEstouro
+    ) {
       stt.BeepRet = 1;
       setTimeout(function () {
         stt.BeepRet = 0;
-        tocarBeep();
+        if (stt.Estouro && config.SomEstouro && config.notiEstouro) tocarBeep();
         RepetirBeep();
-      }, stt.intervaloBeep * 1000);
+      }, 3 * 1000);
     }
   }
 })();
