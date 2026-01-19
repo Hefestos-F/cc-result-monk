@@ -1986,10 +1986,10 @@
       c1aixaDeCor.id = "c1aixaDeCor";
       c1aixaDeCor.append(
         LinhaSelCor(7, "Principal", Ccor.Principal),
-        LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
-        LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
-        LinhaSelCor(10, "Erro", Ccor.Erro),
-        LinhaSelCor(11, "Offline", Ccor.Offline),
+        //LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
+        //LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
+        //LinhaSelCor(10, "Erro", Ccor.Erro),
+        //LinhaSelCor(11, "Offline", Ccor.Offline),
         LinhaSelCor(12, "Config", Ccor.Config),
       );
 
