@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         LoginZendesk
+// @name         teste2
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
 // @version      1.2.6.2
 // @description  that's all folks!
@@ -238,7 +238,7 @@
     // Helpers
     const duracaoPrevistaPorStatus = (s) => {
       if (s.includes("Lanche")) return "00:20:00";
-      if (s.includes("Descanso")) return "00:00:05";
+      if (s.includes("Descanso")) return "00:10:00";
       return null;
     };
 

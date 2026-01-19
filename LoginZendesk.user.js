@@ -238,7 +238,7 @@
     // Helpers
     const duracaoPrevistaPorStatus = (s) => {
       if (s.includes("Lanche")) return "00:20:00";
-      if (s.includes("Descanso")) return "00:00:05";
+      if (s.includes("Descanso")) return "00:10:00";
       return null;
     };
 
@@ -1567,6 +1567,7 @@
       aplicarConfiguracao(dadosSalvosConfi);
     }
   }
+
   function criarC() {
     const style = document.createElement("style");
     style.textContent = `
