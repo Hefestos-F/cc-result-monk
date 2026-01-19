@@ -163,6 +163,7 @@
     }
     await verifiDataLogue();
     await SalvandoVariConfig(0);
+    await verifLogueManual();
   }
 
   function observarItem(aoMudar) {
@@ -330,6 +331,24 @@
     );
     stt.andament = 1;
   });
+
+  async function verifLogueManual() {
+    const hoje = new Date();
+    const hojeFormatado = hoje.toISOString().split("T")[0];
+    const ontem = new Date(hoje);
+    ontem.setDate(hoje.getDate() - 1);
+    const ontemFormatado = ontem.toISOString().split("T")[0];
+    const agora = gerarDataHora();
+
+    if (
+      !dadosLogueManu ||
+      (dadosLogueManu.data !== hojeFormatado &&
+        dadosLogueManu.data !== ontemFormatado)
+    ) {
+      dadosLogueManu = agora;
+      AddOuAtuIindexdb(ChavelogueManu, dadosLogueManu);
+    }
+  }
 
   async function verifiDataLogue(x = 0) {
     const a = gerarDataHora();
@@ -758,17 +777,20 @@
     return { hora, data };
   }
 
-  function verificarMouse(mostrar) {
-    const ids = [
-      "cFalta",
-      "cLogado",
-      "cSaida",
-      "cLogou",
-      "SepCVal4",
-      "SepCVal3",
-      "SepCVal2",
-      "SepCVal1",
-    ];
+  function verificarMouse(id2 = 0, mostrar) {
+    const ids = id2
+      ? ["SepCVal2", "cTMA"]
+      : [
+          "cFalta",
+          "cLogado",
+          "cSaida",
+          "cLogou",
+          "SepCVal4",
+          "SepCVal3",
+          "SepCVal2",
+          "SepCVal1",
+        ];
+
     const exibir = !!mostrar; // garante booleano
 
     for (const id of ids) {
@@ -803,9 +825,11 @@
     titulo.textContent = Encontrado ? stt.Status : "Não";
     time.textContent = ContAtual;
 
-    verificarMouse(Encontrado);
+    verificarMouse(0, Encontrado);
 
-    const Logou = exibirHora(agora, 0, TempoPausas.Logado);
+    const Logou = config.LogueManual
+      ? dadosLogueManu
+      : exibirHora(agora, 0, TempoPausas.Logado);
     TempoPausas.Logou = Logou.hora;
 
     const agora1 = gerarDataHora();
@@ -815,7 +839,7 @@
     const Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
 
     TempoPausas.Saida = Saida.hora;
-    if (compararDatas(dadosPrimLogue, Logou)) {
+    if (!config.LogueManual && compararDatas(dadosPrimLogue, Logou)) {
       dadosPrimLogue = Logou;
       verifiDataLogue(1);
     }
@@ -823,23 +847,30 @@
     vLogou.textContent = TempoPausas.Logou || "00:00:00";
     vSaida.textContent = TempoPausas.Saida || "00:00:00";
 
-    if (
-      !DDPausa.inicioUltimaP ||
-      !DDPausa.inicioUltimaP.data ||
-      stt.Status.includes("Offline") ||
-      !Encontrado
-    ) {
-      return;
+    if (!config.LogueManual) {
+      if (
+        !DDPausa.inicioUltimaP ||
+        !DDPausa.inicioUltimaP.data ||
+        stt.Status.includes("Offline") ||
+        !Encontrado
+      ) {
+        return;
+      }
+    } else {
+      verificarMouse(1, Encontrado);
     }
 
-    ContAtual = exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
-    const LogadoSegunCAtual =
-      TempoPausas.Online + converterParaSegundos(ContAtual);
+    ContAtual = !Encontrado
+      ? "---"
+      : !DDPausa.inicioUltimaP || !DDPausa.inicioUltimaP.data
+        ? "-?-"
+        : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
 
-    TempoPausas.Logado = converterParaTempo(LogadoSegunCAtual);
-
-    if (config.LogueManual) {
-    }
+    TempoPausas.Logado = config.LogueManual
+      ? exibirAHora(agora, 0, Logou).hora
+      : converterParaTempo(
+          TempoPausas.Online + converterParaSegundos(ContAtual),
+        );
 
     time.textContent = tempoEncurtado(ContAtual);
 
