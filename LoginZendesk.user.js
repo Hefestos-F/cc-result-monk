@@ -1595,7 +1595,9 @@
 
     if (modo) {
       await AddOuAtuIindexdb(ChaveConfig, AsVari);
-      console.log(`HefestoLog: Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`);
+      console.log(
+        `HefestoLog: Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`,
+      );
     } else {
       aplicarConfiguracao(dadosSalvosConfi);
     }
@@ -2278,8 +2280,8 @@
       botao.addEventListener("click", function () {
         Ccor.Varian = inputCor.value;
         copiarTexto(Ccor.Varian);
-
         atualizarVisual(inputCor.id);
+        SalvandoVariConfig(1);
       });
 
       div1.append(inputCor, textoDiv, botao);
@@ -2330,7 +2332,6 @@
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.principal;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
     if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
-    SalvandoVariConfig(1);
   }
 
   /**
