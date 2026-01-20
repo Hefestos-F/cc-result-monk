@@ -41,6 +41,7 @@
     temHorasExtras: 0,
     Estour1: 0,
     BeepRet: 0,
+    Encontrado: 0,
   };
 
   let TempoPausas = {
@@ -819,13 +820,13 @@
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
 
     const agora = gerarDataHora();
-    let Encontrado = stt.Status === "---" ? 0 : 1;
-    let ContAtual = Encontrado ? "0" : "Encontrado";
+    stt.Encontrado = stt.Status === "---" ? 0 : 1;
+    let ContAtual = stt.Encontrado ? "0" : "Encontrado";
 
-    titulo.textContent = Encontrado ? stt.Status : "Não";
+    titulo.textContent = stt.Encontrado ? stt.Status : "Não";
     time.textContent = ContAtual;
 
-    verificarMouse(0, Encontrado);
+    verificarMouse(0, stt.Encontrado);
 
     const Logou = config.LogueManual
       ? dadosLogueManu
@@ -852,15 +853,15 @@
         !DDPausa.inicioUltimaP ||
         !DDPausa.inicioUltimaP.data ||
         stt.Status.includes("Offline") ||
-        !Encontrado
+        !stt.Encontrado
       ) {
         return;
       }
     } else {
-      verificarMouse(1, Encontrado);
+      verificarMouse(1, stt.Encontrado);
     }
 
-    ContAtual = !Encontrado
+    ContAtual = !stt.Encontrado
       ? "---"
       : !DDPausa.inicioUltimaP || !DDPausa.inicioUltimaP.data
         ? "-?-"
@@ -1188,7 +1189,7 @@
     caixa.id = "BPausa";
     caixa.textContent = "P";
     caixa.style.cssText = `
-        background: ${Ccor.Principal};
+        border: 1px solid white;
         height: 20px;
         width: 20px;
         border-radius: 15px;
@@ -1264,7 +1265,7 @@
     caixa.id = "BConfig";
     caixa.textContent = "C";
     caixa.style.cssText = `
-    background: ${Ccor?.Principal || "#007bff"};
+    border: 1px solid white;
     height: 20px;
     width: 20px;
     border-radius: 15px;
@@ -1478,7 +1479,6 @@
     container.style.cssText = `
         display: flex;
         opacity: 1;
-        background: ${Ccor.Principal};
         padding: 6px;
         align-items: center;
         justify-content: space-evenly;
@@ -1487,6 +1487,7 @@
         visibility: visible;
         flex-direction: column;
         overflow: hidden;
+        border: 1px solid white;
         `;
 
     // Adiciona as caixas e separadores ao contêiner
@@ -1530,7 +1531,7 @@
       if (a) {
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
-        a.style.marginLeft = x ? "5px" : "-30px";
+        a.style.marginLeft = x ? "5px" : "-32px";
       }
     }
 
@@ -1539,7 +1540,7 @@
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
-   margin-left: -30px;
+    margin-left: -32px;
     opacity: 0;
     visibility: hidden;
     transition: 0.5s;
@@ -1622,7 +1623,7 @@
         padding: 6px;
         overflow: auto;
         width: max-content;
-        border: solid steelblue;
+        border: 1px solid white;
         margin-left: 5px;
         `;
 
@@ -1829,7 +1830,7 @@
           minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
           dataInputlogueManual.value = new Date().toISOString().split("T")[0];
         }
-        atualizarVisual("Bot13", config.LogueManual);
+        atualizarSlidePosi("Bot13", config.LogueManual);
       });
 
       logueManualC.style.cssText = `margin-left: 6px;`;
@@ -2015,7 +2016,7 @@
       config.notiEstouro,
       () => {
         config.notiEstouro = !config.notiEstouro;
-        atualizarVisual("Bot22", config.notiEstouro);
+        atualizarSlidePosi("Bot22", config.notiEstouro);
         if (!config.notiEstouro) atualizarComoff(0, "cTMA");
       },
     );
@@ -2025,7 +2026,7 @@
       config.SomEstouro,
       () => {
         config.SomEstouro = !config.SomEstouro;
-        atualizarVisual("Bot23", config.SomEstouro);
+        atualizarSlidePosi("Bot23", config.SomEstouro);
         RepetirBeep();
       },
     );
@@ -2186,14 +2187,14 @@
     }
 
     caixa.append(
-      //caixaDeCor(),
-      //criarSeparador(),
       //Faixa(),
       //criarSeparador(),
       //CIgOffline,
       //CIgTMA,
       //CIgErro,
       //criarSeparador(),
+      caixaDeCor(),
+      criarSeparador(),
       ContTempEsc(),
       criarSeparador(),
       ContlogueManual(),
@@ -2276,9 +2277,8 @@
       botao.addEventListener("click", function () {
         Ccor.Varian = inputCor.value;
         copiarTexto(Ccor.Varian);
-        AtualizarConf(a);
-        ControleFront();
-        SalvandoVariConfig(1);
+
+        atualizarVisual(inputCor.id);
       });
 
       div1.append(inputCor, textoDiv, botao);
@@ -2288,12 +2288,18 @@
     return caixa;
   }
 
+  function Retornaritem(dentro, seletor) {
+    if (typeof dentro !== "object" || dentro === null) return [];
+
+    return Object.keys(dentro).filter((chave) => dentro[chave] === seletor);
+  }
+
   /**
-   * atualizarVisual - atualiza estado visual de um botão slide
+   * atualizarSlidePosi - atualiza estado visual de um botão slide
    * @param {string} idBotao - id do botão (ex: "Bot14")
    * @param {boolean} estaAtivo - se botão deve estar ativo/não ativo
    */
-  function atualizarVisual(idBotao, estaAtivo) {
+  function atualizarSlidePosi(idBotao, estaAtivo) {
     const elemento = document.getElementById(idBotao);
     if (!elemento) {
       return;
@@ -2309,6 +2315,21 @@
         elemento.style.backgroundColor = "#ccc";
       }
     }
+  }
+
+  function atualizarVisual(qq = "---") {
+    const FlutOB = document.getElementById("FlutOB");
+    const CaixaConfig = document.getElementById("CaixaConfig");
+    const CaiDPa = document.getElementById("CaiDPa");
+
+    if (qq === "cor7") Ccor.principal = Ccor.Varian;
+    if (qq === "cor12") Ccor.Config = Ccor.Varian;
+    //console.log(`O valor de qq2:${qq}`);
+
+    if (FlutOB) FlutOB.style.backgroundColor = Ccor.principal;
+    if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
+    if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
+    SalvandoVariConfig(1);
   }
 
   /**
@@ -2407,7 +2428,7 @@
         padding: 5px;
         max-width: 400px;
         height: max-content;
-        border: solid steelblue;
+        border: 1px solid white;
         transition: 0.5s;
         overflow: auto;
         display: grid;
