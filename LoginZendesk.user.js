@@ -1595,6 +1595,7 @@
 
     if (modo) {
       await AddOuAtuIindexdb(ChaveConfig, AsVari);
+      console.log(`HefestoLog: Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`);
     } else {
       aplicarConfiguracao(dadosSalvosConfi);
     }
