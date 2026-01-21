@@ -87,6 +87,7 @@
     Erro: "#992e2e",
     MetaTMA: "#229b8d",
     Principal: "#4c95bd",
+    AreaAr: "#337091",
     Config: "#96a8bb",
     Varian: "",
     TVarian: "",
@@ -197,11 +198,28 @@
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
+  /**
+   * Retorna a primeira parte do texto até o primeiro delimitador:
+   * - espaço(s)
+   * - pipe: |
+   * - hífen: -
+   *
+   * Depois normaliza para: PrimeiraLetraMaiúscula + restante minúsculo.
+   * Exemplos:
+   *  - "Abobora|abacaxi" -> "Abobora"
+   *  - "Abobora-abacaxi" -> "Abobora"
+   *  - "  MARIA-joana  " -> "Maria"
+   *  - "José Silva"      -> "José"
+   */
   const formatPrimeiroNome = (txt) => {
-    const t = (txt || "").trim();
+    const t = (txt ?? "").trim();
     if (!t) return "";
-    // Extrai a primeira "palavra" (até espaço)
-    const first = t.split(/\s+/)[0];
+
+    // Divide no primeiro espaço, pipe (|) ou hífen (-)
+    // O modificador 'u' garante suporte Unicode
+    const first = t.split(/[|\-\s]+/u)[0];
+
+    // Normaliza: primeira letra maiúscula, restante minúsculo
     const lower = first.toLowerCase();
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   };
@@ -218,8 +236,8 @@
       return (stt.andament = 1);
     }
 
-    //const statusAtual = formatPrimeiroNome(el.textContent.trim());
-    const statusAtual = formatPrimeiroNome(el.textContent.trim());
+    let statusAtual = formatPrimeiroNome(el.textContent.trim());
+    if (statusAtual === "Pausa") statusAtual = "Particular";
     //console.log(`HefestoLog: Status: ${statusAtual}`);
 
     // Se não mudou, não faz nada
