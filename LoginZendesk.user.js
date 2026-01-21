@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendesk
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.6.5
+// @version      1.2.6.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -165,6 +165,7 @@
     await verifiDataLogue();
     await SalvandoVariConfig(0);
     await verifLogueManual();
+    criarObjetoFlutuante();
   }
 
   function observarItem(aoMudar) {
@@ -685,35 +686,35 @@
 
     const div = document.createElement("div");
     div.id = "FlutOB";
-    const handle = document.createElement("div"); // Área para arrastar
-
     // Estilo do container principal
-    Object.assign(div.style, {
-      position: "fixed",
-      bottom: "1px",
-      left: "1px",
-      borderRadius: "8px",
-      zIndex: "16",
-      boxSizing: "border-box",
-      userSelect: "none",
-      transform: "translate(0px, 0px)",
-      willChange: "transform",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      background: "#2c3e50",
-      padding: "3px",
-    });
 
+    div.style.cssText = `
+     position: fixed;
+     bottom: 1px;
+     left: 1px;
+     border-radius: 8px;
+     z-index: 16;
+     box-sizing: border-box;
+     user-select: none;
+     transform: translate(0px, 0px);
+     will-change: transform;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     background-color: ${Ccor.Principal};
+     padding: 3px;
+     box-sizing: border-box;
+    `;
+    const handle = document.createElement("div"); // Área para arrastar
     // Estilo da área de arrasto
-    Object.assign(handle.style, {
-      width: "100%",
-      height: "5px",
-      background: "#34495e",
-      cursor: "grab",
-      borderRadius: "4px",
-      marginBottom: "5px",
-    });
+    handle.style.cssText = `
+    width: 100%;
+    height: 5px;
+    background: rgb(52, 73, 94);
+    cursor: grab;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    `;
 
     let offsetX = 0,
       offsetY = 0,
@@ -761,7 +762,7 @@
     document.body.appendChild(div);
   }
 
-  criarObjetoFlutuante();
+  
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
   function gerarDataHora() {
@@ -1340,6 +1341,7 @@
       const elementoEstilo = document.createElement("style");
       elementoEstilo.id = "estilo-slide";
       elementoEstilo.textContent = `
+      
           .slider-button27 {
             position: relative;
             width: 26px;
@@ -1441,6 +1443,10 @@
       const style = document.createElement("style");
       style.type = "text/css";
       style.innerHTML = `
+      #FlutOB,
+      #FlutOB * {
+         box-sizing: border-box;
+      }
             .info-caixa {
                 text-align: center;
             }
@@ -1531,7 +1537,7 @@
       if (a) {
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
-        a.style.marginLeft = x ? "5px" : "-32px";
+        a.style.marginLeft = x ? "5px" : "-20px";
       }
     }
 
@@ -1540,7 +1546,7 @@
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
-    margin-left: -32px;
+    margin-left: -20px;
     opacity: 0;
     visibility: hidden;
     transition: 0.5s;
@@ -2325,11 +2331,11 @@
     const CaixaConfig = document.getElementById("CaixaConfig");
     const CaiDPa = document.getElementById("CaiDPa");
 
-    if (qq === "cor7") Ccor.principal = Ccor.Varian;
+    if (qq === "cor7") Ccor.Principal = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
     //console.log(`O valor de qq2:${qq}`);
 
-    if (FlutOB) FlutOB.style.backgroundColor = Ccor.principal;
+    if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
     if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
   }
