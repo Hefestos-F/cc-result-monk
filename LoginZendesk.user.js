@@ -72,6 +72,7 @@
     Erro: "#992e2e",
     MetaTMA: "#229b8d",
     Principal: "#4c95bd",
+    AreaAr: "#337091",
     Config: "#96a8bb",
     Varian: "",
     TVarian: "",
@@ -687,7 +688,6 @@
     const div = document.createElement("div");
     div.id = "FlutOB";
     // Estilo do container principal
-
     div.style.cssText = `
      position: fixed;
      bottom: 1px;
@@ -706,11 +706,12 @@
      box-sizing: border-box;
     `;
     const handle = document.createElement("div"); // Área para arrastar
+    handle.id = "AreaArrast";
     // Estilo da área de arrasto
     handle.style.cssText = `
     width: 100%;
     height: 5px;
-    background: rgb(52, 73, 94);
+    background-color: ${Ccor.AreaAr};
     cursor: grab;
     border-radius: 4px;
     margin-bottom: 5px;
@@ -761,8 +762,6 @@
     div.appendChild(AdicionarCaixaAtualizada());
     document.body.appendChild(div);
   }
-
-  
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
   function gerarDataHora() {
@@ -2328,14 +2327,18 @@
 
   function atualizarVisual(qq = "---") {
     const FlutOB = document.getElementById("FlutOB");
+    const AreaArrast = document.getElementById("AreaArrast");
     const CaixaConfig = document.getElementById("CaixaConfig");
     const CaiDPa = document.getElementById("CaiDPa");
 
-    if (qq === "cor7") Ccor.Principal = Ccor.Varian;
+    if (qq === "cor7") {
+      Ccor.Principal = Ccor.Varian;
+      Ccor.AreaAr = escurecer(Ccor.Principal);
+    }
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
     //console.log(`O valor de qq2:${qq}`);
-
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
+    if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
     if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
   }
@@ -2651,6 +2654,109 @@
         if (stt.Estouro && config.SomEstouro && config.notiEstouro) tocarBeep();
         RepetirBeep();
       }, 3 * 1000);
+    }
+  }
+
+  /**
+   * Escurece uma cor (hex, rgb, rgba) reduzindo cada canal por uma fração.
+   * @param {string} color - Ex: "#229b8d", "#2a9", "rgb(34,155,141)", "rgba(34,155,141,0.8)"
+   * @param {number} intensidade - Valor entre 0 e 1 (0.15 = 15% mais escuro)
+   * @returns {string} - Cor no mesmo formato de entrada (hex volta como #rrggbb)
+   */
+  function escurecer(color, intensidade = 0.15) {
+    if (typeof color !== "string") throw new TypeError("Cor deve ser string");
+    const amt = clamp(intensidade, 0, 1);
+
+    // Normaliza e detecta formato
+    const c = color.trim();
+    if (c.startsWith("#")) {
+      const { r, g, b } = hexToRgb(c);
+      const { r: nr, g: ng, b: nb } = darkenRgb({ r, g, b }, amt);
+      return rgbToHex(nr, ng, nb);
+    }
+
+    if (c.toLowerCase().startsWith("rgb(")) {
+      const { r, g, b } = parseRgb(c);
+      const { r: nr, g: ng, b: nb } = darkenRgb({ r, g, b }, amt);
+      return `rgb(${nr}, ${ng}, ${nb})`;
+    }
+
+    if (c.toLowerCase().startsWith("rgba(")) {
+      const { r, g, b, a } = parseRgba(c);
+      const { r: nr, g: ng, b: nb } = darkenRgb({ r, g, b }, amt);
+      return `rgba(${nr}, ${ng}, ${nb}, ${a})`;
+    }
+
+    throw new Error(
+      "Formato de cor não suportado. Use hex (#rrggbb, #rgb), rgb() ou rgba().",
+    );
+
+    // === Helpers ===
+
+    function clamp(v, min, max) {
+      return Math.min(Math.max(v, min), max);
+    }
+
+    function hexToRgb(hex) {
+      let h = hex.replace("#", "").trim();
+      if (h.length === 3) {
+        // #abc -> #aabbcc
+        h = h
+          .split("")
+          .map((ch) => ch + ch)
+          .join("");
+      }
+      if (!/^[0-9a-f]{6}$/i.test(h)) {
+        throw new Error("Hex inválido.");
+      }
+      const r = parseInt(h.slice(0, 2), 16);
+      const g = parseInt(h.slice(2, 4), 16);
+      const b = parseInt(h.slice(4, 6), 16);
+      return { r, g, b };
+    }
+
+    function rgbToHex(r, g, b) {
+      const toHex = (n) => n.toString(16).padStart(2, "0");
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    function parseRgb(str) {
+      // rgb(34, 155, 141)
+      const m = str.match(
+        /rgb\s*\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/i,
+      );
+      if (!m) throw new Error("rgb() inválido.");
+      const r = clamp(parseInt(m[1], 10), 0, 255);
+      const g = clamp(parseInt(m[2], 10), 0, 255);
+      const b = clamp(parseInt(m[3], 10), 0, 255);
+      return { r, g, b };
+    }
+
+    function parseRgba(str) {
+      // rgba(34, 155, 141, 0.8)
+      const m = str.match(
+        /rgba\s*\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*(\d*\.?\d+)\s*\)/i,
+      );
+      if (!m) throw new Error("rgba() inválido.");
+      const r = clamp(parseInt(m[1], 10), 0, 255);
+      const g = clamp(parseInt(m[2], 10), 0, 255);
+      const b = clamp(parseInt(m[3], 10), 0, 255);
+      const a = clamp(parseFloat(m[4]), 0, 1);
+      return { r, g, b, a };
+    }
+
+    function darkenRgb({ r, g, b }, frac) {
+      // Estrategia simples: multiplicar cada canal por (1 - frac)
+      // Mantém o tom geral e reduz brilho de forma previsível.
+      const f = 1 - frac;
+      const dr = Math.round(r * f);
+      const dg = Math.round(g * f);
+      const db = Math.round(b * f);
+      return {
+        r: clamp(dr, 0, 255),
+        g: clamp(dg, 0, 255),
+        b: clamp(db, 0, 255),
+      };
     }
   }
 })();
