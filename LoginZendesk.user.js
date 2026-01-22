@@ -891,7 +891,10 @@
           TempoPausas.Online + converterParaSegundos(ContAtual),
         );
 
-    time.textContent = tempoEncurtado(ContAtual);
+    time.textContent =
+      ContAtual === "---" || ContAtual === "-?-"
+        ? ContAtual
+        : tempoEncurtado(ContAtual);
 
     TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
 
@@ -1865,8 +1868,10 @@
         config.LogueManual = !config.LogueManual;
         if (config.LogueManual) {
           const [horasIm, minutosIm] = TempoPausas.Logou.split(":").map(Number);
-          horaInputlogueManual.value = String(horasIm).padStart(2, "0");
-          minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
+          if (horaInputlogueManual.value === "")
+            horaInputlogueManual.value = String(horasIm).padStart(2, "0");
+          if (minuInputlogueManual.value === "")
+            minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
           dataInputlogueManual.value = new Date().toISOString().split("T")[0];
         }
         atualizarSlidePosi("Bot13", config.LogueManual);
