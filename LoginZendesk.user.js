@@ -853,7 +853,7 @@
       stt.AbaPausas ||
       stt.AbaConfig
     ) {
-      ContPaCo.style.minHeight = "148px";
+      ContPaCo.style.minHeight = "164px";
       InfoV.style.display = "";
     } else {
       InfoV.style.display = "none";
@@ -1586,23 +1586,22 @@
     opacity: 0;
     visibility: hidden;
     transition: 0.5s;
-    display: grid;
+    display: flex;
     gap: 5px;
-    height: max-content;
+    flex-direction: column;
     `;
 
     const InfoV = document.createElement("div");
     InfoV.id = "InfoV";
     InfoV.textContent = `Versão P Chat ${GM_info.script.version || "?-?"}`;
     InfoV.style.cssText = `
-    align-self: flex-end;
     transform: rotate(-90deg);
     transform-origin: right bottom;
     white-space: nowrap;
     color: #ffffff;
     width: 16px;
-    bottom: 28px;
-    position: absolute;
+    position: relative;
+    bottom: 22px;
     `;
 
     const Space = document.createElement("div");
