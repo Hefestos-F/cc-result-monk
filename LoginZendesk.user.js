@@ -796,30 +796,12 @@
     return { hora, data };
   }
 
-  function verificarMouse(id2 = 0, mostrar) {
-    const ids = id2
-      ? ["SepCVal2", "cTMA"]
-      : [
-          "cFalta",
-          "cLogado",
-          "cSaida",
-          "cLogou",
-          "SepCVal4",
-          "SepCVal3",
-          "SepCVal2",
-          "SepCVal1",
-        ];
-
+  function verificarMouse(ids, mostrar) {
     const exibir = !!mostrar; // garante booleano
 
     for (const id of ids) {
       const el = document.getElementById(id);
       if (!el) continue; // se não existir, apenas pulaa
-
-      // Se você realmente precisa de flex para esses elementos, mantenha "flex".
-      // Caso contrário, prefira "block" ou recuperar o display original.
-      //el.style.opacity = exibir ? "1" : "0";
-      //el.style.visibility = exibir ? "visible" : "hidden";
 
       el.style.display = exibir ? "block" : "none";
     }
@@ -860,7 +842,23 @@
       ContPaCo.style.minHeight = "";
     }
 
-    verificarMouse(0, stt.Encontrado);
+    verificarMouse(
+      [
+        "cLogou",
+        "SepCVal1",
+        "cSaida",
+        "SepCVal3",
+        "cLogado",
+        "SepCVal4",
+        "cFalta",
+      ],
+      stt.Encontrado || config.LogueManual,
+    );
+    verificarMouse(
+      ["SepCVal2"],
+      stt.Encontrado ? 1 : config.LogueManual ? 1 : 0,
+    );
+    verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
 
     const Logou = config.LogueManual
       ? dadosLogueManu
@@ -891,8 +889,6 @@
       ) {
         return;
       }
-    } else {
-      verificarMouse(1, stt.Encontrado);
     }
 
     ContAtual = !stt.Encontrado
@@ -1866,11 +1862,23 @@
       border-radius: 8px;
       `;
 
+      const [hor, min] =
+        !dadosLogueManu || !dadosLogueManu.hora
+          ? 0
+          : dadosLogueManu.hora.split(":").map(Number);
       // Inputs de hora e minuto
-      const horaInputlogueManual = entradatempo("HLManual", 1, "00");
+      const horaInputlogueManual = entradatempo(
+        "HLManual",
+        1,
+        String(hor).padStart(2, "0"),
+      );
       horaInputlogueManual.addEventListener("input", salvarHorariologueManual);
 
-      const minuInputlogueManual = entradatempo("MLManual", 0, "00");
+      const minuInputlogueManual = entradatempo(
+        "MLManual",
+        0,
+        String(min).padStart(2, "0"),
+      );
       minuInputlogueManual.addEventListener("input", salvarHorariologueManual);
 
       // Monta os inputs

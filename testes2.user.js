@@ -1233,7 +1233,7 @@
     caixa.id = "BConfig";
     caixa.textContent = "C";
     caixa.style.cssText = `
-    background: ${Ccor?.Principal || "#007bff"};
+    background: ${Ccor.Principal};
     height: 20px;
     width: 20px;
     border-radius: 15px;
