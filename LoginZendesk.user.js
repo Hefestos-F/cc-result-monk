@@ -917,6 +917,7 @@
       stt.tempoCumprido = 0;
     } else if (compararDatas(agora, Saida)) {
       stt.tempoCumprido = 1;
+      stt.temHorasExtras = 0;
     } else {
       stt.tempoCumprido = 0;
       stt.temHorasExtras = 0;
