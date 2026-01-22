@@ -834,6 +834,8 @@
     const vLogado = document.getElementById("vLogado");
     const tFalta = document.getElementById("tFalta");
     const vFalta = document.getElementById("vFalta");
+    const InfoV = document.getElementById("InfoV");
+    const ContPaCo = document.getElementById("ContPaCo");
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
 
@@ -843,6 +845,20 @@
 
     titulo.textContent = stt.Encontrado ? stt.Status : "Não";
     time.textContent = ContAtual;
+
+    if (!InfoV) {
+    } else if (
+      stt.Encontrado ||
+      config.LogueManual ||
+      stt.AbaPausas ||
+      stt.AbaConfig
+    ) {
+      ContPaCo.style.minHeight = "148px";
+      InfoV.style.display = "";
+    } else {
+      InfoV.style.display = "none";
+      ContPaCo.style.minHeight = "";
+    }
 
     verificarMouse(0, stt.Encontrado);
 
@@ -1589,8 +1605,14 @@
     position: absolute;
     `;
 
+    const Space = document.createElement("div");
+    Space.style.cssText = `
+    flex: 1;
+    `;
+
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
+    Divbot.appendChild(Space);
     Divbot.appendChild(InfoV);
     minhaCaixa.appendChild(Divbot);
 
@@ -2699,7 +2721,7 @@
    * @param {number} intensidade - Valor entre 0 e 1 (0.15 = 15% mais escuro)
    * @returns {string} - Cor no mesmo formato de entrada (hex volta como #rrggbb)
    */
-  function escurecer(color, intensidade = 0.15) {
+  function escurecer(color, intensidade = 0.3) {
     if (typeof color !== "string") throw new TypeError("Cor deve ser string");
     const amt = clamp(intensidade, 0, 1);
 
