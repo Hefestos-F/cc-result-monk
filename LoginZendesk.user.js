@@ -1574,7 +1574,7 @@
 
     const InfoV = document.createElement("div");
     InfoV.id = "InfoV";
-    InfoV.textContent = `Versão Chat ${GM_info.script.version || "?-?"}`;
+    InfoV.textContent = `Versão P Chat ${GM_info.script.version || "?-?"}`;
     InfoV.style.cssText = `
     align-self: flex-end;
     transform: rotate(-90deg);
