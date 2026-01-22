@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendesk
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.6.7
+// @version      1.2.6.8
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -1570,12 +1570,25 @@
     display: grid;
     gap: 5px;
     height: max-content;
-    
+    `;
 
+    const InfoV = document.createElement("div");
+    InfoV.id = "InfoV";
+    InfoV.textContent = `Versão Chat ${GM_info.script.version || "?-?"}`;
+    InfoV.style.cssText = `
+    align-self: flex-end;
+    transform: rotate(-90deg);
+    transform-origin: right bottom;
+    white-space: nowrap;
+    color: #ffffff;
+    width: 16px;
+    bottom: 28px;
+    position: absolute;
     `;
 
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
+    Divbot.appendChild(InfoV);
     minhaCaixa.appendChild(Divbot);
 
     return minhaCaixa;
