@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Nice_test
+// @name         Nice_test (optimized + last datetime by ticket)
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1
-// @description  that's all folks!
+// @version      1.2.0
+// @description  Observers robustos, debounce, espera SPA e armazenamento do último datetime por ticket.
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
@@ -10,188 +10,274 @@
 // @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes.user.js
 // @grant        GM_openInTab
 // @run-at       document-idle
-
+// @noframes
 // ==/UserScript==
 
 (function () {
-  const stt = {
-    andament: 1,
-    observa: 1,
-  };
+  "use strict";
 
-  let ticketsObs = []; // exemplo: ["22949120", "22945515"]
+  // ========= CONFIG =========
+  const DEBUG = localStorage.getItem("hefesto:debug") === "1"; // ative com: localStorage.setItem('hefesto:debug','1')
+  const DEBOUNCE_MS = 300;
 
-  function HefestoLog(q) {
-    console.log(`HefestoLog: ${q}`);
+  // ========= LOG UTILS =========
+  function HefestoLog(...args) {
+    if (DEBUG) console.log("HefestoLog:", ...args);
+  }
+  function warn(...args) {
+    console.warn("HefestoLog:", ...args);
+  }
+  function error(...args) {
+    console.error("HefestoLog:", ...args);
   }
 
-  function observarItem(aoMudar, qual = document.body) {
-    if (!qual) {
-      HefestoLog(`Nao encontrado: ${qual}`);
-      return;
-    }
-
-    const observer = new MutationObserver((mutations) => {
-      // Se o item observado sumiu do DOM → desconecta
-      if (!document.contains(qual)) {
-        HefestoLog(`observer Desconectado (item removido do DOM): ${qual}`);
-        observer.disconnect();
-        return;
-      }
-
-      // Sua lógica original
-      if (stt.andament) {
-        stt.andament = 0;
-        aoMudar();
-      }
-
-      // Desconectar se stt.observa for 0
-      if (stt.observa === 0) {
-        observer.disconnect();
-        HefestoLog("observer Desconectado (stt.observa = 0)");
-      }
-    });
-
-    observer.observe(qual, { childList: true, subtree: true });
-  }
-
-  function ObterEntityId() {
-    const itens = [
-      ...document.querySelectorAll('[id="tooltip-container"] [data-entity-id]'),
-    ];
-    return {
-      total: itens.length,
-      elementos: itens,
-      ids: itens.map((el) => el.getAttribute("data-entity-id")),
+  // ========= HELPERS =========
+  function debounce(fn, wait) {
+    let t;
+    return function (...args) {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), wait);
     };
   }
 
-  function SincronizarTicketsObservados() {
-    const atual = ObterEntityId().ids; // ids atuais no DOM
+  /**
+   * Aguarda o aparecimento de um elemento no DOM.
+   * @param {string|Function} selector - seletor CSS ou função que retorna o elemento.
+   * @param {Element|Document} root - raiz da observação.
+   * @param {number} timeout - ms
+   * @returns {Promise<Element|null>}
+   */
+  function waitForElement(selector, root = document, timeout = 15000) {
+    const getEl = () =>
+      typeof selector === "function"
+        ? selector()
+        : (root || document).querySelector(selector);
 
-    // ==============================================================
-    // ⭐ REGRA NOVA → Se ticketsObs está vazio, preencher e chamar função
-    // ==============================================================
-    if (ticketsObs.length === 0 && atual.length > 0) {
-      ticketsObs = [...atual];
+    return new Promise((resolve) => {
+      const el = getEl();
+      if (el) return resolve(el);
 
-      atual.forEach((id) => {
-        observarItem2(id);
-        HefestoLog(`(Inicial) Observando ID: ${id}`);
-      });
-
-      HefestoLog(`ticketsObs inicializado: [${ticketsObs.join(", ")}]`);
-      return; // encerra aqui para não executar o restante
-    }
-
-    // ==============================================================
-    // ENCONTRAR NOVOS IDs
-    // ==============================================================
-    const novos = atual.filter((id) => !ticketsObs.includes(id));
-
-    // ==============================================================
-    // ENCONTRAR REMOVIDOS
-    // ==============================================================
-    const removidos = ticketsObs.filter((id) => !atual.includes(id));
-
-    // ==============================================================
-    // PROCESSAR NOVOS IDs
-    // ==============================================================
-    if (novos.length > 0) {
-      novos.forEach((id) => {
-        ticketsObs.push(id);
-        observarItem2(id);
-        HefestoLog(`Novo ID observado: ${id}`);
-      });
-    }
-
-    // ==============================================================
-    // REMOVER IDS QUE SUMIRAM DO DOM
-    // ==============================================================
-    if (removidos.length > 0) {
-      removidos.forEach((id) => {
-        ticketsObs = ticketsObs.filter((item) => item !== id);
-        HefestoLog(`ID removido: ${id}`);
-      });
-    }
-
-    HefestoLog(`ticketsObs atualizado: [${ticketsObs.join(", ")}]`);
-  }
-
-  observarItem(() => {
-    SincronizarTicketsObservados();
-  }, document.querySelector('[id="tooltip-container"]'));
-
-  function observarItem2(id) {
-    observarItem(
-      () => {
-        HefestoLog(`Mudança aconteceu em ${id}`);
-        const a = EncontrarOUltimoTime(`${id}`);
-        if (a) {
-          HefestoLog(`${a}`);
+      const obsRoot = root && root.nodeType ? root : document;
+      const obs = new MutationObserver(() => {
+        const e = getEl();
+        if (e) {
+          obs.disconnect();
+          resolve(e);
         }
-        stt.andament = 1;
-      },
-      document.querySelector(
-        `[data-ticket-id="${id}"] [data-test-id="omni-log-container"]`,
-      ),
-    );
+      });
+      obs.observe(obsRoot, { childList: true, subtree: true });
+
+      const to = setTimeout(() => {
+        obs.disconnect();
+        resolve(null);
+      }, timeout);
+
+      window.addEventListener(
+        "beforeunload",
+        () => {
+          clearTimeout(to);
+          obs.disconnect();
+        },
+        { once: true },
+      );
+    });
   }
 
+  // ========= ESTADO =========
+  // Agora ticketsSet guarda: id -> último datetime (string ISO) ou null (desconhecido)
+  /** @type {Map<string, string|null>} */
+  const ticketsSet = new Map();
+
+  /** @type {Map<string, MutationObserver>} */
+  const ticketObservers = new Map();
+  /** @type {Map<string, Function>} */
+  const ticketDebouncers = new Map();
+
+  let tooltipObserver = null;
+
+  // ========= COLETA DE IDS =========
+  function ObterEntityId() {
+    const container = document.querySelector('[data-test-id="header-tablist"]');
+    const itens = container
+      ? [...container.querySelectorAll("[data-entity-id]")]
+      : [];
+    return {
+      total: itens.length,
+      elementos: itens,
+      ids: itens.map((el) => el.getAttribute("data-entity-id")).filter(Boolean),
+    };
+  }
+
+  /*document.querySelector(
+    '[data-ticket-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-entity-type="ticket"]',
+  );*/
+
+  // ========= OBSERVAÇÃO DE TICKET =========
+  async function observarTicket(id) {
+    if (ticketObservers.has(id)) return;
+
+    const selector = () =>
+      document.querySelector(
+        `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
+      );
+
+    let root = selector();
+    if (!root) {
+      root = await waitForElement(selector, document, 20000);
+    }
+    if (!root) {
+      warn(
+        `Não foi possível localizar o omni-log-container para o ticket ${id} (timeout).`,
+      );
+      return;
+    }
+
+    if (!ticketDebouncers.has(id)) {
+      ticketDebouncers.set(
+        id,
+        debounce(() => handleTicketChange(id), DEBOUNCE_MS),
+      );
+    }
+    const debounced = ticketDebouncers.get(id);
+
+    const obs = new MutationObserver(() => {
+      debounced();
+    });
+
+    // 👉 NOVA LINHA: pega datetime imediatamente
+    handleTicketChange(id);
+
+    obs.observe(root, { childList: true, subtree: true });
+    ticketObservers.set(id, obs);
+  }
+
+  function pararObservacaoTicket(id) {
+    const obs = ticketObservers.get(id);
+    if (obs) {
+      try {
+        obs.disconnect();
+      } catch {
+        /* noop */
+      }
+      ticketObservers.delete(id);
+    }
+    if (ticketDebouncers.has(id)) {
+      ticketDebouncers.delete(id);
+    }
+  }
+
+  // ========= CALLBACK DE MUDANÇA DO TICKET =========
+  function handleTicketChange(id) {
+    const newDt = EncontrarOUltimoTime(id);
+    const oldDt = ticketsSet.get(id) ?? null;
+
+    // Só atualiza/loga se mudou de fato
+    if (newDt && newDt !== oldDt) {
+      ticketsSet.set(id, newDt);
+      HefestoLog(`Último datetime do ticket ${id}: ${newDt}`);
+      logTicketsSet();
+      // 👉 Se quiser acionar algo aqui (toast, som, postMessage, etc.), este é o lugar.
+    } else if (!newDt && oldDt !== null) {
+      // Se antes tinha valor e agora não achamos nenhum, podemos registrar (opcional)
+      HefestoLog(
+        `datetime ausente no momento para o ticket ${id}. Mantendo valor anterior: ${oldDt}`,
+      );
+    } else {
+      // Sem mudança real — silêncio para evitar spam
+      HefestoLog(`(sem mudança) ticket ${id}`);
+    }
+  }
+
+  // ========= ENCONTRAR ÚLTIMO TIMESTAMP =========
   function EncontrarOUltimoTime(id) {
     try {
-      // Raiz do ticket específico
       const root = document.querySelector(
-        `[data-ticket-id="${id}"] [data-test-id="omni-log-container"]`,
+        `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
       );
       if (!root) {
-        console.warn(`Não encontrei o container do ticket ${id}.`);
         return null;
       }
 
-      // Todos os itens de comentário
       const items = root.querySelectorAll(
         '[data-test-id="omni-log-comment-item"]',
       );
-      if (!items.length) {
-        console.warn(
-          `Nenhum omni-log-comment-item encontrado no ticket ${id}.`,
-        );
-        return null;
-      }
+      if (!items.length) return null;
 
-      // Último comentário
       const lastItem = items[items.length - 1];
 
-      // O elemento com o timestamp relativo
+      // Estrutura típica: <div data-test-id="timestamp-relative"><time datetime="..."></time></div>
       let ts = lastItem.querySelector('[data-test-id="timestamp-relative"]');
-      if (!ts) {
-        console.warn(
-          `timestamp-relative não encontrado dentro do último comentário (ticket ${id}).`,
-        );
-        return null;
-      }
+      let datetime = null;
 
-      // Tenta obter o datetime diretamente no elemento
-      let datetime = ts.getAttribute("datetime");
-
-      // Caso o data-test-id esteja em um contêiner e o <time> esteja dentro
-      if (!datetime) {
+      if (ts) {
         const timeEl = ts.matches("time") ? ts : ts.querySelector("time");
         if (timeEl) {
-          datetime = timeEl.getAttribute("datetime");
+          datetime = timeEl.getAttribute("datetime") || null;
+        } else {
+          // fallback: atributo direto
+          datetime = ts.getAttribute("datetime") || null;
         }
+      } else {
+        // fallback amplo
+        const anyTime = lastItem.querySelector("time[datetime]");
+        if (anyTime) datetime = anyTime.getAttribute("datetime") || null;
       }
 
-      // Limpa string
-      if (datetime && typeof datetime === "string") {
-        datetime = datetime.trim();
-      }
-
+      if (typeof datetime === "string") datetime = datetime.trim();
       return datetime || null;
     } catch (err) {
-      console.error("Erro em EncontrarOUltimoTime:", err);
+      error("Erro em EncontrarOUltimoTime:", err);
       return null;
     }
+  }
+
+  // ========= BOOTSTRAP =========
+  (async function bootstrap() {
+    let tooltip = document.querySelector('[data-test-id="header-tablist"]');
+    if (!tooltip) {
+      tooltip = await waitForElement(
+        '[data-test-id="header-tablist"]',
+        document,
+        20000,
+      );
+    }
+
+    if (!tooltip) {
+      warn(
+        "Tooltip container (#tooltip-container) não encontrado (timeout). Observando documento inteiro temporariamente.",
+      );
+      const docObs = new MutationObserver(() => {
+        const t = document.querySelector('[data-test-id="header-tablist"]');
+        if (t) {
+          docObs.disconnect();
+          iniciarObservacaoTooltip(t);
+        }
+      });
+      docObs.observe(document, { childList: true, subtree: true });
+      // Sync inicial (caso já existam IDs dispersos)
+      SincronizarTicketsObservados();
+      return;
+    }
+
+    iniciarObservacaoTooltip(tooltip);
+    SincronizarTicketsObservados();
+  })();
+
+  function iniciarObservacaoTooltip(tooltip) {
+    if (tooltipObserver) {
+      try {
+        tooltipObserver.disconnect();
+      } catch {
+        /* noop */
+      }
+      tooltipObserver = null;
+    }
+
+    tooltipObserver = new MutationObserver(() => {
+      SincronizarTicketsObservados();
+    });
+
+    tooltipObserver.observe(tooltip, { childList: true, subtree: true });
+    HefestoLog("Observando #tooltip-container.");
   }
 })();
