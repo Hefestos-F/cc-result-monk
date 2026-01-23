@@ -4,7 +4,7 @@
 // @version      1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
-// @match        https://www.google.com/*
+// @match        https://smileshelp.zendesk.com/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes.user.js
 // @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/testes.user.js
@@ -14,156 +14,184 @@
 // ==/UserScript==
 
 (function () {
-  const modotestevalores = {
-    fuso: "+12:00:00",
+  const stt = {
+    andament: 1,
+    observa: 1,
   };
 
-  const horaedataparacalculo = {
-    hora: "24:00:00",
-    data: "2025-12-11",
-  };
+  let ticketsObs = []; // exemplo: ["22949120", "22945515"]
 
-  let modoteste = false;
-
-  function showBanner(text) {
-    let el = document.getElementById("nm-time-banner");
-    if (!el) {
-      el = document.createElement("div");
-      el.id = "nm-time-banner";
-      el.style.cssText =
-        "position:fixed;right:10px;bottom:10px;z-index:2147483647;background:#111;color:#fff;padding:6px 10px;border-radius:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;opacity:0.95";
-      document.body.appendChild(el);
-    }
-    el.textContent = text;
+  function HefestoLog(q) {
+    console.log(`HefestoLog: ${q}`);
   }
 
-  function mostrarHora() {
-    const agora = new Date();
-    const horas = String(agora.getHours()).padStart(2, "0");
-    const minutos = String(agora.getMinutes()).padStart(2, "0");
-    const segundos = String(agora.getSeconds()).padStart(2, "0");
-    return `${horas}:${minutos}:${segundos}`;
-  }
-
-  /*
-   *horaedataparacalculo: { hora: 'HH:MM:SS', data: 'YYYY-MM-DD' }
-   *maisoumenos: true para '+' ou false para '-'
-   *valordeacrecimo: string no formato 'HH:MM', 'HH:MM:SS'
-   */
-  function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
-    function parseOffset(offsetStr) {
-      // Suporta formatos com sinal: +HH:MM, -HH:MM:SS, etc.
-      const m = String(offsetStr || "").match(
-        /^([+-])(\d{2}):?(\d{2})(?::?(\d{2}))?$/
-      );
-      if (!m) return 0;
-      const sign = m[1] === "-" ? -1 : 1;
-      const hours = parseInt(m[2], 10);
-      const minutes = parseInt(m[3], 10);
-      const seconds = m[4] ? parseInt(m[4], 10) : 0;
-      return sign * (hours * 3600 + minutes * 60 + seconds);
+  function observarItem(aoMudar, qual = document.body) {
+    if (!qual) {
+      HefestoLog(`Nao encontrado: ${qual}`);
+      return;
     }
 
-    function parseDuration(durationStr) {
-      // 'HH:MM' or 'HH:MM:SS' -> seconds (always positive)
-      if (!durationStr) return 0;
-      const m = String(durationStr).match(/^(\d{1,2}):?(\d{2})(?::?(\d{2}))?$/);
-      if (!m) return 0;
-      const hours = parseInt(m[1], 10);
-      const minutes = parseInt(m[2], 10);
-      const seconds = m[3] ? parseInt(m[3], 10) : 0;
-      return hours * 3600 + minutes * 60 + seconds;
-    }
-
-    function buildDateTime(obj) {
-      // obj: { data: 'YYYY-MM-DD', hora: 'HH:MM:SS' }
-      const dparts = String(obj.data || "")
-        .split("-")
-        .map(Number);
-      const tparts = String(obj.hora || "00:00:00")
-        .split(":")
-        .map(Number);
-      if (dparts.length < 3) return new Date();
-      let [year, month, day] = dparts;
-      let [hh = 0, mm = 0, ss = 0] = tparts;
-      if (hh === 24) {
-        hh = 0;
-        const tmp = new Date(year, month - 1, day);
-        tmp.setDate(tmp.getDate() + 1);
-        year = tmp.getFullYear();
-        month = tmp.getMonth() + 1;
-        day = tmp.getDate();
+    const observer = new MutationObserver((mutations) => {
+      // Se o item observado sumiu do DOM → desconecta
+      if (!document.contains(qual)) {
+        HefestoLog(`observer Desconectado (item removido do DOM): ${qual}`);
+        observer.disconnect();
+        return;
       }
-      return new Date(year, month - 1, day, hh, mm, ss);
-    }
 
-    function formatDateTime(date) {
-      const d = date.toISOString().split("T")[0];
-      const t = date.toTimeString().split(" ")[0];
-      return { date: d, time: t };
-    }
+      // Sua lógica original
+      if (stt.andament) {
+        stt.andament = 0;
+        aoMudar();
+      }
 
-    // Determina offset em segundos. Suporta duas formas de chamada:
-    // 1) exibirHora(base, "+HH:MM:SS") -> usa sinal embutido
-    // 2) exibirHora(base, maisoumenosBool, "HH:MM:SS") -> usa boolean para sinal
-    let offsetSec = 0;
-    if (typeof maisoumenos === "string" && valordeacrecimo === undefined) {
-      // segunda forma usada anteriormente: passou o valor com sinal
-      offsetSec = parseOffset(maisoumenos);
-    } else {
-      const dur = parseDuration(valordeacrecimo || "00:00:00");
-      // aceita booleano ou números 0/1 usados pelo código chamador
-      const isNegative =
-        maisoumenos === false ||
-        (typeof maisoumenos === "number" && Number(maisoumenos) === 0) ||
-        (typeof maisoumenos === "string" && maisoumenos === "0");
-      const sign = isNegative ? -1 : 1; // default '+'
-      offsetSec = sign * dur;
-    }
-
-    const base = buildDateTime(horaedataparacalculo);
-    const adjusted = new Date(base.getTime() + offsetSec * 1000);
-    const out = formatDateTime(adjusted);
-    /*console.debug(
-     * `Modo teste: Data: ${out.date}, Hora: ${out.time} (offset ${offsetSec}s)`);
-     *
-     */
-
-    showBanner(`TESTE ${out.date} ${out.time} ${valordeacrecimo}`);
-    return { date: out.date, hora: out.time };
-  }
-
-  function createToggle() {
-    if (document.getElementById("nm-toggle-btn")) return;
-    const btn = document.createElement("button");
-    btn.id = "nm-toggle-btn";
-    btn.textContent = "Alternar modo teste";
-    btn.title = "Alterna entre horário real e modo de teste";
-    btn.style.cssText =
-      "position:fixed;right:10px;bottom:50px;z-index:2147483647;background:#0069d9;color:#fff;border:none;padding:6px 8px;border-radius:6px;cursor:pointer;font-family:Arial,Helvetica,sans-serif";
-    btn.addEventListener("click", () => {
-      modoteste = !modoteste;
-      localStorage.setItem("nm-modoteste", modoteste ? "1" : "0");
-      exibirHora(horaedataparacalculo, modotestevalores.fuso);
+      // Desconectar se stt.observa for 0
+      if (stt.observa === 0) {
+        observer.disconnect();
+        HefestoLog("observer Desconectado (stt.observa = 0)");
+      }
     });
-    document.body.appendChild(btn);
-    const stored = localStorage.getItem("nm-modoteste");
-    if (stored === "1") {
-      modoteste = true;
+
+    observer.observe(qual, { childList: true, subtree: true });
+  }
+
+  function ObterEntityId() {
+    const itens = [
+      ...document.querySelectorAll('[id="tooltip-container"] [data-entity-id]'),
+    ];
+    return {
+      total: itens.length,
+      elementos: itens,
+      ids: itens.map((el) => el.getAttribute("data-entity-id")),
+    };
+  }
+
+  function SincronizarTicketsObservados() {
+    const atual = ObterEntityId().ids; // ids atuais no DOM
+
+    // ==============================================================
+    // ⭐ REGRA NOVA → Se ticketsObs está vazio, preencher e chamar função
+    // ==============================================================
+    if (ticketsObs.length === 0 && atual.length > 0) {
+      ticketsObs = [...atual];
+
+      atual.forEach((id) => {
+        observarItem2(id);
+        HefestoLog(`(Inicial) Observando ID: ${id}`);
+      });
+
+      HefestoLog(`ticketsObs inicializado: [${ticketsObs.join(", ")}]`);
+      return; // encerra aqui para não executar o restante
     }
+
+    // ==============================================================
+    // ENCONTRAR NOVOS IDs
+    // ==============================================================
+    const novos = atual.filter((id) => !ticketsObs.includes(id));
+
+    // ==============================================================
+    // ENCONTRAR REMOVIDOS
+    // ==============================================================
+    const removidos = ticketsObs.filter((id) => !atual.includes(id));
+
+    // ==============================================================
+    // PROCESSAR NOVOS IDs
+    // ==============================================================
+    if (novos.length > 0) {
+      novos.forEach((id) => {
+        ticketsObs.push(id);
+        observarItem2(id);
+        HefestoLog(`Novo ID observado: ${id}`);
+      });
+    }
+
+    // ==============================================================
+    // REMOVER IDS QUE SUMIRAM DO DOM
+    // ==============================================================
+    if (removidos.length > 0) {
+      removidos.forEach((id) => {
+        ticketsObs = ticketsObs.filter((item) => item !== id);
+        HefestoLog(`ID removido: ${id}`);
+      });
+    }
+
+    HefestoLog(`ticketsObs atualizado: [${ticketsObs.join(", ")}]`);
   }
 
-  function init() {
-    createToggle();
-    exibirHora(horaedataparacalculo, modotestevalores.fuso);
-    setInterval(() => {
-      exibirHora(horaedataparacalculo, modotestevalores.fuso);
-    }, 1000);
+  observarItem(() => {
+    SincronizarTicketsObservados();
+  }, document.querySelector('[id="tooltip-container"]'));
+
+  function observarItem2(id) {
+    observarItem(
+      () => {
+        HefestoLog(`Mudança aconteceu em ${id}`);
+        const a = EncontrarOUltimoTime(`${id}`);
+        if (a) {
+          HefestoLog(`${a}`);
+        }
+        stt.andament = 1;
+      },
+      document.querySelector(
+        `[data-ticket-id="${id}"] [data-test-id="omni-log-container"]`,
+      ),
+    );
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
+  function EncontrarOUltimoTime(id) {
+    try {
+      // Raiz do ticket específico
+      const root = document.querySelector(
+        `[data-ticket-id="${id}"] [data-test-id="omni-log-container"]`,
+      );
+      if (!root) {
+        console.warn(`Não encontrei o container do ticket ${id}.`);
+        return null;
+      }
+
+      // Todos os itens de comentário
+      const items = root.querySelectorAll(
+        '[data-test-id="omni-log-comment-item"]',
+      );
+      if (!items.length) {
+        console.warn(
+          `Nenhum omni-log-comment-item encontrado no ticket ${id}.`,
+        );
+        return null;
+      }
+
+      // Último comentário
+      const lastItem = items[items.length - 1];
+
+      // O elemento com o timestamp relativo
+      let ts = lastItem.querySelector('[data-test-id="timestamp-relative"]');
+      if (!ts) {
+        console.warn(
+          `timestamp-relative não encontrado dentro do último comentário (ticket ${id}).`,
+        );
+        return null;
+      }
+
+      // Tenta obter o datetime diretamente no elemento
+      let datetime = ts.getAttribute("datetime");
+
+      // Caso o data-test-id esteja em um contêiner e o <time> esteja dentro
+      if (!datetime) {
+        const timeEl = ts.matches("time") ? ts : ts.querySelector("time");
+        if (timeEl) {
+          datetime = timeEl.getAttribute("datetime");
+        }
+      }
+
+      // Limpa string
+      if (datetime && typeof datetime === "string") {
+        datetime = datetime.trim();
+      }
+
+      return datetime || null;
+    } catch (err) {
+      console.error("Erro em EncontrarOUltimoTime:", err);
+      return null;
+    }
   }
 })();
