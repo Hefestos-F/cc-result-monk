@@ -171,18 +171,6 @@
   }
 
   function observarItem(aoMudar) {
-    /*const alvo = document.querySelector(
-      '[data-test-id="toolbar-profile-menu"]'
-    );
-    const alvo1 = document.querySelector(
-      '[data-test-id="toolbar-profile-menu-button-tooltip"]'
-    );
-
-    if (!alvo) {
-      console.warn("HefestoLog: alvo toolbar-profile-menu não encontrado.");
-      return;
-    }*/
-
     const observer = new MutationObserver(() => {
       if (stt.andament) {
         stt.andament = 0;
