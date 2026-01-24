@@ -108,9 +108,55 @@
     };
   }
 
-  /*document.querySelector(
-    '[data-ticket-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-entity-type="ticket"]',
-  );*/
+  // ========= SYNC DE IDS =========
+  function SincronizarTicketsObservados() {
+    const atual = ObterEntityId().ids;
+
+    // Conjuntos auxiliares
+    const setAtual = new Set(atual);
+    const existentes = new Set(ticketsSet.keys());
+
+    // Novos: estão em 'atual' mas não no Map
+    const novos = atual.filter((id) => !existentes.has(id));
+    // Removidos: estão no Map mas não em 'atual'
+    const removidos = [...existentes].filter((id) => !setAtual.has(id));
+
+    if (novos.length) {
+      novos.forEach((id) => {
+        // inicia com "desconhecido"
+        ticketsSet.set(id, null);
+        observarTicket(id);
+        HefestoLog(`Novo ID observado: ${id}`);
+      });
+    }
+
+    if (removidos.length) {
+      removidos.forEach((id) => {
+        pararObservacaoTicket(id);
+        ticketsSet.delete(id);
+        HefestoLog(`ID removido e observador limpo: ${id}`);
+      });
+    }
+
+    logTicketsSet();
+  }
+
+  // ========= LOG DO MAP (formato objeto como você pediu) =========
+  function logTicketsSet() {
+    // Converte Map -> objeto simples { id: datetime }
+    const obj = {};
+    for (const [id, dt] of ticketsSet.entries()) {
+      obj[id] = dt || null;
+    }
+    // Exibe em uma linha parecida com: ticketsSet = {22948737: 2026-01-23T17:22:30.000Z}
+    const pretty =
+      "{" +
+      Object.entries(obj)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(", ") +
+      "}";
+    HefestoLog(`ticketsSet = ${pretty}`);
+  }
 
   // ========= OBSERVAÇÃO DE TICKET =========
   async function observarTicket(id) {
