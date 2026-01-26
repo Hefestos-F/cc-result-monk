@@ -14,44 +14,62 @@
 // ==/UserScript==
 
 (function () {
-  // Observa adições/remoções de filhos dentro de [data-test-id="header-tablist"]
-  function observarHeaderTablist(onAdd, onRemove) {
-    const alvo = document.querySelector('[data-test-id="header-tablist"]');
-    if (!alvo) {
-      console.warn('Elemento [data-test-id="header-tablist"] não encontrado.');
-      return null;
-    }
+  // ========= CONFIG =========
+  const DEBUG = localStorage.getItem("hefesto:debug") === "1"; // ative com: localStorage.setItem('hefesto:debug','1')
+  const DEBOUNCE_MS = 300;
 
-    const observer = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        // Processa apenas mudanças de filhos (adições/remoções)
-        if (m.type !== "childList") continue;
-
-        // Nó(s) adicionados
-        m.addedNodes.forEach((n) => {
-          if (n.nodeType === Node.ELEMENT_NODE) {
-            onAdd?.(n);
-          }
-        });
-
-        // Nó(s) removidos
-        m.removedNodes.forEach((n) => {
-          if (n.nodeType === Node.ELEMENT_NODE) {
-            onRemove?.(n);
-          }
-        });
-      }
-    });
-
-    observer.observe(alvo, { childList: true });
-    return observer; // permite desconectar depois se quiser
+  // ========= LOG UTILS =========
+  function HefestoLog(...args) {
+    if (DEBUG) console.log("HefestoLog:", ...args);
+  }
+  function warn(...args) {
+    console.warn("HefestoLog:", ...args);
+  }
+  function error(...args) {
+    console.error("HefestoLog:", ...args);
   }
 
-  // Exemplo de uso:
-  const obs = observarHeaderTablist(
-    (el) => console.log("Adicionado:", el),
-    (el) => console.log("Removido:", el),
-  );
+  // ========= HELPERS =========
+  function debounce(fn, wait) {
+    let t;
+    return function (...args) {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
 
-  // Para parar: obs?.disconnect();
+  function addContagem(id) {
+    const e = `Contador${id}`;
+    const c = document.getElementById(e);
+
+    HefestoLog(`${e} ja existe`);
+
+    if (c) return;
+    const a = document.querySelector(
+      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
+    );
+
+    const b = document.createElement("div");
+    b.id = e;
+    b.style.cssText = `
+      box-sizing: border-box;
+      justify-self: center;
+      background: darkcyan;
+      border-radius: 6px;
+      padding: 0px 3px;
+      margin-bottom: -8px;
+      font-size: 12px;
+    `;
+    b.textContent = "00:00";
+
+    if (a) {
+      const d = a.querySelectorAll("div")[0];
+      d.prepend(b);
+      HefestoLog(`Adicionado em data-entity-id="${id}"`);
+    } else {
+      HefestoLog(`data-entity-id="${id}" não encontrado`);
+    }
+  }
+
+  addContagem("22998583");
 })();

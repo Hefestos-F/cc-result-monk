@@ -221,6 +221,7 @@
     // Só atualiza/loga se mudou de fato
     if (newDt && newDt !== oldDt) {
       ticketsSet.set(id, newDt);
+      addContagem(id);
       HefestoLog(`Último datetime do ticket ${id}: ${newDt}`);
       logTicketsSet();
       // 👉 Se quiser acionar algo aqui (toast, som, postMessage, etc.), este é o lugar.
@@ -237,10 +238,14 @@
 
   function addContagem(id) {
     const e = `Contador${id}`;
-    const c = document.querySelector(e);
-    if (c) return;
+    const c = document.getElementById(e);
+
+    if (c) {
+      HefestoLog(`${e} ja existe`);
+      return;
+    }
     const a = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-entity-type="chat"]`,
+      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
     );
 
     const b = document.createElement("div");
@@ -259,6 +264,9 @@
     if (a) {
       const d = a.querySelectorAll("div")[0];
       d.prepend(b);
+      HefestoLog(`Adicionado em data-entity-id="${id}"`);
+    } else {
+      HefestoLog(`data-entity-id="${id}" não encontrado`);
     }
   }
 
