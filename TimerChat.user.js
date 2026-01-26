@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.1.1
+// @version      1.1.2
 // @description  Observers robustos, debounce, espera SPA e armazenamento do último datetime por ticket.
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -310,37 +310,99 @@
 
   // ========= BOOTSTRAP =========
   (async function bootstrap() {
-    let tooltip = document.querySelector('[id="tooltip-container"]');
-    if (!tooltip) {
-      tooltip = await waitForElement(
-        '[id="tooltip-container"]',
-        document,
-        20000,
-      );
+    const SELECTOR = '[data-test-id="header-tablist"]';
+    let tablist = document.querySelector(SELECTOR);
+
+    // Tenta encontrar rapidamente; se não, espera até o timeout
+    if (!tablist) {
+      tablist = await waitForElement(SELECTOR, document, 20000);
     }
 
-    if (!tooltip) {
+    // Função para conectar um observer específico no tablist
+    // Observa apenas adição/remoção de filhos imediatos (sem subtree)
+    function conectarNoTablist(el) {
+      if (!el) return null;
+
+      // Se você já tem essa função implementada em outro lugar, mantenha:
+      // iniciarObservacaoTooltip(el) deve configurar o MutationObserver de childList
+      // para el, reagindo a addedNodes / removedNodes.
+      iniciarObservacaoTooltip(el);
+
+      // Retorna o elemento conectado para verificações futuras
+      return el;
+    }
+
+    // Se não achou dentro do timeout, observa o documento até aparecer
+    if (!tablist) {
       warn(
-        "Tooltip container (#tooltip-container) não encontrado (timeout). Observando documento inteiro temporariamente.",
+        'Elemento [data-test-id="header-tablist"] não encontrado (timeout). Observando o documento temporariamente até aparecer.',
       );
+
       const docObs = new MutationObserver(() => {
-        const t = document.querySelector('[id="tooltip-container"]');
+        const t = document.querySelector(SELECTOR);
         if (t) {
           docObs.disconnect();
-          iniciarObservacaoTooltip(t);
+          tablist = conectarNoTablist(t);
+          // Faz a sincronização inicial assim que conectar
+          try {
+            SincronizarTicketsObservados();
+          } catch (e) {
+            console.warn("Erro ao sincronizar tickets (inicial):", e);
+          }
         }
       });
-      docObs.observe(document, { childList: true, subtree: true });
-      // Sync inicial (caso já existam IDs dispersos)
-      SincronizarTicketsObservados();
+
+      // Observa todo o documento para quando o tablist surgir
+      docObs.observe(document.documentElement || document, {
+        childList: true,
+        subtree: true,
+      });
+
+      // Sincroniza mesmo sem o tablist, caso já existam IDs dispersos
+      try {
+        SincronizarTicketsObservados();
+      } catch (e) {
+        console.warn("Erro ao sincronizar tickets (fallback):", e);
+      }
       return;
     }
 
-    iniciarObservacaoTooltip(tooltip);
-    SincronizarTicketsObservados();
+    // Se encontrou de primeira, conecta e sincroniza
+    tablist = conectarNoTablist(tablist);
+    try {
+      SincronizarTicketsObservados();
+    } catch (e) {
+      console.warn("Erro ao sincronizar tickets (pós-conexão inicial):", e);
+    }
+
+    // ======= Resiliência: reconectar se o tablist sumir e reaparecer =======
+    // Observa o documento para detectar remoção/reaparição do tablist
+    const lifecycleObs = new MutationObserver(() => {
+      // Se estava conectado e o elemento saiu do DOM, aguarda o próximo aparecer
+      if (tablist && !document.contains(tablist)) {
+        tablist = null;
+      }
+      // Se não temos referência, tenta encontrar um novo
+      if (!tablist) {
+        const t = document.querySelector(SELECTOR);
+        if (t) {
+          tablist = conectarNoTablist(t);
+          try {
+            SincronizarTicketsObservados();
+          } catch (e) {
+            console.warn("Erro ao sincronizar tickets (reconexão):", e);
+          }
+        }
+      }
+    });
+
+    lifecycleObs.observe(document.documentElement || document, {
+      childList: true,
+      subtree: true,
+    });
   })();
 
-  function iniciarObservacaoTooltip(tooltip) {
+  function iniciarObservacaoTooltip(headerTablist) {
     if (tooltipObserver) {
       try {
         tooltipObserver.disconnect();
@@ -350,12 +412,24 @@
       tooltipObserver = null;
     }
 
-    tooltipObserver = new MutationObserver(() => {
-      SincronizarTicketsObservados();
+    // Observa somente quando elementos forem ADICIONADOS ou REMOVIDOS
+    // dentro do header-tablist (sem subtree)
+    tooltipObserver = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.type !== "childList") continue;
+
+        if (m.addedNodes.length > 0 || m.removedNodes.length > 0) {
+          SincronizarTicketsObservados();
+        }
+      }
     });
 
-    tooltipObserver.observe(tooltip, { childList: true, subtree: true });
-    HefestoLog("Observando #tooltip-container.");
+    tooltipObserver.observe(headerTablist, {
+      childList: true, // Adições/remoções de filhos
+      subtree: false, // NÃO observa netos, bisnetos etc.
+    });
+
+    HefestoLog('Observando [data-test-id="header-tablist"] (childList only).');
   }
 
   function isoParaDataHora(iso) {

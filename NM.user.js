@@ -376,6 +376,7 @@
     await SalvandoVari(3);
     await SalvarLogueManual(0);
     await salvarDPausas();
+    await verificarESalvar();
   }
 
   function atualizarAuto() {
@@ -1291,7 +1292,6 @@
 
     if (stt.NBT) {
       stt.NBT = 0;
-      //verificarESalvar(0);
       setInterval(() => {
         if (!stt.Atualizando) {
           VerificacoesN1();
@@ -1349,14 +1349,14 @@
 
     //console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
     //console.log(`NiceMonk: horari.Logou:${JSON.stringify(horari.Logou)}`);
-    /*
+    
     if (
       dadosPrimLogue &&
       horari.Logou &&
       compararDatas(dadosPrimLogue, horari.Logou)
     ) {
-      //verificarESalvar(1);
-    }*/
+      verificarESalvar(1);
+    }
 
     if (compararDatas(agora, exibirHora(horari.Saida, 1, "00:10:00"))) {
       stt.temHorasExtras = 1;
@@ -3559,15 +3559,12 @@
    * Se data mudou, movimenta registro anterior para "Ontem"
    * @param {number} x - 1 para forçar salvamento, 0 para verificar primeiro
    */
-  async function verificarESalvar(x, valor) {
+  async function verificarESalvar(x = 0) {
     const hoje = new Date();
     const hojeFormatado = hoje.toISOString().split("T")[0];
     const ontem = new Date(hoje);
     ontem.setDate(hoje.getDate() - 1);
     const ontemFormatado = ontem.toISOString().split("T")[0];
-
-    const valorFormatado = converterParaTempo(Segun.Logou);
-    const valorEdata = { hora: valorFormatado, data: hojeFormatado }; // Usa a data de hoje e o valor passado
 
     const agora = gerarDataHora();
 
@@ -3577,34 +3574,31 @@
       (dadosPrimLogue.data !== hojeFormatado &&
         dadosPrimLogue.data !== ontemFormatado)
     ) {
-      valorEdata = agora;
       x = 1;
-    }
-
-    if (dadosPrimLogue && dadosPrimLogue.data === ontemFormatado) {
+    } else if (dadosPrimLogue.data === ontemFormatado) {
       await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosPrimLogue);
+
+      const nova = exibirHora(dadosPrimLogue, 1, CConfig.TempoEscaladoHoras);
+
+      CConfig.logueEntreDatas = nova.data === hojeFormatado ? 1 : 0;
+
       const calc =
         converterParaSegundos(CConfig.TempoEscaladoHoras) +
         converterParaSegundos("12:00:00");
       const nova2 = exibirHora(dadosPrimLogue, 1, converterParaTempo(calc));
-      const nova = exibirHora(dadosPrimLogue, 1, CConfig.TempoEscaladoHoras);
 
-      CConfig.logueEntreDatas = nova.date === hojeFormatado ? 1 : 0;
       if (CConfig.logueEntreDatas) {
-        if (
-          converterParaSegundos(nova2.hora) <
-          converterParaSegundos(mostrarHora())
-        ) {
+        if (compararDatas(agora, nova2)) {
           x = 1;
         }
       } else {
         x = 1;
       }
-    } else if (dadosPrimLogue) {
+    } else {
       horasEDatas.Logou = dadosPrimLogue;
     }
     if (x) {
-      dadosPrimLogue = horasEDatas.Logou;
+      dadosPrimLogue = horasEDatas.Logou || agora;
       await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
     }
   }
