@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.1.2
+// @version      1.1.3
 // @description  Observers robustos, debounce, espera SPA e armazenamento do último datetime por ticket.
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
