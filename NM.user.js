@@ -3598,7 +3598,7 @@
       horasEDatas.Logou = dadosPrimLogue;
     }
     if (x) {
-      dadosPrimLogue = horasEDatas.Logou || agora;
+      dadosPrimLogue = horasEDatas.Logou;
       await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
     }
   }
