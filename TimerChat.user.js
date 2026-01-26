@@ -240,7 +240,7 @@
     const c = document.querySelector(e);
     if (c) return;
     const a = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-entity-type="ticket"]`,
+      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-entity-type="chat"]`,
     );
 
     const b = document.createElement("div");
