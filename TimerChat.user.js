@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.1.3
+// @version      1.1.4
 // @description  Observers robustos, debounce, espera SPA e armazenamento do último datetime por ticket.
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -191,7 +191,7 @@
     });
 
     // 👉 NOVA LINHA: pega datetime imediatamente
-    addContagem(id);
+
     handleTicketChange(id);
 
     obs.observe(root, { childList: true, subtree: true });
@@ -221,9 +221,9 @@
     // Só atualiza/loga se mudou de fato
     if (newDt && newDt !== oldDt) {
       ticketsSet.set(id, newDt);
-      addContagem(id);
       HefestoLog(`Último datetime do ticket ${id}: ${newDt}`);
       logTicketsSet();
+      addContagem(id);
       // 👉 Se quiser acionar algo aqui (toast, som, postMessage, etc.), este é o lugar.
     } else if (!newDt && oldDt !== null) {
       // Se antes tinha valor e agora não achamos nenhum, podemos registrar (opcional)
@@ -258,12 +258,19 @@
       padding: 0px 3px;
       margin-bottom: -8px;
       font-size: 12px;
+      position: relative;
+      z-index: 1;
     `;
     b.textContent = "00:00";
 
     if (a) {
       const d = a.querySelectorAll("div")[0];
       d.prepend(b);
+      /*
+      const obs = ObservarItem(() => {
+        console.log("Mudou!");
+      }, document.querySelector("#minhaDiv"));*/
+
       HefestoLog(`Adicionado em data-entity-id="${id}"`);
     } else {
       HefestoLog(`data-entity-id="${id}" não encontrado`);
@@ -459,7 +466,10 @@
       if (!iso) continue; // só atualiza se tiver valor
 
       const el = document.getElementById(`Contador${id}`);
-      if (!el) continue;
+      if (!el) {
+        addContagem(id);
+        continue;
+      }
 
       const agora = gerarDataHora(); // { data: "YYYY-MM-DD", hora: "HH:mm:ss" }
       const a = isoParaDataHora(String(iso)); // idem acima, partindo do ISO
@@ -803,5 +813,22 @@
       }
     }
     return 0;
+  }
+
+  /**
+   * ObservarItem - observa alterações no DOM e executa callback quando houver mudanças
+   * @param {Function} aoMudar - função chamada sempre que ocorrer uma mutação
+   */
+
+  function ObservarItem(aoMudar, quem = document.body) {
+    if (!quem) return null;
+
+    const observer = new MutationObserver(() => {
+      aoMudar();
+    });
+
+    observer.observe(quem, { childList: true, subtree: true });
+
+    return observer; // <-- devolve o observer para poder desconectar
   }
 })();

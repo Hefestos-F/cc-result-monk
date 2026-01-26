@@ -59,6 +59,8 @@
       padding: 0px 3px;
       margin-bottom: -8px;
       font-size: 12px;
+      position: relative;
+      z-index: 1;
     `;
     b.textContent = "00:00";
 
@@ -71,5 +73,5 @@
     }
   }
 
-  addContagem("22998583");
+  addContagem("23002787");
 })();
