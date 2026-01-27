@@ -47,7 +47,6 @@
     return a.getAttribute("aria-label");
   }
 
-
   function VerificarNome(id, nome) {
     // Guardas rápidos
     if (!id || typeof nome !== "string" || !nome.trim()) return false;
@@ -82,8 +81,23 @@
     return false;
   }
 
-  VerificarNome("23018070", nomeaa("23018070"))
+  VerificarNome("23018070", nomeaa("23018070"));
 
+  atualize para tratar o com a no final "A" no final com ja no formato local
 
-  
+datetime="2026-01-27T14:07:05.710Z"
+
+  function isoParaDataHora(iso) {
+    if (!iso) return { data: "", hora: "" };
+
+    // "Z" = UTC → JS converte para local automaticamente
+    const d = new Date(iso);
+
+    const dois = (n) => String(n).padStart(2, "0");
+
+    const data = `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}`;
+    const hora = `${dois(d.getHours())}:${dois(d.getMinutes())}:${dois(d.getSeconds())}`;
+
+    return { data, hora };
+  }
 })();

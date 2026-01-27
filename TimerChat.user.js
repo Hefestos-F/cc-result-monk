@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.1.5
+// @version      1.1.6
 // @description  Observers robustos, debounce, espera SPA e armazenamento do último datetime por ticket.
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -295,7 +295,6 @@
   }
 
   // ========= ENCONTRAR ÚLTIMO TIMESTAMP =========
-
   function EncontrarOUltimoTime(id) {
     try {
       // Fallback simples para CSS.escape se não existir
@@ -320,19 +319,24 @@
 
         // 1) --- datetime ---
         let datatime = null;
-        // Preferência: relativo com datetime -> absoluto -> qualquer time[datetime]
-        const timeEl =
-          it.querySelector(
-            'time[data-test-id="timestamp-relative"][datetime]',
-          ) ||
-          it.querySelector(
-            'time[data-test-id="timestamp-absolute"][datetime]',
-          ) ||
-          it.querySelector("time[datetime]");
+
+        // Preferência: relativo -> absoluto -> qualquer time[datetime]
+        const rel = it.querySelector(
+          'time[data-test-id="timestamp-relative"][datetime]',
+        );
+        const abs = it.querySelector(
+          'time[data-test-id="timestamp-absolute"][datetime]',
+        );
+        const any = it.querySelector("time[datetime]");
+
+        const timeEl = rel || abs || any;
+        const suffix = rel ? "R" : abs ? "A" : "";
 
         if (timeEl) {
           const dt = timeEl.getAttribute("datetime");
-          if (dt && dt.trim()) datatime = dt.trim();
+          if (dt && dt.trim()) {
+            datatime = dt.trim() + suffix; // acrescenta R/A quando aplicável
+          }
         }
 
         // 2) --- nome (sender) ---
@@ -362,7 +366,7 @@
             it.closest('[data-test-id="omni-log-comment-item"]') || it;
           const aria = article?.getAttribute?.("aria-label") || "";
           // Ex.: "Mensagem de RENATA VIEIRA..., por WhatsApp, Hoje 12:02"
-          // Vamos tentar puxar o trecho entre "Mensagem de " e ", por "
+          // Tenta puxar o trecho entre "Mensagem de " e ", por "
           const m = aria.match(/Mensagem de\s*(.+?)\s*,\s*por\s/i);
           if (m && m[1]) {
             nome = m[1].trim();
@@ -507,14 +511,39 @@
   }
 
   function isoParaDataHora(iso) {
-    const d = new Date(iso);
+    if (!iso) return { data: "", hora: "" };
+
+    // Detecta R ou A no final
+    let sufixo = "";
+    if (/[RA]$/.test(iso)) {
+      sufixo = iso.slice(-1); // "R" ou "A"
+      iso = iso.slice(0, -1); // remove a letra
+    }
 
     const dois = (n) => String(n).padStart(2, "0");
 
-    return {
-      data: `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}`,
-      hora: `${dois(d.getHours())}:${dois(d.getMinutes())}:${dois(d.getSeconds())}`,
-    };
+    let d;
+
+    if (sufixo === "A") {
+      // ⇨ ABSOLUTE = usar o horário exatamente como está
+      // criar Date, mas depois ignorar a conversão
+      const raw = iso.split("T");
+      const [ano, mes, dia] = raw[0].split("-");
+      const [h, m, s] = raw[1].split(":");
+
+      const data = `${ano}-${mes}-${dia}`;
+      const hora = `${h}:${m}:${s.slice(0, 2)}`;
+
+      return { data, hora };
+    } else {
+      // ⇨ RELATIVE ou genérico = converter para local
+      d = new Date(iso);
+
+      const data = `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}`;
+      const hora = `${dois(d.getHours())}:${dois(d.getMinutes())}:${dois(d.getSeconds())}`;
+
+      return { data, hora };
+    }
   }
 
   setInterval(() => {
@@ -541,6 +570,8 @@
       const e = document.querySelector(
         `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-is-chat="true"]`,
       );
+
+      //if (!document.getElementById(`Contador${id}`)) return;
 
       // --- COR DO FUNDO ---
       el.style.background =
