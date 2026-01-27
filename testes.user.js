@@ -38,40 +38,52 @@
     };
   }
 
-  function addContagem(id) {
-    const e = `Contador${id}`;
-    const c = document.getElementById(e);
-
-    HefestoLog(`${e} ja existe`);
-
-    if (c) return;
+  //=================================
+  function nomeaa(id) {
     const a = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
+      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-is-chat="true"]`,
     );
 
-    const b = document.createElement("div");
-    b.id = e;
-    b.style.cssText = `
-      box-sizing: border-box;
-      justify-self: center;
-      background: darkcyan;
-      border-radius: 6px;
-      padding: 0px 3px;
-      margin-bottom: -8px;
-      font-size: 12px;
-      position: relative;
-      z-index: 1;
-    `;
-    b.textContent = "00:00";
-
-    if (a) {
-      const d = a.querySelectorAll("div")[0];
-      d.prepend(b);
-      HefestoLog(`Adicionado em data-entity-id="${id}"`);
-    } else {
-      HefestoLog(`data-entity-id="${id}" não encontrado`);
-    }
+    return a.getAttribute("aria-label");
   }
 
-  addContagem("23002787");
+
+  function VerificarNome(id, nome) {
+    // Guardas rápidos
+    if (!id || typeof nome !== "string" || !nome.trim()) return false;
+
+    // Normaliza para comparação: remove acentos, lowercase e trim
+    const normalizar = (s) =>
+      (s || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // remove diacríticos
+        .toLowerCase()
+        .trim();
+
+    const nomeNorm = normalizar(nome);
+
+    // Encontra o root dentro do ticket específico
+    const root = document.querySelector(
+      `[data-ticket-id="${CSS.escape(String(id))}"] [data-test-id="omni-log-container"]`,
+    );
+    if (!root) return false;
+
+    // Coleta os remetentes
+    const remetentes = root.querySelectorAll(
+      '[data-test-id="omni-log-item-sender"]',
+    );
+    if (!remetentes.length) return false;
+
+    // Verifica se algum contém o nome
+    for (const el of remetentes) {
+      const txtNorm = normalizar(el.textContent);
+      if (txtNorm.includes(nomeNorm)) return true;
+    }
+    return false;
+  }
+
+  VerificarNome("23018070", nomeaa("23018070"))
+
+
+  
 })();

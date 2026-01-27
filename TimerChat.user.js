@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.1.4
+// @version      1.1.5
 // @description  Observers robustos, debounce, espera SPA e armazenamento do último datetime por ticket.
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -84,8 +84,10 @@
   }
 
   // ========= ESTADO =========
-  // Agora ticketsSet guarda: id -> último datetime (string ISO) ou null (desconhecido)
-  /** @type {Map<string, string|null>} */
+
+  /** @typedef {{ id: string, datatime: string|null, nome: string|null }} TicketInfo */
+
+  /** @type {Map<string, TicketInfo>} */
   const ticketsSet = new Map();
 
   /** @type {Map<string, MutationObserver>} */
@@ -110,26 +112,34 @@
 
   // ========= SYNC DE IDS =========
   function SincronizarTicketsObservados() {
-    const atual = ObterEntityId().ids;
+    HefestoLog("Sincronizando tickets observados...");
 
-    // Conjuntos auxiliares
+    const atual = ObterEntityId().ids.map(String); // garante string
     const setAtual = new Set(atual);
+
     const existentes = new Set(ticketsSet.keys());
 
-    // Novos: estão em 'atual' mas não no Map
+    // IDs novos (apareceram na aba)
     const novos = atual.filter((id) => !existentes.has(id));
-    // Removidos: estão no Map mas não em 'atual'
+
+    // IDs removidos (sumiram da aba)
     const removidos = [...existentes].filter((id) => !setAtual.has(id));
 
+    // --- Adicionar novos ---
     if (novos.length) {
       novos.forEach((id) => {
-        // inicia com "desconhecido"
-        ticketsSet.set(id, null);
+        ticketsSet.set(id, {
+          id,
+          datatime: null,
+          nome: null,
+        });
+
         observarTicket(id);
         HefestoLog(`Novo ID observado: ${id}`);
       });
     }
 
+    // --- Remover os que saíram ---
     if (removidos.length) {
       removidos.forEach((id) => {
         pararObservacaoTicket(id);
@@ -138,23 +148,22 @@
       });
     }
 
+    // Exibe tudo (debug)
     logTicketsSet();
   }
 
   // ========= LOG DO MAP (formato objeto como você pediu) =========
   function logTicketsSet() {
-    // Converte Map -> objeto simples { id: datetime }
-    const obj = {};
-    for (const [id, dt] of ticketsSet.entries()) {
-      obj[id] = dt || null;
-    }
-    // Exibe em uma linha parecida com: ticketsSet = {22948737: 2026-01-23T17:22:30.000Z}
     const pretty =
       "{" +
-      Object.entries(obj)
-        .map(([k, v]) => `${k}: ${v}`)
+      Array.from(ticketsSet.values())
+        .map(
+          (v) =>
+            `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(v.nome)} }`,
+        )
         .join(", ") +
       "}";
+
     HefestoLog(`ticketsSet = ${pretty}`);
   }
 
@@ -215,23 +224,34 @@
 
   // ========= CALLBACK DE MUDANÇA DO TICKET =========
   function handleTicketChange(id) {
-    const newDt = EncontrarOUltimoTime(id);
-    const oldDt = ticketsSet.get(id) ?? null;
+    const info = EncontrarOUltimoTime(id); // { datatime, nome } ou null
+    const prev = ticketsSet.get(id) ?? { id, datatime: null, nome: null };
 
-    // Só atualiza/loga se mudou de fato
-    if (newDt && newDt !== oldDt) {
-      ticketsSet.set(id, newDt);
-      HefestoLog(`Último datetime do ticket ${id}: ${newDt}`);
+    if (!info) {
+      HefestoLog(`(sem dados) ticket ${id}, mantendo anterior`);
+      return;
+    }
+
+    const changedDate = info.datatime !== prev.datatime;
+    const changedName = info.nome !== prev.nome;
+
+    if (changedDate || changedName) {
+      ticketsSet.set(id, {
+        id,
+        datatime: info.datatime ?? null,
+        nome: info.nome ?? null,
+      });
+
+      if (changedDate) {
+        HefestoLog(`Atualizado datatime do ticket ${id}: ${info.datatime}`);
+      }
+      if (changedName) {
+        HefestoLog(`Atualizado nome do ticket ${id}: ${info.nome}`);
+      }
+
       logTicketsSet();
       addContagem(id);
-      // 👉 Se quiser acionar algo aqui (toast, som, postMessage, etc.), este é o lugar.
-    } else if (!newDt && oldDt !== null) {
-      // Se antes tinha valor e agora não achamos nenhum, podemos registrar (opcional)
-      HefestoLog(
-        `datetime ausente no momento para o ticket ${id}. Mantendo valor anterior: ${oldDt}`,
-      );
     } else {
-      // Sem mudança real — silêncio para evitar spam
       HefestoLog(`(sem mudança) ticket ${id}`);
     }
   }
@@ -245,7 +265,7 @@
       return;
     }
     const a = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
+      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-is-chat="true"]`,
     );
 
     const b = document.createElement("div");
@@ -260,16 +280,13 @@
       font-size: 12px;
       position: relative;
       z-index: 1;
+      color: white;
     `;
     b.textContent = "00:00";
 
     if (a) {
       const d = a.querySelectorAll("div")[0];
       d.prepend(b);
-      /*
-      const obs = ObservarItem(() => {
-        console.log("Mudou!");
-      }, document.querySelector("#minhaDiv"));*/
 
       HefestoLog(`Adicionado em data-entity-id="${id}"`);
     } else {
@@ -278,47 +295,89 @@
   }
 
   // ========= ENCONTRAR ÚLTIMO TIMESTAMP =========
+
   function EncontrarOUltimoTime(id) {
     try {
+      // Fallback simples para CSS.escape se não existir
+      const cssEscape =
+        window.CSS && typeof CSS.escape === "function"
+          ? CSS.escape
+          : (s) => String(s).replace(/["\\]/g, "\\$&");
+
       const root = document.querySelector(
-        `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
+        `[data-ticket-id="${cssEscape(String(id))}"] [data-test-id="omni-log-container"]`,
       );
-      if (!root) {
-        return null;
-      }
+      if (!root) return null;
 
       const items = root.querySelectorAll(
         '[data-test-id="omni-log-comment-item"]',
       );
       if (!items.length) return null;
 
-      const lastItem = items[items.length - 1];
+      // Varre do último para o primeiro: pega o mais recente "válido"
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i];
 
-      // Estrutura típica: <div data-test-id="timestamp-relative"><time datetime="..."></time></div>
-      let ts = lastItem.querySelector('[data-test-id="timestamp-relative"]');
-      let datetime = null;
+        // 1) --- datetime ---
+        let datatime = null;
+        // Preferência: relativo com datetime -> absoluto -> qualquer time[datetime]
+        const timeEl =
+          it.querySelector(
+            'time[data-test-id="timestamp-relative"][datetime]',
+          ) ||
+          it.querySelector(
+            'time[data-test-id="timestamp-absolute"][datetime]',
+          ) ||
+          it.querySelector("time[datetime]");
 
-      if (ts) {
-        const timeEl = ts.matches("time") ? ts : ts.querySelector("time");
         if (timeEl) {
-          datetime = timeEl.getAttribute("datetime") || null;
-        } else {
-          // fallback: atributo direto
-          datetime = ts.getAttribute("datetime") || null;
+          const dt = timeEl.getAttribute("datetime");
+          if (dt && dt.trim()) datatime = dt.trim();
         }
-      } else {
-        // fallback amplo
-        const anyTime = lastItem.querySelector("time[datetime]");
-        if (anyTime) datetime = anyTime.getAttribute("datetime") || null;
+
+        // 2) --- nome (sender) ---
+        let nome = "";
+        // Cabeçalho (mensagens "first" costumam ter)
+        const senderEl = it.querySelector(
+          '[data-test-id="omni-log-item-sender"]',
+        );
+        if (senderEl) {
+          nome = (senderEl.textContent || "").trim();
+        }
+
+        // Fallback 1: link direto do usuário, quando existe
+        if (!nome) {
+          const userLink = it.querySelector(
+            '[data-test-id="omni-log-comment-user-link"]',
+          );
+          if (userLink) {
+            nome = (userLink.textContent || "").trim();
+          }
+        }
+
+        // Fallback 2: extrair do aria-label do <article>
+        if (!nome) {
+          // Sobe para o <article data-test-id="omni-log-comment-item">
+          const article =
+            it.closest('[data-test-id="omni-log-comment-item"]') || it;
+          const aria = article?.getAttribute?.("aria-label") || "";
+          // Ex.: "Mensagem de RENATA VIEIRA..., por WhatsApp, Hoje 12:02"
+          // Vamos tentar puxar o trecho entre "Mensagem de " e ", por "
+          const m = aria.match(/Mensagem de\s*(.+?)\s*,\s*por\s/i);
+          if (m && m[1]) {
+            nome = m[1].trim();
+          }
+        }
+
+        // 3) Retorna quando houver ao menos um dos dois dados
+        if (datatime || nome) {
+          return { datatime, nome, elemento: it };
+        }
       }
 
-      if (typeof datetime === "string") {
-        datetime = datetime.trim();
-      }
-
-      return datetime || null;
+      return null;
     } catch (err) {
-      error("Erro em EncontrarOUltimoTime:", err);
+      console.error("Erro em EncontrarOUltimoTime:", err);
       return null;
     }
   }
@@ -458,41 +517,44 @@
     };
   }
 
-  function atualizarTimer() {
-    if (!(ticketsSet instanceof Map)) return; // checagem correta para Map
+  setInterval(() => {
+    if (!(ticketsSet instanceof Map)) return;
 
-    // Itera diretamente sobre o Map
-    for (const [id, iso] of ticketsSet) {
-      if (!iso) continue; // só atualiza se tiver valor
+    for (const [id, info] of ticketsSet) {
+      if (!info || !info.datatime || !info.nome) continue; // precisa ter datatime
 
       const el = document.getElementById(`Contador${id}`);
       if (!el) {
-        addContagem(id);
+        addContagem(id); // cria contador se não existir
         continue;
       }
 
       const agora = gerarDataHora(); // { data: "YYYY-MM-DD", hora: "HH:mm:ss" }
-      const a = isoParaDataHora(String(iso)); // idem acima, partindo do ISO
+      const a = isoParaDataHora(info.datatime); // idem, vindo do ISO salvo
 
+      // Só calcula se a data for a mesma
       if (agora.data !== a.data) continue;
 
       const c = exibirAHora(agora, 0, a);
       const d = converterParaSegundos(c.hora);
 
+      const e = document.querySelector(
+        `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-is-chat="true"]`,
+      );
+
+      // --- COR DO FUNDO ---
       el.style.background =
-        d > converterParaSegundos("00:03:00")
-          ? "#d31414"
-          : d > converterParaSegundos("00:02:00")
-            ? "#d2791e"
-            : "darkcyan";
+        info.nome !== e.getAttribute("aria-label")
+          ? "#146dd3"
+          : d > converterParaSegundos("00:03:00")
+            ? "#d31414"
+            : d > converterParaSegundos("00:02:00")
+              ? "#d2791e"
+              : "darkcyan";
 
-      el.textContent =
-        d > converterParaSegundos("00:59:00") ? "+1h" : tempoEncurtado(c.hora);
+      // --- TEXTO DO CONTADOR ---
+      el.textContent = tempoEncurtado(c.hora);
     }
-  }
-
-  setInterval(() => {
-    atualizarTimer();
   }, 1000);
 
   function gerarDataHora() {
@@ -505,119 +567,6 @@
       hora: hora,
       data: data,
     };
-  }
-
-  function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
-    // --- Parsers de data/hora flexíveis ---
-    function parseDateFlexible(dateStr) {
-      const s = String(dateStr || "").trim();
-
-      // YYYY-MM-DD
-      let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (m) return { year: +m[1], month: +m[2], day: +m[3] };
-
-      // DD/MM/YYYY
-      m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (m) return { year: +m[3], month: +m[2], day: +m[1] };
-
-      return null;
-    }
-
-    function parseTimeFlexible(timeStr) {
-      const m = String(timeStr || "")
-        .trim()
-        .match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-      if (!m) return { hh: 0, mm: 0, ss: 0 };
-      return { hh: +m[1], mm: +m[2], ss: m[3] ? +m[3] : 0 };
-    }
-
-    // --- Constrói Date a partir de {data, hora} ---
-    function buildDateTime(obj) {
-      const d = parseDateFlexible(obj?.data || "");
-      const t = parseTimeFlexible(obj?.hora || "00:00:00");
-      if (!d) return new Date(); // fallback: agora
-
-      let { year, month, day } = d;
-      let { hh, mm, ss } = t;
-
-      // Trate "24:00:00" como 00:00:00 do dia seguinte
-      if (hh === 24) {
-        hh = 0;
-        const tmp = new Date(year, month - 1, day);
-        tmp.setDate(tmp.getDate() + 1);
-        year = tmp.getFullYear();
-        month = tmp.getMonth() + 1;
-        day = tmp.getDate();
-      }
-
-      return new Date(year, month - 1, day, hh, mm, ss);
-    }
-
-    // --- Offset string "+HH:MM[:SS]" | "-HH:MM[:SS]" => segundos ---
-    function parseOffset(offsetStr) {
-      const m = String(offsetStr || "").match(
-        /^([+-])(\d{1,2}):(\d{2})(?::(\d{2}))?$/,
-      );
-      if (!m) return 0;
-      const sign = m[1] === "-" ? -1 : 1;
-      const h = +m[2],
-        mi = +m[3],
-        s = m[4] ? +m[4] : 0;
-      return sign * (h * 3600 + mi * 60 + s);
-    }
-
-    // --- Duração em segundos a partir de string ou objeto absoluto ---
-    // String "HH:MM[:SS]" => duração direta
-    // Objeto {data, hora} => usa a diferença ABS entre val e base (1º parâmetro)
-    function durationFromAbsoluteOrString(val, baseObj) {
-      if (typeof val === "string") {
-        const t = parseTimeFlexible(val);
-        return t.hh * 3600 + t.mm * 60 + t.ss;
-      }
-      if (typeof val === "object" && val) {
-        const dVal = buildDateTime(val);
-        const dBase = buildDateTime(
-          baseObj || { data: "1970-01-01", hora: "00:00:00" },
-        );
-        return Math.abs(Math.floor((dVal.getTime() - dBase.getTime()) / 1000));
-      }
-      return 0;
-    }
-
-    // --- Formata retorno {data:'YYYY-MM-DD', hora:'HH:MM:SS'} em fuso local ---
-    function formatObj(date) {
-      const data = `${date.getFullYear()}-${String(
-        date.getMonth() + 1,
-      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-      const hora = `${String(date.getHours()).padStart(2, "0")}:${String(
-        date.getMinutes(),
-      ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
-      return { data, hora };
-    }
-
-    // --- Determina offset em segundos ---
-    let offsetSec = 0;
-
-    // Caso 1: maisoumenos é uma offset string e não há 3º parâmetro
-    if (typeof maisoumenos === "string" && valordeacrecimo === undefined) {
-      offsetSec = parseOffset(maisoumenos);
-    } else {
-      // Caso 2: sinal via maisoumenos (false/0/"0" => negativo; demais => positivo)
-      const dur = durationFromAbsoluteOrString(
-        valordeacrecimo || "00:00:00",
-        horaedataparacalculo,
-      );
-      const isNegative =
-        maisoumenos === false ||
-        (typeof maisoumenos === "number" && Number(maisoumenos) === 0) ||
-        (typeof maisoumenos === "string" && maisoumenos === "0");
-      const sign = isNegative ? -1 : 1;
-      offsetSec = sign * dur;
-    }
-
-    const base = buildDateTime(horaedataparacalculo);
-    const adjusted = new Date(base.getTime() + offsetSec * 1000);
-    return formatObj(adjusted);
   }
 
   /**
@@ -813,22 +762,5 @@
       }
     }
     return 0;
-  }
-
-  /**
-   * ObservarItem - observa alterações no DOM e executa callback quando houver mudanças
-   * @param {Function} aoMudar - função chamada sempre que ocorrer uma mutação
-   */
-
-  function ObservarItem(aoMudar, quem = document.body) {
-    if (!quem) return null;
-
-    const observer = new MutationObserver(() => {
-      aoMudar();
-    });
-
-    observer.observe(quem, { childList: true, subtree: true });
-
-    return observer; // <-- devolve o observer para poder desconectar
   }
 })();
