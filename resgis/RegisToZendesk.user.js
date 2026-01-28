@@ -267,6 +267,103 @@
     }
     preencheregis();
 
+    var linhahbg = document.createElement("p");
+    linhahbg.id = "ClinhaAssin";
+    linhahbg.style.cssText = `
+        display: none;
+        align-items: center;
+        justify-content: center;
+            margin: auto;
+        `;
+
+    const linhahbgt1 = document.createElement("p");
+    linhahbgt1.textContent = "AE¥U";
+
+    const Input8 = CriarInput(0, "");
+    Input8.placeholder = "12";
+    Input8.style.width = "20px";
+
+    const Input9 = CriarInput(0, "");
+    Input9.placeholder = "11000";
+    Input9.style.width = "40px";
+
+    const linhahbgt2 = document.createElement("p");
+    linhahbgt2.textContent = "/BASE-";
+
+    const linhahbgt3 = document.createElement("p");
+    linhahbgt3.textContent = "¥TTL-";
+
+    const linhahbgt4 = document.createElement("p");
+    linhahbgt4.textContent = "11000";
+    Input9.addEventListener("input", function () {
+      linhahbgt4.textContent = Input9.value || "0000";
+    });
+
+    const linhahbgt5 = document.createElement("p");
+    linhahbgt5.textContent = "¥DEC-2";
+
+    function CriarBot(texto) {
+      var a = document.createElement("button");
+      a.style.cssText = `
+        background-color: rgb(51, 203, 68);
+        cursor: pointer;
+        border-radius: 15px;
+        border: none;
+        color: white;
+        padding: 3px 9px;
+        margin: 3px;
+        `;
+      a.textContent = texto;
+      return a;
+    }
+
+    const botCop8 = CriarBot("Copiar");
+
+    botCop8.addEventListener("click", function () {
+      const textToCopy =
+        linhahbgt1.textContent +
+        Input8.value +
+        linhahbgt2.textContent +
+        Input9.value +
+        linhahbgt3.textContent +
+        linhahbgt4.textContent +
+        linhahbgt5.textContent;
+
+      navigator.clipboard.writeText(textToCopy).then(
+        function () {
+          console.log("Texto copiado com sucesso.");
+        },
+        function (err) {
+          console.error("Erro ao copiar texto: ", err);
+        },
+      );
+    });
+
+    linhahbg.appendChild(linhahbgt1);
+    linhahbg.appendChild(Input8);
+    linhahbg.appendChild(linhahbgt2);
+    linhahbg.appendChild(Input9);
+    linhahbg.appendChild(linhahbgt3);
+    linhahbg.appendChild(linhahbgt4);
+    linhahbg.appendChild(linhahbgt5);
+    linhahbg.appendChild(botCop8);
+
+    const linhahbgbt = document.createElement("div");
+    linhahbgbt.style.cssText = `
+            
+    `;
+
+    const botFerr = CriarBot("Ferramenta");
+    botFerr.addEventListener("click", function () {
+      linhahbg.style.display =
+        linhahbg.style.display === "flex" ? "none" : "flex";
+    });
+
+    linhahbgbt.appendChild(botFerr);
+    linhahbgbt.appendChild(linhahbg);
+
+    contentBox.appendChild(linhahbgbt);
+
     //outros
 
     const ass = document.getElementById("assinatura");
@@ -281,7 +378,6 @@
         assinatura = ass.value;
         SalvarVari(1);
       });
-      stt.observ = 0;
     }
 
     const localizador = document.getElementById("localizador");
