@@ -386,8 +386,14 @@
     }
   }
 
+  // Referências globais para que possamos desconectar depois
+  let OBS_ATIVO = true; // flag opcional para bloquear reconexões enquanto limpa
+  let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
+  let docObs = null; // observer temporário usado até o tablist aparecer
+  let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
+
   // ========= BOOTSTRAP =========
-  (async function bootstrap() {
+  /*(async function bootstrap() {
     const SELECTOR = '[data-test-id="header-tablist"]';
     let tablist = document.querySelector(SELECTOR);
 
@@ -464,6 +470,89 @@
       if (!tablist) {
         const t = document.querySelector(SELECTOR);
         if (t) {
+          tablist = conectarNoTablist(t);
+          try {
+            SincronizarTicketsObservados();
+          } catch (e) {
+            console.warn("Erro ao sincronizar tickets (reconexão):", e);
+          }
+        }
+      }
+    });
+
+    lifecycleObs.observe(document.documentElement || document, {
+      childList: true,
+      subtree: true,
+    });
+  })();*/
+
+  (async function bootstrap() {
+    const SELECTOR = '[data-test-id="header-tablist"]';
+    let tablist = document.querySelector(SELECTOR);
+
+    function conectarNoTablist(el) {
+      if (!el) return null;
+      iniciarObservacaoTooltip(el); // sua função existente
+      tablistRef = el; // <<< guarde referência global
+      return el;
+    }
+
+    if (!tablist) {
+      tablist = await waitForElement(SELECTOR, document, 20000);
+    }
+
+    if (!tablist) {
+      warn(
+        'Elemento [data-test-id="header-tablist"] não encontrado (timeout). Observando o documento até aparecer.',
+      );
+
+      // <<< GUARDE no docObs
+      docObs = new MutationObserver(() => {
+        const t = document.querySelector(SELECTOR);
+        if (t) {
+          try {
+            docObs.disconnect();
+          } catch {}
+          docObs = null;
+          tablist = conectarNoTablist(t);
+          try {
+            SincronizarTicketsObservados();
+          } catch (e) {
+            console.warn("Erro ao sincronizar tickets (inicial):", e);
+          }
+        }
+      });
+
+      docObs.observe(document.documentElement || document, {
+        childList: true,
+        subtree: true,
+      });
+
+      try {
+        SincronizarTicketsObservados();
+      } catch (e) {
+        console.warn("Erro ao sincronizar tickets (fallback):", e);
+      }
+      return;
+    }
+
+    tablist = conectarNoTablist(tablist);
+    try {
+      SincronizarTicketsObservados();
+    } catch (e) {
+      console.warn("Erro ao sincronizar tickets (pós-conexão inicial):", e);
+    }
+
+    // <<< GUARDE no lifecycleObs
+    lifecycleObs = new MutationObserver(() => {
+      if (tablist && !document.contains(tablist)) {
+        tablist = null;
+        tablistRef = null;
+      }
+      if (!tablist) {
+        const t = document.querySelector(SELECTOR);
+        if (t && OBS_ATIVO) {
+          // respeite a flag
           tablist = conectarNoTablist(t);
           try {
             SincronizarTicketsObservados();
@@ -793,5 +882,94 @@
       }
     }
     return 0;
+  }
+
+  //desligamento e pausa
+  function __safeDisconnect(obs) {
+    if (!obs) return;
+    try {
+      obs.disconnect();
+    } catch {}
+  }
+
+  function desligarBootstrapEMonitoramento(motivo = "desligado manualmente") {
+    // 1) Bloqueia novas conexões durante a limpeza
+    OBS_ATIVO = false;
+
+    // 2) Desconecta observers "globais"
+    __safeDisconnect(tooltipObserver); // criado em iniciarObservacaoTooltip
+    tooltipObserver = null;
+
+    __safeDisconnect(lifecycleObs); // criado no bootstrap
+    lifecycleObs = null;
+
+    __safeDisconnect(docObs); // criado no bootstrap quando tablist não existe
+    docObs = null;
+
+    tablistRef = null; // solta referência
+
+    // 3) Para observação de cada ticket atualmente observado
+    if (ticketsSet && typeof ticketsSet.keys === "function") {
+      // se for Map<string, {...}>
+      for (const id of ticketsSet.keys()) {
+        try {
+          pararObservacaoTicket(id); // sua função já desconecta o MutationObserver e limpa debouncer do ticket
+        } catch (e) {
+          console.warn(`Erro ao pararObservacaoTicket(${id}):`, e);
+        }
+      }
+    }
+
+    // 4) (Opcional) Limpa estruturas auxiliares se existirem
+    if (ticketObservers && ticketObservers.clear) ticketObservers.clear();
+    if (ticketDebouncers && ticketDebouncers.clear) ticketDebouncers.clear();
+
+    HefestoLog(`Monitoramento desligado: ${motivo}`);
+  }
+
+  function pausarObservacao(motivo = "pausado") {
+    desligarBootstrapEMonitoramento(motivo);
+  }
+
+  function retomarObservacao(motivo = "retomado") {
+    OBS_ATIVO = true;
+
+    // Recria o observer do tablist se o elemento existir
+    const t = document.querySelector('[data-test-id="header-tablist"]');
+    if (t) {
+      iniciarObservacaoTooltip(t);
+      tablistRef = t;
+    } else {
+      // sem tablist agora, recrie o docObs para aguardar
+      docObs = new MutationObserver(() => {
+        const tt = document.querySelector('[data-test-id="header-tablist"]');
+        if (tt) {
+          try {
+            docObs.disconnect();
+          } catch {}
+          docObs = null;
+          iniciarObservacaoTooltip(tt);
+          tablistRef = tt;
+          try {
+            SincronizarTicketsObservados();
+          } catch (e) {
+            console.warn("Erro ao sincronizar tickets (retomada):", e);
+          }
+        }
+      });
+      docObs.observe(document.documentElement || document, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    // Sincroniza os IDs atuais das abas e recria observers por ticket
+    try {
+      SincronizarTicketsObservados();
+    } catch (e) {
+      console.warn("Erro ao sincronizar tickets (retomada):", e);
+    }
+
+    HefestoLog(`Observação retomada: ${motivo}`);
   }
 })();
