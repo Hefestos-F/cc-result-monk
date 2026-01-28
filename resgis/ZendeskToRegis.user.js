@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Zendesk: Painel 580px + enviar ticket e contato (CONFIG + helpers revisados)
+// @name         Zendesk > Registro de Chamadas
 // @namespace    franciel.zendesk.ticket.bridge
 // @version      1.5.2
 // @description  Extrai ticket e nome do solicitante (via encontrarNome + helpers), aplica localmente (se existirem inputs) e envia ao Registro via postMessage.
@@ -7,8 +7,8 @@
 // @match        https://smileshelp.zendesk.com/*
 // @run-at       document-idle
 // @grant        GM_addStyle
-// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis2/zendesk.floatbutton.user.js
-// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis2/zendesk.floatbutton.user.js
+// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis/ZendeskToRegis.user.js
+// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis/ZendeskToRegis.user.js
 // ==/UserScript==
 
 (function () {
