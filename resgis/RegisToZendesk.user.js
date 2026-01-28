@@ -31,35 +31,6 @@
     el.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  function ObservarItem(aoMudar) {
-    const observer = new MutationObserver(() => {
-      aoMudar();
-      if (!stt.observ) {
-        observer.disconnect();
-        console.log(`NiceMonk observer Desconectado`);
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-
-  ObservarItem(() => {
-    const ass = document.getElementById("assinatura");
-
-    if (ass) {
-      if (assinatura) {
-        ass.value = assinatura;
-      } else {
-        ass.value = "Vazio";
-      }
-      ass.addEventListener("input", () => {
-        assinatura = ass.value;
-        SalvarVari(1);
-      });
-      stt.observ = 0;
-    }
-  });
-
   window.addEventListener("message", (ev) => {
     if (ev.origin !== ZENDESK_ORIGIN) return;
     const data = ev.data || {};
@@ -295,6 +266,23 @@
       }
     }
     preencheregis();
+
+    //outros
+
+    const ass = document.getElementById("assinatura");
+
+    if (ass) {
+      if (assinatura) {
+        ass.value = assinatura;
+      } else {
+        ass.value = "Vazio";
+      }
+      ass.addEventListener("input", () => {
+        assinatura = ass.value;
+        SalvarVari(1);
+      });
+      stt.observ = 0;
+    }
 
     const localizador = document.getElementById("localizador");
 

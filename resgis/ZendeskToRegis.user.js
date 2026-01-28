@@ -41,7 +41,7 @@
     ticketRegexText: (n) =>
       new RegExp(
         `Ticket\\s*#\\s*${String(n).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
-        "i"
+        "i",
       ),
 
     // Logs de depuração
@@ -105,8 +105,8 @@
     // Preferir navs com aria-label sugestivo; senão, todos os <nav>
     const preferred = Array.from(
       doc.querySelectorAll(
-        'nav[aria-label*="Localiza" i], nav[aria-label*="ticket" i]'
-      )
+        'nav[aria-label*="Localiza" i], nav[aria-label*="ticket" i]',
+      ),
     );
     const navs = preferred.length
       ? preferred
@@ -114,7 +114,7 @@
 
     for (const nav of navs) {
       const nodes = Array.from(
-        nav.querySelectorAll("span, [role='link'], [role='button']")
+        nav.querySelectorAll("span, [role='link'], [role='button']"),
       );
       for (const el of nodes) {
         const text = normalize(el.textContent);
@@ -146,7 +146,7 @@
   function waitForTicketInThisDoc(
     doc,
     ticketNumber,
-    timeout = CONFIG.waitTimeoutMs
+    timeout = CONFIG.waitTimeoutMs,
   ) {
     return new Promise((resolve) => {
       const start = performance.now();
@@ -207,7 +207,7 @@
     selector,
     mode,
     text,
-    { setPlaceholderWhenHasValue = true } = {}
+    { setPlaceholderWhenHasValue = true } = {},
   ) {
     const elHere = doc.querySelector(selector);
     const elTop = document.querySelector(selector);
@@ -295,12 +295,12 @@
     const found = await waitForTicketInThisDoc(
       document,
       ticketStr,
-      CONFIG.waitTimeoutMs
+      CONFIG.waitTimeoutMs,
     );
     if (!found) {
       applyToInput(document, CONFIG.input1Selector, CONFIG.input1Mode, "");
       warn(
-        `Ticket #${ticketStr} não apareceu neste contexto em ${CONFIG.waitTimeoutMs}ms.`
+        `Ticket #${ticketStr} não apareceu neste contexto em ${CONFIG.waitTimeoutMs}ms.`,
       );
       return null;
     }
@@ -319,7 +319,7 @@
       document,
       CONFIG.input1Selector,
       CONFIG.input1Mode,
-      primeiroNomeFmt
+      primeiroNomeFmt,
     );
     highlightEls(container, nameEl);
 
@@ -327,7 +327,7 @@
       `Ticket #${ticketStr} | Nome completo: "${nomeCompleto}" | Primeiro nome: "${primeiroNomeFmt}" | Aplicado:`,
       res.applied,
       "| modo:",
-      res.used
+      res.used,
     );
 
     return {
@@ -422,7 +422,6 @@
   panel
     .querySelector("#rc-close")
     .addEventListener("click", () => (panel.style.display = "none"));
-  
 
   // Drag do botão flutuante
   (function dragFloatButton() {
