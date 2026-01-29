@@ -1349,7 +1349,7 @@
 
     //console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
     //console.log(`NiceMonk: horari.Logou:${JSON.stringify(horari.Logou)}`);
-    
+
     if (
       dadosPrimLogue &&
       horari.Logou &&

@@ -15,6 +15,7 @@
 
 (function () {
   "use strict";
+  const config = { OBS_ATIVO: true };
 
   // ========= CONFIG =========
   const DEBUG = localStorage.getItem("hefesto:debug") === "1"; // ative com: localStorage.setItem('hefesto:debug','1')
@@ -458,7 +459,7 @@
       }
       if (!tablist) {
         const t = document.querySelector(SELECTOR);
-        if (t && OBS_ATIVO) {
+        if (t && config.OBS_ATIVO) {
           // respeite a flag
           tablist = conectarNoTablist(t);
           try {
@@ -801,7 +802,7 @@
 
   function desligarBootstrapEMonitoramento(motivo = "desligado manualmente") {
     // 1) Bloqueia novas conexões durante a limpeza
-    OBS_ATIVO = false;
+    config.OBS_ATIVO = false;
 
     // 2) Desconecta observers "globais"
     __safeDisconnect(tooltipObserver); // criado em iniciarObservacaoTooltip
@@ -835,7 +836,7 @@
   }
 
   function retomarObservacao(motivo = "retomado") {
-    OBS_ATIVO = true;
+    config.OBS_ATIVO = true;
 
     // Recria o observer do tablist se o elemento existir
     const t = document.querySelector('[data-test-id="header-tablist"]');
