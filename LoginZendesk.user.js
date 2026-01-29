@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendesk
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.7.3
+// @version      1.3.7.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -3425,14 +3425,16 @@
       //if (!document.getElementById(`Contador${id}`)) return;
 
       // --- COR DO FUNDO ---
+      const SeisM = converterParaSegundos("00:06:00");
+      const CincM = converterParaSegundos("00:05:00");
+      const TresM = converterParaSegundos("00:03:00");
+      //const CincS = converterParaSegundos("00:00:05");
+
+      //info.nome !== e.getAttribute("aria-label")
       el.style.background =
-        info.nome !== e.getAttribute("aria-label")
-          ? "#146dd3"
-          : d > converterParaSegundos("00:03:00")
-            ? "#d31414"
-            : d > converterParaSegundos("00:02:00")
-              ? "#d2791e"
-              : "darkcyan";
+        d > CincM ? "#df0c0c" : d > TresM ? "#d2661e" : "darkcyan";
+
+      if (e) e.style.background = d >= SeisM ? "#ad1414" : "";
 
       // --- TEXTO DO CONTADOR ---
       el.textContent = tempoEncurtado(c.hora);
