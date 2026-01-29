@@ -21,7 +21,7 @@
     LogueManual: 0,
     SomEstouro: 1,
     notiEstouro: 1,
-    OBS_ATIVO: 0,
+    OBS_ATIVO: 1,
   };
 
   const configPadrao = {
