@@ -15,7 +15,6 @@
 
 (function () {
   "use strict";
-  const config = { OBS_ATIVO: true };
 
   // ========= CONFIG =========
   const DEBUG = localStorage.getItem("hefesto:debug") === "1"; // ative com: localStorage.setItem('hefesto:debug','1')
@@ -116,6 +115,12 @@
       ids: itens.map((el) => el.getAttribute("data-entity-id")).filter(Boolean),
     };
   }
+  // Helper: root do ticket (mesmo seletor usado em observarTicket)
+  function getTicketRoot(id) {
+    return document.querySelector(
+      `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
+    );
+  }
 
   // ========= SYNC DE IDS =========
   function SincronizarTicketsObservados() {
@@ -123,7 +128,6 @@
 
     const atual = ObterEntityId().ids.map(String); // garante string
     const setAtual = new Set(atual);
-
     const existentes = new Set(ticketsSet.keys());
 
     // IDs novos (apareceram na aba)
@@ -145,6 +149,31 @@
         HefestoLog(`Novo ID observado: ${id}`);
       });
     }
+
+    // --- Verificar/reconectar os já existentes (anteriores) ---
+    // Para todos os IDs que ainda estão na aba agora
+    atual.forEach((id) => {
+      const jaTemObserver = ticketObservers.has(id);
+      if (!jaTemObserver) {
+        // Não há observer para um ID que está visível → adicionar
+        observarTicket(id);
+        HefestoLog(`Observer faltando para ID existente; adicionado: ${id}`);
+        return;
+      }
+
+      // Há observer, mas o root pode ter sido recriado/desconectado
+      // Se não houver root ou não estiver conectado, reconecta
+      const root = getTicketRoot(id);
+      if (!root || !root.isConnected) {
+        try {
+          pararObservacaoTicket(id); // desconecta o antigo com segurança
+        } catch {
+          /* noop */
+        }
+        observarTicket(id);
+        HefestoLog(`Observer reconectado (root foi recriado) para: ${id}`);
+      }
+    });
 
     // --- Remover os que saíram ---
     if (removidos.length) {
@@ -206,8 +235,7 @@
       debounced();
     });
 
-    // 👉 NOVA LINHA: pega datetime imediatamente
-
+    // 👉 Pega datetime imediatamente
     handleTicketChange(id);
 
     obs.observe(root, { childList: true, subtree: true });
@@ -295,7 +323,7 @@
       const d = a.querySelectorAll("div")[0];
       d.prepend(b);
 
-      HefestoLog(`Adicionado em data-entity-id="${id}"`);
+      HefestoLog(`Adicionado Contagem em data-entity-id="${id}"`);
     } else {
       HefestoLog(`data-entity-id="${id}" não encontrado`);
     }
@@ -459,7 +487,7 @@
       }
       if (!tablist) {
         const t = document.querySelector(SELECTOR);
-        if (t && config.OBS_ATIVO) {
+        if (t && OBS_ATIVO) {
           // respeite a flag
           tablist = conectarNoTablist(t);
           try {
@@ -505,6 +533,83 @@
     });
 
     HefestoLog('Observando [data-test-id="header-tablist"] (childList only).');
+  }
+
+  function desligarBootstrapEMonitoramento(motivo = "desligado manualmente") {
+    // 1) Bloqueia novas conexões durante a limpeza
+    OBS_ATIVO = false;
+
+    // 2) Desconecta observers "globais"
+    __safeDisconnect(tooltipObserver); // criado em iniciarObservacaoTooltip
+    tooltipObserver = null;
+
+    __safeDisconnect(lifecycleObs); // criado no bootstrap
+    lifecycleObs = null;
+
+    __safeDisconnect(docObs); // criado no bootstrap quando tablist não existe
+    docObs = null;
+
+    tablistRef = null; // solta referência
+
+    // 3) Para observação de cada ticket atualmente observado
+    if (ticketsSet && typeof ticketsSet.keys === "function") {
+      // se for Map<string, {...}>
+      for (const id of ticketsSet.keys()) {
+        try {
+          pararObservacaoTicket(id); // sua função já desconecta o MutationObserver e limpa debouncer do ticket
+        } catch (e) {
+          console.warn(`Erro ao pararObservacaoTicket(${id}):`, e);
+        }
+      }
+    }
+
+    // 4) (Opcional) Limpa estruturas auxiliares se existirem
+    if (ticketObservers && ticketObservers.clear) ticketObservers.clear();
+    if (ticketDebouncers && ticketDebouncers.clear) ticketDebouncers.clear();
+
+    HefestoLog(`Monitoramento desligado: ${motivo}`);
+  }
+
+  function retomarObservacao(motivo = "retomado") {
+    OBS_ATIVO = true;
+
+    // Recria o observer do tablist se o elemento existir
+    const t = document.querySelector('[data-test-id="header-tablist"]');
+    if (t) {
+      iniciarObservacaoTooltip(t);
+      tablistRef = t;
+    } else {
+      // sem tablist agora, recrie o docObs para aguardar
+      docObs = new MutationObserver(() => {
+        const tt = document.querySelector('[data-test-id="header-tablist"]');
+        if (tt) {
+          try {
+            docObs.disconnect();
+          } catch {}
+          docObs = null;
+          iniciarObservacaoTooltip(tt);
+          tablistRef = tt;
+          try {
+            SincronizarTicketsObservados();
+          } catch (e) {
+            console.warn("Erro ao sincronizar tickets (retomada):", e);
+          }
+        }
+      });
+      docObs.observe(document.documentElement || document, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    // Sincroniza os IDs atuais das abas e recria observers por ticket
+    try {
+      SincronizarTicketsObservados();
+    } catch (e) {
+      console.warn("Erro ao sincronizar tickets (retomada):", e);
+    }
+
+    HefestoLog(`Observação retomada: ${motivo}`);
   }
 
   function isoParaDataHora(iso) {
@@ -798,82 +903,5 @@
     try {
       obs.disconnect();
     } catch {}
-  }
-
-  function desligarBootstrapEMonitoramento(motivo = "desligado manualmente") {
-    // 1) Bloqueia novas conexões durante a limpeza
-    config.OBS_ATIVO = false;
-
-    // 2) Desconecta observers "globais"
-    __safeDisconnect(tooltipObserver); // criado em iniciarObservacaoTooltip
-    tooltipObserver = null;
-
-    __safeDisconnect(lifecycleObs); // criado no bootstrap
-    lifecycleObs = null;
-
-    __safeDisconnect(docObs); // criado no bootstrap quando tablist não existe
-    docObs = null;
-
-    tablistRef = null; // solta referência
-
-    // 3) Para observação de cada ticket atualmente observado
-    if (ticketsSet && typeof ticketsSet.keys === "function") {
-      // se for Map<string, {...}>
-      for (const id of ticketsSet.keys()) {
-        try {
-          pararObservacaoTicket(id); // sua função já desconecta o MutationObserver e limpa debouncer do ticket
-        } catch (e) {
-          console.warn(`Erro ao pararObservacaoTicket(${id}):`, e);
-        }
-      }
-    }
-
-    // 4) (Opcional) Limpa estruturas auxiliares se existirem
-    if (ticketObservers && ticketObservers.clear) ticketObservers.clear();
-    if (ticketDebouncers && ticketDebouncers.clear) ticketDebouncers.clear();
-
-    HefestoLog(`Monitoramento desligado: ${motivo}`);
-  }
-
-  function retomarObservacao(motivo = "retomado") {
-    config.OBS_ATIVO = true;
-
-    // Recria o observer do tablist se o elemento existir
-    const t = document.querySelector('[data-test-id="header-tablist"]');
-    if (t) {
-      iniciarObservacaoTooltip(t);
-      tablistRef = t;
-    } else {
-      // sem tablist agora, recrie o docObs para aguardar
-      docObs = new MutationObserver(() => {
-        const tt = document.querySelector('[data-test-id="header-tablist"]');
-        if (tt) {
-          try {
-            docObs.disconnect();
-          } catch {}
-          docObs = null;
-          iniciarObservacaoTooltip(tt);
-          tablistRef = tt;
-          try {
-            SincronizarTicketsObservados();
-          } catch (e) {
-            console.warn("Erro ao sincronizar tickets (retomada):", e);
-          }
-        }
-      });
-      docObs.observe(document.documentElement || document, {
-        childList: true,
-        subtree: true,
-      });
-    }
-
-    // Sincroniza os IDs atuais das abas e recria observers por ticket
-    try {
-      SincronizarTicketsObservados();
-    } catch (e) {
-      console.warn("Erro ao sincronizar tickets (retomada):", e);
-    }
-
-    HefestoLog(`Observação retomada: ${motivo}`);
   }
 })();

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendesk
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.7.0
+// @version      1.3.7.2
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -21,7 +21,7 @@
     LogueManual: 0,
     SomEstouro: 1,
     notiEstouro: 1,
-    OBS_ATIVO: true,
+    OBS_ATIVO: 0,
   };
 
   const configPadrao = {
@@ -2089,7 +2089,7 @@
         } else {
           retomarObservacao();
         }
-        AtualizarConf();
+        SalvandoVariConfig(1);
         atualizarSlidePosi("Bot29", config.OBS_ATIVO);
       },
     );
@@ -2278,6 +2278,8 @@
       //CIgTMA,
       //CIgErro,
       //criarSeparador(),
+      CTimerCh,
+      criarSeparador(),
       caixaDeCor(),
       criarSeparador(),
       ContTempEsc(),
@@ -2285,8 +2287,7 @@
       ContlogueManual(),
       criarSeparador(),
       CIgEst,
-      criarSeparador(),
-      CTimerCh,
+
       // Cbotavan()
     );
 
@@ -2936,13 +2937,19 @@
     };
   }
 
+  // Helper: root do ticket (mesmo seletor usado em observarTicket)
+  function getTicketRoot(id) {
+    return document.querySelector(
+      `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
+    );
+  }
+
   // ========= SYNC DE IDS =========
   function SincronizarTicketsObservados() {
     HefestoLog("Sincronizando tickets observados...");
 
     const atual = ObterEntityId().ids.map(String); // garante string
     const setAtual = new Set(atual);
-
     const existentes = new Set(ticketsSet.keys());
 
     // IDs novos (apareceram na aba)
@@ -2964,6 +2971,31 @@
         HefestoLog(`Novo ID observado: ${id}`);
       });
     }
+
+    // --- Verificar/reconectar os já existentes (anteriores) ---
+    // Para todos os IDs que ainda estão na aba agora
+    atual.forEach((id) => {
+      const jaTemObserver = ticketObservers.has(id);
+      if (!jaTemObserver) {
+        // Não há observer para um ID que está visível → adicionar
+        observarTicket(id);
+        HefestoLog(`Observer faltando para ID existente; adicionado: ${id}`);
+        return;
+      }
+
+      // Há observer, mas o root pode ter sido recriado/desconectado
+      // Se não houver root ou não estiver conectado, reconecta
+      const root = getTicketRoot(id);
+      if (!root || !root.isConnected) {
+        try {
+          pararObservacaoTicket(id); // desconecta o antigo com segurança
+        } catch {
+          /* noop */
+        }
+        observarTicket(id);
+        HefestoLog(`Observer reconectado (root foi recriado) para: ${id}`);
+      }
+    });
 
     // --- Remover os que saíram ---
     if (removidos.length) {
@@ -3025,8 +3057,7 @@
       debounced();
     });
 
-    // 👉 NOVA LINHA: pega datetime imediatamente
-
+    // 👉 Pega datetime imediatamente
     handleTicketChange(id);
 
     obs.observe(root, { childList: true, subtree: true });
