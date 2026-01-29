@@ -20,6 +20,12 @@
   const DEBUG = localStorage.getItem("hefesto:debug") === "1"; // ative com: localStorage.setItem('hefesto:debug','1')
   const DEBOUNCE_MS = 300;
 
+  // Referências globais para que possamos desconectar depois
+  let OBS_ATIVO = true; // flag opcional para bloquear reconexões enquanto limpa
+  let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
+  let docObs = null; // observer temporário usado até o tablist aparecer
+  let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
+
   // ========= LOG UTILS =========
   function HefestoLog(...args) {
     if (DEBUG) console.log("HefestoLog:", ...args);
@@ -386,106 +392,7 @@
     }
   }
 
-  // Referências globais para que possamos desconectar depois
-  let OBS_ATIVO = true; // flag opcional para bloquear reconexões enquanto limpa
-  let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
-  let docObs = null; // observer temporário usado até o tablist aparecer
-  let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
-
   // ========= BOOTSTRAP =========
-  /*(async function bootstrap() {
-    const SELECTOR = '[data-test-id="header-tablist"]';
-    let tablist = document.querySelector(SELECTOR);
-
-    // Tenta encontrar rapidamente; se não, espera até o timeout
-    if (!tablist) {
-      tablist = await waitForElement(SELECTOR, document, 20000);
-    }
-
-    // Função para conectar um observer específico no tablist
-    // Observa apenas adição/remoção de filhos imediatos (sem subtree)
-    function conectarNoTablist(el) {
-      if (!el) return null;
-
-      // Se você já tem essa função implementada em outro lugar, mantenha:
-      // iniciarObservacaoTooltip(el) deve configurar o MutationObserver de childList
-      // para el, reagindo a addedNodes / removedNodes.
-      iniciarObservacaoTooltip(el);
-
-      // Retorna o elemento conectado para verificações futuras
-      return el;
-    }
-
-    // Se não achou dentro do timeout, observa o documento até aparecer
-    if (!tablist) {
-      warn(
-        'Elemento [data-test-id="header-tablist"] não encontrado (timeout). Observando o documento temporariamente até aparecer.',
-      );
-
-      const docObs = new MutationObserver(() => {
-        const t = document.querySelector(SELECTOR);
-        if (t) {
-          docObs.disconnect();
-          tablist = conectarNoTablist(t);
-          // Faz a sincronização inicial assim que conectar
-          try {
-            SincronizarTicketsObservados();
-          } catch (e) {
-            console.warn("Erro ao sincronizar tickets (inicial):", e);
-          }
-        }
-      });
-
-      // Observa todo o documento para quando o tablist surgir
-      docObs.observe(document.documentElement || document, {
-        childList: true,
-        subtree: true,
-      });
-
-      // Sincroniza mesmo sem o tablist, caso já existam IDs dispersos
-      try {
-        SincronizarTicketsObservados();
-      } catch (e) {
-        console.warn("Erro ao sincronizar tickets (fallback):", e);
-      }
-      return;
-    }
-
-    // Se encontrou de primeira, conecta e sincroniza
-    tablist = conectarNoTablist(tablist);
-    try {
-      SincronizarTicketsObservados();
-    } catch (e) {
-      console.warn("Erro ao sincronizar tickets (pós-conexão inicial):", e);
-    }
-
-    // ======= Resiliência: reconectar se o tablist sumir e reaparecer =======
-    // Observa o documento para detectar remoção/reaparição do tablist
-    const lifecycleObs = new MutationObserver(() => {
-      // Se estava conectado e o elemento saiu do DOM, aguarda o próximo aparecer
-      if (tablist && !document.contains(tablist)) {
-        tablist = null;
-      }
-      // Se não temos referência, tenta encontrar um novo
-      if (!tablist) {
-        const t = document.querySelector(SELECTOR);
-        if (t) {
-          tablist = conectarNoTablist(t);
-          try {
-            SincronizarTicketsObservados();
-          } catch (e) {
-            console.warn("Erro ao sincronizar tickets (reconexão):", e);
-          }
-        }
-      }
-    });
-
-    lifecycleObs.observe(document.documentElement || document, {
-      childList: true,
-      subtree: true,
-    });
-  })();*/
-
   (async function bootstrap() {
     const SELECTOR = '[data-test-id="header-tablist"]';
     let tablist = document.querySelector(SELECTOR);
@@ -925,10 +832,6 @@
     if (ticketDebouncers && ticketDebouncers.clear) ticketDebouncers.clear();
 
     HefestoLog(`Monitoramento desligado: ${motivo}`);
-  }
-
-  function pausarObservacao(motivo = "pausado") {
-    desligarBootstrapEMonitoramento(motivo);
   }
 
   function retomarObservacao(motivo = "retomado") {

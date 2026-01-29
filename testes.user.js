@@ -81,12 +81,6 @@
     return false;
   }
 
-  VerificarNome("23018070", nomeaa("23018070"));
-
-  atualize para tratar o com a no final "A" no final com ja no formato local
-
-datetime="2026-01-27T14:07:05.710Z"
-
   function isoParaDataHora(iso) {
     if (!iso) return { data: "", hora: "" };
 

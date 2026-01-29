@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Registro de Chamadas > Zendesk
 // @namespace    franciel.registro.ticket.receiver
-// @version      1.1.4
+// @version      1.1.5
 // @description  Recebe {ticket, contato} via postMessage e preenche #ticket e #contato.
 // @author       Franciel
 // @match        https://registrodechamadas.netlify.app/*
@@ -177,7 +177,7 @@
 
     const linha3T1 = document.createElement("p");
     linha3T1.textContent =
-      ", Foi realizada a verificação no sistema e constatado que:";
+      "Foi realizada a verificação no sistema e constatado que:";
 
     linha3.appendChild(linha3T1);
     dd1.appendChild(linha3);
@@ -197,7 +197,7 @@
 
     const linha5 = CriarLinha(5);
     const linha5T1 = document.createElement("p");
-    linha5T1.textContent = ", A solicitação foi atendida da seguinte forma:";
+    linha5T1.textContent = "A solicitação foi atendida da seguinte forma:";
     linha5.appendChild(linha5T1);
     dd1.appendChild(linha5);
 
