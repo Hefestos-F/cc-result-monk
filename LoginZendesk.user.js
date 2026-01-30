@@ -116,6 +116,23 @@
   const nomeBD = "MeuBDZen";
   const StoreBD = "LogueMonk";
 
+  // ========= LOG UTILS =========
+  function Hlog(...args) {
+    console.log("HefestoLog:", ...args);
+  }
+  function Hwarn(...args) {
+    console.warn("HefestoLog:", ...args);
+  }
+  function Herror(...args) {
+    console.error("HefestoLog:", ...args);
+  }
+  function Hdebug(...args) {
+    console.debug("HefestoLog:", ...args);
+  }
+  function Hinfo(...args) {
+    console.info("HefestoLog:", ...args);
+  }
+
   RecuperarTVariaveis();
 
   /**
@@ -125,49 +142,40 @@
   async function RecuperarTVariaveis() {
     try {
       dadosdePausas = await RecDadosindexdb(ChavePausas);
-      console.debug("HefestoLog: Encontrados em dadosdePausas:", dadosdePausas);
+      Hdebug("HefestoLog: Encontrados em dadosdePausas:", dadosdePausas);
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosdePausas:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosdePausas:", e);
     }
 
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      console.debug(
-        "HefestoLog: Encontrados em dadosSalvosConfi:",
-        dadosSalvosConfi,
-      );
+      Hdebug("HefestoLog: Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosSalvosConfi:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosSalvosConfi:", e);
     }
 
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      console.debug(
-        "HefestoLog: Encontrados em dadosPrimLogue:",
-        dadosPrimLogue,
-      );
+      Hdebug("HefestoLog: Encontrados em dadosPrimLogue:", dadosPrimLogue);
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosPrimLogue:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosPrimLogue:", e);
     }
 
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      console.debug(
-        "HefestoLog: Encontrados em dadosLogueManu:",
-        dadosLogueManu,
-      );
+      Hdebug("HefestoLog: Encontrados em dadosLogueManu:", dadosLogueManu);
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosLogueManu:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosLogueManu:", e);
     }
 
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.debug(
+      Hdebug(
         "HefestoLog: Encontrados em dadosPrimLogueOnt:",
         dadosPrimLogueOnt,
       );
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosPrimLogueOnt:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosPrimLogueOnt:", e);
     }
     await verifiDataLogue();
     await SalvandoVariConfig(0);
@@ -184,7 +192,7 @@
       // Desconecta somente se já achamos o valor (stt.observa = 0)
       if (stt.observa === 0) {
         observer.disconnect();
-        console.log("HefestoLog: observer Desconectado");
+        Hlog("HefestoLog: observer Desconectado");
       }
     });
 
@@ -224,14 +232,14 @@
     );
 
     if (!el) {
-      console.log("HefestoLog: Alteração aconteceu, mas ainda sem status");
+      Hlog("HefestoLog: Alteração aconteceu, mas ainda sem status");
       stt.Status = "---";
       return (stt.andament = 1);
     }
 
     let statusAtual = formatPrimeiroNome(el.textContent.trim());
     if (statusAtual === "Pausa") statusAtual = "Particular";
-    //console.log(`HefestoLog: Status: ${statusAtual}`);
+    //Hlog(`HefestoLog: Status: ${statusAtual}`);
 
     // Se não mudou, não faz nada
 
@@ -245,7 +253,7 @@
     // 3) Atualiza status anterior
     // ==========================================================
 
-    console.log(
+    Hlog(
       `HefestoLog: Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`,
     );
     DDPausa.StatusANT = stt.Status;
@@ -272,10 +280,10 @@
 
       const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
 
-      //console.log(`HefestoLog: fimObj: ${JSON.stringify(fimObj)}`);
+      //Hlog(`HefestoLog: fimObj: ${JSON.stringify(fimObj)}`);
       const agora = gerarDataHora(); // { data, hora }
 
-      console.log(
+      Hlog(
         `HefestoLog: id:${DDPausa.numero}, inicioObj: ${JSON.stringify(
           inicioObj,
         )}`,
@@ -293,7 +301,7 @@
         const duracaoReal = calcularDuracao(inicioObj, agora);
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
 
-        console.log(`HefestoLog: fim: ${JSON.stringify(agora)}`);
+        Hlog(`HefestoLog: fim: ${JSON.stringify(agora)}`);
         TempoPausas.Online = somarDuracoes().totalSegundos;
       }
 
@@ -309,7 +317,7 @@
 
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
-        console.log(`HefestoLog: Inclui Off ${stt.Status}`);
+        Hlog(`HefestoLog: Inclui Off ${stt.Status}`);
         return (stt.andament = 1);
       }
 
@@ -331,7 +339,7 @@
 
       SalvandoVariConfig(1);
 
-      //console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
+      //Hlog(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
       // Cria/atualiza pausa no array + IndexedDB
       await AddouAtualizarPausas(
         DDPausa.numero,
@@ -340,9 +348,7 @@
         fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
         "---", // duracao prevista: "HH:MM:SS" ou "---"
       );
-    })().catch((err) =>
-      console.error("HefestoLog: erro no observer async:", err),
-    );
+    })().catch((err) => Herror("HefestoLog: erro no observer async:", err));
     stt.andament = 1;
   });
 
@@ -391,7 +397,7 @@
       SalvandoVariConfig(1);
       x = 1;
     }
-    console.log(`HefestoLog: 
+    Hlog(`HefestoLog: 
       config.logueEntreDatas = ${config.logueEntreDatas} /
       dadosPrimLogue.data = ${dadosPrimLogue.data} / 
       b.data = ${b.data}
@@ -1069,11 +1075,11 @@
     try {
       await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } catch (err) {
-      console.error("HefestoLog: Erro ao atualizar campos no IndexedDB:", err);
+      Herror("HefestoLog: Erro ao atualizar campos no IndexedDB:", err);
     }
 
     if (c === "duracao") {
-      console.debug("HefestoLog: Tabela salva:", ChavePausas);
+      Hdebug("HefestoLog: Tabela salva:", ChavePausas);
     }
   }
 
@@ -1104,7 +1110,7 @@
     };
 
     requisicao_bd.onerror = function (event) {
-      console.error(
+      Herror(
         "HefestoLog: Erro ao abrir o banco de dados:",
         event.target.errorCode,
       );
@@ -1126,14 +1132,14 @@
           const request = store.put(dados, nomechave);
 
           request.onsuccess = function () {
-            console.debug(
+            Hdebug(
               `HefestoLog: Dados salvos com sucesso na chave "${nomechave}"`,
             );
             resolve(true);
           };
 
           request.onerror = function (event) {
-            console.error(
+            Herror(
               "HefestoLog: Erro ao salvar os dados:",
               event.target?.errorCode || event,
             );
@@ -1141,7 +1147,7 @@
           };
         });
       } catch (err) {
-        console.error("HefestoLog: AddOuAtuIindexdb erro:", err);
+        Herror("HefestoLog: AddOuAtuIindexdb erro:", err);
         reject(err);
       }
     });
@@ -1182,14 +1188,11 @@
       const request = store.delete(nomechave);
 
       request.onsuccess = function () {
-        console.log(`HefestoLog: Chave "${nomechave}" apagada com sucesso.`);
+        Hlog(`HefestoLog: Chave "${nomechave}" apagada com sucesso.`);
       };
 
       request.onerror = function (event) {
-        console.error(
-          "HefestoLog: Erro ao apagar a chave:",
-          event.target.errorCode,
-        );
+        Herror("HefestoLog: Erro ao apagar a chave:", event.target.errorCode);
       };
     });
   }
@@ -1232,7 +1235,7 @@
     caixa.addEventListener("click", function () {
       const a = document.getElementById("minhaCaixa");
       if (!a) {
-        console.warn("minhaCaixa não encontrada");
+        Hwarn("minhaCaixa não encontrada");
         return;
       }
 
@@ -1248,7 +1251,7 @@
         }
         const novoElemento = ADDCaiPausas();
         if (!novoElemento) {
-          console.error("criarC() não retornou um elemento válido");
+          Herror("criarC() não retornou um elemento válido");
           return;
         }
         if (a.children.length >= 2) {
@@ -1307,10 +1310,10 @@
     `;
 
     caixa.addEventListener("click", function () {
-      console.log("BConfig clicado");
+      Hlog("BConfig clicado");
       const a = document.getElementById("minhaCaixa");
       if (!a) {
-        console.warn("minhaCaixa não encontrada");
+        Hwarn("minhaCaixa não encontrada");
         return;
       }
 
@@ -1326,7 +1329,7 @@
         }
         const novoElemento = criarC();
         if (!novoElemento) {
-          console.error("criarC() não retornou um elemento válido");
+          Herror("criarC() não retornou um elemento válido");
           return;
         }
         if (a.children.length >= 2) {
@@ -1335,7 +1338,7 @@
           a.appendChild(novoElemento);
         }
         stt.AbaConfig = 1;
-        //console.log("CaixaConfig adicionada");
+        //Hlog("CaixaConfig adicionada");
       }
     });
 
@@ -1640,15 +1643,13 @@
       }
 
       function a(b, c) {
-        console.log(`HefestoLog: Recuperado ${b}: ${JSON.stringify(c)}`);
+        Hlog(`HefestoLog: Recuperado ${b}: ${JSON.stringify(c)}`);
       }
     }
 
     if (modo) {
       await AddOuAtuIindexdb(ChaveConfig, AsVari);
-      console.log(
-        `HefestoLog: Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`,
-      );
+      Hlog(`HefestoLog: Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`);
     } else {
       aplicarConfiguracao(dadosSalvosConfi);
     }
@@ -1838,7 +1839,7 @@
         };
 
         AddOuAtuIindexdb(ChavelogueManu, dadosLogueManu);
-        console.log("Dados salvos:", dadosLogueManu);
+        Hlog("Dados salvos:", dadosLogueManu);
       }
 
       // Container principal
@@ -2413,7 +2414,7 @@
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
-    //console.log(`O valor de qq2:${qq}`);
+    //Hlog(`O valor de qq2:${qq}`);
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
@@ -2495,9 +2496,9 @@
   async function copiarTexto(texto) {
     try {
       await navigator.clipboard.writeText(texto);
-      console.log("Texto copiado com sucesso!");
+      Hlog("Texto copiado com sucesso!");
     } catch (err) {
-      console.error("Erro ao copiar texto: ", err);
+      Herror("Erro ao copiar texto: ", err);
     }
   }
 
@@ -2613,7 +2614,7 @@
       });
     }
 
-    //console.log(`Pausas ${JSON.stringify(dadosdePausas)}`);
+    //Hlog(`Pausas ${JSON.stringify(dadosdePausas)}`);
 
     return caixa;
   }
@@ -2849,13 +2850,13 @@
 
   // ========= LOG UTILS =========
   function HefestoLog(...args) {
-    if (DEBUG) console.log("HefestoLog:", ...args);
+    if (DEBUG) Hlog("HefestoLog:", ...args);
   }
   function warn(...args) {
-    console.warn("HefestoLog:", ...args);
+    Hwarn("HefestoLog:", ...args);
   }
   function error(...args) {
-    console.error("HefestoLog:", ...args);
+    Herror("HefestoLog:", ...args);
   }
 
   // ========= HELPERS =========
@@ -3242,7 +3243,7 @@
 
       return null;
     } catch (err) {
-      console.error("Erro em EncontrarOUltimoTime:", err);
+      Herror("Erro em EncontrarOUltimoTime:", err);
       return null;
     }
   }
@@ -3280,7 +3281,7 @@
           try {
             SincronizarTicketsObservados();
           } catch (e) {
-            console.warn("Erro ao sincronizar tickets (inicial):", e);
+            Hwarn("Erro ao sincronizar tickets (inicial):", e);
           }
         }
       });
@@ -3293,7 +3294,7 @@
       try {
         SincronizarTicketsObservados();
       } catch (e) {
-        console.warn("Erro ao sincronizar tickets (fallback):", e);
+        Hwarn("Erro ao sincronizar tickets (fallback):", e);
       }
       return;
     }
@@ -3302,7 +3303,7 @@
     try {
       SincronizarTicketsObservados();
     } catch (e) {
-      console.warn("Erro ao sincronizar tickets (pós-conexão inicial):", e);
+      Hwarn("Erro ao sincronizar tickets (pós-conexão inicial):", e);
     }
 
     // <<< GUARDE no lifecycleObs
@@ -3319,7 +3320,7 @@
           try {
             SincronizarTicketsObservados();
           } catch (e) {
-            console.warn("Erro ao sincronizar tickets (reconexão):", e);
+            Hwarn("Erro ao sincronizar tickets (reconexão):", e);
           }
         }
       }
@@ -3472,7 +3473,7 @@
         try {
           pararObservacaoTicket(id); // sua função já desconecta o MutationObserver e limpa debouncer do ticket
         } catch (e) {
-          console.warn(`Erro ao pararObservacaoTicket(${id}):`, e);
+          Hwarn(`Erro ao pararObservacaoTicket(${id}):`, e);
         }
       }
     }
@@ -3506,7 +3507,7 @@
           try {
             SincronizarTicketsObservados();
           } catch (e) {
-            console.warn("Erro ao sincronizar tickets (retomada):", e);
+            Hwarn("Erro ao sincronizar tickets (retomada):", e);
           }
         }
       });
@@ -3520,7 +3521,7 @@
     try {
       SincronizarTicketsObservados();
     } catch (e) {
-      console.warn("Erro ao sincronizar tickets (retomada):", e);
+      Hwarn("Erro ao sincronizar tickets (retomada):", e);
     }
 
     HefestoLog(`Observação retomada: ${motivo}`);

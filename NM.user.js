@@ -78,54 +78,22 @@
     LogLevel: "info",
   };
 
-  // Logger runtime que respeita CConfig.LogLevel (checa dinamicamente e permite atualização em runtime)
-  (function setupLogger() {
-    try {
-      const levels = { error: 0, warn: 1, info: 2, debug: 3 };
-      // garante que exista uma configuração padrão
-      if (!CConfig.LogLevel) CConfig.LogLevel = "info";
-
-      function allowed(method) {
-        // lê o nível atual dinamicamente (permite mudar em runtime via CConfig.LogLevel)
-        const currentLevel =
-          CConfig && CConfig.LogLevel && CConfig.LogLevel in levels
-            ? CConfig.LogLevel
-            : "info";
-        const methodLevel =
-          method === "log" || method === "info" ? "info" : method;
-        return levels[methodLevel] <= levels[currentLevel];
-      }
-
-      ["error", "warn", "info", "log", "debug"].forEach((m) => {
-        const orig = console[m] ? console[m].bind(console) : () => {};
-        console[m] = function (...args) {
-          if (allowed(m)) {
-            orig(...args);
-          }
-        };
-      });
-
-      // função global para atualizar o nível de logs em runtime
-      /**
-       * AtualizarLogLevel - atualiza o nível de log em runtime
-       * @param {string} novoNivel - 'error'|'warn'|'info'|'debug'
-       * @returns {boolean} true se atualizado
-       */
-      window.AtualizarLogLevel = function (novoNivel) {
-        if (!novoNivel) return false;
-        if (novoNivel in levels) {
-          CConfig.LogLevel = novoNivel;
-          console.info("NiceMonk LogLevel atualizado para:", novoNivel);
-          return true;
-        }
-        console.warn("NiceMonk AtualizarLogLevel: nível inválido", novoNivel);
-        return false;
-      };
-    } catch (e) {
-      // se algo falhar ao definir logger, não bloqueia o script
-      console.error("NiceMonk falha ao inicializar logger:", e);
-    }
-  })();
+  // ========= LOG UTILS =========
+  function Hlog(...args) {
+    console.log("HefestoLog:", ...args);
+  }
+  function Hwarn(...args) {
+    console.warn("HefestoLog:", ...args);
+  }
+  function Herror(...args) {
+    console.error("HefestoLog:", ...args);
+  }
+  function Hdebug(...args) {
+    console.debug("HefestoLog:", ...args);
+  }
+  function Hinfo(...args) {
+    console.info("HefestoLog:", ...args);
+  }
 
   /**
    * Ccor - Cores usadas na interface (valores em hex)
@@ -291,7 +259,7 @@
       // Desconecta observer caso flag global seja desativada
       if (!stt.observ) {
         observer.disconnect();
-        console.log(`NiceMonk observer Desconectado`);
+        Hlog(`observer Desconectado`);
       }
     });
 
@@ -302,7 +270,7 @@
    * addAoini - adiciona observador inicial e dispara setup da UI quando o elemento de referência existir
    */
   function addAoini() {
-    console.debug(`NiceMonk observer Iniciado`);
+    Hdebug(`observer Iniciado`);
     ObservarItem(() => {
       const elementoReferencia = document.querySelector(
         LugarJS.elementoReferencia,
@@ -319,9 +287,9 @@
         stt.observ = 0;
         stt.logout = 0;
         iniciarBusca();
-        console.log(`NiceMonk verificação Inicial Verdadeiro`);
+        Hlog(`verificação Inicial Verdadeiro`);
       } else {
-        console.log(`NiceMonk verificação Inicial Falso`);
+        Hlog(`verificação Inicial Falso`);
       }
     });
   }
@@ -333,50 +301,44 @@
   async function RecuperarTVariaveis() {
     try {
       dadosdePausas = await RecDadosindexdb(ChavePausas);
-      console.debug("NiceMonk Encontrados em dadosdePausas:", dadosdePausas);
+      Hdebug("Encontrados em dadosdePausas:", dadosdePausas);
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosdePausas:", e);
+      Herror("Erro ao recuperar dadosdePausas:", e);
     }
 
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      console.debug(
-        "NiceMonk Encontrados em dadosSalvosConfi:",
-        dadosSalvosConfi,
-      );
+      Hdebug("Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosSalvosConfi:", e);
+      Herror("Erro ao recuperar dadosSalvosConfi:", e);
     }
 
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      console.debug("NiceMonk Encontrados em dadosPrimLogue:", dadosPrimLogue);
+      Hdebug("Encontrados em dadosPrimLogue:", dadosPrimLogue);
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosPrimLogue:", e);
+      Herror("Erro ao recuperar dadosPrimLogue:", e);
     }
 
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      console.debug("NiceMonk Encontrados em dadosLogueManu:", dadosLogueManu);
+      Hdebug("Encontrados em dadosLogueManu:", dadosLogueManu);
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosLogueManu:", e);
+      Herror("Erro ao recuperar dadosLogueManu:", e);
     }
 
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.debug(
-        "NiceMonk Encontrados em dadosPrimLogueOnt:",
-        dadosPrimLogueOnt,
-      );
+      Hdebug("Encontrados em dadosPrimLogueOnt:", dadosPrimLogueOnt);
     } catch (e) {
-      console.error("NiceMonk Erro ao recuperar dadosPrimLogueOnt:", e);
+      Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
     }
 
     // Aplica configurações recuperadas e inicializa estruturas
     await SalvandoVari(3);
     await SalvarLogueManual(0);
     await salvarDPausas();
-    await verificarESalvar();
+    await verificarESalvar(0);
   }
 
   function atualizarAuto() {
@@ -751,7 +713,7 @@
         AtualizarConf(15);
       });
     } else {
-      console.error("NiceMonk Elemento não encontrado. Verifique o seletor.");
+      Herror("Elemento não encontrado. Verifique o seletor.");
     }
   }
 
@@ -810,7 +772,7 @@
       }
       return false;
     } catch (err) {
-      console.error("NiceMonk Erro ao clicar elemento:", err);
+      Herror("Erro ao clicar elemento:", err);
       return false;
     }
   }
@@ -827,18 +789,14 @@
         if (await seExiste(LugarJS.abaProdutividade)) {
           await clicarElementoQuerySelector(LugarJS.abaProdutividade);
         } else {
-          console.error(
-            "NiceMonk Erro ao clicar no último elemento: abaProdutividade",
-          );
+          Herror("Erro ao clicar no último elemento: abaProdutividade");
           return false;
         }
       } else {
         if (await seExiste(LugarJS.abaDesempenho)) {
           await clicarElementoQuerySelector(LugarJS.abaDesempenho);
         } else {
-          console.error(
-            "NiceMonk Erro ao clicar no último elemento: abaDesempenho",
-          );
+          Herror("Erro ao clicar no último elemento: abaDesempenho");
           return false;
         }
       }
@@ -847,13 +805,11 @@
           return true;
         }
       } else {
-        console.error("NiceMonk Erro ao clicar no último elemento: abaHoje");
+        Herror("Erro ao clicar no último elemento: abaHoje");
         return false;
       }
     } else {
-      console.error(
-        "NiceMonk Erro ao clicar no primeiro elemento: abaRelatorio",
-      );
+      Herror("Erro ao clicar no primeiro elemento: abaRelatorio");
       return false;
     }
   }
@@ -880,9 +836,7 @@
           tentativas++;
           if (tentativas >= maxAttempts) {
             clearInterval(intervalo);
-            console.error(
-              `NiceMonk Elemento de referência não encontrado: ${nomeElemento}`,
-            );
+            Herror(`Elemento de referência não encontrado: ${nomeElemento}`);
             resolve(false);
           }
         }
@@ -896,7 +850,7 @@
    * @returns {Promise<boolean>} true se dados foram encontrados/atualizados
    */
   function seExiste3(objeto) {
-    console.log("NiceMonk seExiste3 iniciado.");
+    Hlog("seExiste3 iniciado.");
     return new Promise((resolve) => {
       let resultado = false;
 
@@ -907,7 +861,7 @@
 
         if (retorno === true) {
           observer.disconnect();
-          console.log(`NiceMonk seExiste3 ${nomeObjeto} encontrado.`);
+          Hlog(`seExiste3 ${nomeObjeto} encontrado.`);
           resultado = true;
           resolve(true);
         }
@@ -921,7 +875,7 @@
       setTimeout(() => {
         if (!resultado) {
           observer.disconnect();
-          console.log("NiceMonk seExiste3 nada encontrado.");
+          Hlog("seExiste3 nada encontrado.");
           resolve(resultado);
         }
       }, 6000);
@@ -931,7 +885,7 @@
   function formatTime(time) {
     // Normaliza diferentes formatos de tempo para "HH:MM:SS" (ou retorna null)
     if (!time || typeof time !== "string") {
-      console.error("NiceMonk Tempo inválido.");
+      Herror("Tempo inválido.");
       return "00:00:00";
     }
     const parts = time
@@ -1069,7 +1023,7 @@
             if (!jaEncontrado && texto && texto !== "Geral") {
               jaEncontrado = 1;
               stt.vAtendidas = texto;
-              console.log(`NiceMonk Valor ao lado de "Geral": ${texto}`);
+              Hlog(`Valor ao lado de "Geral": ${texto}`);
               encontrou = true;
             }
           });
@@ -1078,7 +1032,7 @@
     });
 
     if (!encontrou) {
-      console.warn('NiceMonk Valor ao lado de "Geral" não encontrado.');
+      Hwarn('Valor ao lado de "Geral" não encontrado.');
     }
 
     return encontrou;
@@ -1118,9 +1072,7 @@
 
       if (tempoEncontrado) {
         resultados[nomeStatus] = tempoEncontrado;
-        console.log(
-          `NiceMonk Status: ${nomeStatus} → Tempo: ${tempoEncontrado}`,
-        );
+        Hlog(`Status: ${nomeStatus} → Tempo: ${tempoEncontrado}`);
         if (nomeStatus === "Disponível") {
           Htime.Disponivel = tempoEncontrado;
           Segun.Disponivel = converterParaSegundos(Htime.Disponivel);
@@ -1136,9 +1088,7 @@
 
     const encontrou = Object.keys(resultados).length > 0;
     if (!encontrou) {
-      console.warn(
-        "NiceMonk Nenhum tempo encontrado usando os IDs dos ícones.",
-      );
+      Hwarn("Nenhum tempo encontrado usando os IDs dos ícones.");
     }
 
     return encontrou;
@@ -1336,27 +1286,45 @@
       horasEDatas.QualLogou = dadosLogueManu;
       pelologue = 1;
     } else if (CConfig.ModoSalvo) {
+      if (!dadosPrimLogue) {
+        verificarESalvar(1);
+      }
       horasEDatas.QualLogou = dadosPrimLogue;
       pelologue = 1;
     }
 
-    const horari = horarios(
-      pelologue
-        ? exibirAHora(agora, 0, horasEDatas.QualLogou).hora
-        : converterParaTempo(Segun.NewLogado),
+    let horariosSalvos = 0;
+    if (pelologue) {
+      horariosSalvos = horarios(
+        exibirAHora(agora, 0, horasEDatas.QualLogou).hora,
+        CConfig.TempoEscaladoHoras,
+      );
+    }
+
+    const horariosNewLogado = horarios(
+      converterParaTempo(Segun.NewLogado),
       CConfig.TempoEscaladoHoras,
     );
 
-    //console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
-    //console.log(`NiceMonk: horari.Logou:${JSON.stringify(horari.Logou)}`);
+    let horari = pelologue ? horariosSalvos : horariosNewLogado;
+
+    //Hlog(`horariosNewLogado.Logou:${JSON.stringify(horariosNewLogado.Logou)}`);
+    //Hlog(`dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
 
     if (
+      CConfig.ModoSalvo &&
       dadosPrimLogue &&
-      horari.Logou &&
-      compararDatas(dadosPrimLogue, horari.Logou)
+      horariosNewLogado.Logou &&
+      compararDatas(dadosPrimLogue, horariosNewLogado.Logou)
     ) {
+      horasEDatas.Logou = horariosNewLogado.Logou;
       verificarESalvar(1);
+    } else {
+      horasEDatas.Logou = horari.Logou;
     }
+    horasEDatas.Saida = horari.Saida;
+    horasEDatas.logado = horari.logado;
+    horasEDatas.Falta = horari.Falta;
 
     if (compararDatas(agora, exibirHora(horari.Saida, 1, "00:10:00"))) {
       stt.temHorasExtras = 1;
@@ -1368,11 +1336,6 @@
       stt.tempoCumprido = 0;
     }
 
-    horasEDatas.Logou = horari.Logou;
-    horasEDatas.Saida = horari.Saida;
-    horasEDatas.logado = horari.logado;
-    horasEDatas.Falta = horari.Falta;
-
     AtualizarInfo();
     observarDisponibilidade();
   }
@@ -1380,20 +1343,20 @@
   function horarios(logado, escalado) {
     const agora = gerarDataHora();
 
-    //console.log(`NiceMonk: logado:${JSON.stringify(logado)}`);
+    //Hlog(`logado:${JSON.stringify(logado)}`);
 
     const Logou = exibirHora(agora, 0, logado);
 
-    //console.log(`NiceMonk: Logou:${JSON.stringify(Logou)}`);
+    //Hlog(`Logou:${JSON.stringify(Logou)}`);
 
     const Saida = exibirHora(Logou, 1, escalado);
 
-    //console.log(`NiceMonk: Saida:${JSON.stringify(Saida)}`);
-    //console.log(`NiceMonk: agora:${JSON.stringify(agora)}`);
+    //Hlog(`Saida:${JSON.stringify(Saida)}`);
+    //Hlog(`agora:${JSON.stringify(agora)}`);
 
     const Falta = exibirAHora(Saida, 0, agora);
 
-    //console.log(`NiceMonk: Falta:${JSON.stringify(Falta)}`);
+    //Hlog(`Falta:${JSON.stringify(Falta)}`);
 
     return {
       Logou: Logou,
@@ -1409,8 +1372,8 @@
    * - Atualiza display dos valores no painel principal
    */
   function AtualizarInfo() {
-    //console.log(`NiceMonk: dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
-    //console.log(`NiceMonk: horasEDatas.QualLogou.hora:${JSON.stringify(horasEDatas.QualLogou)}`);
+    //Hlog(`dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
+    //Hlog(`horasEDatas.QualLogou.hora:${JSON.stringify(horasEDatas.QualLogou)}`);
 
     const vLogou = document.getElementById("vLogou");
     vLogou.textContent = horasEDatas.Logou.hora;
@@ -1706,9 +1669,9 @@
   async function copiarTexto(texto) {
     try {
       await navigator.clipboard.writeText(texto);
-      console.log("Texto copiado com sucesso!");
+      Hlog("Texto copiado com sucesso!");
     } catch (err) {
-      console.error("Erro ao copiar texto: ", err);
+      Herror("Erro ao copiar texto: ", err);
     }
   }
 
@@ -2325,7 +2288,7 @@
       const b = criarCaixaSeg();
       b.id = "ContFaixa";
 
-      const fixar = criarLinhaTextoComBot(18, "Faixar Valor");
+      const fixar = criarLinhaTextoComBot(18, "Fixar Valor");
 
       const ocultar = document.createElement("div");
       ocultar.textContent = "Ocultar em ";
@@ -2516,7 +2479,7 @@
       CConfig.Vigia = 0;
       CConfig.AutoAtivo = 1;
       atualizarAuto();
-      console.log("NiceMonk Valor Auto : ", CConfig.ValorAuto);
+      Hlog("Valor Auto : ", CConfig.ValorAuto);
     }
     if (zz === 5) {
       CConfig.Vigia = 0;
@@ -2876,7 +2839,7 @@
         const tEstouro = document.getElementById("tEstouro");
         tEstouro.textContent = `Estourou a pausa ${nomePausaAtual}:`;
         vEstouro.textContent = converterParaTempo(tempoEstourado);
-        //console.log(`Estouro de Pausa ${tipo}:`, tempoEstourado);
+        //Hlog(`Estouro de Pausa ${tipo}:`, tempoEstourado);
       } else {
         stt.Estouro = 0;
         stt.Estour1 = 0;
@@ -2902,8 +2865,8 @@
       const idRegistroPausa = tipo.includes("Dispon") ? 2 : stt.Ndpausas;
 
       if (idRegistroPausa === 2)
-        console.log(
-          `NiceMonk Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`,
+        Hlog(
+          `Valor de Tempo em Disponivel : Inicial ${stt.IPausaS} / Fim ${stt.FPausaS} / Duração ${stt.DPausaS}`,
         );
 
       await atualizarCampos(idRegistroPausa, "Fim", mostrarHora());
@@ -2942,7 +2905,7 @@
             : 0;
 
           if (temPausaComLimite) {
-            console.log(`NiceMonk o D Esta : ${tempoLimiteSegundos}`);
+            Hlog(`o D Esta : ${tempoLimiteSegundos}`);
           }
 
           const notaRetorno = temPausaComLimite ? "<-Volta" : 0;
@@ -3127,10 +3090,7 @@
     };
 
     requisicao_bd.onerror = function (event) {
-      console.error(
-        "NiceMonk Erro ao abrir o banco de dados:",
-        event.target.errorCode,
-      );
+      Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
     };
   }
 
@@ -3149,22 +3109,20 @@
           const request = store.put(dados, nomechave);
 
           request.onsuccess = function () {
-            console.debug(
-              `NiceMonk Dados salvos com sucesso na chave "${nomechave}"`,
-            );
+            Hdebug(`Dados salvos com sucesso na chave "${nomechave}"`);
             resolve(true);
           };
 
           request.onerror = function (event) {
-            console.error(
-              "NiceMonk Erro ao salvar os dados:",
+            Herror(
+              "Erro ao salvar os dados:",
               event.target?.errorCode || event,
             );
             reject(event);
           };
         });
       } catch (err) {
-        console.error("NiceMonk AddOuAtuIindexdb erro:", err);
+        Herror("AddOuAtuIindexdb erro:", err);
         reject(err);
       }
     });
@@ -3283,7 +3241,7 @@
       };
 
       request.onerror = function (event) {
-        console.error("Erro ao listar as chaves:", event.target.errorCode);
+        Herror("Erro ao listar as chaves:", event.target.errorCode);
       };
     });
   }
@@ -3299,14 +3257,11 @@
       const request = store.delete(nomechave);
 
       request.onsuccess = function () {
-        console.log(`NiceMonk Chave "${nomechave}" apagada com sucesso.`);
+        Hlog(`Chave "${nomechave}" apagada com sucesso.`);
       };
 
       request.onerror = function (event) {
-        console.error(
-          "NiceMonk Erro ao apagar a chave:",
-          event.target.errorCode,
-        );
+        Herror("Erro ao apagar a chave:", event.target.errorCode);
       };
     });
   }
@@ -3331,7 +3286,6 @@
 
     if (!dadosLogueManu || dadosLogueManu.data !== hojeFormatado) {
       x = 1;
-      //console.log("NiceMonk Data Diferente de Hoje");
     }
     if (dadosLogueManu && dadosLogueManu.data === ontemFormatado) {
       await AddOuAtuIindexdb(ChavePrimLogueOntem, dadosLogueManu);
@@ -3339,11 +3293,9 @@
 
     if (x) {
       await AddOuAtuIindexdb(ChavelogueManu, valorEdata);
-      //console.log("NiceMonk Informação salva para a data de hoje  LogueManual: ",valorEdata);
     } else {
       CConfig.ValorLogueManual = dadosLogueManu.ValorLogueManual;
       CConfig.LogueManual = dadosLogueManu.LogueManual;
-      //console.log("NiceMonk x False");
     }
   }
 
@@ -3594,11 +3546,9 @@
       } else {
         x = 1;
       }
-    } else {
-      horasEDatas.Logou = dadosPrimLogue;
     }
     if (x) {
-      dadosPrimLogue = horasEDatas.Logou;
+      dadosPrimLogue = horasEDatas.Logou || agora;
       await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
     }
   }
@@ -3641,17 +3591,17 @@
           await AddOuAtuIindexdb(ChaveConfig, AsVari);
           aplicarConfiguracao(AsVari);
         } else {
-          console.warn("PCConfig ou PCcor não estão definidos.");
+          Hwarn("PCConfig ou PCcor não estão definidos.");
         }
         break;
 
       case 3:
         if (typeof dadosSalvosConfi !== "undefined") {
           aplicarConfiguracao(dadosSalvosConfi);
-          console.log(`NiceMonk Dados em ${ChaveConfig}:`, dadosSalvosConfi);
+          Hlog(`Dados em ${ChaveConfig}:`, dadosSalvosConfi);
         } else {
-          console.log(
-            `NiceMonk Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão:`,
+          Hlog(
+            `Não foram encontrados dados em ${ChaveConfig}, restaurado ao padrão:`,
             dadosSalvosConfi,
           );
           await SalvandoVari(2);
@@ -3659,7 +3609,7 @@
         break;
 
       default:
-        console.warn("Parâmetro inválido para SalvandoVari:", modo);
+        Hwarn("Parâmetro inválido para SalvandoVari:", modo);
     }
   }
 
@@ -3745,11 +3695,11 @@
     try {
       await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } catch (err) {
-      console.error("NiceMonk Erro ao atualizar campos no IndexedDB:", err);
+      Herror("Erro ao atualizar campos no IndexedDB:", err);
     }
 
     if (campo === "Duracao") {
-      console.debug(`NiceMonk Tabela salva : `, ChavePausas);
+      Hdebug(`Tabela salva : `, ChavePausas);
     }
   }
 
@@ -3766,12 +3716,12 @@
       try {
         await AddOuAtuIindexdb(ChavePausas, dadosdePausas); // Atualiza o IndexedDB
       } catch (err) {
-        console.error("NiceMonk Erro ao remover pausa:", err);
+        Herror("Erro ao remover pausa:", err);
       }
       AtuaPausas();
-      console.debug(`NiceMonk item com id ${id} removido.`);
+      Hdebug(`item com id ${id} removido.`);
     } else {
-      console.debug(`NiceMonk item com id ${id} não encontrado.`);
+      Hdebug(`item com id ${id} não encontrado.`);
     }
   }
 
@@ -3792,7 +3742,7 @@
     try {
       await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } catch (err) {
-      console.error("NiceMonk Erro ao atualizar ID1 no IndexedDB:", err);
+      Herror("Erro ao atualizar ID1 no IndexedDB:", err);
     }
   }
 

@@ -14,84 +14,31 @@
 // ==/UserScript==
 
 (function () {
-  // ========= CONFIG =========
-  const DEBUG = localStorage.getItem("hefesto:debug") === "1"; // ative com: localStorage.setItem('hefesto:debug','1')
-  const DEBOUNCE_MS = 300;
-
-  // ========= LOG UTILS =========
-  function HefestoLog(...args) {
-    if (DEBUG) console.log("HefestoLog:", ...args);
-  }
-  function warn(...args) {
-    console.warn("HefestoLog:", ...args);
-  }
-  function error(...args) {
-    console.error("HefestoLog:", ...args);
-  }
-
-  // ========= HELPERS =========
-  function debounce(fn, wait) {
-    let t;
-    return function (...args) {
-      clearTimeout(t);
-      t = setTimeout(() => fn.apply(this, args), wait);
-    };
-  }
-
-  //=================================
-  function nomeaa(id) {
-    const a = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-is-chat="true"]`,
-    );
-
-    return a.getAttribute("aria-label");
-  }
-
-  function VerificarNome(id, nome) {
-    // Guardas rápidos
-    if (!id || typeof nome !== "string" || !nome.trim()) return false;
-
-    // Normaliza para comparação: remove acentos, lowercase e trim
-    const normalizar = (s) =>
-      (s || "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // remove diacríticos
-        .toLowerCase()
-        .trim();
-
-    const nomeNorm = normalizar(nome);
-
-    // Encontra o root dentro do ticket específico
-    const root = document.querySelector(
-      `[data-ticket-id="${CSS.escape(String(id))}"] [data-test-id="omni-log-container"]`,
-    );
-    if (!root) return false;
-
-    // Coleta os remetentes
-    const remetentes = root.querySelectorAll(
-      '[data-test-id="omni-log-item-sender"]',
-    );
-    if (!remetentes.length) return false;
-
-    // Verifica se algum contém o nome
-    for (const el of remetentes) {
-      const txtNorm = normalizar(el.textContent);
-      if (txtNorm.includes(nomeNorm)) return true;
+  
+  function compararDatas(a, b) {
+    // Validação básica
+    if (!a?.data || !a?.hora || !b?.data || !b?.hora) {
+      throw new Error(
+        "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}",
+      );
     }
-    return false;
+
+    // Usa horário local (interpretação padrão do JS para strings ISO sem timezone)
+    const da = new Date(`${a.data}T${a.hora}`);
+    const db = new Date(`${b.data}T${b.hora}`);
+
+    // Verifica se datas são válidas
+    if (isNaN(da) || isNaN(db)) {
+      throw new Error(
+        "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'.",
+      );
+    }
+
+    return da.getTime() > db.getTime();
   }
+  const plog = { "hora": "10:42:53", "data": "2026-01-30" }
+  const plan = {"data":"2026-01-30","hora":"09:33:14"}
 
-  function isoParaDataHora(iso) {
-    if (!iso) return { data: "", hora: "" };
+  compararDatas(plog,plan)
 
-    // "Z" = UTC → JS converte para local automaticamente
-    const d = new Date(iso);
-
-    const dois = (n) => String(n).padStart(2, "0");
-
-    const data = `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}`;
-    const hora = `${dois(d.getHours())}:${dois(d.getMinutes())}:${dois(d.getSeconds())}`;
-
-    return { data, hora };
-  }
 })();
