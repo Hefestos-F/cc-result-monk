@@ -142,40 +142,37 @@
   async function RecuperarTVariaveis() {
     try {
       dadosdePausas = await RecDadosindexdb(ChavePausas);
-      Hdebug("HefestoLog: Encontrados em dadosdePausas:", dadosdePausas);
+      Hdebug("Encontrados em dadosdePausas:", dadosdePausas);
     } catch (e) {
-      Herror("HefestoLog: Erro ao recuperar dadosdePausas:", e);
+      Herror("Erro ao recuperar dadosdePausas:", e);
     }
 
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      Hdebug("HefestoLog: Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
+      Hdebug("Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
     } catch (e) {
-      Herror("HefestoLog: Erro ao recuperar dadosSalvosConfi:", e);
+      Herror("Erro ao recuperar dadosSalvosConfi:", e);
     }
 
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      Hdebug("HefestoLog: Encontrados em dadosPrimLogue:", dadosPrimLogue);
+      Hdebug("Encontrados em dadosPrimLogue:", dadosPrimLogue);
     } catch (e) {
-      Herror("HefestoLog: Erro ao recuperar dadosPrimLogue:", e);
+      Herror("Erro ao recuperar dadosPrimLogue:", e);
     }
 
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      Hdebug("HefestoLog: Encontrados em dadosLogueManu:", dadosLogueManu);
+      Hdebug("Encontrados em dadosLogueManu:", dadosLogueManu);
     } catch (e) {
-      Herror("HefestoLog: Erro ao recuperar dadosLogueManu:", e);
+      Herror("Erro ao recuperar dadosLogueManu:", e);
     }
 
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      Hdebug(
-        "HefestoLog: Encontrados em dadosPrimLogueOnt:",
-        dadosPrimLogueOnt,
-      );
+      Hdebug("Encontrados em dadosPrimLogueOnt:", dadosPrimLogueOnt);
     } catch (e) {
-      Herror("HefestoLog: Erro ao recuperar dadosPrimLogueOnt:", e);
+      Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
     }
     await verifiDataLogue();
     await SalvandoVariConfig(0);
@@ -192,7 +189,7 @@
       // Desconecta somente se já achamos o valor (stt.observa = 0)
       if (stt.observa === 0) {
         observer.disconnect();
-        Hlog("HefestoLog: observer Desconectado");
+        Hlog("observer Desconectado");
       }
     });
 
@@ -232,14 +229,14 @@
     );
 
     if (!el) {
-      Hlog("HefestoLog: Alteração aconteceu, mas ainda sem status");
+      Hlog("Alteração aconteceu, mas ainda sem status");
       stt.Status = "---";
       return (stt.andament = 1);
     }
 
     let statusAtual = formatPrimeiroNome(el.textContent.trim());
     if (statusAtual === "Pausa") statusAtual = "Particular";
-    //Hlog(`HefestoLog: Status: ${statusAtual}`);
+    //Hlog(`Status: ${statusAtual}`);
 
     // Se não mudou, não faz nada
 
@@ -253,9 +250,7 @@
     // 3) Atualiza status anterior
     // ==========================================================
 
-    Hlog(
-      `HefestoLog: Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`,
-    );
+    Hlog(`Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`);
     DDPausa.StatusANT = stt.Status;
 
     // Helpers
@@ -280,14 +275,10 @@
 
       const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
 
-      //Hlog(`HefestoLog: fimObj: ${JSON.stringify(fimObj)}`);
+      //Hlog(`fimObj: ${JSON.stringify(fimObj)}`);
       const agora = gerarDataHora(); // { data, hora }
 
-      Hlog(
-        `HefestoLog: id:${DDPausa.numero}, inicioObj: ${JSON.stringify(
-          inicioObj,
-        )}`,
-      );
+      Hlog(`id:${DDPausa.numero}, inicioObj: ${JSON.stringify(inicioObj)}`);
       if (inicioObj && duracaoObj === "---") {
         // Salva fim (objeto)
         await atualizarCampos(DDPausa.numero, "fim", agora);
@@ -301,7 +292,7 @@
         const duracaoReal = calcularDuracao(inicioObj, agora);
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
 
-        Hlog(`HefestoLog: fim: ${JSON.stringify(agora)}`);
+        Hlog(`fim: ${JSON.stringify(agora)}`);
         TempoPausas.Online = somarDuracoes().totalSegundos;
       }
 
@@ -317,7 +308,7 @@
 
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
-        Hlog(`HefestoLog: Inclui Off ${stt.Status}`);
+        Hlog(`Inclui Off ${stt.Status}`);
         return (stt.andament = 1);
       }
 
@@ -339,7 +330,7 @@
 
       SalvandoVariConfig(1);
 
-      //Hlog(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
+      //Hlog(`TempoPausas: ${JSON.stringify(TempoPausas)}`);
       // Cria/atualiza pausa no array + IndexedDB
       await AddouAtualizarPausas(
         DDPausa.numero,
@@ -348,7 +339,7 @@
         fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
         "---", // duracao prevista: "HH:MM:SS" ou "---"
       );
-    })().catch((err) => Herror("HefestoLog: erro no observer async:", err));
+    })().catch((err) => Herror("erro no observer async:", err));
     stt.andament = 1;
   });
 
@@ -397,9 +388,9 @@
       SalvandoVariConfig(1);
       x = 1;
     }
-    Hlog(`HefestoLog: 
+    Hlog(`
       config.logueEntreDatas = ${config.logueEntreDatas} /
-      dadosPrimLogue.data = ${dadosPrimLogue.data} / 
+      dadosPrimLogue.data = ${dadosPrimLogue.data} /
       b.data = ${b.data}
       `);
     if (x) await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
@@ -1075,11 +1066,11 @@
     try {
       await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } catch (err) {
-      Herror("HefestoLog: Erro ao atualizar campos no IndexedDB:", err);
+      Herror("Erro ao atualizar campos no IndexedDB:", err);
     }
 
     if (c === "duracao") {
-      Hdebug("HefestoLog: Tabela salva:", ChavePausas);
+      Hdebug("Tabela salva:", ChavePausas);
     }
   }
 
@@ -1110,10 +1101,7 @@
     };
 
     requisicao_bd.onerror = function (event) {
-      Herror(
-        "HefestoLog: Erro ao abrir o banco de dados:",
-        event.target.errorCode,
-      );
+      Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
     };
   }
 
@@ -1132,22 +1120,20 @@
           const request = store.put(dados, nomechave);
 
           request.onsuccess = function () {
-            Hdebug(
-              `HefestoLog: Dados salvos com sucesso na chave "${nomechave}"`,
-            );
+            Hdebug(`Dados salvos com sucesso na chave "${nomechave}"`);
             resolve(true);
           };
 
           request.onerror = function (event) {
             Herror(
-              "HefestoLog: Erro ao salvar os dados:",
+              "Erro ao salvar os dados:",
               event.target?.errorCode || event,
             );
             reject(event);
           };
         });
       } catch (err) {
-        Herror("HefestoLog: AddOuAtuIindexdb erro:", err);
+        Herror("AddOuAtuIindexdb erro:", err);
         reject(err);
       }
     });
@@ -1188,11 +1174,11 @@
       const request = store.delete(nomechave);
 
       request.onsuccess = function () {
-        Hlog(`HefestoLog: Chave "${nomechave}" apagada com sucesso.`);
+        Hlog(`Chave "${nomechave}" apagada com sucesso.`);
       };
 
       request.onerror = function (event) {
-        Herror("HefestoLog: Erro ao apagar a chave:", event.target.errorCode);
+        Herror("Erro ao apagar a chave:", event.target.errorCode);
       };
     });
   }
@@ -1371,7 +1357,7 @@
       const elementoEstilo = document.createElement("style");
       elementoEstilo.id = "estilo-slide";
       elementoEstilo.textContent = `
-      
+
           .slider-button27 {
             position: relative;
             width: 26px;
@@ -1643,13 +1629,13 @@
       }
 
       function a(b, c) {
-        Hlog(`HefestoLog: Recuperado ${b}: ${JSON.stringify(c)}`);
+        Hlog(`Recuperado ${b}: ${JSON.stringify(c)}`);
       }
     }
 
     if (modo) {
       await AddOuAtuIindexdb(ChaveConfig, AsVari);
-      Hlog(`HefestoLog: Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`);
+      Hlog(`Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`);
     } else {
       aplicarConfiguracao(dadosSalvosConfi);
     }
@@ -2839,7 +2825,6 @@
   }
 
   // ========= CONFIG =========
-  const DEBUG = localStorage.getItem("hefesto:debug") === "1"; // ative com: localStorage.setItem('hefesto:debug','1')
   const DEBOUNCE_MS = 300;
 
   // Referências globais para que possamos desconectar depois
@@ -2847,17 +2832,6 @@
   let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
   let docObs = null; // observer temporário usado até o tablist aparecer
   let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
-
-  // ========= LOG UTILS =========
-  function HefestoLog(...args) {
-    if (DEBUG) Hlog("HefestoLog:", ...args);
-  }
-  function warn(...args) {
-    Hwarn("HefestoLog:", ...args);
-  }
-  function error(...args) {
-    Herror("HefestoLog:", ...args);
-  }
 
   // ========= HELPERS =========
   function debounce(fn, wait) {
@@ -2947,7 +2921,7 @@
 
   // ========= SYNC DE IDS =========
   function SincronizarTicketsObservados() {
-    HefestoLog("Sincronizando tickets observados...");
+    Hlog("Sincronizando tickets observados...");
 
     const atual = ObterEntityId().ids.map(String); // garante string
     const setAtual = new Set(atual);
@@ -2969,7 +2943,7 @@
         });
 
         observarTicket(id);
-        HefestoLog(`Novo ID observado: ${id}`);
+        Hlog(`Novo ID observado: ${id}`);
       });
     }
 
@@ -2980,7 +2954,7 @@
       if (!jaTemObserver) {
         // Não há observer para um ID que está visível → adicionar
         observarTicket(id);
-        HefestoLog(`Observer faltando para ID existente; adicionado: ${id}`);
+        Hlog(`Observer faltando para ID existente; adicionado: ${id}`);
         return;
       }
 
@@ -2994,7 +2968,7 @@
           /* noop */
         }
         observarTicket(id);
-        HefestoLog(`Observer reconectado (root foi recriado) para: ${id}`);
+        Hlog(`Observer reconectado (root foi recriado) para: ${id}`);
       }
     });
 
@@ -3003,7 +2977,7 @@
       removidos.forEach((id) => {
         pararObservacaoTicket(id);
         ticketsSet.delete(id);
-        HefestoLog(`ID removido e observador limpo: ${id}`);
+        Hlog(`ID removido e observador limpo: ${id}`);
       });
     }
 
@@ -3023,7 +2997,7 @@
         .join(", ") +
       "}";
 
-    HefestoLog(`ticketsSet = ${pretty}`);
+    Hlog(`ticketsSet = ${pretty}`);
   }
 
   // ========= OBSERVAÇÃO DE TICKET =========
@@ -3090,7 +3064,7 @@
     const prev = ticketsSet.get(id) ?? { id, datatime: null, nome: null };
 
     if (!info) {
-      HefestoLog(`(sem dados) ticket ${id}, mantendo anterior`);
+      Hlog(`(sem dados) ticket ${id}, mantendo anterior`);
       return;
     }
 
@@ -3105,16 +3079,16 @@
       });
 
       if (changedDate) {
-        HefestoLog(`Atualizado datatime do ticket ${id}: ${info.datatime}`);
+        Hlog(`Atualizado datatime do ticket ${id}: ${info.datatime}`);
       }
       if (changedName) {
-        HefestoLog(`Atualizado nome do ticket ${id}: ${info.nome}`);
+        Hlog(`Atualizado nome do ticket ${id}: ${info.nome}`);
       }
 
       logTicketsSet();
       addContagem(id);
     } else {
-      HefestoLog(`(sem mudança) ticket ${id}`);
+      Hlog(`(sem mudança) ticket ${id}`);
     }
   }
 
@@ -3123,7 +3097,7 @@
     const c = document.getElementById(e);
 
     if (c) {
-      HefestoLog(`${e} ja existe`);
+      Hlog(`${e} ja existe`);
       return;
     }
     const a = document.querySelector(
@@ -3150,9 +3124,9 @@
       const d = a.querySelectorAll("div")[0];
       d.prepend(b);
 
-      HefestoLog(`Adicionado em data-entity-id="${id}"`);
+      Hlog(`Adicionado em data-entity-id="${id}"`);
     } else {
-      HefestoLog(`data-entity-id="${id}" não encontrado`);
+      Hlog(`data-entity-id="${id}" não encontrado`);
     }
   }
 
@@ -3359,7 +3333,7 @@
       subtree: false, // NÃO observa netos, bisnetos etc.
     });
 
-    HefestoLog('Observando [data-test-id="header-tablist"] (childList only).');
+    Hlog('Observando [data-test-id="header-tablist"] (childList only).');
   }
 
   function isoParaDataHora(iso) {
@@ -3482,7 +3456,7 @@
     if (ticketObservers && ticketObservers.clear) ticketObservers.clear();
     if (ticketDebouncers && ticketDebouncers.clear) ticketDebouncers.clear();
 
-    HefestoLog(`Monitoramento desligado: ${motivo}`);
+    Hlog(`Monitoramento desligado: ${motivo}`);
   }
 
   function retomarObservacao(motivo = "retomado") {
@@ -3524,6 +3498,6 @@
       Hwarn("Erro ao sincronizar tickets (retomada):", e);
     }
 
-    HefestoLog(`Observação retomada: ${motivo}`);
+    Hlog(`Observação retomada: ${motivo}`);
   }
 })();
