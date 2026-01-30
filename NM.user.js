@@ -1379,7 +1379,7 @@
     vLogou.textContent = horasEDatas.Logou.hora;
 
     const vLogado = document.getElementById("vLogado");
-    vLogado.textContent = tempoEncurtado(converterParaTempo(Segun.NewLogado));
+    vLogado.textContent = horasEDatas.logado;
 
     const vSaida = document.getElementById("vSaida");
     vSaida.textContent = horasEDatas.Saida.hora;
