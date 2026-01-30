@@ -1372,9 +1372,6 @@
    * - Atualiza display dos valores no painel principal
    */
   function AtualizarInfo() {
-    //Hlog(`dadosPrimLogue:${JSON.stringify(dadosPrimLogue)}`);
-    //Hlog(`horasEDatas.QualLogou.hora:${JSON.stringify(horasEDatas.QualLogou)}`);
-
     const vLogou = document.getElementById("vLogou");
     vLogou.textContent = horasEDatas.Logou.hora;
 
@@ -2826,11 +2823,10 @@
         stt.Estouro = 1;
         const tempoEstourado = Segun.ContAtual - tempoLimiteSegundos;
 
-        if (!stt.Estour1 && CConfig.SomEstouro) {
+        if (!stt.Estour1 && stt.Estouro && CConfig.SomEstouro) {
           stt.Estour1 = 1;
           tocarBeep();
           setTimeout(function () {
-            stt.intervaloBeep = 3;
             RepetirBeep();
           }, 15000);
         }
@@ -3942,16 +3938,20 @@
 
   /**
    * RepetirBeep - toca beep repetidamente enquanto pausa estiver em estouro
-   * Intervalo configurável via stt.intervaloBeep (em segundos)
    */
   function RepetirBeep() {
-    if (stt.Estouro && CConfig.SomEstouro && !stt.BeepRet) {
+    if (
+      !stt.BeepRet &&
+      stt.Estouro &&
+      config.SomEstouro &&
+      config.notiEstouro
+    ) {
       stt.BeepRet = 1;
       setTimeout(function () {
         stt.BeepRet = 0;
-        tocarBeep();
+        if (stt.Estouro && config.SomEstouro && config.notiEstouro) tocarBeep();
         RepetirBeep();
-      }, stt.intervaloBeep * 1000);
+      }, 3 * 1000);
     }
   }
 
