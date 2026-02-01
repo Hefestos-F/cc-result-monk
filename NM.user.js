@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_NM
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      4.3.7.9
+// @version      4.3.7.10
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -79,20 +79,23 @@
   };
 
   // ========= LOG UTILS =========
+
+  const PreFixo = "HefestoLog:";
+
   function Hlog(...args) {
-    console.log("HefestoLog:", ...args);
+    console.log(PreFixo, ...args);
   }
   function Hwarn(...args) {
-    console.warn("HefestoLog:", ...args);
+    console.warn(PreFixo, ...args);
   }
   function Herror(...args) {
-    console.error("HefestoLog:", ...args);
+    console.error(PreFixo, ...args);
   }
   function Hdebug(...args) {
-    console.debug("HefestoLog:", ...args);
+    console.debug(PreFixo, ...args);
   }
   function Hinfo(...args) {
-    console.info("HefestoLog:", ...args);
+    console.info(PreFixo, ...args);
   }
 
   /**
@@ -544,10 +547,8 @@
   }
 
   function addcirculo() {
-    // Verifica se o elemento existe
-    let a = 1;
-    if (a) {
-      //${ContIcon};
+    if (!document.getElementById("circuloclickCont")) {
+
       var ContIcon = document.createElement("div");
       ContIcon.setAttribute("id", "ContIcon");
       ContIcon.style.cssText = `
@@ -716,8 +717,6 @@
       Herror("Elemento não encontrado. Verifique o seletor.");
     }
   }
-
-  // Converte segundos (number) ou string ("HH:MM:SS"/"MM:SS"/"SS") para uma string formatada "MM:SS" ou "HH:MM:SS"
 
   function converterParaTempo(input) {
     if (input == null) return "00:00:00";
