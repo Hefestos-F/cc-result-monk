@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_NM
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      4.3.7.8
+// @version      4.3.7.9
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -1376,7 +1376,7 @@
     vLogou.textContent = horasEDatas.Logou.hora;
 
     const vLogado = document.getElementById("vLogado");
-    vLogado.textContent = horasEDatas.logado;
+    vLogado.textContent = tempoEncurtado(horasEDatas.logado);
 
     const vSaida = document.getElementById("vSaida");
     vSaida.textContent = horasEDatas.Saida.hora;

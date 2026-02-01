@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendesk
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.7.4
+// @version      1.3.7.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -1272,6 +1272,8 @@
         : stt.AbaPausas
           ? "F"
           : "P";
+      const BConfig = document.getElementById("BConfig");
+      if (BConfig) BConfig.textContent = "C";
     }
 
     return caixa;
@@ -1340,6 +1342,8 @@
         : stt.AbaConfig
           ? "F"
           : "C";
+      const BPausa = document.getElementById("BPausa");
+      if (BPausa) BPausa.textContent = "P";
     }
 
     return caixa;

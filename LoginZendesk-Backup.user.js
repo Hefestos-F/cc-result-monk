@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendesk
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.2.7.0
+// @version      1.2.7.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -1278,6 +1278,8 @@
         : stt.AbaPausas
           ? "F"
           : "P";
+      const BConfig = document.getElementById("BConfig");
+      if (BConfig) BConfig.textContent = "C";
     }
 
     return caixa;
@@ -1330,7 +1332,6 @@
           a.appendChild(novoElemento);
         }
         stt.AbaConfig = 1;
-        //console.log("CaixaConfig adicionada");
       }
     });
 
@@ -1346,6 +1347,9 @@
         : stt.AbaConfig
           ? "F"
           : "C";
+
+      const BPausa = document.getElementById("BPausa");
+      if (BPausa) BPausa.textContent = "P";
     }
 
     return caixa;
@@ -2385,7 +2389,6 @@
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
-    //console.log(`O valor de qq2:${qq}`);
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
