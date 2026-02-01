@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendesk
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.7.5
+// @version      1.3.7.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -117,20 +117,23 @@
   const StoreBD = "LogueMonk";
 
   // ========= LOG UTILS =========
+
+  const PreFixo = "HefestoLog:";
+
   function Hlog(...args) {
-    console.log("HefestoLog:", ...args);
+    console.log(PreFixo, ...args);
   }
   function Hwarn(...args) {
-    console.warn("HefestoLog:", ...args);
+    console.warn(PreFixo, ...args);
   }
   function Herror(...args) {
-    console.error("HefestoLog:", ...args);
+    console.error(PreFixo, ...args);
   }
   function Hdebug(...args) {
-    console.debug("HefestoLog:", ...args);
+    console.debug(PreFixo, ...args);
   }
   function Hinfo(...args) {
-    console.info("HefestoLog:", ...args);
+    console.info(PreFixo, ...args);
   }
 
   RecuperarTVariaveis();
