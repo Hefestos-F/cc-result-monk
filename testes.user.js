@@ -14,31 +14,56 @@
 // ==/UserScript==
 
 (function () {
-  
-  function compararDatas(a, b) {
-    // Validação básica
-    if (!a?.data || !a?.hora || !b?.data || !b?.hora) {
-      throw new Error(
-        "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}",
-      );
+  function abrirPopup(html, largura = 400, altura = 300) {
+    const popup = window.open(
+      "",
+      "minhaJanela",
+      `width=${largura},height=${altura},resizable=yes,scrollbars=yes`,
+    );
+
+    if (!popup) {
+      alert("O navegador bloqueou o popup.");
+      return;
     }
 
-    // Usa horário local (interpretação padrão do JS para strings ISO sem timezone)
-    const da = new Date(`${a.data}T${a.hora}`);
-    const db = new Date(`${b.data}T${b.hora}`);
-
-    // Verifica se datas são válidas
-    if (isNaN(da) || isNaN(db)) {
-      throw new Error(
-        "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'.",
-      );
-    }
-
-    return da.getTime() > db.getTime();
+    popup.document.open();
+    popup.document.write(html);
+    popup.document.close();
   }
-  const plog = { "hora": "10:42:53", "data": "2026-01-30" }
-  const plan = {"data":"2026-01-30","hora":"09:33:14"}
 
-  compararDatas(plog,plan)
+  const c1aixaDeCor = criarCaixaSeg();
+  const Botao = document.createElement("button");
+  Botao.id = `Pausas`;
+  Botao.style.cssText = `
+            padding: 2px 4px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-size: 10px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            `;
 
+  Botao.textContent = `Pausas`;
+
+  c1aixaDeCor.append(Botao);
+
+  abrirPopup(
+    `
+  <html>
+  <head>
+    <title>Popup Teste</title>
+  </head>
+  <body>
+    <h2>Olá, eu sou um popup!</h2>
+    <p>Conteúdo HTML simples.</p>
+  </body>
+  </html>
+`,
+    650,
+    820,
+  );
 })();

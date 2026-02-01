@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h3>Página Principal</h3>
+
+  <!-- Ajuste o src para o domínio confiável do iframe -->
+  <iframe
+    id="meuFrame"
+    src="https://widget.parceiro.com/iframe.html"
+    style="width: 100%; height: 200px; border: 1px solid #ccc;">
+  </iframe>
+
+  <button id="btn">Enviar mensagem para o iframe</button>
+
+  <script>
+    // Defina explicitamente os domínios confiáveis
+    const IFRAME_ORIGIN = "https://widget.parceiro.com"; // <- origem do iframe
+    const PARENT_ORIGIN = window.location.origin;        // origem desta página
+
+    const iframe = document.getElementById("meuFrame");
+
+    // Envia mensagem usando targetOrigin fixo (nunca use "*")
+    function enviarMensagem() {
+      const payload = { tipo: "PING", msg: "Olá iframe!" };
+      iframe.contentWindow.postMessage(payload, IFRAME_ORIGIN);
+    }
+
+    document.getElementById("btn").addEventListener("click", enviarMensagem);
+
+    // Recebe mensagens do iframe com validação
+    window.addEventListener("message", (event) => {
+      // 1) Verifique a origem
+      if (event.origin !== IFRAME_ORIGIN) {
+        console.warn("Mensagem ignorada de origem NÃO confiável:", event.origin);
+        return;
+      }
+
+      // 2) (Opcional, mas recomendado) Verifique a fonte
+      if (event.source !== iframe.contentWindow) {
+        console.warn("Mensagem não veio do iframe esperado.");
+        return;
+      }
+
+      // 3) (Opcional) Valide o formato do dado
+      const data = event.data;
+      if (!data || typeof data !== "object" || !data.tipo) {
+        console.warn("Formato de mensagem inválido:", data);
+        return;
+      }
+
+      // 4) Trate apenas os tipos esperados
+      if (data.tipo === "PONG") {
+        console.log("Resposta do iframe:", data);
+      } else {
+        console.log("Mensagem (tipo desconhecido) do iframe:", data);
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html>
+<body>
+  <h3>Sou o iframe</h3>
+  <div id="log"></div>
+
+  <script>
+    // Defina as origens confiáveis do parent (pode ser uma lista)
+    const PARENTS_CONFIAVEIS = new Set([
+      "https://app.exemplo.com",
+      // "https://outro.host.confiavel.com"
+    ]);
+
+    // Helper para log
+    const log = (t) => (document.getElementById("log").textContent += t + "\n");
+
+    window.addEventListener("message", (event) => {
+      // 1) Valide a origem do parent
+      if (!PARENTS_CONFIAVEIS.has(event.origin)) {
+        console.warn("Parent não confiável:", event.origin);
+        return;
+      }
+
+      // 2) Valide estrutura do payload
+      const data = event.data;
+      if (!data || typeof data !== "object" || !data.tipo) {
+        console.warn("Payload inválido:", data);
+        return;
+      }
+
+      log(`Recebido de ${event.origin}: ${JSON.stringify(data)}`);
+
+      // 3) Responda usando o origin de quem enviou (nunca "*")
+      if (data.tipo === "PING") {
+        event.source.postMessage(
+          { tipo: "PONG", msg: "Recebido com sucesso!", ts: Date.now() },
+          event.origin
+        );
+      }
+    });
+  </script>
+</body>
+</html>

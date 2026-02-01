@@ -38,6 +38,7 @@
     Estouro: 0,
     AbaPausas: 0,
     AbaConfig: 0,
+    AbaOutros: 0,
     tempoCumprido: 0,
     temHorasExtras: 0,
     Estour1: 0,
@@ -112,6 +113,26 @@
   const nomeBD = "MeuBDZen";
   const StoreBD = "LogueMonk";
 
+  // ========= LOG UTILS =========
+
+  const PreFixo = "HefestoLog:";
+
+  function Hlog(...args) {
+    console.log(PreFixo, ...args);
+  }
+  function Hwarn(...args) {
+    console.warn(PreFixo, ...args);
+  }
+  function Herror(...args) {
+    console.error(PreFixo, ...args);
+  }
+  function Hdebug(...args) {
+    console.debug(PreFixo, ...args);
+  }
+  function Hinfo(...args) {
+    console.info(PreFixo, ...args);
+  }
+
   RecuperarTVariaveis();
 
   /**
@@ -121,49 +142,40 @@
   async function RecuperarTVariaveis() {
     try {
       dadosdePausas = await RecDadosindexdb(ChavePausas);
-      console.debug("HefestoLog: Encontrados em dadosdePausas:", dadosdePausas);
+      Hdebug("HefestoLog: Encontrados em dadosdePausas:", dadosdePausas);
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosdePausas:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosdePausas:", e);
     }
 
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      console.debug(
-        "HefestoLog: Encontrados em dadosSalvosConfi:",
-        dadosSalvosConfi,
-      );
+      Hdebug("HefestoLog: Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosSalvosConfi:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosSalvosConfi:", e);
     }
 
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      console.debug(
-        "HefestoLog: Encontrados em dadosPrimLogue:",
-        dadosPrimLogue,
-      );
+      Hdebug("HefestoLog: Encontrados em dadosPrimLogue:", dadosPrimLogue);
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosPrimLogue:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosPrimLogue:", e);
     }
 
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      console.debug(
-        "HefestoLog: Encontrados em dadosLogueManu:",
-        dadosLogueManu,
-      );
+      Hdebug("HefestoLog: Encontrados em dadosLogueManu:", dadosLogueManu);
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosLogueManu:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosLogueManu:", e);
     }
 
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      console.debug(
+      Hdebug(
         "HefestoLog: Encontrados em dadosPrimLogueOnt:",
         dadosPrimLogueOnt,
       );
     } catch (e) {
-      console.error("HefestoLog: Erro ao recuperar dadosPrimLogueOnt:", e);
+      Herror("HefestoLog: Erro ao recuperar dadosPrimLogueOnt:", e);
     }
     await verifiDataLogue();
     await SalvandoVariConfig(0);
@@ -180,7 +192,7 @@
       // Desconecta somente se já achamos o valor (stt.observa = 0)
       if (stt.observa === 0) {
         observer.disconnect();
-        console.log("HefestoLog: observer Desconectado");
+        Hlog("HefestoLog: observer Desconectado");
       }
     });
 
@@ -220,14 +232,14 @@
     );
 
     if (!el) {
-      console.log("HefestoLog: Alteração aconteceu, mas ainda sem status");
+      Hlog("HefestoLog: Alteração aconteceu, mas ainda sem status");
       stt.Status = "---";
       return (stt.andament = 1);
     }
 
     let statusAtual = formatPrimeiroNome(el.textContent.trim());
     if (statusAtual === "Pausa") statusAtual = "Particular";
-    //console.log(`HefestoLog: Status: ${statusAtual}`);
+    //Hlog(`HefestoLog: Status: ${statusAtual}`);
 
     // Se não mudou, não faz nada
 
@@ -241,7 +253,7 @@
     // 3) Atualiza status anterior
     // ==========================================================
 
-    console.log(
+    Hlog(
       `HefestoLog: Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`,
     );
     DDPausa.StatusANT = stt.Status;
@@ -268,10 +280,10 @@
 
       const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
 
-      //console.log(`HefestoLog: fimObj: ${JSON.stringify(fimObj)}`);
+      //Hlog(`HefestoLog: fimObj: ${JSON.stringify(fimObj)}`);
       const agora = gerarDataHora(); // { data, hora }
 
-      console.log(
+      Hlog(
         `HefestoLog: id:${DDPausa.numero}, inicioObj: ${JSON.stringify(
           inicioObj,
         )}`,
@@ -289,7 +301,7 @@
         const duracaoReal = calcularDuracao(inicioObj, agora);
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
 
-        console.log(`HefestoLog: fim: ${JSON.stringify(agora)}`);
+        Hlog(`HefestoLog: fim: ${JSON.stringify(agora)}`);
         TempoPausas.Online = somarDuracoes().totalSegundos;
       }
 
@@ -305,7 +317,7 @@
 
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
-        console.log(`HefestoLog: Inclui Off ${stt.Status}`);
+        Hlog(`HefestoLog: Inclui Off ${stt.Status}`);
         return (stt.andament = 1);
       }
 
@@ -327,7 +339,7 @@
 
       SalvandoVariConfig(1);
 
-      //console.log(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
+      //Hlog(`HefestoLog: TempoPausas: ${JSON.stringify(TempoPausas)}`);
       // Cria/atualiza pausa no array + IndexedDB
       await AddouAtualizarPausas(
         DDPausa.numero,
@@ -336,9 +348,7 @@
         fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
         "---", // duracao prevista: "HH:MM:SS" ou "---"
       );
-    })().catch((err) =>
-      console.error("HefestoLog: erro no observer async:", err),
-    );
+    })().catch((err) => Herror("HefestoLog: erro no observer async:", err));
     stt.andament = 1;
   });
 
@@ -387,7 +397,7 @@
       SalvandoVariConfig(1);
       x = 1;
     }
-    console.log(`HefestoLog: 
+    Hlog(`HefestoLog: 
       config.logueEntreDatas = ${config.logueEntreDatas} /
       dadosPrimLogue.data = ${dadosPrimLogue.data} / 
       b.data = ${b.data}
@@ -1064,11 +1074,11 @@
     try {
       await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
     } catch (err) {
-      console.error("HefestoLog: Erro ao atualizar campos no IndexedDB:", err);
+      Herror("HefestoLog: Erro ao atualizar campos no IndexedDB:", err);
     }
 
     if (c === "duracao") {
-      console.debug("HefestoLog: Tabela salva:", ChavePausas);
+      Hdebug("HefestoLog: Tabela salva:", ChavePausas);
     }
   }
 
@@ -1099,7 +1109,7 @@
     };
 
     requisicao_bd.onerror = function (event) {
-      console.error(
+      Herror(
         "HefestoLog: Erro ao abrir o banco de dados:",
         event.target.errorCode,
       );
@@ -1121,14 +1131,14 @@
           const request = store.put(dados, nomechave);
 
           request.onsuccess = function () {
-            console.debug(
+            Hdebug(
               `HefestoLog: Dados salvos com sucesso na chave "${nomechave}"`,
             );
             resolve(true);
           };
 
           request.onerror = function (event) {
-            console.error(
+            Herror(
               "HefestoLog: Erro ao salvar os dados:",
               event.target?.errorCode || event,
             );
@@ -1136,7 +1146,7 @@
           };
         });
       } catch (err) {
-        console.error("HefestoLog: AddOuAtuIindexdb erro:", err);
+        Herror("HefestoLog: AddOuAtuIindexdb erro:", err);
         reject(err);
       }
     });
@@ -1177,14 +1187,11 @@
       const request = store.delete(nomechave);
 
       request.onsuccess = function () {
-        console.log(`HefestoLog: Chave "${nomechave}" apagada com sucesso.`);
+        Hlog(`HefestoLog: Chave "${nomechave}" apagada com sucesso.`);
       };
 
       request.onerror = function (event) {
-        console.error(
-          "HefestoLog: Erro ao apagar a chave:",
-          event.target.errorCode,
-        );
+        Herror("HefestoLog: Erro ao apagar a chave:", event.target.errorCode);
       };
     });
   }
@@ -1200,89 +1207,6 @@
     separador.classList.add("separadorC");
     separador.style.display = "none";
     return separador;
-  }
-
-  /**
-   * ADDBotPa - cria botão para mostrar/ocultar painel de pausas
-   * Exibe "Pausas"/"Fechar" ou "P"/"F" dependendo do espaço
-   * @returns {HTMLElement} botão de pausas
-   */
-  function ADDBotPa() {
-    const caixa = document.createElement("div");
-    caixa.id = "BPausa";
-    caixa.textContent = "P";
-    caixa.style.cssText = `
-        border: 1px solid white;
-        height: 20px;
-        width: 20px;
-        border-radius: 15px;
-        padding: 5px;
-        display: flex;
-        align-items: center;
-        transition: all 0.5s ease;
-        cursor: pointer;
-        justify-content: center;
-        `;
-
-    caixa.addEventListener("click", function () {
-      const a = document.getElementById("minhaCaixa");
-      if (!a) {
-        console.warn("minhaCaixa não encontrada");
-        return;
-      }
-
-      const b = document.getElementById("CaiDPa");
-      if (b) {
-        b.remove();
-        stt.AbaPausas = 0;
-      } else {
-        const c = document.getElementById("CaixaConfig");
-        if (c) {
-          c.remove();
-          stt.AbaConfig = 0;
-        }
-        const novoElemento = ADDCaiPausas();
-        if (!novoElemento) {
-          console.error("criarC() não retornou um elemento válido");
-          return;
-        }
-        if (a.children.length >= 2) {
-          a.insertBefore(novoElemento, a.children[1]);
-        } else {
-          a.appendChild(novoElemento);
-        }
-        stt.AbaPausas = 1;
-      }
-    });
-
-    // Adiciona o evento de mouseover ao botão
-    caixa.addEventListener("mouseover", function () {
-      Controle(1);
-    });
-
-    // Adiciona o evento de mouseout ao botão
-    caixa.addEventListener("mouseout", function () {
-      Controle(0);
-    });
-
-    /**
-     * Controle - alterna entre modo compacto/expandido do botão
-     * @param {number} mostrarTextoCompleto - 1 para expandido, 0 para compacto
-     */
-    function Controle(mostrarTextoCompleto) {
-      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
-      caixa.textContent = mostrarTextoCompleto
-        ? stt.AbaPausas
-          ? "Fechar"
-          : "Pausas"
-        : stt.AbaPausas
-          ? "F"
-          : "P";
-      const BConfig = document.getElementById("BConfig");
-      if (BConfig) BConfig.textContent = "C";
-    }
-
-    return caixa;
   }
 
   function ADDBotConfig() {
@@ -1304,10 +1228,10 @@
     `;
 
     caixa.addEventListener("click", function () {
-      console.log("BConfig clicado");
+      Hlog("BConfig clicado");
       const a = document.getElementById("minhaCaixa");
       if (!a) {
-        console.warn("minhaCaixa não encontrada");
+        Hwarn("minhaCaixa não encontrada");
         return;
       }
 
@@ -1323,7 +1247,7 @@
         }
         const novoElemento = criarC();
         if (!novoElemento) {
-          console.error("criarC() não retornou um elemento válido");
+          Herror("criarC() não retornou um elemento válido");
           return;
         }
         if (a.children.length >= 2) {
@@ -1348,10 +1272,105 @@
           ? "F"
           : "C";
 
-      const BPausa = document.getElementById("BPausa");
-      if (BPausa) BPausa.textContent = "P";
+      const BOutros = document.getElementById("BOutros");
+      if (BOutros) BOutros.textContent = "O";
     }
 
+    return caixa;
+  }
+
+  function ADDBotOutros() {
+    const caixa = document.createElement("div");
+    caixa.id = "BOutros";
+    caixa.textContent = "O";
+    caixa.style.cssText = `
+    border: 1px solid white;
+    height: 20px;
+    width: 20px;
+    border-radius: 15px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    transition: all 0.5s ease;
+    cursor: pointer;
+    justify-content: center;
+
+    `;
+
+    caixa.addEventListener("click", function () {
+      const minhaCaixa = document.getElementById("minhaCaixa");
+      if (!minhaCaixa) {
+        Hwarn("minhaCaixa não encontrada");
+        return;
+      }
+      const b = document.getElementById("CaixaConfig");
+      if (b) {
+        b.remove();
+        stt.AbaConfig = 0;
+      }
+      const c = document.getElementById("CaiDPa");
+      if (c) {
+        c.remove();
+        stt.AbaPausas = 0;
+      }
+
+      const CaiDOu = document.getElementById("CaiDOu");
+      if (CaiDOu) {
+        CaiDOu.remove();
+        stt.AbaOutros = 0;
+      } else {
+        const novoElemento = ADDCaiOutros();
+        if (!novoElemento) {
+          Herror("ADDCaiOutros() não retornou um elemento válido");
+          return;
+        }
+        if (minhaCaixa.children.length >= 2) {
+          minhaCaixa.insertBefore(novoElemento, minhaCaixa.children[1]);
+        } else {
+          minhaCaixa.appendChild(novoElemento);
+        }
+        stt.AbaOutros = 1;
+      }
+    });
+
+    caixa.addEventListener("mouseover", () => Controle(1));
+    caixa.addEventListener("mouseout", () => Controle(0));
+
+    function Controle(mostrarTextoCompleto) {
+      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
+      caixa.textContent = mostrarTextoCompleto
+        ? stt.AbaConfig
+          ? "Fechar"
+          : "Outros"
+        : stt.AbaConfig
+          ? "F"
+          : "O";
+
+      const BConfig = document.getElementById("BConfig");
+      if (BConfig) BConfig.textContent = "C";
+    }
+
+    return caixa;
+  }
+
+  function ADDCaiOutros() {
+    const caixa = document.createElement("div");
+    caixa.id = "CaiDOu";
+    caixa.style.cssText = `
+        background: ${Ccor.Config};
+        margin-left: 5px;
+        border-radius: 8px;
+        padding: 5px;
+        max-width: 400px;
+        height: max-content;
+        border: 1px solid white;
+        transition: 0.5s;
+        overflow: auto;
+        display: grid;
+        grid-template-rows: repeat(4, auto); /* 4 linhas */
+        grid-auto-flow: column; /* Preenche colunas automaticamente */
+        gap: 2px 6px; /* Espaçamento entre itens */
+       `;
     return caixa;
   }
 
@@ -1600,7 +1619,7 @@
     `;
 
     Divbot.appendChild(ADDBotConfig());
-    Divbot.appendChild(ADDBotPa());
+    Divbot.appendChild(ADDBotOutros());
     Divbot.appendChild(Space);
     Divbot.appendChild(InfoV);
     minhaCaixa.appendChild(Divbot);
@@ -1639,15 +1658,13 @@
       }
 
       function a(b, c) {
-        console.log(`HefestoLog: Recuperado ${b}: ${JSON.stringify(c)}`);
+        Hlog(`HefestoLog: Recuperado ${b}: ${JSON.stringify(c)}`);
       }
     }
 
     if (modo) {
       await AddOuAtuIindexdb(ChaveConfig, AsVari);
-      console.log(
-        `HefestoLog: Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`,
-      );
+      Hlog(`HefestoLog: Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`);
     } else {
       aplicarConfiguracao(dadosSalvosConfi);
     }
@@ -1837,7 +1854,7 @@
         };
 
         AddOuAtuIindexdb(ChavelogueManu, dadosLogueManu);
-        console.log("Dados salvos:", dadosLogueManu);
+        Hlog("Dados salvos:", dadosLogueManu);
       }
 
       // Container principal
@@ -2470,9 +2487,9 @@
   async function copiarTexto(texto) {
     try {
       await navigator.clipboard.writeText(texto);
-      console.log("Texto copiado com sucesso!");
+      Hlog("Texto copiado com sucesso!");
     } catch (err) {
-      console.error("Erro ao copiar texto: ", err);
+      Herror("Erro ao copiar texto: ", err);
     }
   }
 
@@ -2588,7 +2605,7 @@
       });
     }
 
-    //console.log(`Pausas ${JSON.stringify(dadosdePausas)}`);
+    //Hlog(`Pausas ${JSON.stringify(dadosdePausas)}`);
 
     return caixa;
   }

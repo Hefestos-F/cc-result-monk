@@ -3942,13 +3942,13 @@
     if (
       !stt.BeepRet &&
       stt.Estouro &&
-      config.SomEstouro &&
-      config.notiEstouro
+      CConfig.SomEstouro &&
+      CConfig.notiEstouro
     ) {
       stt.BeepRet = 1;
       setTimeout(function () {
         stt.BeepRet = 0;
-        if (stt.Estouro && config.SomEstouro && config.notiEstouro) tocarBeep();
+        if (stt.Estouro && CConfig.SomEstouro && CConfig.notiEstouro) tocarBeep();
         RepetirBeep();
       }, 3 * 1000);
     }
