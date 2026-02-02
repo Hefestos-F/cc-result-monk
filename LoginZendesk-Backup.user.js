@@ -1245,6 +1245,11 @@
           c.remove();
           stt.AbaPausas = 0;
         }
+        const CaiDOu = document.getElementById("CaiDOu");
+        if (CaiDOu) {
+          CaiDOu.remove();
+          stt.AbaOutros = 0;
+        }
         const novoElemento = criarC();
         if (!novoElemento) {
           Herror("criarC() não retornou um elemento válido");
@@ -1303,22 +1308,22 @@
         Hwarn("minhaCaixa não encontrada");
         return;
       }
-      const b = document.getElementById("CaixaConfig");
-      if (b) {
-        b.remove();
-        stt.AbaConfig = 0;
-      }
-      const c = document.getElementById("CaiDPa");
-      if (c) {
-        c.remove();
-        stt.AbaPausas = 0;
-      }
 
       const CaiDOu = document.getElementById("CaiDOu");
       if (CaiDOu) {
         CaiDOu.remove();
         stt.AbaOutros = 0;
       } else {
+        const CaixaConfig = document.getElementById("CaixaConfig");
+        if (CaixaConfig) {
+          CaixaConfig.remove();
+          stt.AbaConfig = 0;
+        }
+        const CaiDPa = document.getElementById("CaiDPa");
+        if (CaiDPa) {
+          CaiDPa.remove();
+          stt.AbaPausas = 0;
+        }
         const novoElemento = ADDCaiOutros();
         if (!novoElemento) {
           Herror("ADDCaiOutros() não retornou um elemento válido");
@@ -1339,10 +1344,10 @@
     function Controle(mostrarTextoCompleto) {
       caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
       caixa.textContent = mostrarTextoCompleto
-        ? stt.AbaConfig
+        ? stt.AbaOutros || stt.AbaPausas
           ? "Fechar"
           : "Outros"
-        : stt.AbaConfig
+        : stt.AbaOutros || stt.AbaPausas
           ? "F"
           : "O";
 
@@ -1366,12 +1371,244 @@
         border: 1px solid white;
         transition: 0.5s;
         overflow: auto;
+        display: inline-grid;
+       `;
+
+    /*display: grid;
+    grid-template-rows: repeat(4, auto); /* 4 linhas */
+    /*grid-auto-flow: column; /* Preenche colunas automaticamente */
+    /*gap: 2px 6px; /* Espaçamento entre itens */
+
+    function ADDCaixa() {
+      const caixa = document.createElement("div");
+      caixa.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            `;
+      return caixa;
+    }
+
+    function ADDBotPri(id, texto) {
+      const bot = document.createElement("button");
+      bot.id = `Bot${id}`;
+      bot.style.cssText = `
+            padding: 2px 4px;
+            border-radius: 8px;
+            border: 1px solid;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            `;
+
+      bot.textContent = texto;
+      return bot;
+    }
+    function ADDSep() {
+      const Sep = document.createElement("div");
+      Sep.style.cssText = `
+            width: 100%;
+            margin: 8px 0px;
+            outline: 1px dashed white;
+            `;
+      return Sep;
+    }
+
+    function ADDCBotaoPausa() {
+      const CBotaoPausa = ADDCaixa();
+
+      const BotaoPausa = ADDBotPri("O1", "Pausa");
+
+      BotaoPausa.addEventListener("click", function () {
+        const minhaCaixa = document.getElementById("minhaCaixa");
+        if (!minhaCaixa) {
+          Hwarn("minhaCaixa não encontrada");
+          return;
+        }
+        const b = document.getElementById("CaixaConfig");
+        if (b) {
+          b.remove();
+          stt.AbaConfig = 0;
+        }
+
+        const CaiDOu = document.getElementById("CaiDOu");
+        if (CaiDOu) {
+          CaiDOu.remove();
+          stt.AbaOutros = 0;
+        }
+
+        const c = document.getElementById("CaiDPa");
+        if (c) {
+          c.remove();
+          stt.AbaPausas = 0;
+        } else {
+          const novoElemento = ADDCaiPausas();
+          if (!novoElemento) {
+            Herror("ADDCaiOutros() não retornou um elemento válido");
+            return;
+          }
+          if (minhaCaixa.children.length >= 2) {
+            minhaCaixa.insertBefore(novoElemento, minhaCaixa.children[1]);
+          } else {
+            minhaCaixa.appendChild(novoElemento);
+          }
+          stt.AbaPausas = 1;
+        }
+      });
+
+      CBotaoPausa.append(BotaoPausa);
+      return CBotaoPausa;
+    }
+
+    function ADDCBotaoDecla() {
+      const CBotaoDec = ADDCaixa();
+
+      const BotaoDec = ADDBotPri("O2", "Declaração de Embarque");
+      BotaoDec.addEventListener("click", function () {});
+      CBotaoDec.append(BotaoDec);
+      return CBotaoDec;
+    }
+
+    caixa.append(ADDCBotaoPausa(), ADDSep(), ADDCBotaoDecla());
+
+    return caixa;
+  }
+
+  /**
+   * ADDCaiPausas - cria container para exibir tabela de pausas
+   * Define 5 colunas: Excluir, Pausa, Início, Fim, Duração
+   * @returns {HTMLElement} caixa container das pausas
+   */
+  function ADDCaiPausas() {
+    const caixa = document.createElement("div");
+    caixa.id = "CaiDPa";
+    caixa.style.cssText = `
+        background: ${Ccor.Config};
+        margin-left: 5px;
+        border-radius: 8px;
+        padding: 5px;
+        max-width: 400px;
+        height: max-content;
+        border: 1px solid white;
+        transition: 0.5s;
+        overflow: auto;
         display: grid;
         grid-template-rows: repeat(4, auto); /* 4 linhas */
         grid-auto-flow: column; /* Preenche colunas automaticamente */
         gap: 2px 6px; /* Espaçamento entre itens */
        `;
+
+    /**
+     * AddTituloCp - cria um elemento título para seção na configuração
+     * @param {string} titulo - texto do título
+     * @returns {HTMLElement} div formatada com título
+     */
+    function AddTituloCp(titulo) {
+      const caixa = document.createElement("div");
+      caixa.innerHTML = `${titulo}`;
+      caixa.style.cssText = `
+        font-size: 14px;
+            border-bottom-style: dashed;
+            border-width: 1px;
+            display: flex;
+        align-items: center;
+        justify-content: center;
+        `;
+      if (titulo === "Excl") {
+        caixa.style.height = "14px";
+      }
+
+      return caixa;
+    }
+
+    caixa.append(
+      AddTituloCp("Pausa"),
+      AddTituloCp("Duração"),
+      AddTituloCp("Início"),
+      AddTituloCp("Fim"),
+      //AddTituloCp("Excl")
+    );
+
+    /**
+     * criarItemTabela - cria célula de tabela com ícone ou texto
+     * @param {number} id - id da pausa
+     * @param {string} campo - tipo de campo (id, pausa, etc)
+     * @param {string} textoExibicao - texto a exibir
+     * @returns {HTMLElement} célula formatada
+     */
+    function criarItemTabela(id, campo, textoExibicao) {
+      const caixa = document.createElement("div");
+      caixa.id = `${campo}${id}`;
+      caixa.innerHTML = textoExibicao;
+      caixa.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        `;
+
+      if (campo === "id") {
+        caixa.style.cursor = `pointer`;
+        caixa.style.fontSize = "8px";
+        caixa.style.height = "14px";
+
+        caixa.addEventListener("click", () => {
+          const CaiDPa = document.getElementById("CaiDPa");
+          CaiDPa.appendChild(
+            ADDCaixaDAviso("Excluir", () => {
+              removerPausaPorId(id);
+            }),
+          );
+        });
+      }
+
+      return caixa;
+    }
+
+    if (Array.isArray(dadosdePausas) && dadosdePausas.length > 0) {
+      const ordenado = [...dadosdePausas].sort(
+        (a, b) => Number(a.id) - Number(b.id),
+      );
+
+      ordenado.forEach((item) => {
+        // Usa as chaves em minúsculas conforme seu objeto atual
+        const inicioHora = item?.inicio?.hora ?? "<--->";
+        const fimHora = item?.fim?.hora ?? "<--->";
+        const duracao = item?.duracao ?? "<--->";
+        const pausa = item?.pausa ?? "";
+
+        caixa.append(
+          criarItemTabela(item.id, "pausa", pausa),
+          criarItemTabela(item.id, "duracao", duracao),
+          criarItemTabela(item.id, "inicio", inicioHora),
+          criarItemTabela(item.id, "fim", fimHora),
+          //criarItemTabela(item.id, "id", "❌")
+        );
+      });
+    }
+
+    //Hlog(`Pausas ${JSON.stringify(dadosdePausas)}`);
+
     return caixa;
+  }
+
+  function abrirPopup(html, largura = 400, altura = 300) {
+    const popup = window.open(
+      "",
+      "minhaJanela",
+      `width=${largura},height=${altura},resizable=yes,scrollbars=yes`,
+    );
+
+    if (!popup) {
+      alert("O navegador bloqueou o popup.");
+      return;
+    }
+
+    popup.document.open();
+    popup.document.write(html);
+    popup.document.close();
   }
 
   /**
@@ -1576,7 +1813,7 @@
       BotPacontrole(0, "ContPaCo");
     });
     function BotPacontrole(b, z) {
-      let x = stt.AbaPausas || stt.AbaConfig ? 1 : b;
+      let x = stt.AbaPausas || stt.AbaConfig || stt.AbaOutros ? 1 : b;
 
       const a = document.getElementById(z);
       if (a) {
@@ -2491,123 +2728,6 @@
     } catch (err) {
       Herror("Erro ao copiar texto: ", err);
     }
-  }
-
-  /**
-   * ADDCaiPausas - cria container para exibir tabela de pausas
-   * Define 5 colunas: Excluir, Pausa, Início, Fim, Duração
-   * @returns {HTMLElement} caixa container das pausas
-   */
-  function ADDCaiPausas() {
-    const caixa = document.createElement("div");
-    caixa.id = "CaiDPa";
-    caixa.style.cssText = `
-        background: ${Ccor.Config};
-        margin-left: 5px;
-        border-radius: 8px;
-        padding: 5px;
-        max-width: 400px;
-        height: max-content;
-        border: 1px solid white;
-        transition: 0.5s;
-        overflow: auto;
-        display: grid;
-        grid-template-rows: repeat(4, auto); /* 4 linhas */
-        grid-auto-flow: column; /* Preenche colunas automaticamente */
-        gap: 2px 6px; /* Espaçamento entre itens */
-       `;
-
-    /**
-     * AddTituloCp - cria um elemento título para seção na configuração
-     * @param {string} titulo - texto do título
-     * @returns {HTMLElement} div formatada com título
-     */
-    function AddTituloCp(titulo) {
-      const caixa = document.createElement("div");
-      caixa.innerHTML = `${titulo}`;
-      caixa.style.cssText = `
-        font-size: 14px;
-            border-bottom-style: dashed;
-            border-width: 1px;
-            display: flex;
-        align-items: center;
-        justify-content: center;
-        `;
-      if (titulo === "Excl") {
-        caixa.style.height = "14px";
-      }
-
-      return caixa;
-    }
-
-    caixa.append(
-      AddTituloCp("Pausa"),
-      AddTituloCp("Duração"),
-      AddTituloCp("Início"),
-      AddTituloCp("Fim"),
-      //AddTituloCp("Excl")
-    );
-
-    /**
-     * criarItemTabela - cria célula de tabela com ícone ou texto
-     * @param {number} id - id da pausa
-     * @param {string} campo - tipo de campo (id, pausa, etc)
-     * @param {string} textoExibicao - texto a exibir
-     * @returns {HTMLElement} célula formatada
-     */
-    function criarItemTabela(id, campo, textoExibicao) {
-      const caixa = document.createElement("div");
-      caixa.id = `${campo}${id}`;
-      caixa.innerHTML = textoExibicao;
-      caixa.style.cssText = `
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        `;
-
-      if (campo === "id") {
-        caixa.style.cursor = `pointer`;
-        caixa.style.fontSize = "8px";
-        caixa.style.height = "14px";
-
-        caixa.addEventListener("click", () => {
-          const CaiDPa = document.getElementById("CaiDPa");
-          CaiDPa.appendChild(
-            ADDCaixaDAviso("Excluir", () => {
-              removerPausaPorId(id);
-            }),
-          );
-        });
-      }
-
-      return caixa;
-    }
-
-    if (Array.isArray(dadosdePausas) && dadosdePausas.length > 0) {
-      const ordenado = [...dadosdePausas].sort(
-        (a, b) => Number(a.id) - Number(b.id),
-      );
-
-      ordenado.forEach((item) => {
-        // Usa as chaves em minúsculas conforme seu objeto atual
-        const inicioHora = item?.inicio?.hora ?? "<--->";
-        const fimHora = item?.fim?.hora ?? "<--->";
-        const duracao = item?.duracao ?? "<--->";
-        const pausa = item?.pausa ?? "";
-
-        caixa.append(
-          criarItemTabela(item.id, "pausa", pausa),
-          criarItemTabela(item.id, "duracao", duracao),
-          criarItemTabela(item.id, "inicio", inicioHora),
-          criarItemTabela(item.id, "fim", fimHora),
-          //criarItemTabela(item.id, "id", "❌")
-        );
-      });
-    }
-
-    //Hlog(`Pausas ${JSON.stringify(dadosdePausas)}`);
-
-    return caixa;
   }
 
   /**

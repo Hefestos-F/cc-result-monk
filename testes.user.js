@@ -14,7 +14,7 @@
 // ==/UserScript==
 
 (function () {
-  function abrirPopup(html, largura = 400, altura = 300) {
+  function abrirPopup(html, largura = 650, altura = 820) {
     const popup = window.open(
       "",
       "minhaJanela",
@@ -31,39 +31,17 @@
     popup.document.close();
   }
 
-  const c1aixaDeCor = criarCaixaSeg();
-  const Botao = document.createElement("button");
-  Botao.id = `Pausas`;
-  Botao.style.cssText = `
-            padding: 2px 4px;
-            border-radius: 8px;
-            border: 1px solid;
-            cursor: pointer;
-            background-color: transparent;
-            color: white;
-            font-size: 10px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            `;
-
-  Botao.textContent = `Pausas`;
-
-  c1aixaDeCor.append(Botao);
+  
 
   abrirPopup(
     `
-  <html>
-  <head>
-    <title>Popup Teste</title>
-  </head>
-  <body>
-    <h2>Olá, eu sou um popup!</h2>
-    <p>Conteúdo HTML simples.</p>
-  </body>
-  </html>
+    
 `,
     650,
     820,
   );
+
+ 
+
+
 })();
