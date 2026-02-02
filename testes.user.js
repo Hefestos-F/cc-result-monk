@@ -30,18 +30,4 @@
     popup.document.write(html);
     popup.document.close();
   }
-
-  
-
-  abrirPopup(
-    `
-    
-`,
-    650,
-    820,
-  );
-
- 
-
-
 })();
