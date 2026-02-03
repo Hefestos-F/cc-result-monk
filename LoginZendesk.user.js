@@ -850,7 +850,7 @@
     );
     verificarMouse(
       ["SepCVal2"],
-      stt.Encontrado ? 1 : config.LogueManual ? 1 : 0,
+      config.LogueManual && stt.Encontrado ? 1 : stt.Encontrado ? 1 : 0,
     );
     verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
 

@@ -180,6 +180,7 @@
     await verifiDataLogue();
     await SalvandoVariConfig(0);
     await verifLogueManual();
+    estiloHefesto();
     criarObjetoFlutuante();
   }
 
@@ -815,7 +816,6 @@
     const vLogado = document.getElementById("vLogado");
     const tFalta = document.getElementById("tFalta");
     const vFalta = document.getElementById("vFalta");
-    const InfoV = document.getElementById("InfoV");
     const ContPaCo = document.getElementById("ContPaCo");
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
@@ -826,20 +826,6 @@
 
     titulo.textContent = stt.Encontrado ? stt.Status : "Não";
     time.textContent = ContAtual;
-
-    if (!InfoV) {
-    } else if (
-      stt.Encontrado ||
-      config.LogueManual ||
-      stt.AbaPausas ||
-      stt.AbaConfig
-    ) {
-      ContPaCo.style.minHeight = "164px";
-      InfoV.style.display = "";
-    } else {
-      InfoV.style.display = "none";
-      ContPaCo.style.minHeight = "";
-    }
 
     verificarMouse(
       [
@@ -855,7 +841,7 @@
     );
     verificarMouse(
       ["SepCVal2"],
-      stt.Encontrado ? 1 : config.LogueManual ? 1 : 0,
+      config.LogueManual && stt.Encontrado ? 1 : stt.Encontrado ? 1 : 0,
     );
     verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
 
@@ -1197,6 +1183,100 @@
   }
 
   /**
+   * listarChavesEConteudos - lista todas as chaves e conteúdos do IndexedDB
+   * Exibe painel interativo com visualização e exclusão de registros
+   */
+  function listarChavesEConteudos() {
+    abrirDB(function (db) {
+      const transacao = db.transaction([StoreBD], "readonly");
+      const store = transacao.objectStore(StoreBD);
+      const request = store.getAllKeys();
+
+      request.onsuccess = function (event) {
+        const chaves = event.target.result;
+
+        let contador = 0;
+        chaves.forEach((nomeChave) => {
+          const requisicaoConteudo = store.get(nomeChave);
+
+          requisicaoConteudo.onsuccess = function (e) {
+            const conteudoChave = e.target.result;
+
+            const CaixaConfig = document.getElementById("CaixaConfig");
+            const CBancDa = document.getElementById("CBancDa");
+
+            // Criar estrutura HTML
+            const divPai = document.createElement("div");
+            divPai.style.cssText = `width: 100%;`;
+            const TituloEBot = document.createElement("div");
+            TituloEBot.style.cssText = `
+                        display: flex;
+                        width: 100%;
+                        justify-content: space-between;
+                        margin: 6px 0px;
+                        `;
+
+            const divChave = document.createElement("div");
+            divChave.textContent = nomeChave;
+            divChave.style.cssText = `
+                        cursor: pointer;
+                        text-decoration: underline;
+                        font-size: 13px;
+                        `;
+
+            const divConteudo = document.createElement("div");
+            divConteudo.style.cssText = `
+                        display: none;
+                        justify-content: center;
+                        `;
+
+            divConteudo.textContent = JSON.stringify(conteudoChave, null, 2);
+
+            divChave.addEventListener("click", function () {
+              if (
+                divConteudo.style.display === "none" ||
+                divConteudo.style.display === ""
+              ) {
+                divConteudo.style.display = "flex";
+              } else {
+                divConteudo.style.display = "none";
+              }
+            });
+
+            contador = contador + 1;
+            const botaoExcluir = document.createElement("div");
+            botaoExcluir.id = `Chave${contador}`;
+            botaoExcluir.style.cssText = `
+                        cursor: pointer;
+                        `;
+            botaoExcluir.textContent = "❌";
+            botaoExcluir.addEventListener("click", function () {
+              CaixaConfig.appendChild(
+                ADDCaixaDAviso("Excluir", () => {
+                  ApagarChaveIndexDB(nomeChave);
+                  CBancDa.innerHTML = "";
+                  listarChavesEConteudos();
+                }),
+              );
+            });
+
+            TituloEBot.appendChild(divChave);
+            TituloEBot.appendChild(botaoExcluir);
+            divPai.appendChild(TituloEBot);
+            divPai.appendChild(divConteudo);
+
+            CBancDa.appendChild(divPai);
+          };
+        });
+      };
+
+      request.onerror = function (event) {
+        Herror("Erro ao listar as chaves:", event.target.errorCode);
+      };
+    });
+  }
+
+  /**
    * criarSeparadorCV - cria um separador visual entre os valores
    * @param {number} x - índice usado para id do elemento
    * @returns {HTMLElement}
@@ -1278,7 +1358,8 @@
           : "C";
 
       const BOutros = document.getElementById("BOutros");
-      if (BOutros) BOutros.textContent = "O";
+      if (BOutros && !stt.AbaOutros && !stt.AbaPausas)
+        BOutros.textContent = "O";
     }
 
     return caixa;
@@ -1352,7 +1433,7 @@
           : "O";
 
       const BConfig = document.getElementById("BConfig");
-      if (BConfig) BConfig.textContent = "C";
+      if (BConfig && !stt.AbaConfig) BConfig.textContent = "C";
     }
 
     return caixa;
@@ -1372,6 +1453,7 @@
         transition: 0.5s;
         overflow: auto;
         display: inline-grid;
+        margin-bottom: auto;
        `;
 
     /*display: grid;
@@ -1407,6 +1489,7 @@
       bot.textContent = texto;
       return bot;
     }
+
     function ADDSep() {
       const Sep = document.createElement("div");
       Sep.style.cssText = `
@@ -1472,7 +1555,11 @@
       return CBotaoDec;
     }
 
-    caixa.append(ADDCBotaoPausa(), ADDSep(), ADDCBotaoDecla());
+    caixa.append(
+      ADDCBotaoPausa(),
+      ADDSep(),
+      //ADDCBotaoDecla(),
+    );
 
     return caixa;
   }
@@ -1618,11 +1705,17 @@
    * - .slider-circle: círculo que se move ao clicar
    * - .slider-button27.active: cor ativa
    */
-  function StyleSlide() {
-    if (!document.getElementById("estilo-slide")) {
+  function estiloHefesto() {
+    if (!document.getElementById("estilo-Hefesto")) {
       const elementoEstilo = document.createElement("style");
-      elementoEstilo.id = "estilo-slide";
+      elementoEstilo.id = "estilo-Hefesto";
       elementoEstilo.textContent = `
+
+      .placeholderPerso::placeholder {
+        color: #242421;
+        opacity: 1;
+        font-size: 12px;
+        }
       
           .slider-button27 {
             position: relative;
@@ -1662,6 +1755,29 @@
             display: flex;
             align-items: center;
           }
+
+          #FlutOB,
+      #FlutOB * {
+         box-sizing: border-box;
+      }
+            .info-caixa {
+                text-align: center;
+            }
+            .separadorC {
+                width: 100%;
+                height: 1px;
+                background: #ffffffff;
+                margin: 2px;
+                transition: all 0.5s ease;
+            }
+
+            @keyframes rotate {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            .iconec {
+                background: white;
+            }
         `;
       const elementoHead = document.getElementsByTagName("head")[0];
       elementoHead.appendChild(elementoEstilo);
@@ -1674,9 +1790,6 @@
    * @returns {HTMLElement} container do toggle criado
    */
   function criarBotaoSlide(IdBot) {
-    // Adiciona estilos apenas uma vez
-    StyleSlide();
-
     const toggleContainer = document.createElement("div");
     toggleContainer.className = "toggle-container";
 
@@ -1720,40 +1833,6 @@
   }
 
   function AdicionarCaixaAtualizada() {
-    // Função para criar a classe dinamicamente
-    function criarClasse() {
-      const style = document.createElement("style");
-      style.type = "text/css";
-      style.innerHTML = `
-      #FlutOB,
-      #FlutOB * {
-         box-sizing: border-box;
-      }
-            .info-caixa {
-                text-align: center;
-            }
-            .separadorC {
-                width: 100%;
-                height: 1px;
-                background: #ffffffff;
-                margin: 2px;
-                transition: all 0.5s ease;
-            }
-
-            @keyframes rotate {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            .iconec {
-                background: white;
-            }
-        `;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
-
-    // Cria a classe
-    criarClasse();
-
     // Cria as caixas com as informações
     const logou = criarCaixaDCv("c", "Logou");
     const logado = criarCaixaDCv("c", "Logado");
@@ -1763,7 +1842,7 @@
 
     // Cria um contêiner para agrupar as caixas
     const container = document.createElement("div");
-    container.setAttribute("id", "contValores");
+    container.id = "contValores";
     container.style.cssText = `
         display: flex;
         opacity: 1;
@@ -1776,6 +1855,7 @@
         flex-direction: column;
         overflow: hidden;
         border: 1px solid white;
+        margin-bottom: auto;
         `;
 
     // Adiciona as caixas e separadores ao contêiner
@@ -1799,6 +1879,8 @@
         z-index: 16;
         font-size: 12px;
         transition: all 0.5s ease;
+        align-items: center;
+        justify-content: center;
         `;
 
     // Adiciona o contêiner ao contêiner principal
@@ -1835,6 +1917,7 @@
     display: flex;
     gap: 5px;
     flex-direction: column;
+    margin-bottom: auto;
     `;
 
     const InfoV = document.createElement("div");
@@ -1858,7 +1941,7 @@
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotOutros());
     Divbot.appendChild(Space);
-    Divbot.appendChild(InfoV);
+    //Divbot.appendChild(InfoV);
     minhaCaixa.appendChild(Divbot);
 
     return minhaCaixa;
@@ -1908,14 +1991,6 @@
   }
 
   function criarC() {
-    const style = document.createElement("style");
-    style.textContent = `
-        .placeholderPerso::placeholder {
-        color: #242421;
-        opacity: 1;
-        font-size: 12px;
-        }
-        `;
 
     const caixa = document.createElement("div");
     caixa.id = "CaixaConfig";
@@ -1932,6 +2007,7 @@
         width: max-content;
         border: 1px solid white;
         margin-left: 5px;
+        margin-bottom: auto;
         `;
 
     function criarCaixaSeg() {
@@ -2174,125 +2250,6 @@
       return a;
     }
 
-    function ContModoTeste() {
-      const area = criarCaixaSeg();
-      area.id = "CModoTeste";
-
-      const linha = document.createElement("div");
-      linha.style.cssText = `
-        display: flex;
-        align-items: center;
-        width: 100%;
-        margin-top: 6px;
-      `;
-
-      const dateInput = document.createElement("input");
-      dateInput.type = "date";
-      dateInput.id = "InputModoTesteDate";
-      dateInput.style.cssText = `background: #ffffff00; border: solid 1px white; color: white; padding:2px;`;
-      dateInput.value =
-        VariavelmodoTeste && VariavelmodoTeste.data
-          ? VariavelmodoTeste.data
-          : "";
-
-      // Criar inputs separados para hora e minuto (como em ContlogueManual)
-      const existingHoraRaw =
-        (VariavelmodoTeste &&
-          (VariavelmodoTeste.hora || VariavelmodoTeste.fuso)) ||
-        "+00:00:00";
-      // preserva sinal (+/-) se houver
-      const signMatch = /^[+-]/.test(existingHoraRaw) ? existingHoraRaw[0] : "";
-      const existingHora = signMatch
-        ? existingHoraRaw.slice(1)
-        : existingHoraRaw;
-      const [existH = "00", existM = "00"] = existingHora
-        .split(":")
-        .map((v) => String(v).padStart(2, "0"));
-
-      const horaInputModoTeste = entradatempo(
-        "HModoTeste",
-        1,
-        String(existH).padStart(2, "0"),
-      );
-      const minuInputModoTeste = entradatempo(
-        "MModoTeste",
-        0,
-        String(existM).padStart(2, "0"),
-      );
-      horaInputModoTeste.style.marginRight = "4px";
-
-      function salvarHorarioModoTeste() {
-        const hora =
-          parseInt(horaInputModoTeste.value) || parseInt(existH) || 0;
-        const minuto =
-          parseInt(minuInputModoTeste.value) || parseInt(existM) || 0;
-        const horaFormatada = String(hora).padStart(2, "0");
-        const minutoFormatado = String(minuto).padStart(2, "0");
-        const segundos = "00";
-        const horarioFormatado = `${signMatch}${horaFormatada}:${minutoFormatado}:${segundos}`;
-        // salva em ambas propriedades para manter compatibilidade
-        VariavelmodoTeste.hora = horarioFormatado;
-        VariavelmodoTeste.fuso = horarioFormatado;
-        SalvandoVariConfig(1);
-      }
-
-      const salvarBot = criarBotSalv(35, "Salvar");
-      salvarBot.addEventListener("click", function () {
-        VariavelmodoTeste.data =
-          dateInput.value || VariavelmodoTeste.data || "";
-        salvarHorarioModoTeste();
-        // garante que config.modoTeste siga o toggle
-        config.modoTeste = config.modoTeste ? 1 : 0;
-        AtualizarConf();
-      });
-
-      const toggle = criarBotaoSlide2(34, config.modoTeste, () => {
-        config.modoTeste = !config.modoTeste;
-        if (config.modoTeste) {
-          // quando ativar, preenche inputs com valores atuais se vazio
-          if (!dateInput.value && VariavelmodoTeste.data)
-            dateInput.value = VariavelmodoTeste.data;
-          const raw =
-            VariavelmodoTeste.hora || VariavelmodoTeste.fuso || "+00:00:00";
-          const sign = /^[+-]/.test(raw) ? raw[0] : "";
-          const parts = sign ? raw.slice(1) : raw;
-          const [hh = "00", mm = "00"] = parts.split(":");
-          if (!horaInputModoTeste.value)
-            horaInputModoTeste.value = String(hh).padStart(2, "0");
-          if (!minuInputModoTeste.value)
-            minuInputModoTeste.value = String(mm).padStart(2, "0");
-        }
-        SalvandoVariConfig(1);
-        AtualizarConf();
-      });
-
-      // Atualiza VariavelmodoTeste quando inputs mudam
-      dateInput.addEventListener("change", () => {
-        VariavelmodoTeste.data = dateInput.value;
-        SalvandoVariConfig(1);
-      });
-      horaInputModoTeste.addEventListener("input", () => {
-        salvarHorarioModoTeste();
-      });
-      minuInputModoTeste.addEventListener("input", () => {
-        salvarHorarioModoTeste();
-      });
-
-      // monta a linha com inputs separados e o botão salvar
-      linha.append(
-        horaInputModoTeste,
-        doispontos(),
-        minuInputModoTeste,
-        salvarBot,
-      );
-      area.appendChild(dateInput);
-      area.appendChild(linha);
-      area.appendChild(toggle);
-
-      const a = CaixaDeOcultar(c1riarBotSalv(34, "Modo Teste"), area);
-      return a;
-    }
-
     function criarSeparador() {
       const separador = document.createElement("div");
       separador.style.cssText = `
@@ -2373,7 +2330,6 @@
             background-color: transparent;
             color: white;
             font-size: 12px;
-            height: 22px;
             `;
       return c;
     }
@@ -2382,7 +2338,7 @@
       const CBancDa = criarCaixaSeg();
       CBancDa.id = "CBancDa";
 
-      const BBancDa = c1riarBotSalv(31, "Banco de Dados");
+      const BBancDa = c1riarBotSalv("A1", "Banco de Dados");
       BBancDa.addEventListener("click", function () {
         if (CBancDa.innerHTML === "") {
           listarChavesEConteudos(); // Preenche o conteúdo
@@ -2398,7 +2354,7 @@
       const C2ValoresEnc = criarCaixaSeg();
       C2ValoresEnc.style.alignItems = "center";
 
-      const tValoresEnc = c1riarBotSalv(30, "Valores Encontrados");
+      const tValoresEnc = c1riarBotSalv("A2", "Valores Encontrados");
       tValoresEnc.addEventListener("click", function () {
         if (C2ValoresEnc.innerHTML === "") {
           C2ValoresEnc.innerHTML = `
@@ -2413,15 +2369,20 @@
       });
 
       const CValoresEnc = criarCaixaSeg();
-      //CValoresEnc.append(tValoresEnc);
+      CValoresEnc.append(tValoresEnc);
       CValoresEnc.append(C2ValoresEnc);
 
-      const BotaoResetT = c1riarBotSalv(15, "Restaurar Config");
+      const BotaoResetT = c1riarBotSalv("A3", "Restaurar Config");
       BotaoResetT.addEventListener("click", function () {
-        caixa.appendChild(
+        const CaixaConfig = document.getElementById("CaixaConfig");
+        if (!CaixaConfig) {
+          Hwarn("CaixaConfig não encontrada");
+          return;
+        }
+        CaixaConfig.appendChild(
           ADDCaixaDAviso("Restaurar Config", () => {
-            SalvandoVari(2);
-            iniciarBusca();
+            //SalvandoVari(2);
+            //iniciarBusca();
           }),
         );
       });
@@ -2436,19 +2397,17 @@
         criarSeparador(),
         CBBancDa,
         criarSeparador(),
-        ContModoTeste(),
-        criarSeparador(),
-        CValoresEnc,
-        criarSeparador(),
+        //CValoresEnc,
+        //criarSeparador(),
         caixaDeBotres,
       );
 
-      const a = CaixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
+      const a = CaixaDeOcultar(criarBotSalv("A0", "Avançado"), Cavancado);
 
       a.style.cssText = `
       display: flex;
       flex-direction: column;
-      width: 90%;
+      max-width: 250px;
       background: #ff000a3d;
       border-radius: 10px;
       `;
@@ -2521,7 +2480,8 @@
       ContlogueManual(),
       criarSeparador(),
       CIgEst,
-      // Cbotavan()
+      criarSeparador(),
+      Cbotavan(),
     );
 
     //document.body.appendChild(caixa);
@@ -2610,6 +2570,91 @@
   }
 
   /**
+   * ADDCaixaDAviso - cria caixa de diálogo confirmação (Sim/Não)
+   * @param {string} titulo - título do diálogo
+   * @param {Function} funcao - callback ao clicar em "Sim"
+   * @returns {HTMLElement} caixa de aviso posicionada
+   */
+  function ADDCaixaDAviso(titulo, funcao) {
+    const caixa = document.createElement("div");
+    caixa.id = "CaiDeAvi";
+    caixa.style.cssText = `
+        background: ${escurecer(Ccor.Principal)};
+        position: absolute;
+        padding: 6px 10px;
+        border-radius: 12px;
+       display: flex;
+        flex-direction: column;
+        align-items: center;
+            border: solid 1px;
+        `;
+
+    const elementoTitulo = document.createElement("div");
+    elementoTitulo.innerHTML = titulo;
+    elementoTitulo.style.cssText = `
+            font-size: 14px;
+            border-bottom-style: dashed;
+            border-width: 1px;
+            margin-bottom: 6px;
+        `;
+
+    const elementoPergunta = document.createElement("div");
+    elementoPergunta.style.cssText = `
+        margin-bottom: 8px;
+        `;
+    elementoPergunta.innerHTML = "Tem Certeza ?";
+
+    const caixaBotoes = document.createElement("div");
+    caixaBotoes.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        `;
+
+    /**
+     * criarBotaoOpcao - cria botão de opção (Sim/Não)
+     * @param {string} texto - texto do botão (Sim ou Não)
+     * @returns {HTMLElement} botão formatado
+     */
+    function criarBotaoOpcao(texto) {
+      const botao = document.createElement("div");
+      botao.innerHTML = texto;
+      botao.style.cssText = `
+            cursor: pointer;
+            border: white 1px solid;
+            border-radius: 15px;
+            padding: 2px 4px;
+           `;
+      botao.addEventListener("mouseover", function () {
+        botao.style.background = "white";
+        botao.style.color = Ccor.Principal;
+      });
+
+      botao.addEventListener("mouseout", function () {
+        botao.style.background = "";
+        botao.style.color = "";
+      });
+      botao.addEventListener("click", function () {
+        if (texto === "Sim") {
+          funcao();
+          caixa.remove();
+        } else {
+          caixa.remove();
+        }
+      });
+      return botao;
+    }
+
+    caixaBotoes.appendChild(criarBotaoOpcao("Sim"));
+    caixaBotoes.appendChild(criarBotaoOpcao("Não"));
+
+    caixa.appendChild(elementoTitulo);
+    caixa.appendChild(elementoPergunta);
+    caixa.appendChild(caixaBotoes);
+
+    return caixa;
+  }
+  /**
    * atualizarSlidePosi - atualiza estado visual de um botão slide
    * @param {string} idBotao - id do botão (ex: "Bot14")
    * @param {boolean} estaAtivo - se botão deve estar ativo/não ativo
@@ -2656,9 +2701,6 @@
    * @returns {HTMLElement} container do toggle criado
    */
   function criarBotaoSlide2(IdBot, estaAtivo, funcao) {
-    // Adiciona estilos apenas uma vez
-    StyleSlide();
-
     const toggleContainer = document.createElement("div");
     toggleContainer.className = "toggle-container";
 
