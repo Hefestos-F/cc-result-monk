@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey_NM
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      4.3.7.10
+// @version      4.3.7.11
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -3822,7 +3822,7 @@
         );
         CFim.appendChild(criarItemTabela(item.id, "fim", item.Fim || "<---->"));
         CDuracao.appendChild(
-          criarItemTabela(item.id, "duracao", item.Duracao || "<---->"),
+          criarItemTabela(item.id, "duracao", tempoEncurtado(item.Duracao) || "<---->"),
         );
       });
     }

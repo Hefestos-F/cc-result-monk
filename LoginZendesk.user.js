@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendesk
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.7.6
+// @version      1.3.7.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -22,6 +22,8 @@
     SomEstouro: 1,
     notiEstouro: 1,
     OBS_ATIVO: 1,
+    TesteHora: 0,
+    valorTeste: "00:00:00",
   };
 
   const configPadrao = {
@@ -1916,121 +1918,60 @@
     }
 
     function ContModoTeste() {
-      const area = criarCaixaSeg();
-      area.id = "CModoTeste";
-
-      const linha = document.createElement("div");
-      linha.style.cssText = `
+       const horaInputCai = document.createElement("div");
+      horaInputCai.style.cssText = `
         display: flex;
+        justify-content: center;
         align-items: center;
-        width: 100%;
-        margin-top: 6px;
-      `;
-
-      const dateInput = document.createElement("input");
-      dateInput.type = "date";
-      dateInput.id = "InputModoTesteDate";
-      dateInput.style.cssText = `background: #ffffff00; border: solid 1px white; color: white; padding:2px;`;
-      dateInput.value =
-        VariavelmodoTeste && VariavelmodoTeste.data
-          ? VariavelmodoTeste.data
-          : "";
-
-      // Criar inputs separados para hora e minuto (como em ContlogueManual)
-      const existingHoraRaw =
-        (VariavelmodoTeste &&
-          (VariavelmodoTeste.hora || VariavelmodoTeste.fuso)) ||
-        "+00:00:00";
-      // preserva sinal (+/-) se houver
-      const signMatch = /^[+-]/.test(existingHoraRaw) ? existingHoraRaw[0] : "";
-      const existingHora = signMatch
-        ? existingHoraRaw.slice(1)
-        : existingHoraRaw;
-      const [existH = "00", existM = "00"] = existingHora
-        .split(":")
-        .map((v) => String(v).padStart(2, "0"));
-
-      const horaInputModoTeste = entradatempo(
-        "HModoTeste",
+        `;
+      horaInputCai.id = "inputEscala";
+      const SalvarHora = criarBotSalv("A13", "Salvar");
+      SalvarHora.style.marginLeft = "5px";
+      SalvarHora.addEventListener("click", function () {
+        salvarHorario();
+        SalvandoVariConfig(1);
+      });
+      const horaInputCaiHM = document.createElement("div");
+      horaInputCaiHM.style.cssText = `display: flex; align-items: center;`;
+      const [horasS, minutosS, segundosS] =
+        config.valorTeste.split(":").map(Number);
+      const horaInputTE = entradatempo(
+        "HoraEsc",
         1,
-        String(existH).padStart(2, "0"),
+        String(horasS).padStart(2, "0"),
       );
-      const minuInputModoTeste = entradatempo(
-        "MModoTeste",
+      const minuInputTE = entradatempo(
+        "MinuEsc",
         0,
-        String(existM).padStart(2, "0"),
+        String(minutosS).padStart(2, "0"),
       );
-      horaInputModoTeste.style.marginRight = "4px";
 
-      function salvarHorarioModoTeste() {
-        const hora =
-          parseInt(horaInputModoTeste.value) || parseInt(existH) || 0;
-        const minuto =
-          parseInt(minuInputModoTeste.value) || parseInt(existM) || 0;
+      function salvarHorario() {
+        const hora = parseInt(horaInputTE.value) || horasS;
+        const minuto = parseInt(minuInputTE.value) || minutosS;
+
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
         const segundos = "00";
-        const horarioFormatado = `${signMatch}${horaFormatada}:${minutoFormatado}:${segundos}`;
-        // salva em ambas propriedades para manter compatibilidade
-        VariavelmodoTeste.hora = horarioFormatado;
-        VariavelmodoTeste.fuso = horarioFormatado;
-        SalvandoVariConfig(1);
+
+        const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
+
+        // Salva na variável
+        config.valorTeste = horarioFormatado;
+
+        horaInputTE.value = "";
+        minuInputTE.value = "";
+        horaInputTE.placeholder = horaFormatada;
+        minuInputTE.placeholder = minutoFormatado;
       }
+      horaInputCaiHM.append(horaInputTE, doispontos(), minuInputTE);
+      horaInputCai.append(horaInputCaiHM, SalvarHora);
 
-      const salvarBot = criarBotSalv(35, "Salvar");
-      salvarBot.addEventListener("click", function () {
-        VariavelmodoTeste.data =
-          dateInput.value || VariavelmodoTeste.data || "";
-        salvarHorarioModoTeste();
-        // garante que config.modoTeste siga o toggle
-        config.modoTeste = config.modoTeste ? 1 : 0;
-        AtualizarConf();
-      });
-
-      const toggle = criarBotaoSlide2(34, config.modoTeste, () => {
-        config.modoTeste = !config.modoTeste;
-        if (config.modoTeste) {
-          // quando ativar, preenche inputs com valores atuais se vazio
-          if (!dateInput.value && VariavelmodoTeste.data)
-            dateInput.value = VariavelmodoTeste.data;
-          const raw =
-            VariavelmodoTeste.hora || VariavelmodoTeste.fuso || "+00:00:00";
-          const sign = /^[+-]/.test(raw) ? raw[0] : "";
-          const parts = sign ? raw.slice(1) : raw;
-          const [hh = "00", mm = "00"] = parts.split(":");
-          if (!horaInputModoTeste.value)
-            horaInputModoTeste.value = String(hh).padStart(2, "0");
-          if (!minuInputModoTeste.value)
-            minuInputModoTeste.value = String(mm).padStart(2, "0");
-        }
-        SalvandoVariConfig(1);
-        AtualizarConf();
-      });
-
-      // Atualiza VariavelmodoTeste quando inputs mudam
-      dateInput.addEventListener("change", () => {
-        VariavelmodoTeste.data = dateInput.value;
-        SalvandoVariConfig(1);
-      });
-      horaInputModoTeste.addEventListener("input", () => {
-        salvarHorarioModoTeste();
-      });
-      minuInputModoTeste.addEventListener("input", () => {
-        salvarHorarioModoTeste();
-      });
-
-      // monta a linha com inputs separados e o botão salvar
-      linha.append(
-        horaInputModoTeste,
-        doispontos(),
-        minuInputModoTeste,
-        salvarBot,
+      const a = CaixaDeOcultar(
+        criarBotSalv("A28", "Teste"),
+        horaInputCai,
       );
-      area.appendChild(dateInput);
-      area.appendChild(linha);
-      area.appendChild(toggle);
-
-      const a = CaixaDeOcultar(c1riarBotSalv(34, "Modo Teste"), area);
+     
       return a;
     }
 
@@ -2131,7 +2072,6 @@
             background-color: transparent;
             color: white;
             font-size: 12px;
-            height: 22px;
             `;
       return c;
     }
@@ -2153,26 +2093,7 @@
       CBBancDa.append(BBancDa);
       CBBancDa.append(CBancDa);
 
-      const C2ValoresEnc = criarCaixaSeg();
-      C2ValoresEnc.style.alignItems = "center";
-
-      const tValoresEnc = c1riarBotSalv(30, "Valores Encontrados");
-      tValoresEnc.addEventListener("click", function () {
-        if (C2ValoresEnc.innerHTML === "") {
-          C2ValoresEnc.innerHTML = `
-        <div>Disponivel = ${Htime.Disponivel}</div>
-        <div>Trabalhando = ${Htime.Trabalhando}</div>
-        <div>Indisponivel = ${Htime.Indisponivel}</div>
-        <div>Atendidas = ${stt.vAtendidas}</div>
-        `;
-        } else {
-          C2ValoresEnc.innerHTML = ""; // Limpa o conteúdo
-        }
-      });
-
-      const CValoresEnc = criarCaixaSeg();
-      //CValoresEnc.append(tValoresEnc);
-      CValoresEnc.append(C2ValoresEnc);
+    
 
       const BotaoResetT = c1riarBotSalv(15, "Restaurar Config");
       BotaoResetT.addEventListener("click", function () {
@@ -2195,8 +2116,6 @@
         CBBancDa,
         criarSeparador(),
         ContModoTeste(),
-        criarSeparador(),
-        CValoresEnc,
         criarSeparador(),
         caixaDeBotres,
       );
@@ -2281,8 +2200,8 @@
       ContlogueManual(),
       criarSeparador(),
       CIgEst,
-
-      // Cbotavan()
+      criarSeparador(),
+      Cbotavan(),
     );
 
     //document.body.appendChild(caixa);
