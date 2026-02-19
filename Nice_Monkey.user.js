@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.5.1.3
+// @version      3.5.1.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
@@ -210,7 +210,7 @@
 
   const LugarJS = {
     elementoReferencia: '[data-testid="bg-color"].MuiAppBar-root',
-    elementoReferencia2: '[href*="help.nice-incontact.com"]',
+    elementoReferencia2: '[aria-label="Abrir centro de ajuda em uma nova janela"]',
     Status: "#agent-state-section > div > span > div > div",
 
     abaRelatorio: '[role="button"][aria-label="Reporting"]',
