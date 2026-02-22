@@ -793,8 +793,7 @@
 
   function gerarDataHora() {
     const agora = new Date();
-    const offsetStr = config.valorTeste;
-    //const offsetStr = "-03:00"; // ajuste aqui se precisar: "Z", "+05", "+05:30", "-03:00", etc.
+    const offsetStr = config.TesteHora ? config.valorTeste : "-03:00";
 
     // --- parse do offset para minutos ---
     function parseOffsetToMinutes(s) {
@@ -867,6 +866,13 @@
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
 
     const agora = gerarDataHora();
+    if (config.TesteHora) {
+      const tDataX = document.getElementById("tDataX");
+      const vDataX = document.getElementById("vDataX");
+      tDataX.textContent = agora.data;
+      vDataX.textContent = agora.hora;
+    }
+
     stt.Encontrado = stt.Status === "---" ? 0 : 1;
     let ContAtual = stt.Encontrado ? "0" : "Encontrado";
 
@@ -914,7 +920,7 @@
 
     agora1.hora = TempoPausas.Logou;
 
-    const Saida = exibirHora(TempoPausas.Logou, 1, config.TempoEscaladoHoras);
+    const Saida = exibirHora(Logou, 1, config.TempoEscaladoHoras);
 
     TempoPausas.Saida = Saida.hora;
     if (!config.LogueManual && compararDatas(dadosPrimLogue, Logou)) {
@@ -1552,6 +1558,7 @@
     const tma = criarCaixaDCv("c", "TMA");
     const falta = criarCaixaDCv("c", "Falta");
     const saida = criarCaixaDCv("c", "Saida");
+    const data = criarCaixaDCv("c", "DataX");
 
     // Cria um contêiner para agrupar as caixas
     const container = document.createElement("div");
@@ -1580,6 +1587,8 @@
     container.appendChild(logado);
     container.appendChild(criarSeparadorCV(4));
     container.appendChild(falta);
+    container.appendChild(criarSeparadorCV(5));
+    container.appendChild(data);
 
     // Cria um contêiner principal para agrupar tudo
     const minhaCaixa = document.createElement("div");
@@ -1972,9 +1981,11 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        flex-direction: column;
         `;
       horaInputCai.id = "testefuso";
       const SalvarHora = criarBotSalv("A13", "Salvar");
+
       SalvarHora.style.marginLeft = "5px";
       SalvarHora.addEventListener("click", function () {
         salvarHorario();
@@ -2035,8 +2046,14 @@
         horaInputTE.placeholder = horaFormatada;
         minuInputTE.placeholder = minutoFormatado;
       }
+      const ModoTesteAtivo = criarBotaoSlide2("TFuso", config.TesteHora, () => {
+        config.TesteHora = !config.TesteHora;
+        verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
+
+        atualizarSlidePosi("BotTFuso", config.TesteHora);
+      });
       horaInputCaiHM.append(selSign, horaInputTE, doispontos(), minuInputTE);
-      horaInputCai.append(horaInputCaiHM, SalvarHora);
+      horaInputCai.append(horaInputCaiHM, SalvarHora, ModoTesteAtivo);
 
       const a = CaixaDeOcultar(criarBotSalv("A28", "Teste"), horaInputCai);
 
