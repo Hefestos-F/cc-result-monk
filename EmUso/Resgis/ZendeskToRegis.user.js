@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Zendesk > Registro de Chamadas
 // @namespace    franciel.zendesk.ticket.bridge
-// @version      1.5.2
+// @version      1.5.3
 // @description  Extrai ticket e nome do solicitante (via encontrarNome + helpers), aplica localmente (se existirem inputs) e envia ao Registro via postMessage.
 // @author       Franciel
 // @match        https://smileshelp.zendesk.com/*
