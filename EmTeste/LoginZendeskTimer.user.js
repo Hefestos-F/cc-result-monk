@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         LoginZendesk
+// @name         LoginZendesk\EmTeste
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
 // @version      1.3.7.7
 // @description  that's all folks!
