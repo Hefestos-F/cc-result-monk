@@ -7,8 +7,8 @@
 // @match        https://registrodechamadas.netlify.app/*
 // @run-at       document-idle
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis/RegisToZendesk.user.js
-// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis/RegisToZendesk.user.js
+// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmUso/Resgis/RegisToZendesk.user.js
+// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmUso/Resgis/RegisToZendesk.user.js
 // ==/UserScript==
 
 (function () {

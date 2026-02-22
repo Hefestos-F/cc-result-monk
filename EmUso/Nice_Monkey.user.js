@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nice_Monkey
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      3.5.1.4
+// @version      3.5.1.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://cxagent.nicecxone.com/home*
