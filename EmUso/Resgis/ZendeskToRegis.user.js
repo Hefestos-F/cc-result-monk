@@ -7,8 +7,8 @@
 // @match        https://smileshelp.zendesk.com/*
 // @run-at       document-idle
 // @grant        GM_addStyle
-// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis/ZendeskToRegis.user.js
-// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/resgis/ZendeskToRegis.user.js
+// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmUso/Resgis/ZendeskToRegis.user.js
+// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmUso/Resgis/ZendeskToRegis.user.js
 // ==/UserScript==
 
 (function () {
