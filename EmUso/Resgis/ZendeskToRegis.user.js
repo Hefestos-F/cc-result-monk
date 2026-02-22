@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Zendesk > Registro de Chamadas
 // @namespace    franciel.zendesk.ticket.bridge
-// @version      1.5.3
+// @version      1.5.4
 // @description  Extrai ticket e nome do solicitante (via encontrarNome + helpers), aplica localmente (se existirem inputs) e envia ao Registro via postMessage.
 // @author       Franciel
 // @match        https://smileshelp.zendesk.com/*
@@ -52,6 +52,16 @@
   const normalize = (s) => (s || "").replace(/\s+/g, " ").trim();
   const log = (...args) => CONFIG.debug && console.log(LOG_PREFIX, ...args);
   const warn = (...args) => console.warn(LOG_PREFIX, ...args);
+
+  
+function obterEntityIdSelecionado() {
+  const item = document.querySelector('[data-selected="true"]');
+  if (!item) return null; // ou "", ou false — como preferir
+  
+  return item.getAttribute('data-entity-id');
+}
+
+
 
   /** ===========================
    *  EXTRAIR TICKET DA URL
@@ -509,7 +519,7 @@
    *  =========================== */
   async function enviarDadosParaRegistro() {
     const href = window.location.href || "";
-    const numero = extrairTicketDaURL(href);
+    const numero = obterEntityIdSelecionado();
     const ticket = numero || "000000";
 
     let contato = "";
