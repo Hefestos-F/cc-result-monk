@@ -6,8 +6,8 @@
 // @author       You
 // @match        https://smileshelp.zendesk.com/agent/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=zendesk.com
-// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/RegisMonkey2.user.js
-// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/RegisMonkey2.user.js
+// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/RegisMonkey2.user.js
+// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/RegisMonkey2.user.js
 // @grant        none
 // ==/UserScript==
 

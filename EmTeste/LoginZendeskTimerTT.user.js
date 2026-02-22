@@ -6,8 +6,8 @@
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
-// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/LoginZendesk.user.js
-// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/LoginZendesk.user.js
+// @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/LoginZendesk.user.js
+// @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/LoginZendesk.user.js
 // @grant        GM_openInTab
 // @run-at       document-idle
 
