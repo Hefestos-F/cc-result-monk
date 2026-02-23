@@ -911,14 +911,12 @@
     );
     verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
 
+    verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
+
     const Logou = config.LogueManual
       ? dadosLogueManu
       : exibirHora(agora, 0, TempoPausas.Logado);
     TempoPausas.Logou = Logou.hora;
-
-    const agora1 = gerarDataHora();
-
-    agora1.hora = TempoPausas.Logou;
 
     const Saida = exibirHora(Logou, 1, config.TempoEscaladoHoras);
 
@@ -928,8 +926,14 @@
       verifiDataLogue(1);
     }
 
-    vLogou.textContent = TempoPausas.Logou || "00:00:00";
-    vSaida.textContent = TempoPausas.Saida || "00:00:00";
+    const oLogou = document.getElementById("oLogou");
+    const oSaida = document.getElementById("oSaida");
+
+    oLogou.textContent = config.TesteHora ? Logou.data : "";
+    oSaida.textContent = config.TesteHora ? Saida.data : "";
+
+    vLogou.textContent = TempoPausas.Logou;
+    vSaida.textContent = TempoPausas.Saida;
 
     if (!config.LogueManual) {
       if (
@@ -1511,6 +1515,7 @@
     }
     caixa.innerHTML = `
         <div id="t${titulo}">${titulo}:</div>
+        <div id="o${titulo}"></div>
         <div id="v${titulo}">...</div>
         `;
 
@@ -1784,11 +1789,10 @@
       input.min = 0;
       input.max = houm ? 23 : 59;
       input.style.cssText = `
-                width: 42px;
+                width: 35px;
                 background: #ffffff00;
                 border: solid 1px white;
                 color: white;
-                font-size: 12px;
                 border-radius: 8px;
             `;
       return input;
@@ -1994,6 +1998,14 @@
       // Select de sinal (+/-)
       const selSign = document.createElement("select");
       selSign.id = "tzSign";
+      selSign.style.cssText = `
+       width: 30px;
+       background: rgba(255, 255, 255, 0);
+       border: 1px solid white;
+       color: white;
+       border-radius: 8px;
+       margin-right: 5px;`;
+
       ["+", "-"].forEach((s) => {
         const opt = document.createElement("option");
         opt.value = s;
@@ -2002,7 +2014,7 @@
       });
 
       const horaInputCaiHM = document.createElement("div");
-      horaInputCaiHM.style.cssText = `display: flex; align-items: center;`;
+      horaInputCaiHM.style.cssText = `display: flex;`;
 
       const m = String(config.valorTeste)
         .trim()
@@ -2048,12 +2060,19 @@
       }
       const ModoTesteAtivo = criarBotaoSlide2("TFuso", config.TesteHora, () => {
         config.TesteHora = !config.TesteHora;
-        verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
 
         atualizarSlidePosi("BotTFuso", config.TesteHora);
       });
       horaInputCaiHM.append(selSign, horaInputTE, doispontos(), minuInputTE);
-      horaInputCai.append(horaInputCaiHM, SalvarHora, ModoTesteAtivo);
+
+      const salvEMod = document.createElement("div");
+      salvEMod.style.cssText = `display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 5px;`;
+      salvEMod.append(SalvarHora, ModoTesteAtivo);
+
+      horaInputCai.append(horaInputCaiHM, salvEMod);
 
       const a = CaixaDeOcultar(criarBotSalv("A28", "Teste"), horaInputCai);
 

@@ -15,105 +15,176 @@
 
 (function () {
   /**
-   * exibirHora(a, op, b)
-   * a: {hora:"HH:MM:SS", data:"YYYY-MM-DD" | "DD/MM/YYYY"}
-   * b: {hora:"HH:MM:SS", data:"YYYY-MM-DD" | "DD/MM/YYYY"}
-   * op: 1 para soma (a + b), 0 para subtração (a - b)
-   * Retorna: {hora:"HH:MM:SS", data:"(mesmo formato de a)"}
+   * Encontra todos os localizadores no texto.
+   * @param {HTMLElement|string} fonte - Elemento DOM (com textContent) ou string.
+   * @returns {string[]} Array com todos os valores encontrados (pode ser vazio).
    */
-  function exibirAHora(a, op, b) {
-    const pad2 = (n) => String(n).padStart(2, "0");
+  function extrairTodosLocalizadores(fonte) {
+    const texto =
+      typeof fonte === "string" ? fonte : (fonte?.textContent ?? "");
+    if (!texto) return [];
 
-    const isISO = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d);
-    const isBR = (d) => /^\d{2}\/\d{2}\/\d{4}$/.test(d);
-
-    function parseDate(d) {
-      if (isISO(d)) {
-        const [Y, M, D] = d.split("-").map(Number);
-        return new Date(Y, M - 1, D);
-      }
-      if (isBR(d)) {
-        const [D, M, Y] = d.split("/").map(Number);
-        return new Date(Y, M - 1, D);
-      }
-      throw new Error(
-        `Formato de data inválido "${d}". Use YYYY-MM-DD ou DD/MM/YYYY .`,
-      );
+    const re = /Localizador\s*-\s*(.+?)(?:\r?\n|$)/gi;
+    const out = [];
+    for (const m of texto.matchAll(re)) {
+      out.push(m[1].trim().toUpperCase());
     }
-
-    function formatDate(date, keepISO) {
-      const Y = date.getFullYear();
-      const M = pad2(date.getMonth() + 1);
-      const D = pad2(date.getDate());
-      return keepISO ? `${Y}-${M}-${D}` : `${D}/${M}/${Y}`;
-    }
-
-    function parseTime(h) {
-      if (!/^\d{2}:\d{2}:\d{2}$/.test(h)) {
-        throw new Error(`Formato de hora inválido "${h}". Use HH:MM:SS.`);
-      }
-      const [HH, MM, SS] = h.split(":").map(Number);
-      if (HH < 0 || HH > 23 || MM < 0 || MM > 59 || SS < 0 || SS > 59) {
-        throw new Error("Hora fora do intervalo válido.");
-      }
-      return { HH, MM, SS };
-    }
-
-    function toEpochMs(obj) {
-      const dt = parseDate(obj.data);
-      const { HH, MM, SS } = parseTime(obj.hora);
-      dt.setHours(HH, MM, SS, 0); // local time
-      return dt.getTime();
-    }
-
-    if (typeof op !== "number" || (op !== 0 && op !== 1)) {
-      throw new Error(
-        "Operação inválida. Use 1 para soma ou 0 para subtração.",
-      );
-    }
-
-    const keepISO = isISO(a.data);
-    const epochA = toEpochMs(a);
-    const epochB = toEpochMs(b);
-
-    let outHora, outData;
-
-    if (op === 1) {
-      // Soma: adiciona o "tempo" de b como delta a 'a'
-      const midnightB = new Date(parseDate(b.data));
-      midnightB.setHours(0, 0, 0, 0);
-      const deltaB = toEpochMs(b) - midnightB.getTime(); // ms desde meia-noite
-      const resultDate = new Date(epochA + deltaB);
-      outHora = `${pad2(resultDate.getHours())}:${pad2(
-        resultDate.getMinutes(),
-      )}:${pad2(resultDate.getSeconds())}`;
-      outData = formatDate(resultDate, keepISO);
-    } else {
-      // Subtração (delta de tempo): usa UTC para evitar offset do fuso
-      let diffMs = epochA - epochB;
-      const sign = diffMs < 0 ? -1 : 1;
-      diffMs = Math.abs(diffMs);
-
-      const h = Math.floor(diffMs / 3600000);
-      const m = Math.floor((diffMs % 3600000) / 60000);
-      const s = Math.floor((diffMs % 60000) / 1000);
-
-      // Se quiser sinal, pode incorporar ao formato. Aqui retornamos só o valor absoluto.
-      outHora = `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
-
-      // Para delta, manter a data de 'a' (ou escolha outra regra, se preferir)
-      outData = a.data;
-    }
-
-    return { hora: outHora, data: outData };
+    return out;
   }
 
-  console.log(
-    JSON.stringify(
-      exibirAHora({ data: "21/02/2026", hora: "05:20:00" }, 0, {
-        data: "21/02/2026",
-        hora: "00:20:00",
-      }),
-    ),
-  );
+  /**
+   * Retorna o <textarea> cujo pai contém um <label> com o texto
+   * "Resumo / Relato do Cliente*" e que esteja visível.
+   * - Procura por label e textarea no MESMO pai.
+   * - Garante que o textarea esteja visível (display, visibility, opacity, dimensões).
+   * @returns {HTMLTextAreaElement|null}
+   */
+  function obterTextareaResumoRelatoVisivel() {
+    const textoAlvoNormalizado = "resumo / relato do cliente*";
+
+    // Helper: normaliza string (trim, espaços internos e case-insensitive)
+    const norm = (s) => s?.toLowerCase().replace(/\s+/g, " ").trim() || "";
+
+    // Helper: checa visibilidade do elemento
+    const isVisible = (el) => {
+      if (!el || !(el instanceof Element)) return false;
+      const style = getComputedStyle(el);
+      if (
+        style.display === "none" ||
+        style.visibility === "hidden" ||
+        style.opacity === "0"
+      )
+        return false;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return false;
+      // Opcional: verificar se está no DOM
+      if (!document.body.contains(el)) return false;
+      return true;
+    };
+
+    // 1) Tenta via relação direta: label e textarea como filhos do mesmo pai
+    const labels = Array.from(document.querySelectorAll("label"));
+    for (const label of labels) {
+      if (norm(label.textContent) === textoAlvoNormalizado) {
+        const pai = label.parentElement;
+        if (!pai) continue;
+
+        // Procura textarea no mesmo pai (irmão)
+        const textarea = pai.querySelector("textarea");
+        if (textarea && isVisible(textarea)) {
+          return textarea;
+        }
+
+        // Caso a estrutura seja um pouco mais aninhada, tenta um nível a mais dentro do pai
+        const textareaProfundo = Array.from(
+          pai.querySelectorAll("textarea"),
+        ).find(isVisible);
+        if (textareaProfundo) return textareaProfundo;
+      }
+    }
+
+    // 2) Plano B: se o <label> tiver atributo for="idDoTextarea"
+    for (const label of labels) {
+      if (norm(label.textContent) === textoAlvoNormalizado) {
+        const forId = label.getAttribute("for");
+        if (forId) {
+          const tex = document.getElementById(forId);
+          if (tex instanceof HTMLTextAreaElement && isVisible(tex)) {
+            // Ainda assim, garantimos que compartilham o mesmo pai (se isso for requisito estrito)
+            if (
+              tex.parentElement &&
+              label.parentElement &&
+              tex.parentElement === label.parentElement
+            ) {
+              return tex;
+            }
+            // Se aceitar pequena variação estrutural, pode retornar mesmo sem o mesmo pai:
+            // return tex;
+          }
+        }
+      }
+    }
+
+    // 3) Plano C (XPath): label pelo texto normalizado e textarea no mesmo ancestral imediato
+    // Útil quando existem wrappers leves ao redor do texto do label.
+    try {
+      const xpath = `
+      //label[
+        normalize-space(translate(string(.),'ABCDEFGHIJKLMNOPQRSTUVWXYZÁÀÂÃÉÈÊÍÌÎÓÒÔÕÚÙÛÇ','abcdefghijklmnopqrstuvwxyzáàâãéèêíìîóòôõúùûç')) =
+        '${"Resumo / Relato do Cliente*".toLowerCase()}'
+      ]
+    `;
+      const iter = document.evaluate(
+        xpath,
+        document,
+        null,
+        XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+        null,
+      );
+      let lbl;
+      while ((lbl = iter.iterateNext())) {
+        const pai = lbl.parentElement;
+        if (!pai) continue;
+        const tx = pai.querySelector("textarea");
+        if (tx && isVisible(tx)) return tx;
+      }
+    } catch (_) {
+      // silencioso
+    }
+
+    return null;
+  }
+
+  function getInputLocalizadorPNR() {
+    const textoAlvo = "localizador pnr";
+
+    // Normaliza texto (remove espaços extras, deixa minúsculo)
+    const norm = (s) => s.toLowerCase().replace(/\s+/g, " ").trim();
+
+    // Checa se o elemento está visível
+    const isVisible = (el) => {
+      if (!el) return false;
+      const st = getComputedStyle(el);
+      if (
+        st.display === "none" ||
+        st.visibility === "hidden" ||
+        st.opacity === "0"
+      )
+        return false;
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    };
+
+    // Procura todas as labels da página
+    const labels = document.querySelectorAll("label");
+
+    for (const label of labels) {
+      if (norm(label.textContent) === textoAlvo) {
+        const pai = label.parentElement;
+        if (!pai) continue;
+
+        // Procura input dentro do mesmo pai
+        const input = pai.querySelector("input");
+        if (input && isVisible(input)) {
+          return input;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  const textarea = obterTextareaResumoRelatoVisivel();
+  if (textarea) {
+    textarea.addEventListener("input", () => {
+      const a = extrairTodosLocalizadores(textarea);
+      console.log("Textarea encontrado:", a);
+      const b = getInputLocalizadorPNR();
+      b.value = a;
+    });
+    // exemplo: textarea.value = "Texto de teste";
+  } else {
+    console.warn("Textarea não encontrado ou não está visível.");
+  }
+
 })();
