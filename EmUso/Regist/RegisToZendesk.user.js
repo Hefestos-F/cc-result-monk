@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Registro de Chamadas > Zendesk
 // @namespace    franciel.registro.ticket.receiver
-// @version      1.1.7
+// @version      1.1.8
 // @description  Recebe {ticket, contato} via postMessage e preenche #ticket e #contato.
 // @author       Franciel
 // @match        https://registrodechamadas.netlify.app/*
@@ -215,13 +215,6 @@
     dd1.appendChild(linha6);
     contentBox.appendChild(dd1);
 
-    var dd3 = document.createElement("div");
-    dd3.style.cssText = `
-    width: max-content;
-    `;
-
-    dd3.appendChild(dd1);
-    contentBox.appendChild(dd3);
 
     document.querySelector('button[onclick="limparTela()"]').addEventListener("click", () => {
       entrada1 = "";
