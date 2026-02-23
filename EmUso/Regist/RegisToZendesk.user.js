@@ -223,7 +223,7 @@
     dd3.appendChild(dd1);
     contentBox.appendChild(dd3);
 
-    document.getElementById("limparBtn").addEventListener("click", () => {
+    document.querySelector('button[onclick="limparTela()"]').addEventListener("click", () => {
       entrada1 = "";
       entrada2 = "";
       entrada3 = "";
