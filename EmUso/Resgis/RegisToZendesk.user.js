@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Registro de Chamadas > Zendesk
 // @namespace    franciel.registro.ticket.receiver
-// @version      1.1.6
+// @version      1.1.7
 // @description  Recebe {ticket, contato} via postMessage e preenche #ticket e #contato.
 // @author       Franciel
 // @match        https://registrodechamadas.netlify.app/*
@@ -392,20 +392,13 @@
   }
 
   function adicionarQuartoItem(novoItem) {
-    // Seleciona o body
-    const body = document.body;
+    const alvo = document.getElementById("descricao");
+    if (!alvo) return console.error("ID não encontrado:", "descricao");
 
-    // Verifica se já existem pelo menos 3 elementos filhos
-    if (body.children.length >= 4) {
-      // Insere antes do atual 4º elemento (índice 3)
-      //body.insertBefore(novoItem, body.children[4]);
+    const pai = alvo.parentElement;
+    if (!pai) return console.error("Elemento não possui pai.");
 
-      const item4 = body.children[4];
-      item4.appendChild(novoItem);
-    } else {
-      // Se não houver 3 elementos, apenas adiciona no final
-      body.appendChild(novoItem);
-    }
+    pai.appendChild(novoItem);
   }
 
   adicionarQuartoItem(criarContentBox());

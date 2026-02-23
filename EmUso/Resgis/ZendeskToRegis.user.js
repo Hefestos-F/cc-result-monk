@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Zendesk > Registro de Chamadas
 // @namespace    franciel.zendesk.ticket.bridge
-// @version      1.5.4
+// @version      1.5.5
 // @description  Extrai ticket e nome do solicitante (via encontrarNome + helpers), aplica localmente (se existirem inputs) e envia ao Registro via postMessage.
 // @author       Franciel
 // @match        https://smileshelp.zendesk.com/*
@@ -63,47 +63,7 @@ function obterEntityIdSelecionado() {
 
 
 
-  /** ===========================
-   *  EXTRAIR TICKET DA URL
-   *  =========================== */
-  function extrairTicketDaURL(href) {
-    const setStr = (v) => (v == null ? null : String(v));
-    let numero = null;
-    try {
-      const url = new URL(href);
-
-      // 1) Segmentos do path (pega o último que contenha dígitos)
-      const pathSegs = url.pathname.split("/").filter(Boolean);
-      for (let i = pathSegs.length - 1; i >= 0 && !numero; i--) {
-        const m = pathSegs[i].match(/\d+/);
-        if (m) numero = m[0];
-      }
-
-      // 2) /ticket(s)/<n>
-      if (!numero) {
-        const m = href.match(/\/tickets?\/(\d+)/i);
-        if (m) numero = m[1];
-      }
-
-      // 3) Hash
-      if (!numero && url.hash) {
-        const m = url.hash.match(/\d+/);
-        if (m) numero = m[0];
-      }
-
-      // 4) Query (?ticket_id=<n> ou ?id=<n>)
-      if (!numero) {
-        const qp =
-          url.searchParams.get("ticket_id") || url.searchParams.get("id");
-        if (qp && /^\d+$/.test(qp)) numero = qp;
-      }
-    } catch {
-      // Fallback: último grupo de dígitos na URL
-      const m = (href || "").match(/(\d+)(?!.*\d)/);
-      if (m) numero = m[1];
-    }
-    return setStr(numero);
-  }
+  
 
   /** ===========================
    *  ACHAR "Ticket #<n>" E NOME ANTERIOR NO DOC ATUAL
