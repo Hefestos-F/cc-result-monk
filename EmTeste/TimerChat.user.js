@@ -189,13 +189,29 @@
   }
 
   // ========= LOG DO MAP (formato objeto como você pediu) =========
-  function logTicketsSet() {
+  function logTicketsSet1() {
     const pretty =
       "{" +
       Array.from(ticketsSet.values())
         .map(
           (v) =>
             `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(v.nome)} }`,
+        )
+        .join(", ") +
+      "}";
+
+    HefestoLog(`ticketsSet = ${pretty}`);
+  }
+
+  function logTicketsSet() {
+    const pretty =
+      "{" +
+      Array.from(ticketsSet.values())
+        .map(
+          (v) =>
+            `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(
+              v.nome,
+            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime} }`,
         )
         .join(", ") +
       "}";
@@ -258,7 +274,7 @@
   }
 
   // ========= CALLBACK DE MUDANÇA DO TICKET =========
-  function handleTicketChange(id) {
+  function handleTicketChange1(id) {
     const info = EncontrarOUltimoTime(id); // { datatime, nome } ou null
     const prev = ticketsSet.get(id) ?? { id, datatime: null, nome: null };
 
@@ -282,6 +298,77 @@
       }
       if (changedName) {
         HefestoLog(`Atualizado nome do ticket ${id}: ${info.nome}`);
+      }
+
+      logTicketsSet();
+      addContagem(id);
+    } else {
+      HefestoLog(`(sem mudança) ticket ${id}`);
+    }
+  }
+
+  function handleTicketChange(id) {
+    const info = EncontrarOUltimoTime(id);
+    const prev = ticketsSet.get(id) ?? {
+      id,
+      datatime: null,
+      nome: null,
+      seqQtd: null,
+      seqPrimeiroDatetime: null,
+    };
+
+    if (!info) {
+      HefestoLog(`(sem dados) ticket ${id}, mantendo anterior`);
+      return;
+    }
+
+    // --- Compatibilidade com retorno antigo e novo ---
+    // Antigo:  { datatime, nome }
+    // Novo:    { ultimoDatetime, ultimoNome, sequencia: { nome, quantidade, primeiroDatetime } }
+    const datatimeAtual = info.ultimoDatetime ?? info.datatime ?? null;
+    const nomeAtual = info.ultimoNome ?? info.nome ?? null;
+
+    const seqQtdAtual =
+      info.sequencia && typeof info.sequencia.quantidade === "number"
+        ? info.sequencia.quantidade
+        : null;
+
+    const seqPrimeiroDatetimeAtual =
+      info.sequencia && info.sequencia.primeiroDatetime
+        ? info.sequencia.primeiroDatetime
+        : null;
+
+    // --- Detectar mudanças ---
+    const changedDate = datatimeAtual !== prev.datatime;
+    const changedName = nomeAtual !== prev.nome;
+    const changedSeqQtd = seqQtdAtual !== prev.seqQtd;
+    const changedSeqPrimeiro =
+      seqPrimeiroDatetimeAtual !== prev.seqPrimeiroDatetime;
+
+    if (changedDate || changedName || changedSeqQtd || changedSeqPrimeiro) {
+      ticketsSet.set(id, {
+        id,
+        datatime: datatimeAtual,
+        nome: nomeAtual,
+        seqQtd: seqQtdAtual,
+        seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
+      });
+
+      if (changedDate) {
+        HefestoLog(`Atualizado datatime do ticket ${id}: ${datatimeAtual}`);
+      }
+      if (changedName) {
+        HefestoLog(`Atualizado nome do ticket ${id}: ${nomeAtual}`);
+      }
+      if (changedSeqQtd) {
+        HefestoLog(
+          `Atualizada sequência do mesmo remetente no ticket ${id}: quantidade = ${seqQtdAtual}`,
+        );
+      }
+      if (changedSeqPrimeiro) {
+        HefestoLog(
+          `Atualizado primeiro datetime da sequência no ticket ${id}: ${seqPrimeiroDatetimeAtual}`,
+        );
       }
 
       logTicketsSet();
@@ -330,7 +417,7 @@
   }
 
   // ========= ENCONTRAR ÚLTIMO TIMESTAMP =========
-  function EncontrarOUltimoTime(id) {
+  function EncontrarOUltimoTime1(id) {
     try {
       // Fallback simples para CSS.escape se não existir
       const cssEscape =
@@ -408,6 +495,11 @@
           }
         }
 
+        //nova acao
+        //verifica o nome na ultima mensagem
+        //quantas mensagens seguidas nesse nome
+        //retornar o primeiro datatime da ultima sequencia de mensagem do mesmo nome
+
         // 3) Retorna quando houver ao menos um dos dois dados
         if (datatime || nome) {
           return { datatime, nome, elemento: it };
@@ -415,6 +507,173 @@
       }
 
       return null;
+    } catch (err) {
+      console.error("Erro em EncontrarOUltimoTime:", err);
+      return null;
+    }
+  }
+
+  // ========= ENCONTRAR ÚLTIMO TIMESTAMP =========
+  function EncontrarOUltimoTime(id) {
+    try {
+      const cssEscape =
+        window.CSS && typeof CSS.escape === "function"
+          ? CSS.escape
+          : (s) => String(s).replace(/["\\]/g, "\\$&");
+
+      const root = document.querySelector(
+        `[data-ticket-id="${cssEscape(String(id))}"] [data-test-id="omni-log-container"]`,
+      );
+      if (!root) return null;
+
+      const items = root.querySelectorAll(
+        '[data-test-id="omni-log-comment-item"]',
+      );
+      if (!items.length) return null;
+
+      // =============================================================
+      // 1) --- IDENTIFICAR O ÚLTIMO ITEM COM DATETIME OU NOME ---
+      // =============================================================
+      let ultimo = null;
+
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i];
+
+        // --- datetime ---
+        let datatime = null;
+        const rel = it.querySelector(
+          'time[data-test-id="timestamp-relative"][datetime]',
+        );
+        const abs = it.querySelector(
+          'time[data-test-id="timestamp-absolute"][datetime]',
+        );
+        const any = it.querySelector("time[datetime]");
+
+        const timeEl = rel || abs || any;
+        const suffix = rel ? "R" : abs ? "A" : "";
+
+        if (timeEl) {
+          const dt = timeEl.getAttribute("datetime");
+          if (dt && dt.trim()) {
+            datatime = dt.trim() + suffix;
+          }
+        }
+
+        // --- nome (sender) ---
+        let nome = "";
+        const senderEl = it.querySelector(
+          '[data-test-id="omni-log-item-sender"]',
+        );
+        if (senderEl) {
+          nome = (senderEl.textContent || "").trim();
+        }
+
+        if (!nome) {
+          const userLink = it.querySelector(
+            '[data-test-id="omni-log-comment-user-link"]',
+          );
+          if (userLink) {
+            nome = (userLink.textContent || "").trim();
+          }
+        }
+
+        if (!nome) {
+          const article =
+            it.closest('[data-test-id="omni-log-comment-item"]') || it;
+          const aria = article?.getAttribute?.("aria-label") || "";
+          const m = aria.match(/Mensagem de\s*(.+?)\s*,\s*por\s/i);
+          if (m && m[1]) {
+            nome = m[1].trim();
+          }
+        }
+
+        if (datatime || nome) {
+          ultimo = { index: i, datatime, nome, elemento: it };
+          break;
+        }
+      }
+
+      if (!ultimo) return null;
+
+      // =============================================================
+      // 2) --- NOVA AÇÃO ---
+      // Encontrar sequência consecutiva do mesmo nome
+      // =============================================================
+
+      const nomeAlvo = ultimo.nome;
+      let count = 1;
+      let primeiroDatetimeDaSequencia = ultimo.datatime;
+
+      // varrer para trás até quebrar a sequência
+      for (let j = ultimo.index - 1; j >= 0; j--) {
+        const it = items[j];
+
+        // extrair nome novamente
+        let nomeTemp = "";
+        const senderEl = it.querySelector(
+          '[data-test-id="omni-log-item-sender"]',
+        );
+        if (senderEl) {
+          nomeTemp = (senderEl.textContent || "").trim();
+        }
+
+        if (!nomeTemp) {
+          const userLink = it.querySelector(
+            '[data-test-id="omni-log-comment-user-link"]',
+          );
+          if (userLink) nomeTemp = (userLink.textContent || "").trim();
+        }
+
+        if (!nomeTemp) {
+          const article =
+            it.closest('[data-test-id="omni-log-comment-item"]') || it;
+          const aria = article?.getAttribute?.("aria-label") || "";
+          const m = aria.match(/Mensagem de\s*(.+?)\s*,\s*por\s/i);
+          if (m && m[1]) {
+            nomeTemp = m[1].trim();
+          }
+        }
+
+        // se mudou o nome → para
+        if (nomeTemp !== nomeAlvo) break;
+
+        // ler datetime
+        const rel = it.querySelector(
+          'time[data-test-id="timestamp-relative"][datetime]',
+        );
+        const abs = it.querySelector(
+          'time[data-test-id="timestamp-absolute"][datetime]',
+        );
+        const any = it.querySelector("time[datetime]");
+
+        const timeEl = rel || abs || any;
+        const suffix = rel ? "R" : abs ? "A" : "";
+
+        if (timeEl) {
+          const dt = timeEl.getAttribute("datetime");
+          if (dt && dt.trim()) {
+            primeiroDatetimeDaSequencia = dt.trim() + suffix;
+          }
+        }
+
+        count++;
+      }
+
+      // =============================================================
+      // 3) --- RETORNO COMPLETO ---
+      // =============================================================
+      return {
+        ultimoDatetime: ultimo.datatime,
+        ultimoNome: ultimo.nome,
+        elemento: ultimo.elemento,
+
+        // nova ação
+        sequencia: {
+          nome: ultimo.nome,
+          quantidade: count,
+          primeiroDatetime: primeiroDatetimeDaSequencia,
+        },
+      };
     } catch (err) {
       console.error("Erro em EncontrarOUltimoTime:", err);
       return null;
@@ -652,7 +911,7 @@
     if (!(ticketsSet instanceof Map)) return;
 
     for (const [id, info] of ticketsSet) {
-      if (!info || !info.datatime || !info.nome) continue; // precisa ter datatime
+      if (!info || !info.seqPrimeiroDatetime || !info.nome) continue; // precisa ter datatime
 
       const el = document.getElementById(`Contador${id}`);
       if (!el) {
@@ -661,7 +920,7 @@
       }
 
       const agora = gerarDataHora(); // { data: "YYYY-MM-DD", hora: "HH:mm:ss" }
-      const a = isoParaDataHora(info.datatime); // idem, vindo do ISO salvo
+      const a = isoParaDataHora(info.seqPrimeiroDatetime); // idem, vindo do ISO salvo
 
       // Só calcula se a data for a mesma
       if (agora.data !== a.data) continue;
