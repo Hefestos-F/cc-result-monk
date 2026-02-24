@@ -23,7 +23,7 @@
     notiEstouro: 1,
     OBS_ATIVO: 1,
     TesteHora: 0,
-    valorTeste: "00:00:00",
+    valorTeste: "-03:00",
   };
 
   const configPadrao = {
@@ -777,7 +777,7 @@
   }
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
-  function gerarDataHora() {
+  function gerarDataHora2() {
     const agora = new Date();
 
     const hora = agora.toLocaleTimeString("pt-BR", { hour12: false }); // HH:MM:SS
@@ -787,6 +787,54 @@
     const mes = String(agora.getMonth() + 1).padStart(2, "0");
     const dia = String(agora.getDate()).padStart(2, "0");
     const data = `${ano}-${mes}-${dia}`;
+
+    return { hora, data };
+  }
+
+  function gerarDataHora() {
+    const agora = new Date();
+    const offsetStr = config.TesteHora ? config.valorTeste : "-03:00";
+
+    // --- parse do offset para minutos ---
+    function parseOffsetToMinutes(s) {
+      if (!s) return null; // vazio -> poderia usar offset local, se quiser
+      if (s === "Z" || s === "z") return 0; // UTC
+
+      const m = s.trim().match(/^([+-])(\d{2})(?::?(\d{2}))?$/); // ±HH ou ±HH:MM (":" opcional)
+      if (!m) {
+        throw new Error(
+          `Offset inválido "${m}". Use "Z" ou formatos ±HH ou ±HH:MM, ex.: "-03:00", "+05:30"`,
+        );
+      }
+      const sign = m[1] === "-" ? -1 : 1;
+      const hh = parseInt(m[2], 10);
+      const mm = m[3] ? parseInt(m[3], 10) : 0;
+      if (hh > 23 || mm > 59) {
+        throw new Error(
+          "Offset fora do intervalo. HH deve ser 00..23 e MM 00..59.",
+        );
+      }
+      return sign * (hh * 60 + mm);
+    }
+
+    const offsetMin = parseOffsetToMinutes(offsetStr);
+
+    // Converte "agora" (UTC) para horário no offset desejado:
+    // localAlvo = UTC + offset
+    const tsAlvo = agora.getTime() + offsetMin * 60_000;
+    const alvo = new Date(tsAlvo);
+
+    // IMPORTANTE: após aplicar o offset no timestamp, usamos getters UTC
+    // para não aplicar offset novamente.
+    const ano = alvo.getUTCFullYear();
+    const mes = String(alvo.getUTCMonth() + 1).padStart(2, "0");
+    const dia = String(alvo.getUTCDate()).padStart(2, "0");
+    const hh = String(alvo.getUTCHours()).padStart(2, "0");
+    const mi = String(alvo.getUTCMinutes()).padStart(2, "0");
+    const ss = String(alvo.getUTCSeconds()).padStart(2, "0");
+
+    const data = `${ano}-${mes}-${dia}`; // YYYY-MM-DD
+    const hora = `${hh}:${mi}:${ss}`; // HH:MM:SS
 
     return { hora, data };
   }
@@ -818,6 +866,13 @@
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
 
     const agora = gerarDataHora();
+    if (config.TesteHora) {
+      const tDataX = document.getElementById("tDataX");
+      const vDataX = document.getElementById("vDataX");
+      tDataX.textContent = agora.data;
+      vDataX.textContent = agora.hora;
+    }
+
     stt.Encontrado = stt.Status === "---" ? 0 : 1;
     let ContAtual = stt.Encontrado ? "0" : "Encontrado";
 
@@ -856,16 +911,14 @@
     );
     verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
 
+    verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
+
     const Logou = config.LogueManual
       ? dadosLogueManu
       : exibirHora(agora, 0, TempoPausas.Logado);
     TempoPausas.Logou = Logou.hora;
 
-    const agora1 = gerarDataHora();
-
-    agora1.hora = TempoPausas.Logou;
-
-    const Saida = exibirHora(agora1, 1, config.TempoEscaladoHoras);
+    const Saida = exibirHora(Logou, 1, config.TempoEscaladoHoras);
 
     TempoPausas.Saida = Saida.hora;
     if (!config.LogueManual && compararDatas(dadosPrimLogue, Logou)) {
@@ -873,8 +926,14 @@
       verifiDataLogue(1);
     }
 
-    vLogou.textContent = TempoPausas.Logou || "00:00:00";
-    vSaida.textContent = TempoPausas.Saida || "00:00:00";
+    const oLogou = document.getElementById("oLogou");
+    const oSaida = document.getElementById("oSaida");
+
+    oLogou.textContent = config.TesteHora ? Logou.data : "";
+    oSaida.textContent = config.TesteHora ? Saida.data : "";
+
+    vLogou.textContent = TempoPausas.Logou;
+    vSaida.textContent = TempoPausas.Saida;
 
     if (!config.LogueManual) {
       if (
@@ -1456,6 +1515,7 @@
     }
     caixa.innerHTML = `
         <div id="t${titulo}">${titulo}:</div>
+        <div id="o${titulo}"></div>
         <div id="v${titulo}">...</div>
         `;
 
@@ -1503,6 +1563,7 @@
     const tma = criarCaixaDCv("c", "TMA");
     const falta = criarCaixaDCv("c", "Falta");
     const saida = criarCaixaDCv("c", "Saida");
+    const data = criarCaixaDCv("c", "DataX");
 
     // Cria um contêiner para agrupar as caixas
     const container = document.createElement("div");
@@ -1531,6 +1592,8 @@
     container.appendChild(logado);
     container.appendChild(criarSeparadorCV(4));
     container.appendChild(falta);
+    container.appendChild(criarSeparadorCV(5));
+    container.appendChild(data);
 
     // Cria um contêiner principal para agrupar tudo
     const minhaCaixa = document.createElement("div");
@@ -1726,11 +1789,10 @@
       input.min = 0;
       input.max = houm ? 23 : 59;
       input.style.cssText = `
-                width: 42px;
+                width: 35px;
                 background: #ffffff00;
                 border: solid 1px white;
                 color: white;
-                font-size: 12px;
                 border-radius: 8px;
             `;
       return input;
@@ -1918,43 +1980,75 @@
     }
 
     function ContModoTeste() {
-       const horaInputCai = document.createElement("div");
+      const horaInputCai = document.createElement("div");
       horaInputCai.style.cssText = `
         display: flex;
         justify-content: center;
         align-items: center;
+        flex-direction: column;
         `;
-      horaInputCai.id = "inputEscala";
+      horaInputCai.id = "testefuso";
       const SalvarHora = criarBotSalv("A13", "Salvar");
+
       SalvarHora.style.marginLeft = "5px";
       SalvarHora.addEventListener("click", function () {
         salvarHorario();
         SalvandoVariConfig(1);
       });
+      // Select de sinal (+/-)
+      const selSign = document.createElement("select");
+      selSign.id = "tzSign";
+      selSign.style.cssText = `
+       width: 30px;
+       background: rgba(255, 255, 255, 0);
+       border: 1px solid white;
+       color: white;
+       border-radius: 8px;
+       margin-right: 5px;`;
+
+      ["+", "-"].forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        selSign.appendChild(opt);
+      });
+
       const horaInputCaiHM = document.createElement("div");
-      horaInputCaiHM.style.cssText = `display: flex; align-items: center;`;
-      const [horasS, minutosS, segundosS] =
-        config.valorTeste.split(":").map(Number);
+      horaInputCaiHM.style.cssText = `display: flex;`;
+
+      const m = String(config.valorTeste)
+        .trim()
+        .match(/^([+-]?)(\d{2}):(\d{2})$/);
+      if (!m) {
+        // trate o erro, lance exceção, ou defina valores padrão
+        Herror(
+          `valorTeste inválido "${config.valorTeste}"/"${m}. Esperado: [+|-]HH:MM`,
+        );
+        config.valorTeste = "+03:00";
+        return;
+      }
+      const [, SinalT, HoraT, MinutosT] = m;
+
       const horaInputTE = entradatempo(
         "HoraEsc",
         1,
-        String(horasS).padStart(2, "0"),
+        String(HoraT).padStart(2, "0"),
       );
       const minuInputTE = entradatempo(
         "MinuEsc",
         0,
-        String(minutosS).padStart(2, "0"),
+        String(MinutosT).padStart(2, "0"),
       );
+      selSign.value = SinalT;
 
       function salvarHorario() {
-        const hora = parseInt(horaInputTE.value) || horasS;
-        const minuto = parseInt(minuInputTE.value) || minutosS;
+        const hora = parseInt(horaInputTE.value) || HoraT;
+        const minuto = parseInt(minuInputTE.value) || MinutosT;
 
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
-        const segundos = "00";
 
-        const horarioFormatado = `${horaFormatada}:${minutoFormatado}:${segundos}`;
+        const horarioFormatado = `${selSign.value}${horaFormatada}:${minutoFormatado}`;
 
         // Salva na variável
         config.valorTeste = horarioFormatado;
@@ -1964,14 +2058,24 @@
         horaInputTE.placeholder = horaFormatada;
         minuInputTE.placeholder = minutoFormatado;
       }
-      horaInputCaiHM.append(horaInputTE, doispontos(), minuInputTE);
-      horaInputCai.append(horaInputCaiHM, SalvarHora);
+      const ModoTesteAtivo = criarBotaoSlide2("TFuso", config.TesteHora, () => {
+        config.TesteHora = !config.TesteHora;
 
-      const a = CaixaDeOcultar(
-        criarBotSalv("A28", "Teste"),
-        horaInputCai,
-      );
-     
+        atualizarSlidePosi("BotTFuso", config.TesteHora);
+      });
+      horaInputCaiHM.append(selSign, horaInputTE, doispontos(), minuInputTE);
+
+      const salvEMod = document.createElement("div");
+      salvEMod.style.cssText = `display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 5px;`;
+      salvEMod.append(SalvarHora, ModoTesteAtivo);
+
+      horaInputCai.append(horaInputCaiHM, salvEMod);
+
+      const a = CaixaDeOcultar(criarBotSalv("A28", "Teste"), horaInputCai);
+
       return a;
     }
 
@@ -2092,8 +2196,6 @@
       const CBBancDa = criarCaixaSeg();
       CBBancDa.append(BBancDa);
       CBBancDa.append(CBancDa);
-
-    
 
       const BotaoResetT = c1riarBotSalv(15, "Restaurar Config");
       BotaoResetT.addEventListener("click", function () {
@@ -2918,7 +3020,9 @@
       Array.from(ticketsSet.values())
         .map(
           (v) =>
-            `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(v.nome)} }`,
+            `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(
+              v.nome,
+            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime} }`,
         )
         .join(", ") +
       "}";
@@ -2940,7 +3044,7 @@
       root = await waitForElement(selector, document, 20000);
     }
     if (!root) {
-      warn(
+      Hwarn(
         `Não foi possível localizar o omni-log-container para o ticket ${id} (timeout).`,
       );
       return;
@@ -2986,29 +3090,67 @@
 
   // ========= CALLBACK DE MUDANÇA DO TICKET =========
   function handleTicketChange(id) {
-    const info = EncontrarOUltimoTime(id); // { datatime, nome } ou null
-    const prev = ticketsSet.get(id) ?? { id, datatime: null, nome: null };
+    const info = EncontrarOUltimoTime(id);
+    const prev = ticketsSet.get(id) ?? {
+      id,
+      datatime: null,
+      nome: null,
+      seqQtd: null,
+      seqPrimeiroDatetime: null,
+    };
 
     if (!info) {
       Hlog(`(sem dados) ticket ${id}, mantendo anterior`);
       return;
     }
 
-    const changedDate = info.datatime !== prev.datatime;
-    const changedName = info.nome !== prev.nome;
+    // --- Compatibilidade com retorno antigo e novo ---
+    // Antigo:  { datatime, nome }
+    // Novo:    { ultimoDatetime, ultimoNome, sequencia: { nome, quantidade, primeiroDatetime } }
+    const datatimeAtual = info.ultimoDatetime ?? info.datatime ?? null;
+    const nomeAtual = info.ultimoNome ?? info.nome ?? null;
 
-    if (changedDate || changedName) {
+    const seqQtdAtual =
+      info.sequencia && typeof info.sequencia.quantidade === "number"
+        ? info.sequencia.quantidade
+        : null;
+
+    const seqPrimeiroDatetimeAtual =
+      info.sequencia && info.sequencia.primeiroDatetime
+        ? info.sequencia.primeiroDatetime
+        : null;
+
+    // --- Detectar mudanças ---
+    const changedDate = datatimeAtual !== prev.datatime;
+    const changedName = nomeAtual !== prev.nome;
+    const changedSeqQtd = seqQtdAtual !== prev.seqQtd;
+    const changedSeqPrimeiro =
+      seqPrimeiroDatetimeAtual !== prev.seqPrimeiroDatetime;
+
+    if (changedDate || changedName || changedSeqQtd || changedSeqPrimeiro) {
       ticketsSet.set(id, {
         id,
-        datatime: info.datatime ?? null,
-        nome: info.nome ?? null,
+        datatime: datatimeAtual,
+        nome: nomeAtual,
+        seqQtd: seqQtdAtual,
+        seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
       });
 
       if (changedDate) {
-        Hlog(`Atualizado datatime do ticket ${id}: ${info.datatime}`);
+        Hlog(`Atualizado datatime do ticket ${id}: ${datatimeAtual}`);
       }
       if (changedName) {
-        Hlog(`Atualizado nome do ticket ${id}: ${info.nome}`);
+        Hlog(`Atualizado nome do ticket ${id}: ${nomeAtual}`);
+      }
+      if (changedSeqQtd) {
+        Hlog(
+          `Atualizada sequência do mesmo remetente no ticket ${id}: quantidade = ${seqQtdAtual}`,
+        );
+      }
+      if (changedSeqPrimeiro) {
+        Hlog(
+          `Atualizado primeiro datetime da sequência no ticket ${id}: ${seqPrimeiroDatetimeAtual}`,
+        );
       }
 
       logTicketsSet();
@@ -3059,7 +3201,6 @@
   // ========= ENCONTRAR ÚLTIMO TIMESTAMP =========
   function EncontrarOUltimoTime(id) {
     try {
-      // Fallback simples para CSS.escape se não existir
       const cssEscape =
         window.CSS && typeof CSS.escape === "function"
           ? CSS.escape
@@ -3075,14 +3216,16 @@
       );
       if (!items.length) return null;
 
-      // Varre do último para o primeiro: pega o mais recente "válido"
+      // =============================================================
+      // 1) --- IDENTIFICAR O ÚLTIMO ITEM COM DATETIME OU NOME ---
+      // =============================================================
+      let ultimo = null;
+
       for (let i = items.length - 1; i >= 0; i--) {
         const it = items[i];
 
-        // 1) --- datetime ---
+        // --- datetime ---
         let datatime = null;
-
-        // Preferência: relativo -> absoluto -> qualquer time[datetime]
         const rel = it.querySelector(
           'time[data-test-id="timestamp-relative"][datetime]',
         );
@@ -3097,13 +3240,12 @@
         if (timeEl) {
           const dt = timeEl.getAttribute("datetime");
           if (dt && dt.trim()) {
-            datatime = dt.trim() + suffix; // acrescenta R/A quando aplicável
+            datatime = dt.trim() + suffix;
           }
         }
 
-        // 2) --- nome (sender) ---
+        // --- nome (sender) ---
         let nome = "";
-        // Cabeçalho (mensagens "first" costumam ter)
         const senderEl = it.querySelector(
           '[data-test-id="omni-log-item-sender"]',
         );
@@ -3111,7 +3253,6 @@
           nome = (senderEl.textContent || "").trim();
         }
 
-        // Fallback 1: link direto do usuário, quando existe
         if (!nome) {
           const userLink = it.querySelector(
             '[data-test-id="omni-log-comment-user-link"]',
@@ -3121,29 +3262,105 @@
           }
         }
 
-        // Fallback 2: extrair do aria-label do <article>
         if (!nome) {
-          // Sobe para o <article data-test-id="omni-log-comment-item">
           const article =
             it.closest('[data-test-id="omni-log-comment-item"]') || it;
           const aria = article?.getAttribute?.("aria-label") || "";
-          // Ex.: "Mensagem de RENATA VIEIRA..., por WhatsApp, Hoje 12:02"
-          // Tenta puxar o trecho entre "Mensagem de " e ", por "
           const m = aria.match(/Mensagem de\s*(.+?)\s*,\s*por\s/i);
           if (m && m[1]) {
             nome = m[1].trim();
           }
         }
 
-        // 3) Retorna quando houver ao menos um dos dois dados
         if (datatime || nome) {
-          return { datatime, nome, elemento: it };
+          ultimo = { index: i, datatime, nome, elemento: it };
+          break;
         }
       }
 
-      return null;
+      if (!ultimo) return null;
+
+      // =============================================================
+      // 2) --- NOVA AÇÃO ---
+      // Encontrar sequência consecutiva do mesmo nome
+      // =============================================================
+
+      const nomeAlvo = ultimo.nome;
+      let count = 1;
+      let primeiroDatetimeDaSequencia = ultimo.datatime;
+
+      // varrer para trás até quebrar a sequência
+      for (let j = ultimo.index - 1; j >= 0; j--) {
+        const it = items[j];
+
+        // extrair nome novamente
+        let nomeTemp = "";
+        const senderEl = it.querySelector(
+          '[data-test-id="omni-log-item-sender"]',
+        );
+        if (senderEl) {
+          nomeTemp = (senderEl.textContent || "").trim();
+        }
+
+        if (!nomeTemp) {
+          const userLink = it.querySelector(
+            '[data-test-id="omni-log-comment-user-link"]',
+          );
+          if (userLink) nomeTemp = (userLink.textContent || "").trim();
+        }
+
+        if (!nomeTemp) {
+          const article =
+            it.closest('[data-test-id="omni-log-comment-item"]') || it;
+          const aria = article?.getAttribute?.("aria-label") || "";
+          const m = aria.match(/Mensagem de\s*(.+?)\s*,\s*por\s/i);
+          if (m && m[1]) {
+            nomeTemp = m[1].trim();
+          }
+        }
+
+        // se mudou o nome → para
+        if (nomeTemp !== nomeAlvo) break;
+
+        // ler datetime
+        const rel = it.querySelector(
+          'time[data-test-id="timestamp-relative"][datetime]',
+        );
+        const abs = it.querySelector(
+          'time[data-test-id="timestamp-absolute"][datetime]',
+        );
+        const any = it.querySelector("time[datetime]");
+
+        const timeEl = rel || abs || any;
+        const suffix = rel ? "R" : abs ? "A" : "";
+
+        if (timeEl) {
+          const dt = timeEl.getAttribute("datetime");
+          if (dt && dt.trim()) {
+            primeiroDatetimeDaSequencia = dt.trim() + suffix;
+          }
+        }
+
+        count++;
+      }
+
+      // =============================================================
+      // 3) --- RETORNO COMPLETO ---
+      // =============================================================
+      return {
+        ultimoDatetime: ultimo.datatime,
+        ultimoNome: ultimo.nome,
+        elemento: ultimo.elemento,
+
+        // nova ação
+        sequencia: {
+          nome: ultimo.nome,
+          quantidade: count,
+          primeiroDatetime: primeiroDatetimeDaSequencia,
+        },
+      };
     } catch (err) {
-      Herror("Erro em EncontrarOUltimoTime:", err);
+      console.error("Erro em EncontrarOUltimoTime:", err);
       return null;
     }
   }
@@ -3165,7 +3382,7 @@
     }
 
     if (!tablist) {
-      warn(
+      Hwarn(
         'Elemento [data-test-id="header-tablist"] não encontrado (timeout). Observando o documento até aparecer.',
       );
 
@@ -3302,7 +3519,7 @@
     if (!(ticketsSet instanceof Map)) return;
 
     for (const [id, info] of ticketsSet) {
-      if (!info || !info.datatime || !info.nome) continue; // precisa ter datatime
+      if (!info || !info.seqPrimeiroDatetime || !info.nome) continue; // precisa ter datatime
 
       const el = document.getElementById(`Contador${id}`);
       if (!el) {
@@ -3311,7 +3528,7 @@
       }
 
       const agora = gerarDataHora(); // { data: "YYYY-MM-DD", hora: "HH:mm:ss" }
-      const a = isoParaDataHora(info.datatime); // idem, vindo do ISO salvo
+      const a = isoParaDataHora(info.seqPrimeiroDatetime); // idem, vindo do ISO salvo
 
       // Só calcula se a data for a mesma
       if (agora.data !== a.data) continue;
