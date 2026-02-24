@@ -3027,7 +3027,7 @@
         .join(", ") +
       "}";
 
-    HefestoLog(`ticketsSet = ${pretty}`);
+    Hlog(`ticketsSet = ${pretty}`);
   }
 
   // ========= OBSERVAÇÃO DE TICKET =========
@@ -3100,7 +3100,7 @@
     };
 
     if (!info) {
-      HefestoLog(`(sem dados) ticket ${id}, mantendo anterior`);
+      Hlog(`(sem dados) ticket ${id}, mantendo anterior`);
       return;
     }
 
@@ -3137,18 +3137,18 @@
       });
 
       if (changedDate) {
-        HefestoLog(`Atualizado datatime do ticket ${id}: ${datatimeAtual}`);
+        Hlog(`Atualizado datatime do ticket ${id}: ${datatimeAtual}`);
       }
       if (changedName) {
-        HefestoLog(`Atualizado nome do ticket ${id}: ${nomeAtual}`);
+        Hlog(`Atualizado nome do ticket ${id}: ${nomeAtual}`);
       }
       if (changedSeqQtd) {
-        HefestoLog(
+        Hlog(
           `Atualizada sequência do mesmo remetente no ticket ${id}: quantidade = ${seqQtdAtual}`,
         );
       }
       if (changedSeqPrimeiro) {
-        HefestoLog(
+        Hlog(
           `Atualizado primeiro datetime da sequência no ticket ${id}: ${seqPrimeiroDatetimeAtual}`,
         );
       }
@@ -3156,7 +3156,7 @@
       logTicketsSet();
       addContagem(id);
     } else {
-      HefestoLog(`(sem mudança) ticket ${id}`);
+      Hlog(`(sem mudança) ticket ${id}`);
     }
   }
 
