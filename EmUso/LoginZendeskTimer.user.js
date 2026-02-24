@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendesk
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.7.8
+// @version      1.3.7.9
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
