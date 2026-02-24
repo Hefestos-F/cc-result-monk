@@ -25,7 +25,6 @@
     ValorLogueManual: "12:00:00", // Valor utilizado quando LogueManual ativo
     LogueManual: 0, // Flag para usar logue manual (0|1)
     // Controle de logs: 'error'|'warn'|'info'|'debug' (mais verboso)
-    LogLevel: "info",
     ValorMetaTMA: 725, // Meta de TMA (em segundos)
     ModoSalvo: 1, // Modo de cálculos salvo (0|1)
     Vigia: 1, // Monitoramento ativo
@@ -75,7 +74,6 @@
     SomEstouro: 1,
     temOcul: 0,
     tempoPOcul: 8,
-    LogLevel: "info",
   };
 
   // ========= LOG UTILS =========

@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         LoginZendesk\EmTeste
+// @name         LoginZendeskTimerChat\EmTeste
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
 // @version      1.3.7.9
 // @description  that's all folks!
