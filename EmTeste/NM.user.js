@@ -24,7 +24,6 @@
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
     ValorLogueManual: "12:00:00", // Valor utilizado quando LogueManual ativo
     LogueManual: 0, // Flag para usar logue manual (0|1)
-    // Controle de logs: 'error'|'warn'|'info'|'debug' (mais verboso)
     ValorMetaTMA: 725, // Meta de TMA (em segundos)
     ModoSalvo: 1, // Modo de cálculos salvo (0|1)
     Vigia: 1, // Monitoramento ativo
@@ -246,7 +245,7 @@
     lContAtual: "#agent-state-section > div > span > div > div > span > span",
   };
 
-  addAoini();
+  
 
   RecuperarTVariaveis();
 
@@ -336,6 +335,8 @@
     }
 
     // Aplica configurações recuperadas e inicializa estruturas
+    
+    await addAoini();
     await SalvandoVari(3);
     await SalvarLogueManual(0);
     await salvarDPausas();
