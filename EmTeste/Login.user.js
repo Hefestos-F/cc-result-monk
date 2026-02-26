@@ -232,9 +232,7 @@
   };
 
   function obterEstadoAgenteComoObjeto() {
-    const el = document.querySelector(
-      '[data-testid="current-agent-state"]',
-    );
+    const el = document.querySelector('[data-testid="current-agent-state"]');
     if (!el) return null;
 
     const raw = (el.textContent || "").trim(); // Ex.: "FSDisponível (03:08)"
@@ -248,8 +246,6 @@
       .replace(/^\s*.{2}/, "") // ignora as 2 primeiras letras (ex.: "FS")
       .replace(/\s*\(\d{2}:\d{2}\)\s*/, "") // remove "(HH:MM)"
       .trim();
-
-    
 
     return {
       Status: status, // Ex.: "Disponivel"
@@ -266,13 +262,11 @@
       return (stt.andament = 1);
     }
 
-    let statusAtual = el.Status;
+    stt.Status = el.Status;
 
     // Se não mudou, não faz nada
 
-    stt.Status = statusAtual;
-
-    if (DDPausa.StatusANT === stt.Status) {
+    if (stt.Status === "" || stt.Status === DDPausa.StatusANT) {
       return (stt.andament = 1);
     }
 
@@ -325,7 +319,6 @@
         Hlog(`fim: ${JSON.stringify(agora)}`);
         TempoPausas.Online = somarDuracoes().totalSegundos;
       }
-      
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
       DDPausa.numero = DDPausa.numero + 1;
@@ -935,7 +928,6 @@
       if (
         !DDPausa.inicioUltimaP ||
         !DDPausa.inicioUltimaP.data ||
-        stt.Status.includes("Offline") ||
         !stt.Encontrado
       ) {
         return;
