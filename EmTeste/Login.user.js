@@ -119,8 +119,8 @@
   let dadosLogueManu;
 
   // Configuração do IndexedDB
-  const nomeBD = "MeuBDZen";
-  const StoreBD = "LogueMonk";
+  const nomeBD = "Hefestos";
+  const StoreBD = "LogueNice";
 
   // ========= LOG UTILS =========
 
