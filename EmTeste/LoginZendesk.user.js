@@ -24,6 +24,7 @@
     OBS_ATIVO: 1,
     TesteHora: 0,
     valorTeste: "-03:00",
+    VoltarPad: 0,
   };
 
   const configPadrao = {
@@ -33,7 +34,10 @@
     LogueManual: 0,
     SomEstouro: 1,
     notiEstouro: 1,
-    OBS_ATIVO: true,
+    OBS_ATIVO: 1,
+    TesteHora: 0,
+    valorTeste: "-03:00",
+    VoltarPad: 0,
   };
 
   const stt = {
@@ -88,7 +92,7 @@
   /**
    * PCcor - Cores padrão (backup)
    */
-  const PCcor = {
+  const CorPad = {
     Offline: "#3a82cf",
     Atualizando: "#c97123ff",
     Erro: "#992e2e",
@@ -777,19 +781,6 @@
   }
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
-  function gerarDataHora2() {
-    const agora = new Date();
-
-    const hora = agora.toLocaleTimeString("pt-BR", { hour12: false }); // HH:MM:SS
-
-    // Gera YYYY-MM-DD em fuso local:
-    const ano = agora.getFullYear();
-    const mes = String(agora.getMonth() + 1).padStart(2, "0");
-    const dia = String(agora.getDate()).padStart(2, "0");
-    const data = `${ano}-${mes}-${dia}`;
-
-    return { hora, data };
-  }
 
   function gerarDataHora() {
     const agora = new Date();
@@ -852,7 +843,6 @@
 
   // Atualiza o timer a cada segundo
   setInterval(() => {
-    if (config.OBS_ATIVO) AtualizarTimerChat();
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
     const vLogou = document.getElementById("vLogou");
@@ -1567,7 +1557,7 @@
 
     // Cria um contêiner para agrupar as caixas
     const container = document.createElement("div");
-    container.setAttribute("id", "contValores");
+    container.id = "contValores";
     container.style.cssText = `
         display: flex;
         opacity: 1;
@@ -1663,14 +1653,29 @@
 
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
-    Divbot.appendChild(Space);
-    Divbot.appendChild(InfoV);
+    //Divbot.appendChild(Space);
+    //Divbot.appendChild(InfoV);
     minhaCaixa.appendChild(Divbot);
 
     return minhaCaixa;
   }
 
   async function SalvandoVariConfig(modo) {
+    if (config.VoltarPad) {
+      for (const chave in configPadrao) {
+        config[chave] = configPadrao[chave];
+      }
+      for (const chave in CorPad) {
+        Ccor[chave] = CorPad[chave];
+      }
+      atualizarVisual();
+      const c = document.getElementById("CaixaConfig");
+      if (c) {
+        c.remove();
+        stt.AbaConfig = 0;
+      }
+    }
+
     const AsVari = {
       DDPausa: { ...DDPausa },
       Ccor: { ...Ccor },
@@ -1707,6 +1712,7 @@
 
     if (modo) {
       await AddOuAtuIindexdb(ChaveConfig, AsVari);
+
       Hlog(`Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`);
     } else {
       aplicarConfiguracao(dadosSalvosConfi);
@@ -1721,7 +1727,7 @@
         opacity: 1;
         font-size: 12px;
         }
-        `;
+    `;
 
     const caixa = document.createElement("div");
     caixa.id = "CaixaConfig";
@@ -1738,7 +1744,7 @@
         width: max-content;
         border: 1px solid white;
         margin-left: 5px;
-        `;
+    `;
 
     function criarCaixaSeg() {
       const caixa = document.createElement("div");
@@ -1946,18 +1952,23 @@
       horaInputCailogueManual.style.cssText = `display: flex; justify-content: center; align-items: center;`;
       horaInputCailogueManual.id = "CinputLogueManual";
 
-      const logueManualC = criarBotaoSlide2(13, config.LogueManual, () => {
-        config.LogueManual = !config.LogueManual;
-        if (config.LogueManual) {
-          const [horasIm, minutosIm] = TempoPausas.Logou.split(":").map(Number);
-          if (horaInputlogueManual.value === "")
-            horaInputlogueManual.value = String(horasIm).padStart(2, "0");
-          if (minuInputlogueManual.value === "")
-            minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
-          dataInputlogueManual.value = new Date().toISOString().split("T")[0];
-        }
-        atualizarSlidePosi("Bot13", config.LogueManual);
-      });
+      const logueManualC = criarBotaoSlide2(
+        "LogManu",
+        config.LogueManual,
+        () => {
+          config.LogueManual = !config.LogueManual;
+          if (config.LogueManual) {
+            const [horasIm, minutosIm] =
+              TempoPausas.Logou.split(":").map(Number);
+            if (horaInputlogueManual.value === "")
+              horaInputlogueManual.value = String(horasIm).padStart(2, "0");
+            if (minuInputlogueManual.value === "")
+              minuInputlogueManual.value = String(minutosIm).padStart(2, "0");
+            dataInputlogueManual.value = new Date().toISOString().split("T")[0];
+          }
+          atualizarVisual();
+        },
+      );
 
       logueManualC.style.cssText = `margin-left: 6px;`;
 
@@ -2061,7 +2072,7 @@
       const ModoTesteAtivo = criarBotaoSlide2("TFuso", config.TesteHora, () => {
         config.TesteHora = !config.TesteHora;
 
-        atualizarSlidePosi("BotTFuso", config.TesteHora);
+        atualizarVisual();
       });
       horaInputCaiHM.append(selSign, horaInputTE, doispontos(), minuInputTE);
 
@@ -2105,21 +2116,9 @@
       return a;
     }
 
-    const CIgOffline = criarCaixaSeg();
-    const IgOffline = criarLinhaTextoComBot(16, "Ignorar Offline");
-    CIgOffline.append(IgOffline);
-
-    const CIgTMA = criarCaixaSeg();
-    const IgTMA = criarLinhaTextoComBot(19, "Ignorar TMA");
-    CIgTMA.append(IgTMA);
-
-    const CIgErro = criarCaixaSeg();
-    const IgErro = criarLinhaTextoComBot(20, "Ignorar Erro Nice");
-    CIgErro.append(IgErro);
-
     const CTimerCh = criarCaixaSeg();
     const TimerCh = criarLinhaTextoComBot2(
-      29,
+      "TimerCh",
       "Timer No Chat",
       config.OBS_ATIVO,
       () => {
@@ -2129,28 +2128,29 @@
           retomarObservacao();
         }
         SalvandoVariConfig(1);
-        atualizarSlidePosi("Bot29", config.OBS_ATIVO);
+        atualizarVisual();
       },
     );
     CTimerCh.append(TimerCh);
 
     const IgEst = criarLinhaTextoComBot2(
-      22,
+      "NotEst",
       "Notificar Estouro",
       config.notiEstouro,
       () => {
         config.notiEstouro = !config.notiEstouro;
-        atualizarSlidePosi("Bot22", config.notiEstouro);
+        atualizarVisual();
+
         if (!config.notiEstouro) atualizarComoff(0, "cTMA");
       },
     );
     const IgEstSom = criarLinhaTextoComBot2(
-      23,
+      "SomEst",
       "Som",
       config.SomEstouro,
       () => {
         config.SomEstouro = !config.SomEstouro;
-        atualizarSlidePosi("Bot23", config.SomEstouro);
+        atualizarVisual();
         RepetirBeep();
       },
     );
@@ -2162,7 +2162,7 @@
     CigEstDep.append(IgEst, IgEstSom);
 
     const CIgEst = CaixaDeOcultar(
-      criarBotSalv(24, "Estouro de Pausa"),
+      criarBotSalv("CIgEst", "Estouro de Pausa"),
       CigEstDep,
     );
 
@@ -2184,7 +2184,7 @@
       const CBancDa = criarCaixaSeg();
       CBancDa.id = "CBancDa";
 
-      const BBancDa = c1riarBotSalv(31, "Banco de Dados");
+      const BBancDa = c1riarBotSalv("BBancDa", "Banco de Dados");
       BBancDa.addEventListener("click", function () {
         if (CBancDa.innerHTML === "") {
           listarChavesEConteudos(); // Preenche o conteúdo
@@ -2197,12 +2197,12 @@
       CBBancDa.append(BBancDa);
       CBBancDa.append(CBancDa);
 
-      const BotaoResetT = c1riarBotSalv(15, "Restaurar Config");
+      const BotaoResetT = c1riarBotSalv("BotaoResetT", "Restaurar Config");
       BotaoResetT.addEventListener("click", function () {
         caixa.appendChild(
           ADDCaixaDAviso("Restaurar Config", () => {
-            SalvandoVari(2);
-            iniciarBusca();
+            config.VoltarPad = 1;
+            SalvandoVariConfig(1);
           }),
         );
       });
@@ -2222,7 +2222,7 @@
         caixaDeBotres,
       );
 
-      const a = CaixaDeOcultar(criarBotSalv(21, "Avançado"), Cavancado);
+      const a = CaixaDeOcultar(criarBotSalv("Avanc", "Avançado"), Cavancado);
 
       a.style.cssText = `
       display: flex;
@@ -2234,65 +2234,7 @@
       return a;
     }
 
-    function Faixa() {
-      const b = criarCaixaSeg();
-      b.id = "ContFaixa";
-
-      const fixar = criarLinhaTextoComBot(18, "Faixar Valor");
-
-      const ocultar = document.createElement("div");
-      ocultar.textContent = "Ocultar em ";
-
-      const c = criarCaixaSeg();
-      c.id = "C2ontFaixa";
-      c.style.flexDirection = "";
-      c.style.justifyContent = "space-between";
-
-      const InputMin = document.createElement("input");
-      InputMin.className = "placeholderPerso";
-      InputMin.placeholder = config.tempoPOcul;
-      InputMin.type = "number";
-      InputMin.min = "3";
-      InputMin.max = "99";
-      InputMin.style.cssText = `
-        width: 40px;
-        height: 16px;
-        color: white;
-        background: #ffffff00;
-        border: solid 1px white;
-        margin: 0px 3px;
-        `;
-      InputMin.addEventListener("input", function () {
-        config.tempoPOcul = InputMin.value || InputMin.min;
-      });
-
-      c.append(ocultar);
-      c.append(InputMin);
-      const d = criarBotaoSlide2(33, () => {
-        config.temOcul = !config.temOcul;
-        if (config.temOcul) config.FaixaFixa = 0;
-        AtualizarConf();
-      });
-      const text = document.createElement("div");
-      text.textContent = "seg";
-      c.append(text);
-      c.append(d);
-
-      b.append(fixar);
-      b.append(c);
-
-      const a = CaixaDeOcultar(criarBotSalv(32, "Faixa"), b);
-
-      return a;
-    }
-
     caixa.append(
-      //Faixa(),
-      //criarSeparador(),
-      //CIgOffline,
-      //CIgTMA,
-      //CIgErro,
-      //criarSeparador(),
       CTimerCh,
       criarSeparador(),
       caixaDeCor(),
@@ -2305,8 +2247,6 @@
       criarSeparador(),
       Cbotavan(),
     );
-
-    //document.body.appendChild(caixa);
 
     // Função auxiliar para criar linha com texto e bolinha
     function criarLinhaTextoComBot(idbola, texto) {
@@ -2408,6 +2348,8 @@
       if (!elemento.classList.contains("active")) {
         elemento.classList.add("active");
         elemento.style.backgroundColor = Ccor.Principal;
+      } else if (elemento.style.backgroundColor !== Ccor.Principal) {
+        elemento.style.backgroundColor = Ccor.Principal;
       }
     } else {
       if (elemento.classList.contains("active")) {
@@ -2428,11 +2370,15 @@
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
-    //Hlog(`O valor de qq2:${qq}`);
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
     if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
+
+    atualizarSlidePosi("BotTimerCh", config.OBS_ATIVO);
+    atualizarSlidePosi("BotLogManu", config.LogueManual);
+    atualizarSlidePosi("BotTFuso", config.TesteHora);
+    atualizarSlidePosi("BotNotEst", config.notiEstouro);
   }
 
   /**
@@ -2852,4 +2798,88 @@
     }
   }
 
+  /**
+   * ADDCaixaDAviso - cria caixa de diálogo confirmação (Sim/Não)
+   * @param {string} titulo - título do diálogo
+   * @param {Function} funcao - callback ao clicar em "Sim"
+   * @returns {HTMLElement} caixa de aviso posicionada
+   */
+  function ADDCaixaDAviso(titulo, funcao) {
+    const caixa = document.createElement("div");
+    caixa.id = "CaiDeAvi";
+    caixa.style.cssText = `
+        background: ${Ccor.Principal};
+        position: absolute;
+        padding: 6px 10px;
+        border-radius: 12px;
+       display: flex;
+        flex-direction: column;
+        align-items: center;
+        `;
+
+    const elementoTitulo = document.createElement("div");
+    elementoTitulo.innerHTML = titulo;
+    elementoTitulo.style.cssText = `
+            font-size: 14px;
+            border-bottom-style: dashed;
+            border-width: 1px;
+            margin-bottom: 6px;
+        `;
+
+    const elementoPergunta = document.createElement("div");
+    elementoPergunta.style.cssText = `
+        margin-bottom: 8px;
+        `;
+    elementoPergunta.innerHTML = "Tem Certeza ?";
+
+    const caixaBotoes = document.createElement("div");
+    caixaBotoes.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        `;
+
+    /**
+     * criarBotaoOpcao - cria botão de opção (Sim/Não)
+     * @param {string} texto - texto do botão (Sim ou Não)
+     * @returns {HTMLElement} botão formatado
+     */
+    function criarBotaoOpcao(texto) {
+      const botao = document.createElement("div");
+      botao.innerHTML = texto;
+      botao.style.cssText = `
+            cursor: pointer;
+            border: white 1px solid;
+            border-radius: 15px;
+            padding: 2px 4px;
+           `;
+      botao.addEventListener("mouseover", function () {
+        botao.style.background = "white";
+        botao.style.color = Ccor.Principal;
+      });
+
+      botao.addEventListener("mouseout", function () {
+        botao.style.background = "";
+        botao.style.color = "";
+      });
+      botao.addEventListener("click", function () {
+        if (texto === "Sim") {
+          funcao();
+          caixa.remove();
+        } else {
+          caixa.remove();
+        }
+      });
+      return botao;
+    }
+
+    caixaBotoes.appendChild(criarBotaoOpcao("Sim"));
+    caixaBotoes.appendChild(criarBotaoOpcao("Não"));
+
+    caixa.appendChild(elementoTitulo);
+    caixa.appendChild(elementoPergunta);
+    caixa.appendChild(caixaBotoes);
+
+    return caixa;
+  }
 })();
