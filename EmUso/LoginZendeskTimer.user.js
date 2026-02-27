@@ -1744,6 +1744,7 @@
         width: max-content;
         border: 1px solid white;
         margin-left: 5px;
+        max-height: 200px;
     `;
 
     function criarCaixaSeg() {
@@ -2476,15 +2477,15 @@
         margin-left: 5px;
         border-radius: 8px;
         padding: 5px;
-        max-width: 400px;
         height: max-content;
         border: 1px solid white;
         transition: 0.5s;
         overflow: auto;
         display: grid;
-        grid-template-rows: repeat(4, auto); /* 4 linhas */
-        grid-auto-flow: column; /* Preenche colunas automaticamente */
+        grid-template-columns: repeat(4, auto); /* 4 linhas */
+        grid-auto-flow: row; /* Preenche colunas automaticamente */
         gap: 2px 6px; /* Espaçamento entre itens */
+        max-height: 185px;
        `;
 
     /**

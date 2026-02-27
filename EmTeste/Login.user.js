@@ -65,6 +65,9 @@
     Online: 0,
     Time: 0,
     Estouro: 0,
+    ContAtual: 0,
+    Trabalhando: 0,
+    Atendidas: 0,
   };
 
   const DDPausa = {
@@ -262,11 +265,12 @@
       return (stt.andament = 1);
     }
 
-    stt.Status = el.Status;
+    stt.Status = formatPrimeiroNome(el.Status);
 
     // Se não mudou, não faz nada
 
     if (stt.Status === "" || stt.Status === DDPausa.StatusANT) {
+      if (stt.Status === DDPausa.StatusANT) DDPausa.ContAtual = el.tempo;
       return (stt.andament = 1);
     }
 
@@ -295,6 +299,7 @@
       // Tentamos fechar o registro atual (se tiver inicio salvo)
       // OBS: isso mantém seu comportamento de "fecha pausa atual" a cada mudança
       // (desde que exista início registrado).
+
       const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
 
       const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
@@ -318,6 +323,8 @@
 
         Hlog(`fim: ${JSON.stringify(agora)}`);
         TempoPausas.Online = somarDuracoes().totalSegundos;
+
+        TempoPausas.Trabalhando = somarDuracoesTrabalho().totalFormatado;
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
@@ -481,7 +488,36 @@
 
     const totalSegundos = dadosdePausas.reduce((acc, item) => {
       // tenta pegar o campo; qualquer coisa inválida vira 0
+      //if(item?.duracao)
       const s = converterParaSegundos(item?.duracao);
+      return acc + (Number.isFinite(s) ? s : 0);
+    }, 0);
+
+    return {
+      totalSegundos,
+      totalFormatado: converterParaTempo(totalSegundos),
+    };
+  }
+
+  // Soma as durações do array (campo "duracao")
+  function somarDuracoesTrabalho() {
+    // Se não é array ou está vazio, retorna zero direto
+    if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
+      return {
+        totalSegundos: 0,
+        totalFormatado: "00:00:00",
+      };
+    }
+
+    TempoPausas.Atendidas = 0;
+    const totalSegundos = dadosdePausas.reduce((acc, item) => {
+      // Ignora itens que não são "Trabalhando"
+      if (item?.pausa !== "Trabalhando") return acc;
+
+      TempoPausas.Atendidas = TempoPausas.Atendidas + 1;
+
+      const s = converterParaSegundos(item?.duracao);
+
       return acc + (Number.isFinite(s) ? s : 0);
     }, 0);
 
@@ -863,10 +899,18 @@
     }
 
     stt.Encontrado = stt.Status === "---" ? 0 : 1;
-    let ContAtual = stt.Encontrado ? "0" : "Encontrado";
 
-    titulo.textContent = stt.Encontrado ? stt.Status : "Não";
-    time.textContent = ContAtual;
+    let tma =
+      TempoPausas.Atendidas > 0
+        ? converterParaSegundos(TempoPausas.Trabalhando) / TempoPausas.Atendidas
+        : 0;
+
+    titulo.textContent = stt.Encontrado ? "TMA" : "Não";
+    time.textContent = stt.Encontrado
+      ? tma
+        ? Math.floor(tma)
+        : "Erro"
+      : "Encontrado";
 
     if (!InfoV) {
     } else if (
@@ -934,22 +978,17 @@
       }
     }
 
-    ContAtual = !stt.Encontrado
-      ? "---"
-      : !DDPausa.inicioUltimaP || !DDPausa.inicioUltimaP.data
-        ? "-?-"
-        : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
+    const el = obterEstadoAgenteComoObjeto();
+
+    if (el && el.tempo) {
+      TempoPausas.ContAtual = el.tempo;
+    }
 
     TempoPausas.Logado = config.LogueManual
       ? exibirAHora(agora, 0, Logou).hora
       : converterParaTempo(
-          TempoPausas.Online + converterParaSegundos(ContAtual),
+          TempoPausas.Online + converterParaSegundos(TempoPausas.ContAtual),
         );
-
-    time.textContent =
-      ContAtual === "---" || ContAtual === "-?-"
-        ? ContAtual
-        : tempoEncurtado(ContAtual);
 
     TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
 
@@ -977,7 +1016,9 @@
       : tempoEncurtado(TempoPausas.Falta);
 
     if (config.pausalimitada && config.notiEstouro) {
-      stt.Estouro = compararDatas(agora, TempoPausas.Estouro);
+      stt.Estouro = TempoPausas.Estouro
+        ? compararDatas(agora, TempoPausas.Estouro)
+        : 0;
       atualizarComoff(stt.Estouro, "cTMA");
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
@@ -1155,6 +1196,100 @@
     requisicao_bd.onerror = function (event) {
       Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
     };
+  }
+
+  /**
+   * listarChavesEConteudos - lista todas as chaves e conteúdos do IndexedDB
+   * Exibe painel interativo com visualização e exclusão de registros
+   */
+  function listarChavesEConteudos() {
+    abrirDB(function (db) {
+      const transacao = db.transaction([StoreBD], "readonly");
+      const store = transacao.objectStore(StoreBD);
+      const request = store.getAllKeys();
+
+      request.onsuccess = function (event) {
+        const chaves = event.target.result;
+
+        let contador = 0;
+        chaves.forEach((nomeChave) => {
+          const requisicaoConteudo = store.get(nomeChave);
+
+          requisicaoConteudo.onsuccess = function (e) {
+            const conteudoChave = e.target.result;
+
+            const CaixaConfig = document.getElementById("CaixaConfig");
+            const CBancDa = document.getElementById("CBancDa");
+
+            // Criar estrutura HTML
+            const divPai = document.createElement("div");
+            divPai.style.cssText = `max-width: 200px;`;
+            const TituloEBot = document.createElement("div");
+            TituloEBot.style.cssText = `
+                        display: flex;
+                        width: 100%;
+                        justify-content: space-between;
+                        margin: 6px 0px;
+                        `;
+
+            const divChave = document.createElement("div");
+            divChave.textContent = nomeChave;
+            divChave.style.cssText = `
+                        cursor: pointer;
+                        text-decoration: underline;
+                        font-size: 13px;
+                        `;
+
+            const divConteudo = document.createElement("div");
+            divConteudo.style.cssText = `
+                        display: none;
+                        justify-content: center;
+                        `;
+
+            divConteudo.textContent = JSON.stringify(conteudoChave, null, 2);
+
+            divChave.addEventListener("click", function () {
+              if (
+                divConteudo.style.display === "none" ||
+                divConteudo.style.display === ""
+              ) {
+                divConteudo.style.display = "flex";
+              } else {
+                divConteudo.style.display = "none";
+              }
+            });
+
+            contador = contador + 1;
+            const botaoExcluir = document.createElement("div");
+            botaoExcluir.id = `Chave${contador}`;
+            botaoExcluir.style.cssText = `
+                        cursor: pointer;
+                        `;
+            botaoExcluir.textContent = "❌";
+            botaoExcluir.addEventListener("click", function () {
+              CaixaConfig.appendChild(
+                ADDCaixaDAviso("Excluir", () => {
+                  ApagarChaveIndexDB(nomeChave);
+                  CBancDa.innerHTML = "";
+                  listarChavesEConteudos();
+                }),
+              );
+            });
+
+            TituloEBot.appendChild(divChave);
+            TituloEBot.appendChild(botaoExcluir);
+            divPai.appendChild(TituloEBot);
+            divPai.appendChild(divConteudo);
+
+            CBancDa.appendChild(divPai);
+          };
+        });
+      };
+
+      request.onerror = function (event) {
+        Herror("Erro ao listar as chaves:", event.target.errorCode);
+      };
+    });
   }
 
   /**
@@ -1742,6 +1877,7 @@
         width: max-content;
         border: 1px solid white;
         margin-left: 5px;
+        max-height: 200px;
     `;
 
     function criarCaixaSeg() {
@@ -2479,8 +2615,8 @@
         transition: 0.5s;
         overflow: auto;
         display: grid;
-        grid-template-rows: repeat(4, auto); /* 4 linhas */
-        grid-auto-flow: column; /* Preenche colunas automaticamente */
+        grid-template-columns: repeat(4, auto); /* 4 linhas */
+        grid-auto-flow: row; /* Preenche colunas automaticamente */
         gap: 2px 6px; /* Espaçamento entre itens */
        `;
 
@@ -2561,6 +2697,9 @@
         const fimHora = item?.fim?.hora ?? "<--->";
         const duracao = item?.duracao ?? "<--->";
         const pausa = item?.pausa ?? "";
+
+        if (["Pós", "Callback", "Trabalhando", "Disponível"].includes(pausa))
+          return;
 
         caixa.append(
           criarItemTabela(item.id, "pausa", pausa),
