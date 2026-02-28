@@ -53,6 +53,8 @@
     Estour1: 0,
     BeepRet: 0,
     Encontrado: 0,
+    LadoBot: 0,
+    LadoBotAnterior: 0,
   };
 
   let TempoPausas = {
@@ -322,9 +324,9 @@
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
 
         Hlog(`fim: ${JSON.stringify(agora)}`);
-        TempoPausas.Online = somarDuracoes().totalSegundos;
+        TempoPausas.Online = somarDuracoes().totalSegundos || 0;
 
-        TempoPausas.Trabalhando = somarDuracoesTrabalho().totalFormatado;
+        TempoPausas.Trabalhando = somarDuracoesTrabalho().totalFormatado || 0;
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
@@ -388,6 +390,7 @@
       x = 1;
       ApagarChaveIndexDB(ChavePausas);
       dadosdePausas = [];
+      DDPausa.numero = 1;
       TempoPausas = {};
       SalvandoVariConfig(1);
     }
@@ -399,6 +402,7 @@
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = a;
       dadosdePausas = [];
+      DDPausa.numero = 1;
       TempoPausas = {};
       SalvandoVariConfig(1);
       x = 1;
@@ -740,45 +744,73 @@
     const div = document.createElement("div");
     div.id = "FlutOB";
     // Estilo do container principal
-    div.style.cssText = `
-     position: fixed;
-     bottom: 1px;
-     left: 1px;
-     border-radius: 8px;
-     z-index: 16;
-     box-sizing: border-box;
-     user-select: none;
-     transform: translate(0px, 0px);
-     will-change: transform;
-     display: flex;
-     flex-direction: column;
-     align-items: center;
-     background-color: ${Ccor.Principal};
-     padding: 3px;
-     box-sizing: border-box;
-    `;
+    Object.assign(div.style, {
+      position: "fixed",
+      // Posição inicial (canto inferior esquerdo). Vamos migrar para top/left.
+      // Para manter no mesmo lugar, usaremos bottom inicialmente e já converteremos para top/left.
+      top: "0px",
+      left: "0px",
+      borderRadius: "8px",
+      zIndex: "16",
+      boxSizing: "border-box",
+      userSelect: "none",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      backgroundColor: Ccor.Principal,
+      padding: "3px",
+    });
+
     const handle = document.createElement("div"); // Área para arrastar
     handle.id = "AreaArrast";
-    // Estilo da área de arrasto
-    handle.style.cssText = `
-    width: 100%;
-    height: 5px;
-    background-color: ${Ccor.AreaAr};
-    cursor: grab;
-    border-radius: 4px;
-    margin-bottom: 5px;
-    `;
+    Object.assign(handle.style, {
+      width: "100%",
+      height: "5px",
+      backgroundColor: Ccor.AreaAr,
+      cursor: "grab",
+      borderRadius: "4px",
+      marginBottom: "5px",
+      touchAction: "none", // evita gestos padrão em touch
+    });
 
-    let offsetX = 0,
-      offsetY = 0,
-      dragging = false,
-      startX = 0,
-      startY = 0;
+    // -----
+    // Estados do arrasto
+    let dragging = false;
+    let startX = 0; // posição do cursor ao iniciar arrasto
+    let startY = 0;
+    let startLeft = 0; // left/top do elemento ao iniciar arrasto
+    let startTop = 0;
+
+    // Helper: garante que o elemento tenha top/left explícitos (converte de bottom se necessário)
+    function ensureTopLeft() {
+      const rect = div.getBoundingClientRect();
+      // Se ainda não definimos top/left, convertemos a posição atual para top/left
+      if (!div.style.top) {
+        div.style.top = `${rect.top}px`;
+      }
+      if (!div.style.left) {
+        div.style.left = `${rect.left}px`;
+      }
+      // Removemos bottom para não conflitar
+      div.style.bottom = "";
+      // Não usamos transform para movimentar
+      div.style.transform = "";
+    }
+
+    // Helper: limita o valor entre min e max
+    const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
     function onPointerDown(e) {
+      ensureTopLeft();
+
       dragging = true;
       startX = e.clientX;
       startY = e.clientY;
+
+      // Posição inicial do elemento
+      startLeft = parseFloat(div.style.left) || 0;
+      startTop = parseFloat(div.style.top) || 0;
+
       handle.style.cursor = "grabbing";
       div.setPointerCapture?.(e.pointerId);
       e.preventDefault();
@@ -786,33 +818,114 @@
 
     function onPointerMove(e) {
       if (!dragging) return;
+
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      div.style.transform = `translate(${offsetX + dx}px, ${offsetY + dy}px)`;
+
+      // Dimensões visíveis
+      const maxLeft = window.innerWidth - div.offsetWidth;
+      const maxTop = window.innerHeight - div.offsetHeight;
+
+      const newLeft = clamp(startLeft + dx, 0, Math.max(0, maxLeft));
+      const newTop = clamp(startTop + dy, 0, Math.max(0, maxTop));
+
+      div.style.left = `${newLeft}px`;
+      div.style.top = `${newTop}px`;
     }
 
     function onPointerUp(e) {
       if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      offsetX += dx;
-      offsetY += dy;
       dragging = false;
       handle.style.cursor = "grab";
       div.releasePointerCapture?.(e.pointerId);
+    }
+
+    // Reajusta posição caso a janela seja redimensionada
+    function onResize() {
+      if (!div.isConnected) {
+        window.removeEventListener("resize", onResize);
+        return;
+      }
+      ensureTopLeft();
+      const left = parseFloat(div.style.left) || 0;
+      const top = parseFloat(div.style.top) || 0;
+
+      const maxLeft = window.innerWidth - div.offsetWidth;
+      const maxTop = window.innerHeight - div.offsetHeight;
+
+      div.style.left = `${clamp(left, 0, Math.max(0, maxLeft))}px`;
+      div.style.top = `${clamp(top, 0, Math.max(0, maxTop))}px`;
     }
 
     // Eventos apenas na área de arrasto
     handle.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("resize", onResize);
 
+    // Evita comportamento de arrastar nativo
     div.ondragstart = () => false;
 
     // Monta estrutura
     div.appendChild(handle);
     div.appendChild(AdicionarCaixaAtualizada());
     document.body.appendChild(div);
+
+    // Após inserir no DOM, converte bottom->top e aplica clamp inicial
+    ensureTopLeft();
+    onResize();
+  }
+
+  function BotoesLateral() {
+    const Divbot = document.createElement("div");
+    Divbot.id = "ContPaCo";
+    Divbot.style.cssText = `
+    margin-left: -20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.5s;
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+    `;
+
+    const a = document.getElementById("minhaCaixa");
+    if (!a) return;
+
+    Divbot.appendChild(ADDBotConfig());
+    Divbot.appendChild(ADDBotPa());
+
+    a.insertBefore(Divbot, a.children[stt.LadoBot]);
+  }
+
+  /**
+   * Informa se o elemento está mais à esquerda, à direita ou centralizado no viewport.
+   * @param {Element} el - elemento alvo
+   * @param {object} [opts]
+   * @param {number} [opts.centerTolerance=12] - tolerância (px) para considerar "center"
+   * @returns {{ side: 'left'|'right'|'center', distancePx: number, ratio: number, visiblePctX: number }}
+   */
+  function ladoNoViewport(el, opts = {}) {
+    const { centerTolerance = 12 } = opts;
+    if (!el || !el.getBoundingClientRect) {
+      return { side: "center", distancePx: 0 };
+    }
+
+    const rect = el.getBoundingClientRect();
+    const vw = window.innerWidth;
+
+    // Centro do elemento e do viewport
+    const elCenterX = rect.left + rect.width / 2;
+    const viewCenterX = vw / 2;
+
+    const distancePx = elCenterX - viewCenterX; // >0 -> direita; <0 -> esquerda
+
+    let side = "center";
+    if (Math.abs(distancePx) > centerTolerance) {
+      side = distancePx > 0 ? "right" : "left";
+    }
+
+    return { side, distancePx };
   }
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
@@ -906,11 +1019,7 @@
         : 0;
 
     titulo.textContent = stt.Encontrado ? "TMA" : "Não";
-    time.textContent = stt.Encontrado
-      ? tma
-        ? Math.floor(tma)
-        : "Erro"
-      : "Encontrado";
+    time.textContent = stt.Encontrado ? Math.floor(tma) : "Encontrado";
 
     if (!InfoV) {
     } else if (
@@ -1744,51 +1853,39 @@
     function BotPacontrole(b, z) {
       let x = stt.AbaPausas || stt.AbaConfig ? 1 : b;
 
-      const a = document.getElementById(z);
+      let a = document.getElementById(z);
+
+      const info = ladoNoViewport(document.getElementById("FlutOB"), {
+        centerTolerance: 16,
+      });
+
+      stt.LadoBot = ["right", "center"].includes(info.side) ? 0 : 1;
+
+      if (!a) BotoesLateral();
+
+      a = document.getElementById(z);
+
+      if (stt.LadoBotAnterior !== stt.LadoBot) {
+        a.remove();
+        BotoesLateral();
+        stt.LadoBotAnterior = stt.LadoBot;
+      }
+
       if (a) {
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
-        a.style.marginLeft = x ? "5px" : "-20px";
+        if (stt.LadoBot) {
+          a.style.marginLeft = x ? "5px" : "-20px";
+          a.style.marginRight = "";
+        } else {
+          a.style.marginRight = x ? "5px" : "-20px";
+          a.style.marginLeft = "";
+        }
       }
+      
     }
 
     minhaCaixa.appendChild(container);
-
-    const Divbot = document.createElement("div");
-    Divbot.id = "ContPaCo";
-    Divbot.style.cssText = `
-    margin-left: -20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.5s;
-    display: flex;
-    gap: 5px;
-    flex-direction: column;
-    `;
-
-    const InfoV = document.createElement("div");
-    InfoV.id = "InfoV";
-    InfoV.textContent = `Versão P Chat ${GM_info.script.version || "?-?"}`;
-    InfoV.style.cssText = `
-    transform: rotate(-90deg);
-    transform-origin: right bottom;
-    white-space: nowrap;
-    color: #ffffff;
-    width: 16px;
-    position: relative;
-    bottom: 22px;
-    `;
-
-    const Space = document.createElement("div");
-    Space.style.cssText = `
-    flex: 1;
-    `;
-
-    Divbot.appendChild(ADDBotConfig());
-    Divbot.appendChild(ADDBotPa());
-    //Divbot.appendChild(Space);
-    //Divbot.appendChild(InfoV);
-    minhaCaixa.appendChild(Divbot);
 
     return minhaCaixa;
   }

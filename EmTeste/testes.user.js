@@ -14,35 +14,37 @@
 // ==/UserScript==
 
 (function () {
-  
-  function obterEstadoAgenteComoObjeto() {
-    const el = document.querySelector(
-      '[data-testid="current-agent-state"]',
-    );
-    if (!el) return null;
+  /**
+   * Informa se o elemento está mais à esquerda, à direita ou centralizado no viewport.
+   * @param {Element} el - elemento alvo
+   * @param {object} [opts]
+   * @param {number} [opts.centerTolerance=12] - tolerância (px) para considerar "center"
+   * @returns {{ side: 'left'|'right'|'center', distancePx: number, ratio: number, visiblePctX: number }}
+   */
+  function ladoNoViewport(el, opts = {}) {
+    const { centerTolerance = 12 } = opts;
+    if (!el || !el.getBoundingClientRect) {
+      return { side: "center", distancePx: 0 };
+    }
 
-    const raw = (el.textContent || "").trim(); // Ex.: "FSDisponível (03:08)"
+    const rect = el.getBoundingClientRect();
+    const vw = window.innerWidth;
 
-    // 1) Captura o tempo (HH:MM) se existir
-    const tempoMatch = raw.match(/\((\d{2}:\d{2})\)/);
-    const tempo = tempoMatch ? tempoMatch[1] : null; // "03:08" ou null
+    // Centro do elemento e do viewport
+    const elCenterX = rect.left + rect.width / 2;
+    const viewCenterX = vw / 2;
 
-    // 2) Remove prefixo de 2 chars + remove o "(HH:MM)"
-    let status = raw
-      .replace(/^\s*.{2}/, "") // ignora as 2 primeiras letras (ex.: "FS")
-      .replace(/\s*\(\d{2}:\d{2}\)\s*/, "") // remove "(HH:MM)"
-      .trim();
+    const distancePx = elCenterX - viewCenterX; // >0 -> direita; <0 -> esquerda
 
-    
+    let side = "center";
+    if (Math.abs(distancePx) > centerTolerance) {
+      side = distancePx > 0 ? "right" : "left";
+    }
 
-    return {
-      Status: status, // Ex.: "Disponivel"
-      tempo: tempo || "", // Ex.: "03:08" ou "" se não houver
-    };
+    return { side, distancePx };
   }
-
-  // Exemplo de uso:
-  const info = obterEstadoAgenteComoObjeto();
-  console.log(info);
-  // -> { Status: "Disponivel", tempo: "03:08" }
+  const info = ladoNoViewport(document.getElementById("FlutOB"), {
+    centerTolerance: 16,
+  });
+  console.log(info); // { side: 'left'|'right'|'center', distancePx, ratio, visiblePctX }
 })();
