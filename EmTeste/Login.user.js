@@ -805,6 +805,7 @@
     const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
     function onPointerDown(e) {
+      atLado();
       ensureTopLeft();
 
       dragging = true;
@@ -821,6 +822,7 @@
     }
 
     function onPointerMove(e) {
+      atLado();
       if (!dragging) return;
 
       const dx = e.clientX - startX;
@@ -891,7 +893,7 @@
       position: "fixed",
       // Posição inicial arbitrária: usaremos top + (left ou right) conforme stt.LadoBot
       top: "110px",
-      left: "350px", // será convertido/ajustado pela rotina abaixo
+      right: "0px", // será convertido/ajustado pela rotina abaixo
       borderRadius: "8px",
       zIndex: "16",
       boxSizing: "border-box",
@@ -990,6 +992,7 @@
     }
 
     function onPointerDown(e) {
+      atLado();
       ensureTopAndBaseSide();
 
       dragging = true;
@@ -1034,6 +1037,7 @@
     }
 
     function onPointerUp(e) {
+      atLado();
       if (!dragging) return;
       dragging = false;
       handle.style.cursor = "grab";
@@ -1042,6 +1046,7 @@
 
     // Reajusta posição caso a janela seja redimensionada
     function onResize() {
+      atLado();
       if (!div.isConnected) {
         window.removeEventListener("resize", onResize);
         return;
@@ -1102,6 +1107,24 @@
     Divbot.appendChild(ADDBotPa());
 
     a.insertBefore(Divbot, a.children[stt.LadoBot]);
+  }
+
+  function atLado() {
+    const info = ladoNoViewport(document.getElementById("FlutOB"), {
+      centerTolerance: 16,
+    });
+
+    let f = 0;
+    ["CaiDPa", "CaixaConfig"].forEach((s) => {
+      const e = document.getElementById(s);
+      if (e) f = 1;
+    });
+
+    stt.LadoBot = f
+      ? stt.LadoBot
+      : ["right", "center"].includes(info.side)
+        ? 0
+        : 1;
   }
 
   /**
@@ -2060,22 +2083,6 @@
       let x = stt.AbaPausas || stt.AbaConfig ? 1 : b;
 
       let a = document.getElementById(z);
-
-      const info = ladoNoViewport(document.getElementById("FlutOB"), {
-        centerTolerance: 16,
-      });
-
-      let f = 0;
-      ["CaiDPa", "CaixaConfig"].forEach((s) => {
-        const e = document.getElementById(s);
-        if (e) f = 1;
-      });
-
-      stt.LadoBot = f
-        ? stt.LadoBot
-        : ["right", "center"].includes(info.side)
-          ? 0
-          : 1;
 
       if (!a) BotoesLateral();
 
