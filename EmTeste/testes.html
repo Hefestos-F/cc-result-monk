@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Botão Arrastável</title>
+    <style>
+      :root {
+        --bg: #0f172a; /* slate-900 */
+        --panel: #111827; /* gray-900 */
+        --accent: #22d3ee; /* cyan-400 */
+        --accent-2: #06b6d4; /* cyan-500 */
+        --text: #e5e7eb; /* gray-200 */
+      }
+
+      body {
+        margin: 0;
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(
+          1200px 600px at 50% -20%,
+          #0b1220,
+          var(--bg)
+        );
+        color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Ubuntu,
+          Cantarell,
+          "Helvetica Neue",
+          Arial,
+          "Noto Sans",
+          "Apple Color Emoji",
+          "Segoe UI Emoji",
+          "Segoe UI Symbol";
+      }
+
+      .wrap {
+        width: min(92vw, 680px);
+        display: grid;
+        gap: 16px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+      }
+
+      .board {
+        position: relative;
+        height: 280px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #0b1324, var(--panel));
+        outline: 1px solid #1f2937; /* gray-800 */
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+          0 10px 30px rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+      }
+
+      /* Botão arrastável */
+      .drag-btn {
+        position: absolute;
+        left: 24px; /* posição inicial */
+        top: 24px;
+        translate: 0 0;
+        user-select: none;
+        cursor: grab;
+        padding: 10px 16px;
+        border-radius: 999px;
+        border: 0;
+        color: #0a0f1a;
+        background: radial-gradient(
+          60% 120% at 50% 0%,
+          #ffffff,
+          #e8fdff 60%,
+          #b7f6ff 100%
+        );
+        box-shadow:
+          0 10px 18px rgba(0, 0, 0, 0.25),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        transition:
+          box-shadow 0.2s ease,
+          scale 0.15s ease,
+          background 0.2s ease;
+      }
+      .drag-btn:hover {
+        box-shadow:
+          0 14px 28px rgba(0, 0, 0, 0.35),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+      }
+      .drag-btn:active {
+        cursor: grabbing;
+        scale: 0.98;
+      }
+      .drag-btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .hint {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+
+      .coords {
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+          monospace;
+        font-size: 0.9rem;
+        opacity: 0.9;
+      }
+
+      .badge {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        background: #0b1220;
+        color: #a7f3d0; /* emerald-200 */
+        border: 1px solid #1f2937;
+        padding: 6px 10px;
+        border-radius: 999px;
+        width: max-content;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-2);
+        box-shadow: 0 0 10px var(--accent-2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Botão Arrastável (mouse + toque + teclado)</h1>
+      <div class="badge"><span class="dot"></span> Arraste dentro da área</div>
+      <div class="board" id="board" aria-label="Área de arraste">
+        <button
+          id="dragBtn"
+          class="drag-btn"
+          type="button"
+          aria-label="Arrastar"
+        >
+          Arraste-me
+        </button>
+      </div>
+      <div class="hint">
+        Dica: use as setas do teclado quando o botão estiver focado.
+      </div>
+      <div class="coords" id="coords">x: 24, y: 24</div>
+    </div>
+
+    <script>
+      (() => {
+        const board = document.getElementById("board");
+        const btn = document.getElementById("dragBtn");
+        const coordsEl = document.getElementById("coords");
+
+        // Posição atual (em px, relativa ao canto superior esquerdo do board)
+        let pos = { x: 24, y: 24 };
+
+        // Estado do arraste pointer
+        let dragging = false;
+        let offset = { x: 0, y: 0 }; // deslocamento do cursor dentro do botão
+
+        // Helper: limita (x,y) aos limites do board
+        function clampToBoard(x, y) {
+          const b = board.getBoundingClientRect();
+          const r = btn.getBoundingClientRect();
+          const minX = 0;
+          const minY = 0;
+          const maxX = b.width - r.width;
+          const maxY = b.height - r.height;
+          return {
+            x: Math.min(Math.max(x, minX), Math.max(0, maxX)),
+            y: Math.min(Math.max(y, minY), Math.max(0, maxY)),
+          };
+        }
+
+        // Renderiza posição (via style.left/top)
+        function render() {
+          btn.style.left = `${pos.x}px`;
+          btn.style.top = `${pos.y}px`;
+          coordsEl.textContent = `x: ${Math.round(pos.x)}, y: ${Math.round(pos.y)}`;
+        }
+
+        // Converte ponto absoluto (page/client) para coordenada relativa ao board
+        function toBoardCoords(clientX, clientY) {
+          const b = board.getBoundingClientRect();
+          return { x: clientX - b.left, y: clientY - b.top };
+        }
+
+        // Início do arraste (Pointer/Mobile)
+        function onPointerDown(ev) {
+          ev.preventDefault();
+          btn.setPointerCapture?.(ev.pointerId);
+          dragging = true;
+
+          const p = toBoardCoords(ev.clientX, ev.clientY);
+          const r = btn.getBoundingClientRect();
+          const b = board.getBoundingClientRect();
+          // Distância do ponto de toque ao canto do botão
+          offset.x = p.x - (r.left - b.left);
+          offset.y = p.y - (r.top - b.top);
+        }
+
+        function onPointerMove(ev) {
+          if (!dragging) return;
+          const p = toBoardCoords(ev.clientX, ev.clientY);
+          let nextX = p.x - offset.x;
+          let nextY = p.y - offset.y;
+
+          const clamped = clampToBoard(nextX, nextY);
+          pos = clamped;
+          render();
+        }
+
+        function onPointerUp(ev) {
+          if (!dragging) return;
+          dragging = false;
+          btn.releasePointerCapture?.(ev.pointerId);
+        }
+
+        // Suporte a teclado (setas movem 10px; Shift+seta = 1px para precisão)
+        function onKeyDown(ev) {
+          const step = ev.shiftKey ? 1 : 10;
+          let changed = false;
+          if (ev.key === "ArrowLeft") {
+            pos.x = clampToBoard(pos.x - step, pos.y).x;
+            changed = true;
+          }
+          if (ev.key === "ArrowRight") {
+            pos.x = clampToBoard(pos.x + step, pos.y).x;
+            changed = true;
+          }
+          if (ev.key === "ArrowUp") {
+            pos.y = clampToBoard(pos.x, pos.y - step).y;
+            changed = true;
+          }
+          if (ev.key === "ArrowDown") {
+            pos.y = clampToBoard(pos.x, pos.y + step).y;
+            changed = true;
+          }
+          if (changed) {
+            ev.preventDefault();
+            render();
+          }
+        }
+
+        // Eventos (Pointer Events cobrem mouse + toque + caneta)
+        btn.addEventListener("pointerdown", onPointerDown);
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", onPointerUp);
+        btn.addEventListener("keydown", onKeyDown);
+
+        // Render inicial
+        render();
+
+        // Responsivo: re-clampa ao redimensionar (para manter dentro do board)
+        window.addEventListener("resize", () => {
+          pos = clampToBoard(pos.x, pos.y);
+          render();
+        });
+      })();
+    </script>
+  </body>
+</html>
