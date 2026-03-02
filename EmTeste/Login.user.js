@@ -2071,7 +2071,7 @@
         if (e) f = 1;
       });
 
-      stt.LadoBot = e
+      stt.LadoBot = f
         ? stt.LadoBot
         : ["right", "center"].includes(info.side)
           ? 0
