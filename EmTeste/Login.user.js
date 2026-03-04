@@ -71,6 +71,7 @@
     Estouro: 0,
     ContAtual: 0,
     Trabalhando: 0,
+    TrabAntSeg: 0,
     Atendidas: 0,
   };
 
@@ -329,8 +330,12 @@
         Hlog(`fim: ${JSON.stringify(agora)}`);
         TempoPausas.Online = somarDuracoes().totalSegundos || 0;
 
-        TempoPausas.Trabalhando =
-          (await somarDuracoesTrabalho().totalFormatado) || 0;
+        const TemT = await somarDuracoesTrabalho();
+
+        if (TemT.totalSegundos > TempoPausas.TrabAntSeg) {
+          TempoPausas.TrabAntSeg = TemT.totalSegundos;
+          TempoPausas.Trabalhando = TemT.totalFormatado;
+        }
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
