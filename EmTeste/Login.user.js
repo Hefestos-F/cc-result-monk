@@ -79,6 +79,7 @@
     inicioUltimaP: 0,
     inicioUltimaPa: 0,
     StatusANT: "",
+    Disponivel: {},
   };
 
   /**
@@ -328,7 +329,8 @@
         Hlog(`fim: ${JSON.stringify(agora)}`);
         TempoPausas.Online = somarDuracoes().totalSegundos || 0;
 
-        TempoPausas.Trabalhando = somarDuracoesTrabalho().totalFormatado || 0;
+        TempoPausas.Trabalhando =
+          (await somarDuracoesTrabalho().totalFormatado) || 0;
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
@@ -392,7 +394,7 @@
       x = 1;
       ApagarChaveIndexDB(ChavePausas);
       dadosdePausas = [];
-      DDPausa.numero = 1;
+      DDPausa.numero = 0;
       TempoPausas = {};
       SalvandoVariConfig(1);
     }
@@ -404,7 +406,7 @@
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = a;
       dadosdePausas = [];
-      DDPausa.numero = 1;
+      DDPausa.numero = 0;
       TempoPausas = {};
       SalvandoVariConfig(1);
       x = 1;
@@ -494,7 +496,7 @@
 
     const totalSegundos = dadosdePausas.reduce((acc, item) => {
       // tenta pegar o campo; qualquer coisa inválida vira 0
-      //if(item?.duracao)
+      if (item?.id === 0) return acc;
       const s = converterParaSegundos(item?.duracao);
       return acc + (Number.isFinite(s) ? s : 0);
     }, 0);
@@ -516,8 +518,25 @@
     }
 
     TempoPausas.Atendidas = 0;
-    const totalSegundos = dadosdePausas.reduce((acc, item) => {
+    const totalSegundos = dadosdePausas.reduce(async (acc, item) => {
       // Ignora itens que não são "Trabalhando"
+
+      if (item?.pausa === "Disponível") {
+        const inicioObj = await getValorDadosPausa(item?.id, "inicio"); // {data,hora} ou undefined
+
+        const duracaoObj = await getValorDadosPausa(item?.id, "duracao"); // {data,hora} ou undefined
+
+        const fimObj = await getValorDadosPausa(item?.id, "fim");
+
+        await AddouAtualizarPausas(
+          0,
+          "Disponível",
+          inicioObj, // inicio: {data,hora}
+          fimObj, // fim previsto: {data,hora} ou null
+          duracaoObj, // duracao prevista: "HH:MM:SS" ou "---"
+        );
+      }
+
       if (item?.pausa !== "Trabalhando") return acc;
 
       TempoPausas.Atendidas = TempoPausas.Atendidas + 1;
@@ -740,22 +759,20 @@
     return formatObj(adjusted);
   }
 
-  function criarObjetoFlutuante() {
+  function criarObjetoFlutuante(options = {}) {
     if (document.getElementById("FlutOB")) return;
 
-    //usar QualLado para qual vai ser a base left ou right
-    //usar 1 para left ou 0 para right
-    let QualLado = 1;
+    // usar QualLado para base "left" ou "right": 1 = left, 0 = right
+    // Se quiser que seja totalmente automático, deixe como null
+    let QualLado =
+      typeof options.QualLado === "number" ? options.QualLado : null;
 
     const div = document.createElement("div");
     div.id = "FlutOB";
-    // Estilo do container principal
     Object.assign(div.style, {
       position: "fixed",
-      // Posição inicial (canto inferior esquerdo). Vamos migrar para top/left.
-      // Para manter no mesmo lugar, usaremos bottom inicialmente e já converteremos para top/left.
       top: "110px",
-      left: "0px",
+      right: "0px",
       borderRadius: "8px",
       zIndex: "16",
       boxSizing: "border-box",
@@ -776,7 +793,7 @@
       cursor: "grab",
       borderRadius: "4px",
       marginBottom: "5px",
-      touchAction: "none", // evita gestos padrão em touch
+      touchAction: "none",
     });
 
     // -----
@@ -787,26 +804,61 @@
     let startLeft = 0; // left/top do elemento ao iniciar arrasto
     let startTop = 0;
 
-    // Helper: garante que o elemento tenha top/left explícitos (converte de bottom se necessário)
+    // Helper: garante que o elemento tenha top/left explícitos (converte de bottom/right se necessário)
     function ensureTopLeft() {
       const rect = div.getBoundingClientRect();
-      // Se ainda não definimos top/left, convertemos a posição atual para top/left
       if (!div.style.top) {
         div.style.top = `${rect.top}px`;
       }
-      if (!div.style.left) {
-        div.style.left = `${rect.left}px`;
+      // Converte qualquer base em right para left temporariamente (somente durante arraste)
+      if (!div.style.left || div.style.right) {
+        const computedLeft = rect.left; // relativo à viewport
+        div.style.left = `${computedLeft}px`;
       }
-      // Removemos bottom para não conflitar
+      // Limpa outras âncoras que conflitem com arraste por left/top
       div.style.bottom = "";
-      // Não usamos transform para movimentar
+      div.style.right = "";
       div.style.transform = "";
     }
 
     // Helper: limita o valor entre min e max
     const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
+    // Decide e aplica qual lado será a âncora final (left ou right)
+    function applySideAnchor(forceSide = null) {
+      const rect = div.getBoundingClientRect();
+      const vw = window.innerWidth;
+
+      // Se forceSide for 1 = left; 0 = right; null = auto por viewport
+      let useLeft;
+      if (forceSide === 1) useLeft = true;
+      else if (forceSide === 0) useLeft = false;
+      else {
+        const centerX = rect.left + rect.width / 2;
+        useLeft = centerX <= vw / 2; // centro do elemento está na metade esquerda?
+      }
+
+      // Calcula valores e aplica
+      if (useLeft) {
+        const left = Math.round(rect.left);
+        div.style.left = `${left}px`;
+        div.style.right = ""; // limpa para não conflitar
+        config.LadoBot = 1;
+      } else {
+        // right = distância da borda direita da viewport
+        const right = Math.round(vw - (rect.left + rect.width));
+        div.style.right = `${right}px`;
+        div.style.left = ""; // limpa para não conflitar
+        config.LadoBot = 0;
+      }
+
+      // Garante top (sempre por top)
+      div.style.top = `${Math.round(rect.top)}px`;
+      div.style.bottom = "";
+    }
+
     function onPointerDown(e) {
+      // Durante o arraste trabalhamos com left/top absolutos
       ensureTopLeft();
 
       dragging = true;
@@ -835,8 +887,11 @@
       const newLeft = clamp(startLeft + dx, 0, Math.max(0, maxLeft));
       const newTop = clamp(startTop + dy, 0, Math.max(0, maxTop));
 
+      // Durante o arraste: left/top (base única)
       div.style.left = `${newLeft}px`;
       div.style.top = `${newTop}px`;
+      // Garante que right esteja limpo enquanto arrasta
+      div.style.right = "";
     }
 
     function onPointerUp(e) {
@@ -844,26 +899,47 @@
       dragging = false;
       handle.style.cursor = "grab";
       div.releasePointerCapture?.(e.pointerId);
+
+      // Ao soltar: decide automaticamente o lado (ou force QualLado se definido)
+      applySideAnchor(QualLado);
     }
 
-    // Reajusta posição caso a janela seja redimensionada
+    // Reajusta posição e âncora caso a janela seja redimensionada
     function onResize() {
       if (!div.isConnected) {
         window.removeEventListener("resize", onResize);
         return;
       }
-      ensureTopLeft();
-      const left = parseFloat(div.style.left) || 0;
-      const top = parseFloat(div.style.top) || 0;
 
-      const maxLeft = window.innerWidth - div.offsetWidth;
-      const maxTop = window.innerHeight - div.offsetHeight;
+      // Pega retângulo atual e reancora mantendo lado escolhido
+      // Se já está ancorado à direita (tem right), recalcula o right
+      const rect = div.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
 
-      div.style.left = `${clamp(left, 0, Math.max(0, maxLeft))}px`;
-      div.style.top = `${clamp(top, 0, Math.max(0, maxTop))}px`;
+      // Ajuste vertical
+      let top = rect.top;
+      top = clamp(top, 0, Math.max(0, vh - rect.height));
+      div.style.top = `${Math.round(top)}px`;
+
+      // Decide novamente o lado (auto ou forçado)
+      applySideAnchor(QualLado);
     }
 
-    // Eventos apenas na área de arrasto
+    // Expor uma API simples para mudar o lado via console:
+    //   window.setFlutOBSide(1) => força left
+    //   window.setFlutOBSide(0) => força right
+    //   window.setFlutOBSide(null) => volta para auto por viewport
+    window.setFlutOBSide = function (val) {
+      if (val !== 0 && val !== 1 && val !== null) {
+        console.warn("Use 1 (left), 0 (right) ou null (auto).");
+        return;
+      }
+      QualLado = val;
+      applySideAnchor(QualLado);
+    };
+
+    // Eventos
     handle.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
@@ -877,9 +953,11 @@
     div.appendChild(AdicionarCaixaAtualizada());
     document.body.appendChild(div);
 
-    // Após inserir no DOM, converte bottom->top e aplica clamp inicial
+    // Após inserir no DOM:
+    // 1) Garante posição top/left válida
     ensureTopLeft();
-    onResize();
+    // 2) Ajusta para a âncora correta (auto por viewport ou forçado)
+    applySideAnchor(QualLado);
   }
 
   function BotoesLateral() {
@@ -902,53 +980,6 @@
     Divbot.appendChild(ADDBotPa());
 
     a.insertBefore(Divbot, a.children[config.LadoBot]);
-  }
-
-  function atLado() {
-    const info = ladoNoViewport();
-
-    let f = 0;
-    ["CaiDPa", "CaixaConfig"].forEach((s) => {
-      const e = document.getElementById(s);
-      if (e) f = 1;
-    });
-
-    config.LadoBot = f ? config.LadoBot : info.lado === "right" ? 0 : 1;
-
-    console.log(`${JSON.stringify(info)} / config.LadoBot ${config.LadoBot}`);
-  }
-
-  /**
-   * Informa se o elemento está mais à esquerda, à direita ou centralizado no viewport.
-   * @param {Element} el - elemento alvo
-   * @param {object} [opts]
-   * @param {number} [opts.centerTolerance=12] - tolerância (px) para considerar "center"
-   * @returns {{ side: 'left'|'right'|'center', distancePx: number, ratio: number, visiblePctX: number }}
-   */
-  function ladoNoViewport() {
-    const el = document.getElementById("minhaCaixa");
-    if (!el || !el.getBoundingClientRect) {
-      return { lado: "center" };
-    }
-
-    const rect = el.getBoundingClientRect();
-
-    const a = window.innerWidth;
-
-    let lado = rect.left >= a / 2 ? "right" : "left";
-
-    const fn = document.getElementById("FlutOB");
-
-    const rectfn = fn.getBoundingClientRect();
-
-    const b = a - rectfn.left + rectfn.width;
-
-    if (lado === "right") {
-      fn.style.left = "";
-      fn.style.right = b + "px";
-    }
-
-    return { lado: lado, esquerda: rect.left, Largura: a };
   }
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
@@ -1535,6 +1566,7 @@
         transition: all 0.5s ease;
         cursor: pointer;
         justify-content: center;
+        margin-left: ${config.LadoBot ? "" : "auto"};
         `;
 
     caixa.addEventListener("click", function () {
@@ -1613,7 +1645,7 @@
     transition: all 0.5s ease;
     cursor: pointer;
     justify-content: center;
-
+    margin-left: ${config.LadoBot ? "" : "auto"};
     `;
 
     caixa.addEventListener("click", function () {
@@ -2811,16 +2843,17 @@
         const duracao = item?.duracao ?? "<--->";
         const pausa = item?.pausa ?? "";
 
-        if (
-          [
-            "Pós",
-            "Callback",
-            "Trabalhando",
-            "Disponível",
-            "Indisponível",
-          ].includes(pausa)
-        )
-          return;
+        if (item.id !== 0)
+          if (
+            [
+              "Pós",
+              "Callback",
+              "Trabalhando",
+              "Disponível",
+              "Indisponível",
+            ].includes(pausa)
+          )
+            return;
 
         caixa.append(
           criarItemTabela(item.id, "pausa", pausa),

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Registro de Chamadas > Zendesk
 // @namespace    franciel.registro.ticket.receiver
-// @version      1.1.8
+// @version      1.1.8.1
 // @description  Recebe {ticket, contato} via postMessage e preenche #ticket e #contato.
 // @author       Franciel
 // @match        https://registrodechamadas.netlify.app/*
@@ -220,7 +220,6 @@
       entrada1 = "";
       entrada2 = "";
       entrada3 = "";
-      linha1in.value = "";
       linha2in.value = "";
       linha2in.style.height = "25px";
       linha4in.value = "";
