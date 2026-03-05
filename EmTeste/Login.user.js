@@ -71,7 +71,6 @@
     Estouro: 0,
     ContAtual: 0,
     Trabalhando: 0,
-    TrabAntSeg: 0,
     Atendidas: 0,
   };
 
@@ -80,7 +79,6 @@
     inicioUltimaP: 0,
     inicioUltimaPa: 0,
     StatusANT: "",
-    Disponivel: {},
   };
 
   /**
@@ -328,19 +326,14 @@
         await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
 
         Hlog(`fim: ${JSON.stringify(agora)}`);
-        TempoPausas.Online = somarDuracoes().totalSegundos || 0;
 
-        const TemT = await somarDuracoesTrabalho();
+        TempoPausas.Online = somarDuracoes().totalSegundos;
 
-        if (TemT.totalSegundos > TempoPausas.TrabAntSeg) {
-          TempoPausas.TrabAntSeg = TemT.totalSegundos;
-          TempoPausas.Trabalhando = TemT.totalFormatado;
-        }
+        TempoPausas.Trabalhando = somarDuracoesTrabalho().totalFormatado;
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
       DDPausa.numero = DDPausa.numero + 1;
-      if (DDPausa.numero > 100) DDPausa.numero = 1;
 
       const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
       let fimPrevistoObj = null;
@@ -390,31 +383,30 @@
   async function verifiDataLogue(x = 0) {
     const a = gerarDataHora();
     const e = exibirHora(a, 0, "23:59:59");
+    let limp = 0;
 
     if (
       !dadosPrimLogue ||
       (dadosPrimLogue.data !== a.data && dadosPrimLogue.data !== e.data)
     ) {
-      dadosPrimLogue = a;
-      x = 1;
-      ApagarChaveIndexDB(ChavePausas);
-      dadosdePausas = [];
-      DDPausa.numero = 0;
-      TempoPausas = {};
-      SalvandoVariConfig(1);
+      limp = 1;
     }
 
     const b = exibirHora(dadosPrimLogue, 1, config.TempoEscaladoHoras);
 
     config.logueEntreDatas = dadosPrimLogue.data !== b.data ? 1 : 0;
     if (!config.logueEntreDatas && dadosPrimLogue.data !== a.data) {
-      ApagarChaveIndexDB(ChavePausas);
+      limp = 1;
+    }
+
+    if (limp) {
+      x = 1;
+      TempoPausas = {};
       dadosPrimLogue = a;
       dadosdePausas = [];
       DDPausa.numero = 0;
-      TempoPausas = {};
+      ApagarChaveIndexDB(ChavePausas);
       SalvandoVariConfig(1);
-      x = 1;
     }
     Hlog(`
       config.logueEntreDatas = ${config.logueEntreDatas} /
@@ -512,7 +504,6 @@
     };
   }
 
-  // Soma as durações do array (campo "duracao")
   function somarDuracoesTrabalho() {
     // Se não é array ou está vazio, retorna zero direto
     if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
@@ -523,31 +514,15 @@
     }
 
     TempoPausas.Atendidas = 0;
-    const totalSegundos = dadosdePausas.reduce(async (acc, item) => {
-      // Ignora itens que não são "Trabalhando"
 
-      if (item?.pausa === "Disponível") {
-        const inicioObj = await getValorDadosPausa(item?.id, "inicio"); // {data,hora} ou undefined
+    const totalSegundos = dadosdePausas.reduce((acc, item) => {
+      // tenta pegar o campo; qualquer coisa inválida vira 0
 
-        const duracaoObj = await getValorDadosPausa(item?.id, "duracao"); // {data,hora} ou undefined
-
-        const fimObj = await getValorDadosPausa(item?.id, "fim");
-
-        await AddouAtualizarPausas(
-          0,
-          "Disponível",
-          inicioObj, // inicio: {data,hora}
-          fimObj, // fim previsto: {data,hora} ou null
-          duracaoObj, // duracao prevista: "HH:MM:SS" ou "---"
-        );
-      }
-
+      if (item?.id === 0) return acc;
+      if (item?.pausa === "Disponível") UltimoDisponivel(item);
       if (item?.pausa !== "Trabalhando") return acc;
-
-      TempoPausas.Atendidas = TempoPausas.Atendidas + 1;
-
+      TempoPausas.Atendidas += 1;
       const s = converterParaSegundos(item?.duracao);
-
       return acc + (Number.isFinite(s) ? s : 0);
     }, 0);
 
@@ -555,6 +530,21 @@
       totalSegundos,
       totalFormatado: converterParaTempo(totalSegundos),
     };
+  }
+
+  async function UltimoDisponivel(item) {
+    const inicioObj = await getValorDadosPausa(item?.id, "inicio"); // { data, hora } ou undefined
+    const duracaoObj = await getValorDadosPausa(item?.id, "duracao"); // "HH:MM:SS" ou "---"
+    const fimObj = await getValorDadosPausa(item?.id, "fim"); // { data, hora } ou undefined
+    if (!duracaoObj) return;
+    // Efeito colateral explícito (mantido, mas isolado do somatório)
+    await AddouAtualizarPausas(
+      0,
+      "Disponível",
+      inicioObj, // início
+      fimObj, // fim
+      duracaoObj, // duração
+    );
   }
 
   /**
@@ -2841,6 +2831,7 @@
         (a, b) => Number(a.id) - Number(b.id),
       );
 
+      
       ordenado.forEach((item) => {
         // Usa as chaves em minúsculas conforme seu objeto atual
         const inicioHora = item?.inicio?.hora ?? "<--->";
