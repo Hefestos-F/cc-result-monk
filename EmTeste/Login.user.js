@@ -2834,9 +2834,9 @@
 
       ordenado.forEach((item) => {
         // Usa as chaves em minúsculas conforme seu objeto atual
-        const inicioHora = item?.inicio?.hora ?? "<--->";
-        const fimHora = item?.fim?.hora ?? "<--->";
-        const duracao = item?.duracao ?? "<--->";
+        const inicioHora = item?.inicio?.hora ?? "---";
+        const fimHora = item?.fim?.hora ?? "---";
+        const duracao = item?.duracao ?? "---";
         const pausa = item?.pausa ?? "";
 
         if (item.id !== 0)
@@ -2858,6 +2858,11 @@
           criarItemTabela(item.id, "fim", fimHora),
           //criarItemTabela(item.id, "id", "❌")
         );
+        if(duracao !== "---"){
+          stt.novaDif.Existe = 1;
+          
+        }
+
         if (stt.novaDif.Existe) {
           caixa.append(
             criarItemTabela(item.id, "pausa", pausa),
