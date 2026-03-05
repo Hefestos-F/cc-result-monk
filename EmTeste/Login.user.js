@@ -57,6 +57,7 @@
     Encontrado: 0,
     LadoBot: 0,
     LadoBotAnterior: 0,
+    novaDif: {},
   };
 
   let TempoPausas = {
@@ -2831,7 +2832,6 @@
         (a, b) => Number(a.id) - Number(b.id),
       );
 
-      
       ordenado.forEach((item) => {
         // Usa as chaves em minúsculas conforme seu objeto atual
         const inicioHora = item?.inicio?.hora ?? "<--->";
@@ -2858,6 +2858,15 @@
           criarItemTabela(item.id, "fim", fimHora),
           //criarItemTabela(item.id, "id", "❌")
         );
+        if (stt.novaDif.Existe) {
+          caixa.append(
+            criarItemTabela(item.id, "pausa", pausa),
+            criarItemTabela(item.id, "duracao", duracao),
+            criarItemTabela(item.id, "inicio", inicioHora),
+            criarItemTabela(item.id, "fim", fimHora),
+            //criarItemTabela(item.id, "id", "❌")
+          );
+        }
       });
     }
 
