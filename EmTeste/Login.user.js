@@ -16,6 +16,7 @@
 (function () {
   const config = {
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
+    ValorMetaTMA: 725,
     logueEntreDatas: 0,
     pausalimitada: 0,
     LogueManual: 0,
@@ -27,10 +28,12 @@
     VoltarPad: 0,
     LadoBot: 0,
     LadoBotAnterior: 0,
+    MetaTMA: 1,
   };
 
   const configPadrao = {
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
+    ValorMetaTMA: 725,
     logueEntreDatas: 0,
     pausalimitada: 0,
     LogueManual: 0,
@@ -40,6 +43,9 @@
     TesteHora: 0,
     valorTeste: "-03:00",
     VoltarPad: 0,
+    LadoBot: 0,
+    LadoBotAnterior: 0,
+    MetaTMA: 1,
   };
 
   const stt = {
@@ -191,8 +197,8 @@
     } catch (e) {
       Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
     }
-    await verifiDataLogue();
     await SalvandoVariConfig(0);
+    await verifiDataLogue();
     await verifLogueManual();
     criarObjetoFlutuante();
   }
@@ -320,7 +326,7 @@
         config.pausalimitada = 0;
         stt.Estouro = 0;
         stt.Estour1 = 0;
-        atualizarComoff(0, "cTMA");
+        atualizarComoff(0, Ccor.Erro, "cTMA");
         SalvandoVariConfig(1);
         // Calcula duração real (string HH:MM:SS)
         const duracaoReal = calcularDuracao(inicioObj, agora);
@@ -1067,6 +1073,11 @@
       TempoPausas.Atendidas > 0
         ? converterParaSegundos(TempoPausas.Trabalhando) / TempoPausas.Atendidas
         : 0;
+    atualizarComoff(
+      tma > config.ValorMetaTMA && config.MetaTMA && stt.Encontrado,
+      Ccor.MetaTMA,
+      "cTMA",
+    );
 
     titulo.textContent = stt.Encontrado ? "TMA" : "Não";
     time.textContent = stt.Encontrado ? Math.floor(tma) : "Encontrado";
@@ -1178,7 +1189,7 @@
       stt.Estouro = TempoPausas.Estouro
         ? compararDatas(agora, TempoPausas.Estouro)
         : 0;
-      atualizarComoff(stt.Estouro, "cTMA");
+      atualizarComoff(stt.Estouro, Ccor.Erro, "cTMA");
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         stt.Estour1 = 1;
@@ -1190,10 +1201,10 @@
     }
   }, 1000);
 
-  function atualizarComoff(ar, caixa) {
+  function atualizarComoff(ar, cor, caixa) {
     var x = document.getElementById(caixa);
     if (x) {
-      x.style.background = ar ? Ccor.Erro : "";
+      x.style.background = ar ? cor : "";
       x.style.borderRadius = ar ? "6px" : "";
       x.style.padding = ar ? "0px 4px" : "";
       x.style.margin = ar ? "0px -4px" : "";
@@ -1282,14 +1293,6 @@
     const fim = buildDateTime(fimObj);
     const diffSec = Math.round((fim.getTime() - inicio.getTime()) / 1000);
     return formatHHMMSS(diffSec);
-  }
-
-  function normalizarCampo(campo) {
-    return String(campo || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // remove acentos
-      .trim()
-      .toLowerCase();
   }
 
   function normalizarArrayPausas(valor) {
@@ -1619,6 +1622,90 @@
         : stt.AbaPausas
           ? "F"
           : "P";
+      const BConfig = document.getElementById("BConfig");
+      if (BConfig) BConfig.textContent = "C";
+    }
+
+    return caixa;
+  }
+
+  function ADDBotOutr() {
+    const caixa = document.createElement("div");
+    caixa.id = "BOutr";
+    caixa.textContent = "P";
+    caixa.style.cssText = `
+        border: 1px solid white;
+        height: 20px;
+        width: 20px;
+        border-radius: 15px;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        transition: all 0.5s ease;
+        cursor: pointer;
+        justify-content: center;
+        margin-left: ${config.LadoBot ? "" : "auto"};
+        `;
+
+    caixa.addEventListener("click", function () {
+      const a = document.getElementById("minhaCaixa");
+      if (!a) {
+        Hwarn("minhaCaixa não encontrada");
+        return;
+      }
+
+      const b = document.getElementById("BOutr");
+      if (b) {
+        b.remove();
+        stt.AbaOutros = 0;
+      } else {
+        const c = document.getElementById("CaixaConfig");
+        const d = document.getElementById("CaiDPa");
+        if (c) {
+          c.remove();
+          stt.AbaConfig = 0;
+        }
+        if (d) {
+          d.remove();
+          stt.AbaPausas = 0;
+        }
+        const novoElemento = ADDCaiOutr();
+        if (!novoElemento) {
+          Herror("criarC() não retornou um elemento válido");
+          return;
+        }
+        if (a.children.length >= 2) {
+          a.insertBefore(novoElemento, a.children[1]);
+        } else {
+          a.appendChild(novoElemento);
+        }
+        stt.AbaOutros = 1;
+      }
+    });
+
+    // Adiciona o evento de mouseover ao botão
+    caixa.addEventListener("mouseover", function () {
+      Controle(1);
+    });
+
+    // Adiciona o evento de mouseout ao botão
+    caixa.addEventListener("mouseout", function () {
+      Controle(0);
+    });
+
+    /**
+     * Controle - alterna entre modo compacto/expandido do botão
+     * @param {number} mostrarTextoCompleto - 1 para expandido, 0 para compacto
+     */
+    function Controle(mostrarTextoCompleto) {
+      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
+      caixa.textContent = mostrarTextoCompleto
+        ? stt.AbaOutros
+          ? "Fechar"
+          : "Outros"
+        : stt.AbaOutros
+          ? "F"
+          : "O";
       const BConfig = document.getElementById("BConfig");
       if (BConfig) BConfig.textContent = "C";
     }
@@ -2381,13 +2468,60 @@
       c1aixaDeCor.append(
         LinhaSelCor(7, "Principal", Ccor.Principal),
         //LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
-        //LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
+        LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
         //LinhaSelCor(10, "Erro", Ccor.Erro),
         //LinhaSelCor(11, "Offline", Ccor.Offline),
         LinhaSelCor(12, "Config", Ccor.Config),
       );
 
       const a = CaixaDeOcultar(criarBotSalv(25, "Cores"), c1aixaDeCor);
+      return a;
+    }
+
+    function ContTMA() {
+      const a = document.createElement("div");
+      a.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        `;
+      const MetaTMAC = criarLinhaTextoComBot2(
+        "AtivaMeta",
+        "Meta TMA",
+        config.MetaTMA,
+        () => {
+          config.MetaTMA = !config.MetaTMA;
+          atualizarVisual();
+        },
+      );
+      const InputTMABot = document.createElement("div");
+      InputTMABot.style.cssText = `display: flex; align-items: center;`;
+
+      const inputTMA = document.createElement("input");
+      inputTMA.className = "placeholderPerso";
+      inputTMA.setAttribute("placeholder", config.ValorMetaTMA);
+      inputTMA.type = "number";
+      inputTMA.style.cssText = `
+        height: 16px;
+        color: white;
+        background-color: transparent;
+        border: solid 1px white;
+        width: 50px;
+        font-size: 12px;
+        `;
+      const SalvarTMA = criarBotSalv("SavTMA", "Salvar");
+      SalvarTMA.style.marginLeft = "5px";
+      SalvarTMA.addEventListener("click", function () {
+        const valorinputtma = inputTMA.value || inputTMA.placeholder;
+        config.ValorMetaTMA = valorinputtma;
+        inputTMA.placeholder = valorinputtma;
+        inputTMA.value = "";
+        SalvandoVariConfig(1);
+      });
+
+      InputTMABot.append(inputTMA, SalvarTMA);
+      a.append(MetaTMAC, InputTMABot);
       return a;
     }
 
@@ -2416,7 +2550,7 @@
         config.notiEstouro = !config.notiEstouro;
         atualizarVisual();
 
-        if (!config.notiEstouro) atualizarComoff(0, "cTMA");
+        if (!config.notiEstouro) atualizarComoff(0, Ccor.Erro, "cTMA");
       },
     );
     const IgEstSom = criarLinhaTextoComBot2(
@@ -2513,6 +2647,8 @@
       CTimerCh,
       criarSeparador(),
       caixaDeCor(),
+      criarSeparador(),
+      ContTMA(),
       criarSeparador(),
       ContTempEsc(),
       criarSeparador(),
@@ -2644,6 +2780,7 @@
       Ccor.Principal = Ccor.Varian;
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
+    if (qq === "cor9") Ccor.MetaTMA = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
@@ -2654,6 +2791,7 @@
     atualizarSlidePosi("BotLogManu", config.LogueManual);
     atualizarSlidePosi("BotTFuso", config.TesteHora);
     atualizarSlidePosi("BotNotEst", config.notiEstouro);
+    atualizarSlidePosi("BotAtivaMeta", config.MetaTMA);
   }
 
   /**
@@ -2858,20 +2996,6 @@
           criarItemTabela(item.id, "fim", fimHora),
           //criarItemTabela(item.id, "id", "❌")
         );
-        if(duracao !== "---"){
-          stt.novaDif.Existe = 1;
-          
-        }
-
-        if (stt.novaDif.Existe) {
-          caixa.append(
-            criarItemTabela(item.id, "pausa", pausa),
-            criarItemTabela(item.id, "duracao", duracao),
-            criarItemTabela(item.id, "inicio", inicioHora),
-            criarItemTabela(item.id, "fim", fimHora),
-            //criarItemTabela(item.id, "id", "❌")
-          );
-        }
       });
     }
 
