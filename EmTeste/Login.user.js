@@ -2990,7 +2990,7 @@
         (a, b) => Number(a.id) - Number(b.id),
       );
 
-      /*ordenado.forEach((item) => {
+      ordenado.forEach((item) => {
         // Usa as chaves em minúsculas conforme seu objeto atual
         const inicioHora = item?.inicio?.hora ?? "---";
         const fimHora = item?.fim?.hora ?? "---";
@@ -3016,123 +3016,6 @@
           criarItemTabela(item.id, "fim", fimHora),
           //criarItemTabela(item.id, "id", "❌")
         );
-        
-      });*/
-      // Helpers rápidos
-      function horaDe(x, fallback = "<--->") {
-        if (x && typeof x === "object" && typeof x.hora === "string")
-          return x.hora;
-        return fallback;
-      }
-      function ehDataHoraValida(x) {
-        return x && typeof x === "object" && typeof x.hora === "string";
-      }
-
-      // Garante estrutura de estado
-      if (!stt) stt = {};
-      if (!stt.novaDif) stt.novaDif = { inicio: null, fim: null };
-
-      // Usa o primeiro início de trabalho a partir do login (LogouA)
-      if (!ehDataHoraValida(stt.novaDif.inicio)) {
-        if (ehDataHoraValida(TempoPausas?.LogouA)) {
-          stt.novaDif.inicio = { ...TempoPausas.LogouA }; // {data, hora}
-          stt.novaDif.fim = { data: "<--->", hora: "<--->" }; // placeholder só para visual
-        } else {
-          // fallback em caso de dados ausentes (evita quebras)
-          stt.novaDif.inicio = { data: "<--->", hora: "<--->" };
-          stt.novaDif.fim = { data: "<--->", hora: "<--->" };
-        }
-      }
-
-      ordenado.forEach((item) => {
-        const inicio = item?.inicio ?? "<--->"; // {data, hora} ou placeholder
-        const fim = item?.fim ?? "<--->"; // {data, hora} ou placeholder
-        const inicioHora = horaDe(inicio);
-        const fimHora = horaDe(fim);
-        const duracao = item?.duracao ?? "<--->";
-        const pausa = item?.pausa ?? "";
-
-        // Filtro das pausas que não devem gerar linha (apenas se id != 0)
-        if (item.id !== 0) {
-          const pNorm = (pausa || "")
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .toLowerCase()
-            .trim();
-          const ignorar = new Set([
-            "pos",
-            "callback",
-            "trabalhando",
-            "disponivel",
-            "indisponivel",
-          ]);
-          if (ignorar.has(pNorm)) return;
-        }
-
-        // Linha da pausa atual
-        caixa.append(
-          criarItemTabela(item.id, "pausa", pausa),
-          criarItemTabela(item.id, "duracao", duracao),
-          criarItemTabela(item.id, "inicio", inicioHora),
-          criarItemTabela(item.id, "fim", fimHora),
-        );
-
-        if (item.id === 0) return;
-        // Cálculo do período "Trabalhando"
-        let dur = 0;
-
-        // Se a duração da pausa existe (pausa fechada), fechamos um bloco "Trabalhando" anterior
-        if (duracao !== "---" && duracao !== "<--->") {
-          // Fechamos "Trabalhando" anterior com o INÍCIO da pausa atual (momento em que parou de trabalhar)
-          if (ehDataHoraValida(stt.novaDif.inicio)) {
-            stt.novaDif.fim =
-              fim && typeof inicio === "object"
-                ? inicio
-                : { data: "<--->", hora: inicioHora };
-            dur = calcularDuracao(stt.novaDif.inicio, stt.novaDif.fim);
-          }
-
-          // E iniciamos um novo "Trabalhando" a partir do FIM da pausa atual (voltou a trabalhar)
-          stt.novaDif.inicio =
-            fim && typeof fim === "object"
-              ? fim
-              : { data: "<--->", hora: fimHora };
-
-          // Render do bloco "Trabalhando" agora fechado
-          caixa.append(
-            criarItemTabela(item.id + "T", "pausa", "Trabalhando"),
-            criarItemTabela(item.id + "T", "duracao", dur),
-            criarItemTabela(
-              item.id + "T",
-              "inicio",
-              horaDe(stt.novaDif.inicio),
-            ), // início atualizado p/ próximo ciclo
-            criarItemTabela(item.id + "T", "fim", horaDe(stt.novaDif.fim)),
-          );
-        } else {
-          // Pausa aberta: "Trabalhando" vai até agora
-          const agora = gerarDataHora(); // {data, hora}
-          if (ehDataHoraValida(stt.novaDif.inicio)) {
-            dur = calcularDuracao(stt.novaDif.inicio, agora);
-          } else {
-            dur = 0;
-          }
-
-          // Render do "Trabalhando" em andamento (fim mostrado como "agora")
-          caixa.append(
-            criarItemTabela(item.id + "T", "pausa", "Trabalhando"),
-            criarItemTabela(item.id + "T", "duracao", dur),
-            criarItemTabela(
-              item.id + "T",
-              "inicio",
-              horaDe(stt.novaDif.inicio),
-            ),
-            criarItemTabela(item.id + "T", "fim", horaDe(agora)),
-          );
-
-          // Mantemos stt.novaDif.fim como placeholder (ou, se preferir, pode guardar 'agora')
-          stt.novaDif.fim = { data: "<--->", hora: "<--->" };
-        }
       });
     }
 
