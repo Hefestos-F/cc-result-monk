@@ -127,6 +127,7 @@
 
   // Variáveis que receberão dados recuperados do banco local (indexedDB)
   let dadosdePausas;
+  let dadosControlado;
   let dadosSalvosConfi;
   let dadosPrimLogue;
   let dadosPrimLogueOnt;
@@ -1249,6 +1250,24 @@
     }
 
     await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
+  }
+
+  async function AddouAtualizarPausasCont(id, pausa, inicio, fim, duracao) {
+    const novoItem = { id, pausa, inicio, fim, duracao };
+
+    if (!Array.isArray(dadosControlado)) dadosControlado = [];
+
+    const index = dadosControlado.findIndex(
+      (item) => String(item?.id) === String(id),
+    );
+
+    if (index !== -1) {
+      dadosControlado[index] = { ...dadosControlado[index], ...novoItem };
+    } else {
+      dadosControlado.push(novoItem);
+    }
+
+    //await AddOuAtuIindexdb(ChavePausas, dadosControlado);
   }
 
   function normalizarCampo(campo) {
@@ -2996,6 +3015,14 @@
           criarItemTabela(item.id, "fim", fimHora),
           //criarItemTabela(item.id, "id", "❌")
         );
+        /*if (pausa !== "Disponível")
+          AddouAtualizarPausasCont(
+            item.id,
+            pausa,
+            item.inicio,
+            item.fim,
+            duracao,
+          );*/
       });
     }
 
