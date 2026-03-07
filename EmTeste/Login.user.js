@@ -2553,23 +2553,6 @@
       return a;
     }
 
-    const CTimerCh = criarCaixaSeg();
-    const TimerCh = criarLinhaTextoComBot2(
-      "TimerCh",
-      "Timer No Chat",
-      config.OBS_ATIVO,
-      () => {
-        if (config.OBS_ATIVO) {
-          desligarBootstrapEMonitoramento();
-        } else {
-          retomarObservacao();
-        }
-        SalvandoVariConfig(1);
-        atualizarVisual();
-      },
-    );
-    CTimerCh.append(TimerCh);
-
     const IgEst = criarLinhaTextoComBot2(
       "NotEst",
       "Notificar Estouro",
@@ -2672,8 +2655,6 @@
     }
 
     caixa.append(
-      CTimerCh,
-      criarSeparador(),
       ContTMA(),
       criarSeparador(),
       caixaDeCor(),
@@ -3001,7 +2982,7 @@
       function itemdetab(id, pausa, inicio, fim, duracao) {
         caixa.append(
           criarItemTabela(id, "pausa", pausa),
-          criarItemTabela(id, "duracao", duracao),
+          criarItemTabela(id, "duracao", tempoEncurtado(duracao)),
           criarItemTabela(id, "inicio", inicio),
           criarItemTabela(id, "fim", fim),
           //criarItemTabela(item.id, "id", "❌")
@@ -3031,13 +3012,7 @@
             return;
 
         if (item.id === 0) {
-          itemdetab(
-            item.id,
-            pausa,
-            inicioHora,
-            fimHora,
-            tempoEncurtado(duracao),
-          );
+          itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
           AntFim.inicio = TempoPausas.LogouA;
           AntFim.duracao = duracao;
         } else if (AntFim.inicio !== "---" && AntFim.duracao !== "---") {
@@ -3048,15 +3023,9 @@
             "Trabalhado",
             AntFim.inicio.hora,
             inicioHora,
-            tempoEncurtado(duracaoReal),
+            duracaoReal,
           );
-          itemdetab(
-            item.id,
-            pausa,
-            inicioHora,
-            fimHora,
-            tempoEncurtado(duracao),
-          );
+          itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
 
           AntFim.inicio = fim;
           AntFim.duracao = duracao;
@@ -3069,7 +3038,7 @@
         "Trabalhando",
         AntFim.inicio.hora,
         "---",
-        tempoEncurtado(duracaoReal),
+        duracaoReal,
       );
     }
 
