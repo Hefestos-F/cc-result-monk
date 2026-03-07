@@ -2897,7 +2897,7 @@
         margin-${config.LadoBot ? "left" : "right"}: 5px;
         border-radius: 8px;
         padding: 5px;
-        max-width: 400px;
+        max-height: 214px;
         height: max-content;
         border: 1px solid white;
         transition: 0.5s;
@@ -2982,7 +2982,11 @@
       function itemdetab(id, pausa, inicio, fim, duracao) {
         caixa.append(
           criarItemTabela(id, "pausa", pausa),
-          criarItemTabela(id, "duracao", tempoEncurtado(duracao)),
+          criarItemTabela(
+            id,
+            "duracao",
+            duracao === "---" ? duracao : tempoEncurtado(duracao),
+          ),
           criarItemTabela(id, "inicio", inicio),
           criarItemTabela(id, "fim", fim),
           //criarItemTabela(item.id, "id", "❌")
@@ -3029,17 +3033,19 @@
 
           AntFim.inicio = fim;
           AntFim.duracao = duracao;
+          AntFim.pausa = pausa;
         }
       });
       const duracaoReal = calcularDuracao(AntFim.inicio, agora);
 
-      itemdetab(
-        "ContAtr",
-        "Trabalhando",
-        AntFim.inicio.hora,
-        "---",
-        duracaoReal,
-      );
+      if (!["Descanso", "Lanche"].includes(AntFim.pausa))
+        itemdetab(
+          "ContAtr",
+          "Trabalhando",
+          AntFim.inicio.hora,
+          "---",
+          duracaoReal,
+        );
     }
 
     //Hlog(`Pausas ${JSON.stringify(dadosdePausas)}`);
