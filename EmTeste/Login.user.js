@@ -3065,7 +3065,7 @@
       });
       const duracaoReal = calcularDuracao(AntFim.inicio, agora);
 
-      if (!["Descanso", "Lanche"].includes(AntFim.pausa))
+      if (["Trabalhando", "Disponível"].includes(AntFim.pausa))
         itemdetab(
           "ContAtr",
           "Trabalhando",
