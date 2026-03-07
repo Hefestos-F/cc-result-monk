@@ -203,7 +203,7 @@
     await SalvandoVariConfig(0);
     await verifiDataLogue();
     await verifLogueManual();
-    criarObjetoFlutuante();
+    CriarBotInicial();
   }
 
   function observarItem(aoMudar) {
@@ -762,6 +762,33 @@
     const base = buildDateTime(horaedataparacalculo);
     const adjusted = new Date(base.getTime() + offsetSec * 1000);
     return formatObj(adjusted);
+  }
+
+  function CriarBotInicial() {
+    const div = document.createElement("div");
+    div.id = "BotInicial";
+    div.style.cssText = `
+    width: 22px;
+    height: 22px;
+    position: absolute;
+    top: 16px;
+    left: 54px;
+    border-radius: 15px;
+    border: 1px white solid;
+    cursor: pointer;
+    `;
+    div.addEventListener("mouseover", () => {
+      div.style.background = Ccor.AreaAr;
+    });
+    div.addEventListener("mouseout", () => {
+      div.style.background = "";
+    });
+    div.addEventListener("click", () => {
+      const FlutOB = document.getElementById("FlutOB");
+      if (FlutOB) FlutOB.remove();
+      else criarObjetoFlutuante();
+    });
+    document.body.appendChild(div);
   }
 
   function criarObjetoFlutuante(options = {}) {
