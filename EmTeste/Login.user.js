@@ -81,6 +81,8 @@
     Atendidas: 0,
   };
 
+  const AntFim = {};
+
   const DDPausa = {
     numero: 1,
     inicioUltimaP: 0,
@@ -1139,6 +1141,12 @@
 
     vLogou.textContent = TempoPausas.Logou;
     vSaida.textContent = TempoPausas.Saida;
+
+    const duracaoContAtr = document.getElementById("duracaoContAtr");
+    if (duracaoContAtr)
+      duracaoContAtr.textContent = tempoEncurtado(
+        calcularDuracao(AntFim.inicio, agora),
+      );
 
     if (!config.LogueManual) {
       if (
@@ -2666,9 +2674,9 @@
     caixa.append(
       CTimerCh,
       criarSeparador(),
-      caixaDeCor(),
-      criarSeparador(),
       ContTMA(),
+      criarSeparador(),
+      caixaDeCor(),
       criarSeparador(),
       ContTempEsc(),
       criarSeparador(),
@@ -2926,7 +2934,7 @@
      */
     function AddTituloCp(titulo) {
       const caixa = document.createElement("div");
-      caixa.innerHTML = `${titulo}`;
+      caixa.textContent = `${titulo}`;
       caixa.style.cssText = `
         font-size: 14px;
             border-bottom-style: dashed;
@@ -2960,7 +2968,7 @@
     function criarItemTabela(id, campo, textoExibicao) {
       const caixa = document.createElement("div");
       caixa.id = `${campo}${id}`;
-      caixa.innerHTML = textoExibicao;
+      caixa.textContent = textoExibicao;
       caixa.style.cssText = `
         display: flex;
         align-items: center;
@@ -2990,9 +2998,22 @@
         (a, b) => Number(a.id) - Number(b.id),
       );
 
+      function itemdetab(id, pausa, inicio, fim, duracao) {
+        caixa.append(
+          criarItemTabela(id, "pausa", pausa),
+          criarItemTabela(id, "duracao", duracao),
+          criarItemTabela(id, "inicio", inicio),
+          criarItemTabela(id, "fim", fim),
+          //criarItemTabela(item.id, "id", "❌")
+        );
+      }
+
+      const agora = gerarDataHora();
       ordenado.forEach((item) => {
         // Usa as chaves em minúsculas conforme seu objeto atual
+        const inicio = item?.inicio ?? "---";
         const inicioHora = item?.inicio?.hora ?? "---";
+        const fim = item?.fim ?? "---";
         const fimHora = item?.fim?.hora ?? "---";
         const duracao = item?.duracao ?? "---";
         const pausa = item?.pausa ?? "";
@@ -3009,14 +3030,47 @@
           )
             return;
 
-        caixa.append(
-          criarItemTabela(item.id, "pausa", pausa),
-          criarItemTabela(item.id, "duracao", duracao),
-          criarItemTabela(item.id, "inicio", inicioHora),
-          criarItemTabela(item.id, "fim", fimHora),
-          //criarItemTabela(item.id, "id", "❌")
-        );
+        if (item.id === 0) {
+          itemdetab(
+            item.id,
+            pausa,
+            inicioHora,
+            fimHora,
+            tempoEncurtado(duracao),
+          );
+          AntFim.inicio = TempoPausas.LogouA;
+          AntFim.duracao = duracao;
+        } else if (AntFim.inicio !== "---" && AntFim.duracao !== "---") {
+          const duracaoReal = calcularDuracao(AntFim.inicio, fim);
+
+          itemdetab(
+            item.id + "T",
+            "Trabalhado",
+            AntFim.inicio.hora,
+            inicioHora,
+            tempoEncurtado(duracaoReal),
+          );
+          itemdetab(
+            item.id,
+            pausa,
+            inicioHora,
+            fimHora,
+            tempoEncurtado(duracao),
+          );
+
+          AntFim.inicio = fim;
+          AntFim.duracao = duracao;
+        }
       });
+      const duracaoReal = calcularDuracao(AntFim.inicio, agora);
+
+      itemdetab(
+        "ContAtr",
+        "Trabalhando",
+        AntFim.inicio.hora,
+        "---",
+        tempoEncurtado(duracaoReal),
+      );
     }
 
     //Hlog(`Pausas ${JSON.stringify(dadosdePausas)}`);
