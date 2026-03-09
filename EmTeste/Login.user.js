@@ -63,7 +63,7 @@
     Encontrado: 0,
     LadoBot: 0,
     LadoBotAnterior: 0,
-    novaDif: {},
+    FaixaVerti: 0,
   };
 
   let TempoPausas = {
@@ -1600,6 +1600,21 @@
     return separador;
   }
 
+  function PosicaoFaixa() {
+    document.querySelectorAll(".separadorC").forEach((a) => {
+      a.style.height = stt.FaixaVerti ? "1px" : "100%";
+      a.style.width = stt.FaixaVerti ? "100%" : "1px";
+    });
+    const b = document.getElementById("contValores");
+    if (b) b.style.flexDirection = stt.FaixaVerti ? "column" : "";
+
+    const c = document.getElementById("minhaCaixa");
+    if (c) c.style.flexDirection = !stt.FaixaVerti ? "column" : "";
+
+    const d = document.getElementById("ContPaCo");
+    //if(d) d.style.flexDirection= !stt.FaixaVerti ?"column":"";
+  }
+
   /**
    * ADDBotPa - cria botão para mostrar/ocultar painel de pausas
    * Exibe "Pausas"/"Fechar" ou "P"/"F" dependendo do espaço
@@ -2163,6 +2178,19 @@
         max-height: 200px;
     `;
 
+    const CFaixaVert = criarCaixaSeg();
+    const FaixaVert = criarLinhaTextoComBot2(
+      "FaixaVert",
+      "Faixa Vertical",
+      stt.FaixaVerti,
+      () => {
+        stt.FaixaVerti = !stt.FaixaVerti;
+        PosicaoFaixa();
+        atualizarVisual();
+      },
+    );
+    CFaixaVert.append(FaixaVert);
+
     function criarCaixaSeg() {
       const caixa = document.createElement("div");
       caixa.style.cssText = `
@@ -2682,6 +2710,8 @@
     }
 
     caixa.append(
+      CFaixaVert,
+      criarSeparador(),
       ContTMA(),
       criarSeparador(),
       caixaDeCor(),
@@ -2828,6 +2858,7 @@
     atualizarSlidePosi("BotTFuso", config.TesteHora);
     atualizarSlidePosi("BotNotEst", config.notiEstouro);
     atualizarSlidePosi("BotAtivaMeta", config.MetaTMA);
+    atualizarSlidePosi("BotFaixaVert", stt.FaixaVerti);
   }
 
   /**
