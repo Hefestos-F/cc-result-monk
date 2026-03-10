@@ -12,7 +12,8 @@
 // @run-at       document-idle
 
 // ==/UserScript==
-
+//https://smileshelp.zendesk.com/*
+//https://cxagent.nicecxone.com/home*
 (function () {
   const config = {
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
@@ -20,6 +21,7 @@
     logueEntreDatas: 0,
     pausalimitada: 0,
     LogueManual: 0,
+    logueSalvo: 1,
     SomEstouro: 1,
     notiEstouro: 1,
     OBS_ATIVO: 1,
@@ -29,6 +31,7 @@
     LadoBot: 0,
     LadoBotAnterior: 0,
     MetaTMA: 1,
+    FaixaVerti: 1,
   };
 
   const configPadrao = {
@@ -63,7 +66,6 @@
     Encontrado: 0,
     LadoBot: 0,
     LadoBotAnterior: 0,
-    FaixaVerti: 0,
   };
 
   let TempoPausas = {
@@ -993,6 +995,8 @@
   }
 
   function BotoesLateral() {
+    if (document.getElementById("ContPaCo")) return;
+
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
@@ -1002,16 +1006,41 @@
       transition: 0.5s;
       display: flex;
       gap: 5px;
-      flex-direction: column;
+      flex-direction: ${config.FaixaVerti ? "column" : ""};
     `;
 
     const a = document.getElementById("minhaCaixa");
     if (!a) return;
+    a.style.alignItems = !config.FaixaVerti ? "center" : "";
 
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
 
-    a.insertBefore(Divbot, a.children[config.LadoBot]);
+    if (config.FaixaVerti) {
+      a.insertBefore(Divbot, a.children[config.LadoBot]);
+    } else {
+      if (a.children.length >= 2) {
+        a.insertBefore(Divbot, a.children[1]);
+      } else {
+        a.appendChild(Divbot);
+      }
+    }
+  }
+
+  function PosicaoFaixa() {
+    document.querySelectorAll(".separadorC").forEach((a) => {
+      a.style.height = config.FaixaVerti ? "1px" : "stretch";
+      a.style.width = config.FaixaVerti ? "100%" : "1px";
+      a.style.margin = config.FaixaVerti ? "2px" : "5px";
+    });
+    const b = document.getElementById("contValores");
+    if (b) b.style.flexDirection = config.FaixaVerti ? "column" : "";
+
+    const c = document.getElementById("minhaCaixa");
+    if (c) c.style.flexDirection = !config.FaixaVerti ? "column" : "";
+
+    const d = document.getElementById("ContPaCo");
+    //if(d) d.style.flexDirection= !config.FaixaVerti ?"column":"";
   }
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
@@ -1148,7 +1177,9 @@
 
     const Logou = config.LogueManual
       ? dadosLogueManu
-      : exibirHora(agora, 0, TempoPausas.Logado);
+      : config.logueSalvo
+        ? dadosPrimLogue
+        : exibirHora(agora, 0, TempoPausas.Logado);
     TempoPausas.LogouA = Logou;
     TempoPausas.Logou = Logou.hora;
 
@@ -1597,22 +1628,11 @@
     separador.id = `SepCVal${x}`;
     separador.classList.add("separadorC");
     separador.style.display = "none";
+
+    separador.style.height = config.FaixaVerti ? "1px" : "stretch";
+    separador.style.width = config.FaixaVerti ? "100%" : "1px";
+    separador.style.margin = config.FaixaVerti ? "2px" : "5px";
     return separador;
-  }
-
-  function PosicaoFaixa() {
-    document.querySelectorAll(".separadorC").forEach((a) => {
-      a.style.height = stt.FaixaVerti ? "1px" : "100%";
-      a.style.width = stt.FaixaVerti ? "100%" : "1px";
-    });
-    const b = document.getElementById("contValores");
-    if (b) b.style.flexDirection = stt.FaixaVerti ? "column" : "";
-
-    const c = document.getElementById("minhaCaixa");
-    if (c) c.style.flexDirection = !stt.FaixaVerti ? "column" : "";
-
-    const d = document.getElementById("ContPaCo");
-    //if(d) d.style.flexDirection= !stt.FaixaVerti ?"column":"";
   }
 
   /**
@@ -1635,7 +1655,8 @@
         transition: all 0.5s ease;
         cursor: pointer;
         justify-content: center;
-        margin-left: ${config.LadoBot ? "" : "auto"};
+        
+        margin-left: ${!config.LadoBot && config.FaixaVerti ? "auto" : ""};
         `;
 
     caixa.addEventListener("click", function () {
@@ -1660,7 +1681,7 @@
           Herror("criarC() não retornou um elemento válido");
           return;
         }
-        if (a.children.length >= 2) {
+        if (a.children.length >= 2 && config.FaixaVerti) {
           a.insertBefore(novoElemento, a.children[1]);
         } else {
           a.appendChild(novoElemento);
@@ -1744,7 +1765,7 @@
           Herror("criarC() não retornou um elemento válido");
           return;
         }
-        if (a.children.length >= 2) {
+        if (a.children.length >= 2 && config.FaixaVerti) {
           a.insertBefore(novoElemento, a.children[1]);
         } else {
           a.appendChild(novoElemento);
@@ -1798,7 +1819,7 @@
     transition: all 0.5s ease;
     cursor: pointer;
     justify-content: center;
-    margin-left: ${config.LadoBot ? "" : "auto"};
+    margin-left: ${!config.LadoBot && config.FaixaVerti ? "auto" : ""};
     `;
 
     caixa.addEventListener("click", function () {
@@ -1824,7 +1845,7 @@
           Herror("criarC() não retornou um elemento válido");
           return;
         }
-        if (a.children.length >= 2) {
+        if (a.children.length >= 2 && config.FaixaVerti) {
           a.insertBefore(novoElemento, a.children[1]);
         } else {
           a.appendChild(novoElemento);
@@ -1967,6 +1988,7 @@
     function criarClasse() {
       const style = document.createElement("style");
       style.type = "text/css";
+      style.id = "MeuEstiloLogin";
       style.innerHTML = `
       #FlutOB,
       #FlutOB * {
@@ -2017,7 +2039,7 @@
         transition: all 0.5s ease;
         border-radius: 15px;
         visibility: visible;
-        flex-direction: column;
+        flex-direction: ${config.FaixaVerti ? "column" : ""};
         overflow: hidden;
         border: 1px solid white;
         `;
@@ -2039,9 +2061,10 @@
     const minhaCaixa = document.createElement("div");
     minhaCaixa.setAttribute("id", "minhaCaixa");
     minhaCaixa.style.cssText = `
+        
         display: flex;
         color: white;
-        flex-direction: row;
+        flex-direction: ${!config.FaixaVerti ? "column" : ""};
         z-index: 16;
         font-size: 12px;
         transition: all 0.5s ease;
@@ -2076,12 +2099,21 @@
       if (a) {
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
-        if (config.LadoBot) {
-          a.style.marginLeft = x ? "5px" : "-20px";
-          a.style.marginRight = "";
+
+        if (config.FaixaVerti) {
+          if (config.LadoBot) {
+            a.style.marginLeft = x ? "5px" : "-20px";
+            a.style.marginRight = "";
+            a.style.marginTop = "";
+          } else {
+            a.style.marginRight = x ? "5px" : "-20px";
+            a.style.marginLeft = "";
+            a.style.marginTop = "";
+          }
         } else {
-          a.style.marginRight = x ? "5px" : "-20px";
-          a.style.marginLeft = "";
+          a.style.marginTop = x ? "5px" : "-20px";
+          a.style.marginLeft = config.LadoBot ? "" : "auto";
+          a.style.marginRight = config.LadoBot ? "auto" : "";
         }
       }
     }
@@ -2174,6 +2206,7 @@
         overflow: auto;
         width: max-content;
         border: 1px solid white;
+        margin-top: ${!config.FaixaVerti ? "5px" : ""};
         margin-${config.LadoBot ? "left" : "right"}: 5px;
         max-height: 200px;
     `;
@@ -2182,11 +2215,21 @@
     const FaixaVert = criarLinhaTextoComBot2(
       "FaixaVert",
       "Faixa Vertical",
-      stt.FaixaVerti,
+      config.FaixaVerti,
       () => {
-        stt.FaixaVerti = !stt.FaixaVerti;
-        PosicaoFaixa();
+        config.FaixaVerti = !config.FaixaVerti;
+
+        ["CaiDPa", "CaixaConfig", "ContPaCo"].forEach((s) => {
+          const a = document.getElementById(s);
+          if (a) a.remove();
+        });
+        stt.AbaPausas = 0;
+        stt.AbaConfig = 0;
+
+        BotoesLateral();
         atualizarVisual();
+        PosicaoFaixa();
+        SalvandoVariConfig(1);
       },
     );
     CFaixaVert.append(FaixaVert);
@@ -2608,6 +2651,34 @@
       return a;
     }
 
+    function modoCalculo() {
+      const CaixaModos = criarCaixaSeg();
+
+      CaixaModos.id = "idCaixaModos";
+      const item1Modos = criarLinhaTextoComBot2(
+        "logueSalvo",
+        "Primeiro Logue",
+        config.logueSalvo,
+        () => {
+          config.logueSalvo = !config.logueSalvo;
+          atualizarVisual();
+        },
+      );
+
+      const item2Modos = criarLinhaTextoComBot2(
+        "Recalc",
+        "Recalcular",
+        !config.logueSalvo,
+        () => {
+          config.logueSalvo = !config.logueSalvo;
+          atualizarVisual();
+        },
+      );
+
+      CaixaModos.append(item1Modos, item2Modos);
+      return CaixaModos;
+    }
+
     const IgEst = criarLinhaTextoComBot2(
       "NotEst",
       "Notificar Estouro",
@@ -2721,6 +2792,8 @@
       ContlogueManual(),
       criarSeparador(),
       CIgEst,
+      criarSeparador(),
+      modoCalculo(),
       criarSeparador(),
       Cbotavan(),
     );
@@ -2858,7 +2931,9 @@
     atualizarSlidePosi("BotTFuso", config.TesteHora);
     atualizarSlidePosi("BotNotEst", config.notiEstouro);
     atualizarSlidePosi("BotAtivaMeta", config.MetaTMA);
-    atualizarSlidePosi("BotFaixaVert", stt.FaixaVerti);
+    atualizarSlidePosi("BotFaixaVert", config.FaixaVerti);
+    atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);
+    atualizarSlidePosi("BotRecalc", !config.logueSalvo);
   }
 
   /**
@@ -2953,6 +3028,7 @@
     caixa.style.cssText = `
         background: ${Ccor.Config};
         margin-${config.LadoBot ? "left" : "right"}: 5px;
+        margin-top: ${!config.FaixaVerti ? "5px" : ""};
         border-radius: 8px;
         padding: 5px;
         max-height: 214px;
