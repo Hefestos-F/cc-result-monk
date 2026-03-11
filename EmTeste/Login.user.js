@@ -32,6 +32,7 @@
     LadoBotAnterior: 0,
     MetaTMA: 1,
     FaixaVerti: 1,
+    TolerOff: 40,
   };
 
   const configPadrao = {
@@ -52,6 +53,7 @@
   };
 
   const stt = {
+    logueInicio: 1,
     observa: 1,
     Status: "",
     andament: 1,
@@ -76,6 +78,7 @@
     SaidaA: 0,
     Falta: 0,
     Online: 0,
+    CompOnli: 0,
     Time: 0,
     Estouro: 0,
     ContAtual: 0,
@@ -90,6 +93,10 @@
     inicioUltimaP: 0,
     inicioUltimaPa: 0,
     StatusANT: "",
+  };
+
+  const letraD = {
+    Logou: "Logou:",
   };
 
   /**
@@ -203,7 +210,6 @@
       Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
     }
     await SalvandoVariConfig(0);
-    await verifiDataLogue();
     await verifLogueManual();
     CriarBotInicial();
   }
@@ -243,7 +249,7 @@
 
     // Divide no primeiro espaço, pipe (|) ou hífen (-)
     // O modificador 'u' garante suporte Unicode
-    const first = t.split(/[|\-\s]+/u)[0];
+    const first = t.split(/[|\/\-\s]+/u)[0];
 
     // Normaliza: primeira letra maiúscula, restante minúsculo
     const lower = first.toLowerCase();
@@ -339,9 +345,13 @@
 
         Hlog(`fim: ${JSON.stringify(agora)}`);
 
-        TempoPausas.Online = somarDuracoes().totalSegundos;
+        const Online = somarDuracoes().totalSegundos;
 
-        TempoPausas.Trabalhando = somarDuracoesTrabalho().totalFormatado;
+        if (Online > TempoPausas.Online) TempoPausas.Online = Online;
+
+        const Trabalhando = somarDuracoesTrabalho().totalFormatado;
+        if (Trabalhando > TempoPausas.Trabalhando)
+          TempoPausas.Trabalhando = Trabalhando;
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
@@ -392,7 +402,7 @@
     }
   }
 
-  async function verifiDataLogue(x = 0) {
+  async function verifiDataLogue(x = 0, z = 0) {
     const a = gerarDataHora();
     const e = exibirHora(a, 0, "23:59:59");
     let limp = 0;
@@ -414,7 +424,7 @@
     if (limp) {
       x = 1;
       TempoPausas = {};
-      dadosPrimLogue = a;
+      dadosPrimLogue = z || a;
       dadosdePausas = [];
       DDPausa.numero = 0;
       ApagarChaveIndexDB(ChavePausas);
@@ -984,7 +994,11 @@
 
     // Monta estrutura
     div.appendChild(handle);
-    div.appendChild(AdicionarCaixaAtualizada());
+    const AntDArea = document.createElement("div");
+    AntDArea.id = "AntDArea";
+    AntDArea.appendChild(AdicionarCaixaAtualizada());
+
+    div.appendChild(AntDArea);
     document.body.appendChild(div);
 
     // Após inserir no DOM:
@@ -1106,6 +1120,8 @@
 
   // Atualiza o timer a cada segundo
   setInterval(() => {
+    Hdebug("Tick do timer iniciado");
+
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
     const vLogou = document.getElementById("vLogou");
@@ -1116,22 +1132,47 @@
     const InfoV = document.getElementById("InfoV");
     const ContPaCo = document.getElementById("ContPaCo");
 
-    if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
+    if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
+      Hwarn("Elementos obrigatórios não encontrados no DOM", {
+        time,
+        titulo,
+        vLogou,
+        vSaida,
+        vLogado,
+        vFalta,
+      });
+      return;
+    }
 
     const agora = gerarDataHora();
+    //Hdebug("Hora atual", agora);
+
     if (config.TesteHora) {
       const tDataX = document.getElementById("tDataX");
       const vDataX = document.getElementById("vDataX");
-      tDataX.textContent = agora.data;
-      vDataX.textContent = agora.hora;
+
+      if (!tDataX || !vDataX) {
+        Hwarn("TesteHora ativo mas elementos não encontrados");
+      } else {
+        tDataX.textContent = agora.data;
+        vDataX.textContent = agora.hora;
+      }
     }
 
     stt.Encontrado = stt.Status === "---" ? 0 : 1;
+    Hdebug("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
 
     let tma =
       TempoPausas.Atendidas > 0
         ? converterParaSegundos(TempoPausas.Trabalhando) / TempoPausas.Atendidas
         : 0;
+
+    Hdebug("Cálculo TMA", {
+      Trabalhando: TempoPausas.Trabalhando,
+      Atendidas: TempoPausas.Atendidas,
+      TMA: tma,
+    });
+
     atualizarComoff(
       tma > config.ValorMetaTMA && config.MetaTMA && stt.Encontrado,
       Ccor.MetaTMA,
@@ -1142,6 +1183,7 @@
     time.textContent = stt.Encontrado ? Math.floor(tma) : "Encontrado";
 
     if (!InfoV) {
+      Hwarn("InfoV não encontrado");
     } else if (
       stt.Encontrado ||
       config.LogueManual ||
@@ -1167,35 +1209,50 @@
       ],
       stt.Encontrado || config.LogueManual,
     );
+
     verificarMouse(
       ["SepCVal2"],
       config.LogueManual && stt.Encontrado ? 1 : stt.Encontrado ? 1 : 0,
     );
-    verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
 
+    verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
     verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
+
+    const logCalc = exibirHora(agora, 0, TempoPausas.Logado);
+    Hdebug("logCalc", logCalc);
 
     const Logou = config.LogueManual
       ? dadosLogueManu
       : config.logueSalvo
         ? dadosPrimLogue
-        : exibirHora(agora, 0, TempoPausas.Logado);
+        : logCalc;
+
+    if (!Logou) {
+      Herror("Logou indefinido", { config, logCalc });
+      return;
+    }
+
     TempoPausas.LogouA = Logou;
     TempoPausas.Logou = Logou.hora;
 
     const Saida = exibirHora(Logou, 1, config.TempoEscaladoHoras);
-
     TempoPausas.Saida = Saida.hora;
-    if (!config.LogueManual && compararDatas(dadosPrimLogue, Logou)) {
-      dadosPrimLogue = Logou;
-      verifiDataLogue(1);
-    }
 
+    if (stt.logueInicio) {
+      Hlog("Primeiro logue detectado");
+      verifiDataLogue(0, logCalc);
+      stt.logueInicio = 0;
+    }
     const oLogou = document.getElementById("oLogou");
     const oSaida = document.getElementById("oSaida");
 
     oLogou.textContent = config.TesteHora ? Logou.data : "";
     oSaida.textContent = config.TesteHora ? Saida.data : "";
+    if (!config.LogueManual && compararDatas(dadosPrimLogue, logCalc)) {
+      Hlog("Atualizando dadosPrimLogue");
+      dadosPrimLogue = logCalc;
+      verifiDataLogue(1, logCalc);
+    }
 
     vLogou.textContent = TempoPausas.Logou;
     vSaida.textContent = TempoPausas.Saida;
@@ -1212,23 +1269,43 @@
         !DDPausa.inicioUltimaP.data ||
         !stt.Encontrado
       ) {
+        Hwarn("Retorno antecipado por pausa ou status inválido", {
+          DDPausa,
+          stt,
+        });
         return;
       }
     }
 
     const el = obterEstadoAgenteComoObjeto();
+    Hdebug("Estado do agente", el);
 
     if (el && el.tempo) {
       TempoPausas.ContAtual = el.tempo;
+    } else {
+      Hwarn("Tempo do agente não encontrado", el);
     }
 
-    TempoPausas.Logado = config.LogueManual
-      ? exibirAHora(agora, 0, Logou).hora
-      : converterParaTempo(
-          TempoPausas.Online + converterParaSegundos(TempoPausas.ContAtual),
-        );
+    if (TempoPausas.Online === undefined) TempoPausas.Online = 0;
+
+    const onli2 =
+      TempoPausas.Online + converterParaSegundos(TempoPausas.ContAtual);
+    const onli3 = exibirAHora(agora, 0, Logou).hora;
+    //TempoPausas.Online = onli2;
+
+    const compTole = converterParaSegundos(onli3) - onli2;
+    if (compTole > config.TolerOff) {
+      Hdebug("Logado pelo Logue maior que pela tolerancia", compTole);
+    }
+
+    TempoPausas.Logado = config.LogueManual ? onli3 : converterParaTempo(onli2);
 
     TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
+
+    Hdebug("Online : ", TempoPausas.Online);
+    Hdebug("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
+    Hdebug("Falta : ", TempoPausas.Falta);
+    Hdebug("Logado : ", TempoPausas.Logado);
 
     vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
 
@@ -1257,16 +1334,18 @@
       stt.Estouro = TempoPausas.Estouro
         ? compararDatas(agora, TempoPausas.Estouro)
         : 0;
+
       atualizarComoff(stt.Estouro, Ccor.Erro, "cTMA");
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
+        Hwarn("Estouro de pausa detectado");
         stt.Estour1 = 1;
         tocarBeep();
-        setTimeout(function () {
-          RepetirBeep();
-        }, 15000);
+        setTimeout(RepetirBeep, 15000);
       }
     }
+
+    Hdebug("Tick finalizado com sucesso");
   }, 1000);
 
   function atualizarComoff(ar, cor, caixa) {
@@ -1975,7 +2054,7 @@
       caixa.style.display = "none";
     }
     caixa.innerHTML = `
-        <div id="t${titulo}">${titulo}:</div>
+        <div id="t${titulo}">${titulo === "Logou" ? letraD.Logou : titulo}</div>
         <div id="o${titulo}"></div>
         <div id="v${titulo}">...</div>
         `;
@@ -2445,6 +2524,8 @@
         config.LogueManual,
         () => {
           config.LogueManual = !config.LogueManual;
+          letraD.Logou = config.LogueManual ? "Logou:M" : "Logou:";
+          document.getElementById("tLogou").textContent = letraD.Logou;
           if (config.LogueManual) {
             const [horasIm, minutosIm] =
               TempoPausas.Logou.split(":").map(Number);
