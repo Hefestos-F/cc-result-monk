@@ -349,7 +349,7 @@
 
         if (Online > TempoPausas.Online) TempoPausas.Online = Online;
 
-        const Trabalhando = somarDuracoesTrabalho().totalFormatado;
+        const Trabalhando = somarDuracoesTrabalho().totalSegundos;
         if (Trabalhando > TempoPausas.Trabalhando)
           TempoPausas.Trabalhando = Trabalhando;
       }
@@ -831,13 +831,16 @@
     const handle = document.createElement("div"); // Área para arrastar
     handle.id = "AreaArrast";
     Object.assign(handle.style, {
-      width: "100%",
-      height: "5px",
+      width: "18px",
+      height: "18px",
       backgroundColor: Ccor.AreaAr,
       cursor: "grab",
-      borderRadius: "4px",
-      marginBottom: "5px",
+      borderRadius: "15px",
       touchAction: "none",
+      position: "absolute",
+      right: "-5px",
+      top: "-5px",
+      transition: "all 0.5s ease",
     });
 
     // -----
@@ -994,11 +997,8 @@
 
     // Monta estrutura
     div.appendChild(handle);
-    const AntDArea = document.createElement("div");
-    AntDArea.id = "AntDArea";
-    AntDArea.appendChild(AdicionarCaixaAtualizada());
 
-    div.appendChild(AntDArea);
+    div.appendChild(AdicionarCaixaAtualizada());
     document.body.appendChild(div);
 
     // Após inserir no DOM:
@@ -1118,6 +1118,38 @@
     }
   }
 
+  function horarios(logou, logado) {
+    const agora = gerarDataHora();
+
+    //Hlog(`logado:${JSON.stringify(logado)}`);
+
+    let LogouCalc = 0;
+    if (logou) LogouCalc = logou;
+    else LogouCalc = exibirHora(agora, 0, logado);
+
+    let LogadoCalc = 0;
+    if (!logou) LogadoCalc = logado;
+    else LogadoCalc = exibirAHora(agora, 0, LogouCalc).hora;
+
+    //Hlog(`Logou:${JSON.stringify(Logou)}`);
+
+    const Saida = exibirHora(LogouCalc, 1, config.TempoEscaladoHoras);
+
+    //Hlog(`Saida:${JSON.stringify(Saida)}`);
+    //Hlog(`agora:${JSON.stringify(agora)}`);
+
+    const Falta = exibirAHora(Saida, 0, agora).hora;
+
+    //Hlog(`Falta:${JSON.stringify(Falta)}`);
+
+    return {
+      Logou: LogouCalc,
+      Saida: Saida,
+      Logado: LogadoCalc,
+      Falta: Falta,
+    };
+  }
+
   // Atualiza o timer a cada segundo
   setInterval(() => {
     Hdebug("Tick do timer iniciado");
@@ -1218,44 +1250,69 @@
     verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
     verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
 
-    const logCalc = exibirHora(agora, 0, TempoPausas.Logado);
-    Hdebug("logCalc", logCalc);
+    const el = obterEstadoAgenteComoObjeto();
+    Hdebug("Estado do agente", el);
 
-    const Logou = config.LogueManual
+    if (el && el.tempo) {
+      TempoPausas.ContAtual = el.tempo;
+    } else {
+      Hwarn("Tempo do agente não encontrado", el);
+    }
+
+    if (TempoPausas.Online === undefined) TempoPausas.Online = 0;
+
+    const onli2 =
+      TempoPausas.Online + converterParaSegundos(TempoPausas.ContAtual);
+
+    const onli4 = converterParaTempo(onli2);
+    if (stt.logueInicio) {
+      Hlog("Primeiro logue detectado");
+      verifiDataLogue(0, agora);
+      stt.logueInicio = 0;
+    }
+
+    const QLogou = config.LogueManual
       ? dadosLogueManu
       : config.logueSalvo
         ? dadosPrimLogue
-        : logCalc;
+        : 0;
 
-    if (!Logou) {
-      Herror("Logou indefinido", { config, logCalc });
-      return;
+    const horafun = horarios(QLogou, onli4);
+
+    TempoPausas.Logou = horafun.Logou.hora;
+
+    TempoPausas.Saida = horafun.Saida.hora;
+
+    vLogou.textContent = TempoPausas.Logou;
+
+    vSaida.textContent = TempoPausas.Saida;
+
+    const onli3 = exibirAHora(agora, 0, horafun.Logou).hora;
+    //TempoPausas.Online = onli2;
+
+    const compTole = converterParaSegundos(onli3) - onli2;
+    if (compTole > config.TolerOff) {
+      Hdebug(
+        "Logado pelo Logue maior que pela tolerancia",
+        converterParaTempo(compTole),
+      );
     }
 
-    TempoPausas.LogouA = Logou;
-    TempoPausas.Logou = Logou.hora;
+    TempoPausas.Logado = horafun.Logado;
 
-    const Saida = exibirHora(Logou, 1, config.TempoEscaladoHoras);
-    TempoPausas.Saida = Saida.hora;
+    TempoPausas.Falta = horafun.Falta;
 
-    if (stt.logueInicio) {
-      Hlog("Primeiro logue detectado");
-      verifiDataLogue(0, logCalc);
-      stt.logueInicio = 0;
-    }
     const oLogou = document.getElementById("oLogou");
     const oSaida = document.getElementById("oSaida");
 
-    oLogou.textContent = config.TesteHora ? Logou.data : "";
-    oSaida.textContent = config.TesteHora ? Saida.data : "";
-    if (!config.LogueManual && compararDatas(dadosPrimLogue, logCalc)) {
-      Hlog("Atualizando dadosPrimLogue");
-      dadosPrimLogue = logCalc;
-      verifiDataLogue(1, logCalc);
-    }
+    oLogou.textContent = config.TesteHora ? horafun.Logou.data : "";
+    oSaida.textContent = config.TesteHora ? horafun.Saida.data : "";
 
-    vLogou.textContent = TempoPausas.Logou;
-    vSaida.textContent = TempoPausas.Saida;
+    if (!config.LogueManual && compararDatas(dadosPrimLogue, horafun.Logou)) {
+      Hlog("Atualizando dadosPrimLogue");
+      dadosPrimLogue = horafun.Logou;
+      verifiDataLogue(1, horafun.Logou);
+    }
 
     const duracaoContAtr = document.getElementById("duracaoContAtr");
     if (duracaoContAtr)
@@ -1277,31 +1334,6 @@
       }
     }
 
-    const el = obterEstadoAgenteComoObjeto();
-    Hdebug("Estado do agente", el);
-
-    if (el && el.tempo) {
-      TempoPausas.ContAtual = el.tempo;
-    } else {
-      Hwarn("Tempo do agente não encontrado", el);
-    }
-
-    if (TempoPausas.Online === undefined) TempoPausas.Online = 0;
-
-    const onli2 =
-      TempoPausas.Online + converterParaSegundos(TempoPausas.ContAtual);
-    const onli3 = exibirAHora(agora, 0, Logou).hora;
-    //TempoPausas.Online = onli2;
-
-    const compTole = converterParaSegundos(onli3) - onli2;
-    if (compTole > config.TolerOff) {
-      Hdebug("Logado pelo Logue maior que pela tolerancia", compTole);
-    }
-
-    TempoPausas.Logado = config.LogueManual ? onli3 : converterParaTempo(onli2);
-
-    TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
-
     Hdebug("Online : ", TempoPausas.Online);
     Hdebug("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
     Hdebug("Falta : ", TempoPausas.Falta);
@@ -1309,10 +1341,10 @@
 
     vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
 
-    if (compararDatas(agora, exibirHora(Saida, 1, "00:10:00"))) {
+    if (compararDatas(agora, exibirHora(horafun.Saida, 1, "00:10:00"))) {
       stt.temHorasExtras = 1;
       stt.tempoCumprido = 0;
-    } else if (compararDatas(agora, Saida)) {
+    } else if (compararDatas(agora, horafun.Saida)) {
       stt.tempoCumprido = 1;
       stt.temHorasExtras = 0;
     } else {
@@ -2175,6 +2207,12 @@
         config.LadoBotAnterior = config.LadoBot;
       }
 
+      const b = document.getElementById("AreaArrast");
+      if (b) {
+        b.style.left = config.LadoBot ? "-5px" : "";
+        b.style.right = config.LadoBot ? "" : "-5px";
+      }
+
       if (a) {
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
@@ -2757,7 +2795,12 @@
       );
 
       CaixaModos.append(item1Modos, item2Modos);
-      return CaixaModos;
+
+      const a = CaixaDeOcultar(
+        criarBotSalv("ModCal", "Modo de Calculo"),
+        CaixaModos,
+      );
+      return a;
     }
 
     const IgEst = criarLinhaTextoComBot2(
