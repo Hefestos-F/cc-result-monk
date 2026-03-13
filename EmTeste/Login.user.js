@@ -73,6 +73,7 @@
     Encontrado: 0,
     LadoBot: 0,
     LadoBotAnterior: 0,
+    verificarDurac: 0,
   };
 
   let TempoPausas = {
@@ -88,6 +89,8 @@
     Estouro: 0,
     ContAtual: 0,
     Trabalhando: 0,
+    Indisponivel: 0,
+    Disponivel: 0,
     Atendidas: 0,
   };
 
@@ -357,13 +360,7 @@
 
         Hlog(`fim: ${JSON.stringify(agora)}`);
 
-        const Online = somarDuracoes().totalSegundos;
-
-        if (Online > TempoPausas.Online) TempoPausas.Online = Online;
-
-        const Trabalhando = somarDuracoesTrabalho().totalSegundos;
-        if (Trabalhando > TempoPausas.Trabalhando)
-          TempoPausas.Trabalhando = Trabalhando;
+        somarDuracoesGeral();
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
@@ -515,55 +512,88 @@
     );
   }
 
-  // Soma as durações do array (campo "duracao")
-  function somarDuracoes() {
-    // Se não é array ou está vazio, retorna zero direto
-    if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
-      return {
-        totalSegundos: 0,
-        totalFormatado: "00:00:00",
+  /* Soma as durações do array (campo "duracao") em UMA passada.
+   * - Atualiza TempoPausas (se existir).
+   * - Retorna um objeto com os valores em segundos e em texto (HH:MM:SS).
+   */
+  function somarDuracoesGeral() {
+    // Se não é array, normaliza para array vazio
+    const arr = Array.isArray(dadosdePausas) ? dadosdePausas : [];
+    if (arr.length === 0) {
+      const vazio = {
+        trabalhandoSeg: 0,
+        disponivelSeg: 0,
+        indisponivelSeg: 0,
+        onlineSeg: 0,
+        trabalhandoTxt: converterParaTempo?.(0) ?? "00:00:00",
+        disponivelTxt: converterParaTempo?.(0) ?? "00:00:00",
+        indisponivelTxt: converterParaTempo?.(0) ?? "00:00:00",
+        onlineTxt: converterParaTempo?.(0) ?? "00:00:00",
       };
+      // Preenche TempoPausas se existir
+      if (typeof TempoPausas === "object" && TempoPausas !== null) {
+        TempoPausas.Trabalhando = vazio.trabalhandoTxt;
+        TempoPausas.Disponivel = vazio.disponivelTxt;
+        TempoPausas.Indisponivel = vazio.indisponivelTxt;
+        TempoPausas.Online = vazio.onlineTxt;
+      }
+      return vazio;
     }
 
-    const totalSegundos = dadosdePausas.reduce((acc, item) => {
-      // tenta pegar o campo; qualquer coisa inválida vira 0
-      if (item?.id === 0) return acc;
-      const s = converterParaSegundos(item?.duracao);
-      return acc + (Number.isFinite(s) ? s : 0);
-    }, 0);
+    let totalTrabalhandoSeg = 0;
+    let totalDisponivelSeg = 0;
+    let totalIndisponivelSeg = 0;
 
-    return {
-      totalSegundos,
-      totalFormatado: converterParaTempo(totalSegundos),
-    };
-  }
+    for (const item of arr) {
+      // Ignora itens inválidos
+      if (item?.id === 0) continue;
 
-  function somarDuracoesTrabalho() {
-    // Se não é array ou está vazio, retorna zero direto
-    if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
-      return {
-        totalSegundos: 0,
-        totalFormatado: "00:00:00",
-      };
+      // Apura segundos do item
+      const s = converterParaSegundos?.(item?.duracao);
+      const seg = Number.isFinite(s) ? s : 0;
+
+      // Classificação
+      if (item?.pausa === "Trabalhando") {
+        totalTrabalhandoSeg += seg;
+      } else if (item?.pausa === "Disponível") {
+        // Side-effect (intencional)
+        try {
+          UltimoDisponivel?.(item);
+        } catch (e) {
+          /* evita quebrar soma */
+        }
+        totalDisponivelSeg += seg;
+      } else {
+        // Qualquer outra pausa cai como "Indisponível"
+        totalIndisponivelSeg += seg;
+      }
     }
 
-    TempoPausas.Atendidas = 0;
+    const onlineSeg =
+      totalTrabalhandoSeg + totalDisponivelSeg + totalIndisponivelSeg;
 
-    const totalSegundos = dadosdePausas.reduce((acc, item) => {
-      // tenta pegar o campo; qualquer coisa inválida vira 0
+    const result = {
+      trabalhandoSeg: totalTrabalhandoSeg,
+      disponivelSeg: totalDisponivelSeg,
+      indisponivelSeg: totalIndisponivelSeg,
+      onlineSeg,
 
-      if (item?.id === 0) return acc;
-      if (item?.pausa === "Disponível") UltimoDisponivel(item);
-      if (item?.pausa !== "Trabalhando") return acc;
-      TempoPausas.Atendidas += 1;
-      const s = converterParaSegundos(item?.duracao);
-      return acc + (Number.isFinite(s) ? s : 0);
-    }, 0);
-
-    return {
-      totalSegundos,
-      totalFormatado: converterParaTempo(totalSegundos),
+      // Representação em texto
+      trabalhandoTxt: converterParaTempo?.(totalTrabalhandoSeg) ?? "00:00:00",
+      disponivelTxt: converterParaTempo?.(totalDisponivelSeg) ?? "00:00:00",
+      indisponivelTxt: converterParaTempo?.(totalIndisponivelSeg) ?? "00:00:00",
+      onlineTxt: converterParaTempo?.(onlineSeg) ?? "00:00:00",
     };
+
+    // Preenche objeto global se existir
+    if (typeof TempoPausas === "object" && TempoPausas !== null) {
+      TempoPausas.Trabalhando = result.trabalhandoTxt;
+      TempoPausas.Disponivel = result.disponivelTxt;
+      TempoPausas.Indisponivel = result.indisponivelTxt;
+      TempoPausas.Online = result.onlineTxt;
+    }
+
+    return result;
   }
 
   async function UltimoDisponivel(item) {
@@ -813,6 +843,8 @@
         config.posicaoFl.top = FlutOB.style.top;
         config.posicaoFl.right = FlutOB.style.right;
         config.posicaoFl.left = FlutOB.style.left;
+        stt.AbaPausas = 0;
+        stt.AbaConfig = 0;
         FlutOB.remove();
       } else {
         criarObjetoFlutuante();
@@ -1323,10 +1355,19 @@
     oLogou.textContent = config.TesteHora ? horafun.Logou.data : "";
     oSaida.textContent = config.TesteHora ? horafun.Saida.data : "";
 
-    if (!config.LogueManual && compararDatas(dadosPrimLogue, horafun.Logou)) {
-      Hlog("Atualizando dadosPrimLogue");
-      dadosPrimLogue = horafun.Logou;
-      verifiDataLogue(1, horafun.Logou);
+    if (
+      !config.LogueManual &&
+      config.logueSalvo &&
+      compararDatas(dadosPrimLogue, horafun.Logou)
+    ) {
+      if (stt.verificarDurac) {
+        Hlog("Atualizando dadosPrimLogue");
+        dadosPrimLogue = horafun.Logou;
+        verifiDataLogue(1, horafun.Logou);
+        stt.verificarDurac = 0;
+      }
+      somarDuteracoesGeral();
+      stt.verificarDurac = 1;
     }
 
     const duracaoContAtr = document.getElementById("duracaoContAtr");
@@ -2717,7 +2758,17 @@
       margin-top: 5px;`;
       salvEMod.append(SalvarHora, ModoTesteAtivo);
 
-      horaInputCai.append(horaInputCaiHM, salvEMod);
+      const SubPrLog = criarBotSalv("ASubPrLog", "Substituir Logue");
+
+      SubPrLog.addEventListener("click", () => {
+        caixa.appendChild(
+          ADDCaixaDAviso("Substituir P. Logue", () => {
+            dadosPrimLogue = { hora: "10:06:16", data: "2026-03-13" };
+            verifiDataLogue(1, gerarDataHora());
+          }),
+        );
+      });
+      horaInputCai.append(horaInputCaiHM, salvEMod, SubPrLog);
 
       const a = CaixaDeOcultar(criarBotSalv("A28", "Teste"), horaInputCai);
 
