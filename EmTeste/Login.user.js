@@ -33,6 +33,11 @@
     MetaTMA: 1,
     FaixaVerti: 1,
     TolerOff: 40,
+    posicaoFl: {
+      top: "110px",
+      right: "0px",
+      left: "",
+    },
   };
 
   const configPadrao = {
@@ -322,12 +327,19 @@
       // OBS: isso mantém seu comportamento de "fecha pausa atual" a cada mudança
       // (desde que exista início registrado).
 
+      const agora = gerarDataHora(); // { data, hora }
+
+      if (stt.logueInicio) {
+        Hlog("Primeiro logue detectado");
+        verifiDataLogue(0, agora);
+        stt.logueInicio = 0;
+      }
+
       const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
 
       const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
 
       //Hlog(`fimObj: ${JSON.stringify(fimObj)}`);
-      const agora = gerarDataHora(); // { data, hora }
 
       Hlog(`id:${DDPausa.numero}, inicioObj: ${JSON.stringify(inicioObj)}`);
       if (inicioObj && duracaoObj === "---") {
@@ -797,8 +809,14 @@
     });
     div.addEventListener("click", () => {
       const FlutOB = document.getElementById("FlutOB");
-      if (FlutOB) FlutOB.remove();
-      else criarObjetoFlutuante();
+      if (FlutOB) {
+        config.posicaoFl.top = FlutOB.style.top;
+        config.posicaoFl.right = FlutOB.style.right;
+        config.posicaoFl.left = FlutOB.style.left;
+        FlutOB.remove();
+      } else {
+        criarObjetoFlutuante();
+      }
     });
     document.body.appendChild(div);
   }
@@ -815,8 +833,9 @@
     div.id = "FlutOB";
     Object.assign(div.style, {
       position: "fixed",
-      top: "110px",
-      right: "0px",
+      top: config.posicaoFl.top,
+      right: config.posicaoFl.right,
+      left: config.posicaoFl.left,
       borderRadius: "8px",
       zIndex: "16",
       boxSizing: "border-box",
@@ -838,9 +857,10 @@
       borderRadius: "15px",
       touchAction: "none",
       position: "absolute",
-      right: "-5px",
-      top: "-5px",
+      right: "0px",
+      top: "0px",
       transition: "all 0.5s ease",
+      zIndex: 17,
     });
 
     // -----
@@ -1265,11 +1285,6 @@
       TempoPausas.Online + converterParaSegundos(TempoPausas.ContAtual);
 
     const onli4 = converterParaTempo(onli2);
-    if (stt.logueInicio) {
-      Hlog("Primeiro logue detectado");
-      verifiDataLogue(0, agora);
-      stt.logueInicio = 0;
-    }
 
     const QLogou = config.LogueManual
       ? dadosLogueManu
@@ -2207,31 +2222,43 @@
         config.LadoBotAnterior = config.LadoBot;
       }
 
-      const b = document.getElementById("AreaArrast");
-      if (b) {
-        b.style.left = config.LadoBot ? "-5px" : "";
-        b.style.right = config.LadoBot ? "" : "-5px";
+      const c = document.getElementById("AreaArrast");
+      if (c) {
+        c.style.left = config.LadoBot ? "0px" : "";
+        c.style.right = config.LadoBot ? "" : "0px";
       }
 
       if (a) {
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
 
-        if (config.FaixaVerti) {
-          if (config.LadoBot) {
-            a.style.marginLeft = x ? "5px" : "-20px";
-            a.style.marginRight = "";
-            a.style.marginTop = "";
-          } else {
-            a.style.marginRight = x ? "5px" : "-20px";
-            a.style.marginLeft = "";
-            a.style.marginTop = "";
-          }
+        /*if (config.FaixaVerti) {
+          a.style.marginLeft = config.LadoBot ? (x ? "5px" : "-20px") : "";
+          a.style.marginRight = config.LadoBot ? "" : x ? "5px" : "-20px";
         } else {
-          a.style.marginTop = x ? "5px" : "-20px";
           a.style.marginLeft = config.LadoBot ? "" : "auto";
           a.style.marginRight = config.LadoBot ? "auto" : "";
-        }
+        }*/
+        a.style.marginLeft = config.FaixaVerti
+          ? config.LadoBot
+            ? x
+              ? "5px"
+              : "-20px"
+            : ""
+          : config.LadoBot
+            ? ""
+            : "auto";
+        a.style.marginRight = config.FaixaVerti
+          ? config.LadoBot
+            ? ""
+            : x
+              ? "5px"
+              : "-20px"
+          : config.LadoBot
+            ? "auto"
+            : "";
+
+        a.style.marginTop = config.FaixaVerti ? "" : x ? "5px" : "-20px";
       }
     }
 
