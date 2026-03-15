@@ -543,10 +543,11 @@
     let totalTrabalhandoSeg = 0;
     let totalDisponivelSeg = 0;
     let totalIndisponivelSeg = 0;
+    TempoPausas.Atendidas = 0;
 
     for (const item of arr) {
       // Ignora itens inválidos
-      if (item?.id === 0) continue;
+      if (item.id === "Z") continue;
 
       // Apura segundos do item
       const s = converterParaSegundos?.(item?.duracao);
@@ -555,6 +556,7 @@
       // Classificação
       if (item?.pausa === "Trabalhando") {
         totalTrabalhandoSeg += seg;
+        TempoPausas.Atendidas += 1;
       } else if (item?.pausa === "Disponível") {
         // Side-effect (intencional)
         try {
@@ -603,7 +605,7 @@
     if (!duracaoObj) return;
     // Efeito colateral explícito (mantido, mas isolado do somatório)
     await AddouAtualizarPausas(
-      0,
+      "Z",
       "Disponível",
       inicioObj, // início
       fimObj, // fim
@@ -2869,6 +2871,7 @@
         () => {
           config.logueSalvo = !config.logueSalvo;
           atualizarVisual();
+          somarDuracoesGeral();
         },
       );
 
@@ -3351,9 +3354,9 @@
           )
             return;
 
-        if (item.id === 0) {
+        if (item.id === "Z") {
           itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
-          AntFim.inicio = TempoPausas.LogouA;
+          AntFim.inicio = TempoPausas.Logou;
           AntFim.duracao = duracao;
         } else if (AntFim.inicio !== "---" && AntFim.duracao !== "---") {
           const duracaoReal = calcularDuracao(AntFim.inicio, fim);

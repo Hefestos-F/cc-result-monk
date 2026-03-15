@@ -14,443 +14,309 @@
 // ==/UserScript==
 
 (function () {
-  const config = {
-    TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
-    logueEntreDatas: 0,
-    pausalimitada: 0,
-    LogueManual: 0,
-    SomEstouro: 1,
-    notiEstouro: 1,
-    OBS_ATIVO: 1,
-    TesteHora: 0,
-    valorTeste: "-03:00",
-    VoltarPad: 0,
-    LadoBot: 0,
-    LadoBotAnterior: 0,
-  };
+  function isVisible(el) {
+    if (!el) return false;
 
-  const configPadrao = {
-    TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
-    logueEntreDatas: 0,
-    pausalimitada: 0,
-    LogueManual: 0,
-    SomEstouro: 1,
-    notiEstouro: 1,
-    OBS_ATIVO: 1,
-    TesteHora: 0,
-    valorTeste: "-03:00",
-    VoltarPad: 0,
-  };
-
-  const stt = {
-    observa: 1,
-    Status: "",
-    andament: 1,
-    ocultarValor: 0,
-    Estouro: 0,
-    AbaPausas: 0,
-    AbaConfig: 0,
-    tempoCumprido: 0,
-    temHorasExtras: 0,
-    Estour1: 0,
-    BeepRet: 0,
-    Encontrado: 0,
-    LadoBot: 0,
-    LadoBotAnterior: 0,
-  };
-
-  let TempoPausas = {
-    Logou: 0,
-    LogouA: 0,
-    Logado: 0,
-    Saida: 0,
-    SaidaA: 0,
-    Falta: 0,
-    Online: 0,
-    Time: 0,
-    Estouro: 0,
-    ContAtual: 0,
-    Trabalhando: 0,
-    TrabAntSeg: 0,
-    Atendidas: 0,
-  };
-
-  const DDPausa = {
-    numero: 1,
-    inicioUltimaP: 0,
-    inicioUltimaPa: 0,
-    StatusANT: "",
-    Disponivel: {},
-  };
-
-  /**
-   * Ccor - Cores usadas na interface (valores em hex)
-   */
-  const Ccor = {
-    Offline: "#3a82cf",
-    Atualizando: "#c97123ff",
-    Erro: "#992e2e",
-    MetaTMA: "#229b8d",
-    Principal: "#4c95bd",
-    AreaAr: "#337091",
-    Config: "#96a8bb",
-    Varian: "",
-    TVarian: "",
-  };
-
-  /**
-   * PCcor - Cores padrão (backup)
-   */
-  const CorPad = {
-    Offline: "#3a82cf",
-    Atualizando: "#c97123ff",
-    Erro: "#992e2e",
-    MetaTMA: "#229b8d",
-    Principal: "#4c95bd",
-    AreaAr: "#337091",
-    Config: "#96a8bb",
-    Varian: "",
-    TVarian: "",
-  };
-
-  // Chaves usadas no IndexedDB/local storage
-  const ChavePausas = "DadosDePausas";
-  const ChaveConfig = "Configuções";
-  const ChavelogueManu = "LogueManual";
-  const ChavePrimLogue = "PrimeiroLogue";
-  const ChavePrimLogueOntem = "PrimeiroLogueOntem";
-
-  // Variáveis que receberão dados recuperados do banco local (indexedDB)
-  let dadosdePausas;
-  let dadosSalvosConfi;
-  let dadosPrimLogue;
-  let dadosPrimLogueOnt;
-  let dadosLogueManu;
-
-  // Configuração do IndexedDB
-  const nomeBD = "Hefestos";
-  const StoreBD = "LogueNice";
-
-  // ========= LOG UTILS =========
-
-  const PreFixo = "HefestoLog:";
-
-  function Hlog(...args) {
-    console.log(PreFixo, ...args);
-  }
-  function Hwarn(...args) {
-    console.warn(PreFixo, ...args);
-  }
-  function Herror(...args) {
-    console.error(PreFixo, ...args);
-  }
-  function Hdebug(...args) {
-    console.debug(PreFixo, ...args);
-  }
-  function Hinfo(...args) {
-    console.info(PreFixo, ...args);
-  }
-
-  function getValorDadosPausa(id, campo) {
-    if (!dadosdePausas) return null;
-    const item = dadosdePausas.find((obj) => String(obj?.id) === String(id));
-    // Usa indexação dinâmica e retorna null se não existir
-    return item ? (item?.[campo] ?? null) : null;
-  }
-
-  function converterParaSegundos(tempo) {
-    // Mais tolerante: aceita "HH:MM:SS", "MM:SS" e números; retorna segundos inteiros.
-    if (tempo == null || tempo === "") return 0;
-    if (typeof tempo === "number") return Math.floor(tempo);
-    if (typeof tempo === "string") {
-      const parts = tempo
-        .trim()
-        .split(":")
-        .map((p) => Number(p.trim()));
-      if (parts.length === 3) {
-        const [h, m, s] = parts;
-        return (
-          (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0)
-        );
-      }
-      if (parts.length === 2) {
-        const [m, s] = parts;
-        return (Number(m) || 0) * 60 + (Number(s) || 0);
-      }
-      if (/^\d+$/.test(tempo.trim())) {
-        return Number(tempo.trim());
-      }
-    }
-    return 0;
-  }
-  
-  function converterParaTempo(input) {
-    if (input == null) return "00:00:00";
-
-    // aceita número (segundos) ou string ("HH:MM:SS" / "MM:SS" / "SS")
-    let total = Number(input);
-
-    if (Number.isNaN(total)) {
-      if (typeof input === "string" && input.includes(":")) {
-        const parts = input.split(":").map((p) => Number(p.trim()));
-        if (parts.length === 3) {
-          total = parts[0] * 3600 + parts[1] * 60 + parts[2];
-        } else if (parts.length === 2) {
-          total = parts[0] * 60 + parts[1];
-        } else {
-          total = 0;
-        }
-      } else {
-        // caso seja string só com segundos ("15", "90") ou inválida
-        const onlyNum = Number(String(input).trim());
-        total = Number.isFinite(onlyNum) ? onlyNum : 0;
-      }
-    }
-
-    // normaliza para inteiro e evita negativo
-    total = Math.max(0, Math.floor(total));
-
-    const horas = Math.floor(total / 3600);
-    const minutos = Math.floor((total % 3600) / 60);
-    const segundos = total % 60;
+    const style = getComputedStyle(el);
 
     return (
-      String(horas).padStart(2, "0") +
-      ":" +
-      String(minutos).padStart(2, "0") +
-      ":" +
-      String(segundos).padStart(2, "0")
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      style.opacity !== "0" &&
+      el.getClientRects().length > 0
     );
   }
 
-  /**
-   * abrirDB - abre ou cria IndexedDB para persistência de dados
-   * @param {Function} callback - função a executar com banco de dados aberto
-   */
-  function abrirDB(callback) {
-    const requisicao_bd = indexedDB.open(nomeBD, 1);
+  const items = document.querySelectorAll(
+    '[data-test-id="tabs-nav-item-users"]',
+  );
 
-    requisicao_bd.onupgradeneeded = function (event) {
-      const banco_dados = event.target.result;
-      if (!banco_dados.objectStoreNames.contains(StoreBD)) {
-        banco_dados.createObjectStore(StoreBD);
-      }
-    };
+  const visibleItem = [...items].find(isVisible);
 
-    requisicao_bd.onsuccess = function (event) {
-      const banco_dados = event.target.result;
-      callback(banco_dados);
-    };
+  console.log(visibleItem ?? "Nenhum item visível encontrado");
 
-    requisicao_bd.onerror = function (event) {
-      Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
-    };
+
+
+
+
+  // ============================
+// Configuração de Logging
+// ============================
+(function setupLoggingEnv() {
+  // Prefixo padrão
+  if (typeof window.PreFixo !== 'string') {
+    window.PreFixo = '[APP]';
   }
 
-  /**
-   * AddOuAtuIindexdb - salva ou atualiza dados no IndexedDB
-   * @param {string} nomechave - chave de armazenamento
-   * @param {*} dados - dados a salvar (qualquer tipo)
-   * @returns {Promise<boolean>} true se salvo com sucesso
-   */
-  function AddOuAtuIindexdb(nomechave, dados) {
-    return new Promise((resolve, reject) => {
+  // DEBUG ligado/desligado (prioridade: localStorage -> global -> default)
+  const lsDebug = (localStorage.getItem('app.debug') || '').toLowerCase();
+  if (typeof window.DEBUG === 'undefined') {
+    window.DEBUG = (lsDebug === 'true' || lsDebug === '1');
+  }
+
+  // Nível de log (prioridade: localStorage -> global -> default)
+  const levels = ['silent', 'error', 'warn', 'info', 'debug', 'trace'];
+  const lsLevel = (localStorage.getItem('app.logLevel') || '').toLowerCase();
+  if (!levels.includes(lsLevel)) {
+    // se não há em LS, reaproveita global ou define 'info' / 'debug' se DEBUG=true
+    window.LOG_LEVEL = (typeof window.LOG_LEVEL === 'string' && levels.includes(window.LOG_LEVEL))
+      ? window.LOG_LEVEL
+      : (window.DEBUG ? 'debug' : 'info');
+  } else {
+    window.LOG_LEVEL = lsLevel;
+  }
+
+  // Helper para verificar se determinado nível deve logar
+  const levelIndex = (lvl) => levels.indexOf(lvl);
+  const canLog = (lvl) => levelIndex(lvl) <= levelIndex(window.LOG_LEVEL);
+
+  // Wrappers de log com prefixo e checagem de nível
+  window.Herror = function (...args) {
+    if (canLog('error')) console.error(window.PreFixo, ...args);
+  };
+  window.Hwarn = function (...args) {
+    if (canLog('warn')) console.warn(window.PreFixo, ...args);
+  };
+  window.Hinfo = function (...args) {
+    if (canLog('info')) console.info(window.PreFixo, ...args);
+  };
+  window.Hdebug = function (...args) {
+    if (window.DEBUG && canLog('debug')) console.debug(window.PreFixo, ...args);
+  };
+  // Hlog atua como 'info' por padrão, mantendo compatibilidade com seu uso anterior
+  window.Hlog = function (...args) {
+    if (canLog('info')) console.log(window.PreFixo, ...args);
+  };
+  // Htrace para rastreamento fino quando necessário
+  window.Htrace = function (...args) {
+    if (window.DEBUG && canLog('trace')) {
+      // Inclui stack raso para depuração
       try {
-        abrirDB(function (db) {
-          const transacao = db.transaction([StoreBD], "readwrite");
-          const store = transacao.objectStore(StoreBD);
-          const request = store.put(dados, nomechave);
-
-          request.onsuccess = function () {
-            Hdebug(`Dados salvos com sucesso na chave "${nomechave}"`);
-            resolve(true);
-          };
-
-          request.onerror = function (event) {
-            Herror(
-              "Erro ao salvar os dados:",
-              event.target?.errorCode || event,
-            );
-            reject(event);
-          };
-        });
-      } catch (err) {
-        Herror("AddOuAtuIindexdb erro:", err);
-        reject(err);
+        const err = new Error();
+        console.debug(window.PreFixo, ...args, '\nTRACE:', err.stack?.split('\n').slice(0, 3).join('\n'));
+      } catch {
+        console.debug(window.PreFixo, ...args);
       }
-    });
+    }
+  };
+
+  Hdebug('Logging configurado:', { DEBUG: window.DEBUG, LOG_LEVEL: window.LOG_LEVEL, PreFixo: window.PreFixo });
+})();
+
+// ============================
+// Funções utilitárias seguras
+// ============================
+
+function safeConverterParaSegundos(valor) {
+  try {
+    const s = (typeof converterParaSegundos === 'function') ? converterParaSegundos(valor) : NaN;
+    return Number.isFinite(s) ? s : 0;
+  } catch (e) {
+    Hwarn('converterParaSegundos falhou para', valor, e);
+    return 0;
+  }
+}
+
+function safeConverterParaTempo(seg) {
+  try {
+    if (typeof converterParaTempo === 'function') {
+      return converterParaTempo(seg);
+    }
+  } catch (e) {
+    Hwarn('converterParaTempo falhou para', seg, e);
+  }
+  // fallback simples HH:MM:SS
+  const s = Math.max(0, seg | 0);
+  const hh = String(Math.floor(s / 3600)).padStart(2, '0');
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
+}
+
+function safeUltimoDisponivel(item) {
+  if (typeof UltimoDisponivel !== 'function') return;
+  try {
+    UltimoDisponivel(item);
+  } catch (e) {
+    Hwarn('UltimoDisponivel lançou erro', e, 'item:', item);
+  }
+}
+
+function setTempoPausasCampo(campo, valor) {
+  try {
+    if (typeof TempoPausas === 'object' && TempoPausas !== null) {
+      TempoPausas[campo] = valor;
+    }
+  } catch (e) {
+    Hwarn('Falhou ao setar TempoPausas.' + campo, e);
+  }
+}
+
+// ============================
+// Soma de Durações (com debug)
+// ============================
+/* Soma as durações do array (campo "duracao") em UMA passada.
+ * - Atualiza TempoPausas (se existir).
+ * - Retorna um objeto com valores em segundos e em texto (HH:MM:SS).
+ * - Emite logs detalhados quando DEBUG/logLevel permitem.
+ */
+function somarDuracoesGeral() {
+  const t0 = performance.now?.() ?? Date.now();
+  const tituloGrupo = `${PreFixo} somarDuracoesGeral()`;
+
+  if (console.groupCollapsed && (DEBUG || LOG_LEVEL !== 'silent')) {
+    console.groupCollapsed(tituloGrupo);
   }
 
-  /**
-   * RecDadosindexdb - recupera dados do IndexedDB por chave
-   * @param {string} nomechave - chave de armazenamento
-   * @returns {Promise<*>} dados armazenados ou false se não encontrado
-   */
-  function RecDadosindexdb(nomechave) {
-    return new Promise((resolve, reject) => {
-      abrirDB(function (db) {
-        const transacao = db.transaction([StoreBD], "readonly");
-        const store = transacao.objectStore(StoreBD);
-        const request = store.get(nomechave);
+  try {
+    // Normaliza entrada
+    const arr = Array.isArray(window.dadosdePausas) ? window.dadosdePausas : [];
+    Hdebug('Entrada normalizada', { itens: arr.length });
 
-        request.onsuccess = function (event) {
-          const resultado = event.target.result;
-          resolve(resultado !== undefined ? resultado : false);
-        };
+    if (!Array.isArray(window.dadosdePausas)) {
+      Hwarn('dadosdePausas não era Array; normalizado para []. Valor original:', window.dadosdePausas);
+    }
 
-        request.onerror = function (event) {
-          reject(event.target.errorCode);
-        };
+    if (arr.length === 0) {
+      Hinfo('Array de pausas vazio. Retornando todos os tempos zerados.');
+      const vazio = {
+        trabalhandoSeg: 0,
+        disponivelSeg: 0,
+        indisponivelSeg: 0,
+        onlineSeg: 0,
+        trabalhandoTxt: safeConverterParaTempo(0),
+        disponivelTxt: safeConverterParaTempo(0),
+        indisponivelTxt: safeConverterParaTempo(0),
+        onlineTxt: safeConverterParaTempo(0),
+      };
+
+      // Atualiza TempoPausas, se existir
+      setTempoPausasCampo('Trabalhando', vazio.trabalhandoTxt);
+      setTempoPausasCampo('Disponivel', vazio.disponivelTxt);
+      setTempoPausasCampo('Indisponivel', vazio.indisponivelTxt);
+      setTempoPausasCampo('Online', vazio.onlineTxt);
+
+      const t1 = performance.now?.() ?? Date.now();
+      Hdebug('Finalizou (vazio) em', (t1 - t0).toFixed(2), 'ms');
+      return vazio;
+    }
+
+    // Acumuladores
+    let totalTrabalhandoSeg = 0;
+    let totalDisponivelSeg = 0;
+    let totalIndisponivelSeg = 0;
+
+    // Zera contadores conhecidos em TempoPausas (se existir)
+    try {
+      if (typeof TempoPausas === 'object' && TempoPausas !== null) {
+        TempoPausas.Atendidas = 0;
+      }
+    } catch (e) {
+      Hwarn('Não foi possível resetar TempoPausas.Atendidas', e);
+    }
+
+    // Debug: tabela dos itens válidos/ignorados
+    const linhasTabela = [];
+
+    for (const item of arr) {
+      if (item?.id === 0) {
+        Htrace('Ignorando item com id=0', item);
+        linhasTabela.push({ id: item?.id, pausa: item?.pausa, duracao: item?.duracao, status: 'IGNORADO' });
+        continue;
+      }
+
+      const seg = safeConverterParaSegundos(item?.duracao);
+      const pausa = item?.pausa || 'Indefinida';
+
+      if (pausa === 'Trabalhando') {
+        totalTrabalhandoSeg += seg;
+        try {
+          if (typeof TempoPausas === 'object' && TempoPausas !== null) {
+            TempoPausas.Atendidas = (TempoPausas.Atendidas | 0) + 1;
+          }
+        } catch (e) {
+          Hwarn('Falha ao incrementar TempoPausas.Atendidas', e);
+        }
+      } else if (pausa === 'Disponível') {
+        safeUltimoDisponivel(item);
+        totalDisponivelSeg += seg;
+      } else {
+        // Tudo o que não for "Trabalhando" ou "Disponível" será "Indisponível"
+        totalIndisponivelSeg += seg;
+      }
+
+      if (DEBUG) {
+        console.count?.('Itens processados');
+      }
+
+      linhasTabela.push({
+        id: item?.id,
+        pausa: pausa,
+        duracao: item?.duracao,
+        segProcessados: seg,
+        classif: (pausa === 'Trabalhando') ? 'TRAB' : (pausa === 'Disponível') ? 'DISP' : 'INDISP'
       });
-    });
-  }
-
-  /**
-   * ApagarChaveIndexDB - deleta uma chave do IndexedDB
-   * @param {string} nomechave - chave a deletar
-   */
-  function ApagarChaveIndexDB(nomechave) {
-    abrirDB(function (db) {
-      const transacao = db.transaction([StoreBD], "readwrite");
-      const store = transacao.objectStore(StoreBD);
-      const request = store.delete(nomechave);
-
-      request.onsuccess = function () {
-        Hlog(`Chave "${nomechave}" apagada com sucesso.`);
-      };
-
-      request.onerror = function (event) {
-        Herror("Erro ao apagar a chave:", event.target.errorCode);
-      };
-    });
-  }
-
-  async function AddouAtualizarPausas(id, pausa, inicio, fim, duracao) {
-    const novoItem = { id, pausa, inicio, fim, duracao };
-
-    if (!Array.isArray(dadosdePausas)) dadosdePausas = [];
-
-    const index = dadosdePausas.findIndex(
-      (item) => String(item?.id) === String(id),
-    );
-
-    if (index !== -1) {
-      dadosdePausas[index] = { ...dadosdePausas[index], ...novoItem };
-    } else {
-      dadosdePausas.push(novoItem);
     }
 
-    await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
-  }
-
-  /**
-   * Soma as durações de itens com pausa === "Trabalhando".
-   * Para itens com pausa === "Disponível", apenas registra via AddouAtualizarPausas.
-   * @returns {Promise<{ totalSegundos: number, totalFormatado: string }>}
-   */
-  async function somarDuracoesTrabalho() {
-    // Se não é array ou está vazio, retorna zero direto
-    if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
-      return {
-        totalSegundos: 0,
-        totalFormatado: "00:00:00",
-      };
+    if (linhasTabela.length && console.table && DEBUG) {
+      console.table(linhasTabela);
     }
 
-    // Zera contador (se essa for a regra pretendida)
-    TempoPausas.Atendidas = 0;
+    const onlineSeg = totalTrabalhandoSeg + totalDisponivelSeg + totalIndisponivelSeg;
 
-    let totalSegundos = 0;
-
-    for (const item of dadosdePausas) {
-      // Itens "Disponível": registra/atualiza e não soma
-      if (item?.pausa === "Disponível") {
-        const inicioObj = await getValorDadosPausa(item?.id, "inicio"); // { data, hora } ou undefined
-        const duracaoObj = await getValorDadosPausa(item?.id, "duracao"); // "HH:MM:SS" ou "---"
-        const fimObj = await getValorDadosPausa(item?.id, "fim"); // { data, hora } ou undefined
-
-        // Efeito colateral explícito (mantido, mas isolado do somatório)
-        await AddouAtualizarPausas(
-          0,
-          "Disponível",
-          inicioObj, // início
-          fimObj, // fim
-          duracaoObj, // duração
-        );
-
-        // Não acumula nada para "Disponível"
-        continue;
-      }
-
-      // Só soma quando pausa === "Trabalhando"
-      if (item?.pausa !== "Trabalhando") {
-        continue;
-      }
-
-      TempoPausas.Atendidas += 1;
-
-      const s = converterParaSegundos(item?.duracao);
-      if (Number.isFinite(s) && s > 0) {
-        totalSegundos += s;
-      }
-    }
-
-    Hlog(`totalSegundos : ${totalSegundos}`);
-
-    return {
-      totalSegundos,
-      totalFormatado: converterParaTempo(totalSegundos),
+    const result = {
+      trabalhandoSeg: totalTrabalhandoSeg,
+      disponivelSeg: totalDisponivelSeg,
+      indisponivelSeg: totalIndisponivelSeg,
+      onlineSeg,
+      trabalhandoTxt: safeConverterParaTempo(totalTrabalhandoSeg),
+      disponivelTxt: safeConverterParaTempo(totalDisponivelSeg),
+      indisponivelTxt: safeConverterParaTempo(totalIndisponivelSeg),
+      onlineTxt: safeConverterParaTempo(onlineSeg),
     };
+
+    Hdebug('Acumulados (seg)', {
+      trabalhandoSeg: totalTrabalhandoSeg,
+      disponivelSeg: totalDisponivelSeg,
+      indisponivelSeg: totalIndisponivelSeg,
+      onlineSeg,
+    });
+    Hdebug('Acumulados (txt)', {
+      trabalhandoTxt: result.trabalhandoTxt,
+      disponivelTxt: result.disponivelTxt,
+      indisponivelTxt: result.indisponivelTxt,
+      onlineTxt: result.onlineTxt,
+    });
+
+    // Atualiza objeto global, se existir
+    setTempoPausasCampo('Trabalhando', result.trabalhandoTxt);
+    setTempoPausasCampo('Disponivel', result.disponivelTxt);
+    setTempoPausasCampo('Indisponivel', result.indisponivelTxt);
+    setTempoPausasCampo('Online', result.onlineTxt);
+
+    const t1 = performance.now?.() ?? Date.now();
+    Hinfo('somarDuracoesGeral concluída em', (t1 - t0).toFixed(2), 'ms');
+
+    return result;
+  } catch (err) {
+    Herror('Erro em somarDuracoesGeral:', err);
+    // Em erro, retornar objeto seguro
+    const fallback = {
+      trabalhandoSeg: 0,
+      disponivelSeg: 0,
+      indisponivelSeg: 0,
+      onlineSeg: 0,
+      trabalhandoTxt: safeConverterParaTempo(0),
+      disponivelTxt: safeConverterParaTempo(0),
+      indisponivelTxt: safeConverterParaTempo(0),
+      onlineTxt: safeConverterParaTempo(0),
+    };
+    return fallback;
+  } finally {
+    if (console.groupEnd && (DEBUG || LOG_LEVEL !== 'silent')) {
+      console.groupEnd();
+    }
   }
+}
 
-  /**
-   * RecuperarTVariaveis - recupera as variáveis persistidas do indexedDB
-   * - Tenta recuperar vários conjuntos de dados e registra erros quando ocorrerem
-   */
-  async function RecuperarTVariaveis() {
-    try {
-      dadosdePausas = await RecDadosindexdb(ChavePausas);
-      Hdebug("Encontrados em dadosdePausas:", dadosdePausas);
-    } catch (e) {
-      Herror("Erro ao recuperar dadosdePausas:", e);
-    }
-
-    try {
-      dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      Hdebug("Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
-    } catch (e) {
-      Herror("Erro ao recuperar dadosSalvosConfi:", e);
-    }
-
-    try {
-      dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      Hdebug("Encontrados em dadosPrimLogue:", dadosPrimLogue);
-    } catch (e) {
-      Herror("Erro ao recuperar dadosPrimLogue:", e);
-    }
-
-    try {
-      dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      Hdebug("Encontrados em dadosLogueManu:", dadosLogueManu);
-    } catch (e) {
-      Herror("Erro ao recuperar dadosLogueManu:", e);
-    }
-
-    try {
-      dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      Hdebug("Encontrados em dadosPrimLogueOnt:", dadosPrimLogueOnt);
-    } catch (e) {
-      Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
-    }
-    //await verifiDataLogue();
-    //await SalvandoVariConfig(0);
-    //await verifLogueManual();
-    //criarObjetoFlutuante();
-
-    Hlog(
-      `totalSegundos :${somarDuracoesTrabalho().totalSegundos} / totalFormatado : ${somarDuracoesTrabalho().totalFormatado}`,
-    );
-  }
-
-  RecuperarTVariaveis();
 })();
