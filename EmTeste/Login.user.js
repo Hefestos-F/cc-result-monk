@@ -38,6 +38,7 @@
       right: "0px",
       left: "",
     },
+    dBUG: 1,
   };
 
   const configPadrao = {
@@ -170,7 +171,7 @@
     console.error(PreFixo, ...args);
   }
   function Hdebug(...args) {
-    console.debug(PreFixo, ...args);
+    if (config.dBUG) console.debug(PreFixo, ...args);
   }
   function Hinfo(...args) {
     console.info(PreFixo, ...args);
@@ -547,7 +548,7 @@
 
     for (const item of arr) {
       // Ignora itens inválidos
-      if (item.id === "Z") continue;
+      if (item.id === 0) continue;
 
       // Apura segundos do item
       const s = converterParaSegundos?.(item?.duracao);
@@ -595,6 +596,14 @@
       TempoPausas.Online = result.onlineTxt;
     }
 
+    Hlog(`TempoPausas: 
+      Trabalhando = ${TempoPausas.Trabalhando}/
+      Disponivel = ${TempoPausas.Disponivel}/
+      Indisponivel = ${TempoPausas.Indisponivel}/
+      Online = ${TempoPausas.Online}
+      
+      `);
+
     return result;
   }
 
@@ -605,7 +614,7 @@
     if (!duracaoObj) return;
     // Efeito colateral explícito (mantido, mas isolado do somatório)
     await AddouAtualizarPausas(
-      "Z",
+      0,
       "Disponível",
       inicioObj, // início
       fimObj, // fim
@@ -1177,13 +1186,8 @@
 
     //Hlog(`logado:${JSON.stringify(logado)}`);
 
-    let LogouCalc = 0;
-    if (logou) LogouCalc = logou;
-    else LogouCalc = exibirHora(agora, 0, logado);
-
-    let LogadoCalc = 0;
-    if (!logou) LogadoCalc = logado;
-    else LogadoCalc = exibirAHora(agora, 0, LogouCalc).hora;
+    let LogouCalc = logou ? logou : exibirHora(agora, 0, logado);
+    let LogadoCalc = !logou ? logado : exibirAHora(agora, 0, LogouCalc).hora;
 
     //Hlog(`Logou:${JSON.stringify(Logou)}`);
 
@@ -1313,22 +1317,29 @@
       Hwarn("Tempo do agente não encontrado", el);
     }
 
-    if (TempoPausas.Online === undefined) TempoPausas.Online = 0;
+    if (TempoPausas.Online === undefined) TempoPausas.Online = "00:00:00";
 
     const onli2 =
-      TempoPausas.Online + converterParaSegundos(TempoPausas.ContAtual);
+      converterParaSegundos(TempoPausas.Online) +
+      converterParaSegundos(TempoPausas.ContAtual);
 
     const onli4 = converterParaTempo(onli2);
+
+    Hdebug(`Andamento Online ContAtual: ${TempoPausas.ContAtual}/
+       onli4: ${onli4}/
+       onli2: ${onli2}/
+      `);
 
     const QLogou = config.LogueManual
       ? dadosLogueManu
       : config.logueSalvo
         ? dadosPrimLogue
-        : 0;
+        : null;
 
     const horafun = horarios(QLogou, onli4);
 
     TempoPausas.Logou = horafun.Logou.hora;
+    TempoPausas.LogouA = horafun.Logou;
 
     TempoPausas.Saida = horafun.Saida.hora;
 
@@ -1345,11 +1356,14 @@
         "Logado pelo Logue maior que pela tolerancia",
         converterParaTempo(compTole),
       );
+      TempoPausas.Falta = horafun.Falta;
+    } else {
+      TempoPausas.Falta = converterParaTempo(
+        converterParaSegundos(horafun.Falta) + compTole,
+      );
     }
 
     TempoPausas.Logado = horafun.Logado;
-
-    TempoPausas.Falta = horafun.Falta;
 
     const oLogou = document.getElementById("oLogou");
     const oSaida = document.getElementById("oSaida");
@@ -1486,24 +1500,6 @@
     }
 
     await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
-  }
-
-  async function AddouAtualizarPausasCont(id, pausa, inicio, fim, duracao) {
-    const novoItem = { id, pausa, inicio, fim, duracao };
-
-    if (!Array.isArray(dadosControlado)) dadosControlado = [];
-
-    const index = dadosControlado.findIndex(
-      (item) => String(item?.id) === String(id),
-    );
-
-    if (index !== -1) {
-      dadosControlado[index] = { ...dadosControlado[index], ...novoItem };
-    } else {
-      dadosControlado.push(novoItem);
-    }
-
-    //await AddOuAtuIindexdb(ChavePausas, dadosControlado);
   }
 
   function normalizarCampo(campo) {
@@ -2421,6 +2417,23 @@
     );
     CFaixaVert.append(FaixaVert);
 
+    function odebb() {
+      const Codebb = criarCaixaSeg();
+      const Iodebb = criarLinhaTextoComBot2(
+        "Iodebb",
+        "Modo Debug",
+        config.dBUG,
+        () => {
+          config.dBUG = !config.dBUG;
+
+          atualizarVisual();
+          SalvandoVariConfig(1);
+        },
+      );
+      Codebb.append(Iodebb);
+      return Codebb;
+    }
+
     function criarCaixaSeg() {
       const caixa = document.createElement("div");
       caixa.style.cssText = `
@@ -2966,6 +2979,8 @@
       Cavancado.style.padding = "0px 8px";
       Cavancado.append(
         criarSeparador(),
+        odebb(),
+        criarSeparador(),
         CBBancDa,
         criarSeparador(),
         ContModoTeste(),
@@ -3139,6 +3154,7 @@
     atualizarSlidePosi("BotFaixaVert", config.FaixaVerti);
     atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);
     atualizarSlidePosi("BotRecalc", !config.logueSalvo);
+    atualizarSlidePosi("BotIodebb", config.dBUG);
   }
 
   /**
@@ -3354,12 +3370,14 @@
           )
             return;
 
-        if (item.id === "Z") {
+        if (item.id === 0) {
           itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
-          AntFim.inicio = TempoPausas.Logou;
+          AntFim.inicio = TempoPausas.LogouA;
           AntFim.duracao = duracao;
         } else if (AntFim.inicio !== "---" && AntFim.duracao !== "---") {
           const duracaoReal = calcularDuracao(AntFim.inicio, fim);
+
+          Hlog(`AntFim.inicio: ${AntFim.inicio}`);
 
           itemdetab(
             item.id + "T",
