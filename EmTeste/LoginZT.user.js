@@ -4,7 +4,7 @@
 // @version      0.0.0.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
-// @match        https://cxagent.nicecxone.com/home*
+// @match        https://smileshelp.zendesk.com/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/LoginZT.user.js
 // @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/LoginZT.user.js
@@ -15,22 +15,35 @@
 //https://smileshelp.zendesk.com/*
 //https://cxagent.nicecxone.com/home*
 (function () {
-  
   const config = {
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
+    ValorMetaTMA: 725,
     logueEntreDatas: 0,
     pausalimitada: 0,
     LogueManual: 0,
+    logueSalvo: 1,
     SomEstouro: 1,
     notiEstouro: 1,
     OBS_ATIVO: 1,
     TesteHora: 0,
     valorTeste: "-03:00",
     VoltarPad: 0,
+    LadoBot: 0,
+    LadoBotAnterior: 0,
+    MetaTMA: 1,
+    FaixaVerti: 1,
+    TolerOff: 40,
+    posicaoFl: {
+      top: "543px",
+      right: "",
+      left: "0px",
+    },
+    dBUG: 1,
   };
 
   const configPadrao = {
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
+    ValorMetaTMA: 725,
     logueEntreDatas: 0,
     pausalimitada: 0,
     LogueManual: 0,
@@ -40,9 +53,13 @@
     TesteHora: 0,
     valorTeste: "-03:00",
     VoltarPad: 0,
+    LadoBot: 0,
+    LadoBotAnterior: 0,
+    MetaTMA: 1,
   };
 
   const stt = {
+    logueInicio: 1,
     observa: 1,
     Status: "",
     andament: 1,
@@ -55,6 +72,9 @@
     Estour1: 0,
     BeepRet: 0,
     Encontrado: 0,
+    LadoBot: 0,
+    LadoBotAnterior: 0,
+    verificarDurac: 0,
   };
 
   let TempoPausas = {
@@ -65,15 +85,27 @@
     SaidaA: 0,
     Falta: 0,
     Online: 0,
+    CompOnli: 0,
     Time: 0,
     Estouro: 0,
+    ContAtual: 0,
+    Trabalhando: 0,
+    Indisponivel: 0,
+    Disponivel: 0,
+    Atendidas: 0,
   };
+
+  const AntFim = {};
 
   const DDPausa = {
     numero: 1,
     inicioUltimaP: 0,
     inicioUltimaPa: 0,
     StatusANT: "",
+  };
+
+  const letraD = {
+    Logou: "Logou:",
   };
 
   /**
@@ -115,6 +147,7 @@
 
   // Variáveis que receberão dados recuperados do banco local (indexedDB)
   let dadosdePausas;
+  let dadosControlado;
   let dadosSalvosConfi;
   let dadosPrimLogue;
   let dadosPrimLogueOnt;
@@ -701,51 +734,121 @@
     return formatObj(adjusted);
   }
 
-  function criarObjetoFlutuante() {
+  function criarObjetoFlutuante(options = {}) {
     if (document.getElementById("FlutOB")) return;
+
+    // usar QualLado para base "left" ou "right": 1 = left, 0 = right
+    // Se quiser que seja totalmente automático, deixe como null
+    let QualLado =
+      typeof options.QualLado === "number" ? options.QualLado : null;
 
     const div = document.createElement("div");
     div.id = "FlutOB";
-    // Estilo do container principal
-    div.style.cssText = `
-     position: fixed;
-     bottom: 1px;
-     left: 1px;
-     border-radius: 8px;
-     z-index: 16;
-     box-sizing: border-box;
-     user-select: none;
-     transform: translate(0px, 0px);
-     will-change: transform;
-     display: flex;
-     flex-direction: column;
-     align-items: center;
-     background-color: ${Ccor.Principal};
-     padding: 3px;
-     box-sizing: border-box;
-    `;
+    Object.assign(div.style, {
+      position: "fixed",
+      top: config.posicaoFl.top,
+      right: config.posicaoFl.right,
+      left: config.posicaoFl.left,
+      borderRadius: "8px",
+      zIndex: "16",
+      boxSizing: "border-box",
+      userSelect: "none",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      backgroundColor: Ccor.Principal,
+      padding: "3px",
+    });
+
     const handle = document.createElement("div"); // Área para arrastar
     handle.id = "AreaArrast";
-    // Estilo da área de arrasto
-    handle.style.cssText = `
-    width: 100%;
-    height: 5px;
-    background-color: ${Ccor.AreaAr};
-    cursor: grab;
-    border-radius: 4px;
-    margin-bottom: 5px;
-    `;
+    Object.assign(handle.style, {
+      width: "18px",
+      height: "18px",
+      backgroundColor: Ccor.AreaAr,
+      cursor: "grab",
+      borderRadius: "15px",
+      touchAction: "none",
+      position: "absolute",
+      right: "0px",
+      top: "0px",
+      transition: "all 0.5s ease",
+      zIndex: 17,
+    });
 
-    let offsetX = 0,
-      offsetY = 0,
-      dragging = false,
-      startX = 0,
-      startY = 0;
+    // -----
+    // Estados do arrasto
+    let dragging = false;
+    let startX = 0; // posição do cursor ao iniciar arrasto
+    let startY = 0;
+    let startLeft = 0; // left/top do elemento ao iniciar arrasto
+    let startTop = 0;
+
+    // Helper: garante que o elemento tenha top/left explícitos (converte de bottom/right se necessário)
+    function ensureTopLeft() {
+      const rect = div.getBoundingClientRect();
+      if (!div.style.top) {
+        div.style.top = `${rect.top}px`;
+      }
+      // Converte qualquer base em right para left temporariamente (somente durante arraste)
+      if (!div.style.left || div.style.right) {
+        const computedLeft = rect.left; // relativo à viewport
+        div.style.left = `${computedLeft}px`;
+      }
+      // Limpa outras âncoras que conflitem com arraste por left/top
+      div.style.bottom = "";
+      div.style.right = "";
+      div.style.transform = "";
+    }
+
+    // Helper: limita o valor entre min e max
+    const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+
+    // Decide e aplica qual lado será a âncora final (left ou right)
+    function applySideAnchor(forceSide = null) {
+      const rect = div.getBoundingClientRect();
+      const vw = window.innerWidth;
+
+      // Se forceSide for 1 = left; 0 = right; null = auto por viewport
+      let useLeft;
+      if (forceSide === 1) useLeft = true;
+      else if (forceSide === 0) useLeft = false;
+      else {
+        const centerX = rect.left + rect.width / 2;
+        useLeft = centerX <= vw / 2; // centro do elemento está na metade esquerda?
+      }
+
+      // Calcula valores e aplica
+      if (useLeft) {
+        const left = Math.round(rect.left);
+        div.style.left = `${left}px`;
+        div.style.right = ""; // limpa para não conflitar
+        config.LadoBot = 1;
+      } else {
+        // right = distância da borda direita da viewport
+        const right = Math.round(vw - (rect.left + rect.width));
+        div.style.right = `${right}px`;
+        div.style.left = ""; // limpa para não conflitar
+        config.LadoBot = 0;
+      }
+
+      // Garante top (sempre por top)
+      div.style.top = `${Math.round(rect.top)}px`;
+      div.style.bottom = "";
+    }
 
     function onPointerDown(e) {
+      // Durante o arraste trabalhamos com left/top absolutos
+      ensureTopLeft();
+
       dragging = true;
       startX = e.clientX;
       startY = e.clientY;
+
+      // Posição inicial do elemento
+      startLeft = parseFloat(div.style.left) || 0;
+      startTop = parseFloat(div.style.top) || 0;
+
       handle.style.cursor = "grabbing";
       div.setPointerCapture?.(e.pointerId);
       e.preventDefault();
@@ -753,33 +856,89 @@
 
     function onPointerMove(e) {
       if (!dragging) return;
+
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      div.style.transform = `translate(${offsetX + dx}px, ${offsetY + dy}px)`;
+
+      // Dimensões visíveis
+      const maxLeft = window.innerWidth - div.offsetWidth;
+      const maxTop = window.innerHeight - div.offsetHeight;
+
+      const newLeft = clamp(startLeft + dx, 0, Math.max(0, maxLeft));
+      const newTop = clamp(startTop + dy, 0, Math.max(0, maxTop));
+
+      // Durante o arraste: left/top (base única)
+      div.style.left = `${newLeft}px`;
+      div.style.top = `${newTop}px`;
+      // Garante que right esteja limpo enquanto arrasta
+      div.style.right = "";
     }
 
     function onPointerUp(e) {
       if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      offsetX += dx;
-      offsetY += dy;
       dragging = false;
       handle.style.cursor = "grab";
       div.releasePointerCapture?.(e.pointerId);
+
+      // Ao soltar: decide automaticamente o lado (ou force QualLado se definido)
+      applySideAnchor(QualLado);
     }
 
-    // Eventos apenas na área de arrasto
+    // Reajusta posição e âncora caso a janela seja redimensionada
+    function onResize() {
+      if (!div.isConnected) {
+        window.removeEventListener("resize", onResize);
+        return;
+      }
+
+      // Pega retângulo atual e reancora mantendo lado escolhido
+      // Se já está ancorado à direita (tem right), recalcula o right
+      const rect = div.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      // Ajuste vertical
+      let top = rect.top;
+      top = clamp(top, 0, Math.max(0, vh - rect.height));
+      div.style.top = `${Math.round(top)}px`;
+
+      // Decide novamente o lado (auto ou forçado)
+      applySideAnchor(QualLado);
+    }
+
+    // Expor uma API simples para mudar o lado via console:
+    //   window.setFlutOBSide(1) => força left
+    //   window.setFlutOBSide(0) => força right
+    //   window.setFlutOBSide(null) => volta para auto por viewport
+    window.setFlutOBSide = function (val) {
+      if (val !== 0 && val !== 1 && val !== null) {
+        console.warn("Use 1 (left), 0 (right) ou null (auto).");
+        return;
+      }
+      QualLado = val;
+      applySideAnchor(QualLado);
+    };
+
+    // Eventos
     handle.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("resize", onResize);
 
+    // Evita comportamento de arrastar nativo
     div.ondragstart = () => false;
 
     // Monta estrutura
     div.appendChild(handle);
+
     div.appendChild(AdicionarCaixaAtualizada());
     document.body.appendChild(div);
+
+    // Após inserir no DOM:
+    // 1) Garante posição top/left válida
+    ensureTopLeft();
+    // 2) Ajusta para a âncora correta (auto por viewport ou forçado)
+    applySideAnchor(QualLado);
   }
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
@@ -1514,11 +1673,47 @@
     return caixa;
   }
 
+  function CriarBotInicial() {
+    const div = document.createElement("div");
+    div.id = "BotInicial";
+    div.style.cssText = `
+    width: 22px;
+    height: 22px;
+    position: absolute;
+    top: 16px;
+    left: 54px;
+    border-radius: 15px;
+    border: 1px white solid;
+    cursor: pointer;
+    `;
+    div.addEventListener("mouseover", () => {
+      div.style.background = Ccor.AreaAr;
+    });
+    div.addEventListener("mouseout", () => {
+      div.style.background = "";
+    });
+    div.addEventListener("click", () => {
+      const FlutOB = document.getElementById("FlutOB");
+      if (FlutOB) {
+        config.posicaoFl.top = FlutOB.style.top;
+        config.posicaoFl.right = FlutOB.style.right;
+        config.posicaoFl.left = FlutOB.style.left;
+        stt.AbaPausas = 0;
+        stt.AbaConfig = 0;
+        FlutOB.remove();
+      } else {
+        criarObjetoFlutuante();
+      }
+    });
+    document.body.appendChild(div);
+  }
+
   function AdicionarCaixaAtualizada() {
     // Função para criar a classe dinamicamente
     function criarClasse() {
       const style = document.createElement("style");
       style.type = "text/css";
+      style.id = "MeuEstiloLogin";
       style.innerHTML = `
       #FlutOB,
       #FlutOB * {
@@ -1569,7 +1764,7 @@
         transition: all 0.5s ease;
         border-radius: 15px;
         visibility: visible;
-        flex-direction: column;
+        flex-direction: ${config.FaixaVerti ? "column" : ""};
         overflow: hidden;
         border: 1px solid white;
         `;
@@ -1591,9 +1786,10 @@
     const minhaCaixa = document.createElement("div");
     minhaCaixa.setAttribute("id", "minhaCaixa");
     minhaCaixa.style.cssText = `
+        
         display: flex;
         color: white;
-        flex-direction: row;
+        flex-direction: ${!config.FaixaVerti ? "column" : ""};
         z-index: 16;
         font-size: 12px;
         transition: all 0.5s ease;
@@ -1613,53 +1809,103 @@
     function BotPacontrole(b, z) {
       let x = stt.AbaPausas || stt.AbaConfig ? 1 : b;
 
-      const a = document.getElementById(z);
+      let a = document.getElementById(z);
+
+      if (!a) BotoesLateral();
+
+      a = document.getElementById(z);
+
+      if (config.LadoBotAnterior !== config.LadoBot) {
+        a.remove();
+        BotoesLateral();
+        config.LadoBotAnterior = config.LadoBot;
+      }
+
+      const c = document.getElementById("AreaArrast");
+      if (c) {
+        c.style.left = config.LadoBot ? "0px" : "";
+        c.style.right = config.LadoBot ? "" : "0px";
+      }
+
       if (a) {
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
-        a.style.marginLeft = x ? "5px" : "-20px";
+
+        a.style.marginLeft = config.FaixaVerti
+          ? config.LadoBot
+            ? x
+              ? "5px"
+              : "-20px"
+            : ""
+          : config.LadoBot
+            ? ""
+            : "auto";
+        a.style.marginRight = config.FaixaVerti
+          ? config.LadoBot
+            ? ""
+            : x
+              ? "5px"
+              : "-20px"
+          : config.LadoBot
+            ? "auto"
+            : "";
+
+        a.style.marginTop = config.FaixaVerti ? "" : x ? "5px" : "-20px";
       }
     }
 
     minhaCaixa.appendChild(container);
 
+    return minhaCaixa;
+  }
+
+  function BotoesLateral() {
+    if (document.getElementById("ContPaCo")) return;
+
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
-    margin-left: -20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.5s;
-    display: flex;
-    gap: 5px;
-    flex-direction: column;
+      margin-left: -20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.5s;
+      display: flex;
+      gap: 5px;
+      flex-direction: ${config.FaixaVerti ? "column" : ""};
     `;
 
-    const InfoV = document.createElement("div");
-    InfoV.id = "InfoV";
-    InfoV.textContent = `Versão P Chat ${GM_info.script.version || "?-?"}`;
-    InfoV.style.cssText = `
-    transform: rotate(-90deg);
-    transform-origin: right bottom;
-    white-space: nowrap;
-    color: #ffffff;
-    width: 16px;
-    position: relative;
-    bottom: 22px;
-    `;
-
-    const Space = document.createElement("div");
-    Space.style.cssText = `
-    flex: 1;
-    `;
+    const a = document.getElementById("minhaCaixa");
+    if (!a) return;
+    a.style.alignItems = !config.FaixaVerti ? "center" : "";
 
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
-    Divbot.appendChild(Space);
-    Divbot.appendChild(InfoV);
-    minhaCaixa.appendChild(Divbot);
 
-    return minhaCaixa;
+    if (config.FaixaVerti) {
+      a.insertBefore(Divbot, a.children[config.LadoBot]);
+    } else {
+      if (a.children.length >= 2) {
+        a.insertBefore(Divbot, a.children[1]);
+      } else {
+        a.appendChild(Divbot);
+      }
+    }
+  }
+
+  function PosicaoFaixa() {
+    document.querySelectorAll(".separadorC").forEach((a) => {
+      a.style.height = config.FaixaVerti ? "1px" : "stretch";
+      a.style.width = config.FaixaVerti ? "100%" : "1px";
+      a.style.margin = config.FaixaVerti ? "2px" : "5px";
+    });
+    const b = document.getElementById("contValores");
+    if (b) b.style.flexDirection = config.FaixaVerti ? "column" : "";
+
+    const c = document.getElementById("minhaCaixa");
+    if (c) c.style.flexDirection = !config.FaixaVerti ? "column" : "";
+
+    const d = document.getElementById("ContPaCo");
+    //if(d) d.style.flexDirection= !config.FaixaVerti ?"column":"";
   }
 
   async function SalvandoVariConfig(modo) {
@@ -2119,24 +2365,25 @@
       return a;
     }
 
-    function TimerFChat(){const CTimerCh = criarCaixaSeg();
-    const TimerCh = criarLinhaTextoComBot2(
-      "TimerCh",
-      "Timer No Chat",
-      config.OBS_ATIVO,
-      () => {
-        if (config.OBS_ATIVO) {
-          desligarBootstrapEMonitoramento();
-        } else {
-          retomarObservacao();
-        }
-        SalvandoVariConfig(1);
-        atualizarVisual();
-      },
-    );
-    CTimerCh.append(TimerCh);
-    return CTimerCh
-  }
+    function TimerFChat() {
+      const CTimerCh = criarCaixaSeg();
+      const TimerCh = criarLinhaTextoComBot2(
+        "TimerCh",
+        "Timer No Chat",
+        config.OBS_ATIVO,
+        () => {
+          if (config.OBS_ATIVO) {
+            desligarBootstrapEMonitoramento();
+          } else {
+            retomarObservacao();
+          }
+          SalvandoVariConfig(1);
+          atualizarVisual();
+        },
+      );
+      CTimerCh.append(TimerCh);
+      return CTimerCh;
+    }
 
     const IgEst = criarLinhaTextoComBot2(
       "NotEst",
@@ -3680,5 +3927,4 @@
 
     Hlog(`Observação retomada: ${motivo}`);
   }
-
 })();
