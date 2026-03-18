@@ -770,7 +770,7 @@
       borderRadius: "15px",
       touchAction: "none",
       position: "absolute",
-      right: "0px",
+      left: "0px",
       top: "0px",
       transition: "all 0.5s ease",
       zIndex: 17,

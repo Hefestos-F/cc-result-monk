@@ -4,7 +4,7 @@
 // @version      0.0.0.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
-// @match        https://cxagent.nicecxone.com/home*
+// @match        https://zoom.us*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/Login.user.js
 // @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/Login.user.js
@@ -266,7 +266,8 @@
   };
 
   function obterEstadoAgenteComoObjeto() {
-    const el = document.querySelector('[data-testid="current-agent-state"]');
+    const el = document.querySelector(".cus-badge__status");
+    //const el = document.querySelector('[data-testid="current-agent-state"]');
     if (!el) return null;
 
     const raw = (el.textContent || "").trim(); // Ex.: "FSDisponível (03:08)"
