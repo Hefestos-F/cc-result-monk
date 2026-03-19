@@ -4,7 +4,7 @@
 // @version      0.0.0.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
-// @match        https://zoom.us*
+// @match        https://zoom.us/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/Login.user.js
 // @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/Login.user.js
@@ -155,7 +155,7 @@
 
   // Configuração do IndexedDB
   const nomeBD = "Hefestos";
-  const StoreBD = "LogueNice";
+  const StoreBD = "LogueZom";
 
   // ========= LOG UTILS =========
 
@@ -288,8 +288,57 @@
     };
   }
 
+  function NorTX(valor) {
+    if (!valor) return "";
+
+    return valor
+      .toString()
+      .normalize("NFD") // separa acentos
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .toUpperCase()
+      .trim();
+  }
+
+  function encoStatus() {
+    const statusName = document.querySelector(".statusName");
+
+    const NomeDp = document.querySelector(".cus-badge__status");
+
+    const timer = document.querySelector(".side-row-timer__text");
+
+    const dados = document.querySelector("#BotInicial");
+
+    let statusNameTex = "---";
+    let timerTex = "---";
+
+    if (!statusName) return null;
+
+    statusNameTex = statusName.textContent;
+
+    const SNT = NorTX(statusNameTex);
+    if (SNT === "PRONTO") {
+      statusNameTex = "Disponivel";
+    } else if (SNT === "OCUPADO") {
+      statusNameTex = "Trabalhando";
+    } else {
+      if (NomeDp) {
+        statusNameTex = NomeDp.textContent;
+      }
+    }
+
+    if (timer) {
+      timerTex = timer.textContent;
+    }
+    return {
+      Status: statusNameTex,
+      Timer: timerTex,
+    };
+  }
+
   observarItem(() => {
-    const el = obterEstadoAgenteComoObjeto();
+    //const el = obterEstadoAgenteComoObjeto();
+
+    const el = encoStatus();
 
     if (!el) {
       Hlog("Alteração aconteceu, mas ainda sem status");
@@ -301,8 +350,11 @@
 
     // Se não mudou, não faz nada
 
-    if (stt.Status === "" || stt.Status === DDPausa.StatusANT) {
-      if (stt.Status === DDPausa.StatusANT) DDPausa.ContAtual = el.tempo;
+    if (
+      stt.Status === "" ||
+      stt.Status === "---" ||
+      stt.Status === DDPausa.StatusANT
+    ) {
       return (stt.andament = 1);
     }
 
@@ -366,7 +418,7 @@
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
-      DDPausa.numero = DDPausa.numero + 1;
+      DDPausa.numero += 1;
 
       const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
       let fimPrevistoObj = null;
@@ -556,10 +608,10 @@
       const seg = Number.isFinite(s) ? s : 0;
 
       // Classificação
-      if (item?.pausa === "Trabalhando") {
+      if (NorTX(item?.pausa) === "TRABALHANDO") {
         totalTrabalhandoSeg += seg;
         TempoPausas.Atendidas += 1;
-      } else if (item?.pausa === "Disponível") {
+      } else if (NorTX(item?.pausa) === "DISPONIVEL") {
         // Side-effect (intencional)
         try {
           UltimoDisponivel?.(item);
@@ -834,13 +886,13 @@
     const div = document.createElement("div");
     div.id = "BotInicial";
     div.style.cssText = `
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     position: absolute;
-    top: 16px;
-    left: 54px;
+    top: 14px;
+    right: 80px;
     border-radius: 15px;
-    border: 1px white solid;
+    border: 1px solid #b73737;
     cursor: pointer;
     `;
     div.addEventListener("mouseover", () => {
@@ -857,6 +909,7 @@
         config.posicaoFl.left = FlutOB.style.left;
         stt.AbaPausas = 0;
         stt.AbaConfig = 0;
+        stt.flutOc = 1;
         FlutOB.remove();
       } else {
         criarObjetoFlutuante();
@@ -1211,7 +1264,7 @@
 
   // Atualiza o timer a cada segundo
   setInterval(() => {
-    Hdebug("Tick do timer iniciado");
+    //Hdebug("Tick do timer iniciado");
 
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
@@ -1224,14 +1277,14 @@
     const ContPaCo = document.getElementById("ContPaCo");
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
-      Hwarn("Elementos obrigatórios não encontrados no DOM", {
+      /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
         time,
         titulo,
         vLogou,
         vSaida,
         vLogado,
         vFalta,
-      });
+      });*/
       return;
     }
 
@@ -1274,7 +1327,7 @@
     time.textContent = stt.Encontrado ? Math.floor(tma) : "Encontrado";
 
     if (!InfoV) {
-      Hwarn("InfoV não encontrado");
+      //Hwarn("InfoV não encontrado");
     } else if (
       stt.Encontrado ||
       config.LogueManual ||
@@ -1309,11 +1362,12 @@
     verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
     verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
 
-    const el = obterEstadoAgenteComoObjeto();
+    //const el = obterEstadoAgenteComoObjeto();
+    const el = encoStatus();
     Hdebug("Estado do agente", el);
 
-    if (el && el.tempo) {
-      TempoPausas.ContAtual = el.tempo;
+    if (el && el.Timer) {
+      TempoPausas.ContAtual = el.Timer;
     } else {
       Hwarn("Tempo do agente não encontrado", el);
     }
@@ -1375,6 +1429,7 @@
     if (
       !config.LogueManual &&
       config.logueSalvo &&
+      dadosPrimLogue &&
       compararDatas(dadosPrimLogue, horafun.Logou)
     ) {
       if (stt.verificarDurac) {
@@ -3360,16 +3415,7 @@
         const pausa = item?.pausa ?? "";
 
         if (item.id !== 0)
-          if (
-            [
-              "Pós",
-              "Callback",
-              "Trabalhando",
-              "Disponível",
-              "Indisponível",
-            ].includes(pausa)
-          )
-            return;
+          if (["TRABALHANDO", "DISPONIVEL"].includes(NorTX(pausa))) return;
 
         if (item.id === 0) {
           itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
@@ -3396,7 +3442,7 @@
       });
       const duracaoReal = calcularDuracao(AntFim.inicio, agora);
 
-      if (["Trabalhando", "Disponível"].includes(AntFim.pausa))
+      if (["TRABALHANDO", "DISPONIVEL"].includes(NorTX(AntFim.pausa)))
         itemdetab(
           "ContAtr",
           "Trabalhando",

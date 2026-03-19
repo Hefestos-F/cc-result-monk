@@ -15,21 +15,81 @@
 
 (function () {
 
-  const statusName = document.querySelector(".statusName");
+  function NorTX(valor) {
+    if (!valor) return "";
 
-  const NomeDp = document.querySelector(".cus-badge__status");
-
-  const timer = document.querySelector(".side-row-timer__text");
-
-
-  if (statusName) {
-    statusName;
+    return valor
+      .toString()
+      .normalize("NFD") // separa acentos
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .toUpperCase()
+      .trim();
   }
 
-  if (NomeDp) {
-    NomeDp;
+  
+const item = { pausa: 'disPonÍvel' };
+
+if (NorTX(item?.pausa) === 'DISPONIVEL') {
+  console.log('Match OK');
+}
+
+
+  function CriarBotInicial() {
+    const div = document.createElement("div");
+    div.id = "oTimer";
+    div.style.cssText = `
+    position: absolute;
+    top: 16px;
+    left: 54px;
+    border-radius: 15px;
+    border: 1px solid white;
+    cursor: pointer;
+    background: #a9cae7;
+    padding: 2px 4px;
+    `;
+
+    document.body.appendChild(div);
   }
-  if (timer) {
-    timer;
-  }
+
+  let intervaloId = setInterval(() => {
+    function encoStatus() {
+      const statusName = document.querySelector(".statusName");
+
+      const NomeDp = document.querySelector(".cus-badge__status");
+
+      const timer = document.querySelector(".side-row-timer__text");
+
+      const dados = document.querySelector("#BotInicial");
+
+      let statusNameTex = "---";
+      let timerTex = "---";
+
+      if (!statusName) return null;
+
+      statusNameTex = statusName.textContent;
+      if (statusNameTex === "Pronto") {
+        statusNameTex = "Disponivel";
+      } else if (statusNameTex === "Ocupado") {
+        statusNameTex = "Trabalhando";
+      } else {
+        if (NomeDp) {
+          statusNameTex = NomeDp.textContent;
+        }
+      }
+
+      if (timer) {
+        timerTex = timer.textContent;
+      }
+      return {
+        Status: statusNameTex,
+        Timer: timerTex,
+      };
+    }
+
+    dados.textContent = `
+  Status: ${statusNameTex} / Timer: ${timerTex}
+  `;
+  }, 1000);
+  CriarBotInicial();
+  //clearInterval(intervaloId);
 })();
