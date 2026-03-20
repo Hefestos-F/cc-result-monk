@@ -867,11 +867,12 @@
     width: 20px;
     height: 20px;
     position: absolute;
-    top: 14px;
+    top: 12px;
     right: 80px;
     border-radius: 15px;
     border: 1px solid #b73737;
     cursor: pointer;
+    font-size: 14px;
     `;
     div.addEventListener("mouseover", () => {
       div.style.background = Ccor.AreaAr;
@@ -1254,6 +1255,8 @@
     const vFalta = document.getElementById("vFalta");
     const InfoV = document.getElementById("InfoV");
     const ContPaCo = document.getElementById("ContPaCo");
+    const Apausa = document.getElementById("Apausa");
+    const BotInicial = document.getElementById("BotInicial");
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
       /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
@@ -1349,6 +1352,17 @@
       TempoPausas.ContAtual = el.Timer;
     } else {
       Hwarn("Tempo do agente não encontrado", el);
+    }
+
+    let paAB = 0;
+    if (Apausa) {
+      Apausa.textContent = el.Status;
+      paAB = 1;
+    }
+
+    if (BotInicial) {
+      BotInicial.textContent = !paAB ? el.Status : "";
+      BotInicial.style.width = paAB ? "20px" : "auto";
     }
 
     if (TempoPausas.Online === undefined) TempoPausas.Online = "00:00:00";
@@ -2278,6 +2292,7 @@
         z-index: 16;
         font-size: 12px;
         transition: all 0.5s ease;
+        align-items: center;
         `;
 
     // Adiciona o contêiner ao contêiner principal
@@ -2348,7 +2363,7 @@
     const Apausa = document.createElement("div");
     Apausa.id = "Apausa";
 
-    
+    minhaCaixa.appendChild(Apausa);
     minhaCaixa.appendChild(container);
 
     return minhaCaixa;
