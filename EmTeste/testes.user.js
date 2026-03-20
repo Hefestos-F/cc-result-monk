@@ -53,6 +53,8 @@ if (NorTX(item?.pausa) === 'DISPONIVEL') {
 
   let intervaloId = setInterval(() => {
     function encoStatus() {
+      const Atend = document.querySelector(".cus-submenu__icon-arrow");
+      if(Atend)Atend.textContent
       const statusName = document.querySelector(".statusName");
 
       const NomeDp = document.querySelector(".cus-badge__status");

@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Login
+// @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
 // @version      0.0.0.1
 // @description  that's all folks!
@@ -31,14 +31,15 @@
     LadoBot: 0,
     LadoBotAnterior: 0,
     MetaTMA: 1,
-    FaixaVerti: 1,
+    FaixaVerti: 0,
     TolerOff: 40,
     posicaoFl: {
-      top: "110px",
-      right: "0px",
+      top: "0px",
+      right: "115px",
       left: "",
     },
     dBUG: 1,
+    HistComp: 0,
   };
 
   const configPadrao = {
@@ -264,29 +265,6 @@
     const lower = first.toLowerCase();
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   };
-
-  function obterEstadoAgenteComoObjeto() {
-    const el = document.querySelector(".cus-badge__status");
-    //const el = document.querySelector('[data-testid="current-agent-state"]');
-    if (!el) return null;
-
-    const raw = (el.textContent || "").trim(); // Ex.: "FSDisponível (03:08)"
-
-    // 1) Captura o tempo (HH:MM) se existir
-    const tempoMatch = raw.match(/\((\d{2}:\d{2})\)/);
-    const tempo = tempoMatch ? tempoMatch[1] : null; // "03:08" ou null
-
-    // 2) Remove prefixo de 2 chars + remove o "(HH:MM)"
-    let status = raw
-      .replace(/^\s*.{2}/, "") // ignora as 2 primeiras letras (ex.: "FS")
-      .replace(/\s*\(\d{2}:\d{2}\)\s*/, "") // remove "(HH:MM)"
-      .trim();
-
-    return {
-      Status: status, // Ex.: "Disponivel"
-      tempo: tempo || "", // Ex.: "03:08" ou "" se não houver
-    };
-  }
 
   function NorTX(valor) {
     if (!valor) return "";
@@ -668,7 +646,7 @@
     // Efeito colateral explícito (mantido, mas isolado do somatório)
     await AddouAtualizarPausas(
       0,
-      "Disponível",
+      "Disponivel",
       inicioObj, // início
       fimObj, // fim
       duracaoObj, // duração
@@ -1146,6 +1124,7 @@
 
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
+    Divbot.appendChild(ADDBotOutr());
 
     if (config.FaixaVerti) {
       a.insertBefore(Divbot, a.children[config.LadoBot]);
@@ -1897,6 +1876,11 @@
           c.remove();
           stt.AbaConfig = 0;
         }
+        const d = document.getElementById("CaiOutr");
+        if (d) {
+          d.remove();
+          stt.AbaOutros = 0;
+        }
         const novoElemento = ADDCaiPausas();
         if (!novoElemento) {
           Herror("criarC() não retornou um elemento válido");
@@ -1966,7 +1950,7 @@
         return;
       }
 
-      const b = document.getElementById("BOutr");
+      const b = document.getElementById("CaiOutr");
       if (b) {
         b.remove();
         stt.AbaOutros = 0;
@@ -2060,6 +2044,11 @@
         if (c) {
           c.remove();
           stt.AbaPausas = 0;
+        }
+        const d = document.getElementById("CaiOutr");
+        if (d) {
+          d.remove();
+          stt.AbaOutros = 0;
         }
         const novoElemento = criarC();
         if (!novoElemento) {
@@ -2356,7 +2345,10 @@
         a.style.marginTop = config.FaixaVerti ? "" : x ? "5px" : "-20px";
       }
     }
+    const Apausa = document.createElement("div");
+    Apausa.id = "Apausa";
 
+    
     minhaCaixa.appendChild(container);
 
     return minhaCaixa;
@@ -2488,6 +2480,23 @@
       );
       Codebb.append(Iodebb);
       return Codebb;
+    }
+
+    function FHistPa() {
+      const CHistPa = criarCaixaSeg();
+      const HistPa = criarLinhaTextoComBot2(
+        "Iodebb",
+        "Historico Pausa",
+        config.HistComp,
+        () => {
+          config.HistComp = !config.HistComp;
+
+          atualizarVisual();
+          SalvandoVariConfig(1);
+        },
+      );
+      CHistPa.append(HistPa);
+      return CHistPa;
     }
 
     function criarCaixaSeg() {
@@ -3037,6 +3046,8 @@
         criarSeparador(),
         odebb(),
         criarSeparador(),
+        FHistPa(),
+        criarSeparador(),
         CBBancDa,
         criarSeparador(),
         ContModoTeste(),
@@ -3211,6 +3222,7 @@
     atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);
     atualizarSlidePosi("BotRecalc", !config.logueSalvo);
     atualizarSlidePosi("BotIodebb", config.dBUG);
+    atualizarSlidePosi("BotIodebb", config.HistComp);
   }
 
   /**
@@ -3294,167 +3306,213 @@
     }
   }
 
-  /**
-   * ADDCaiPausas - cria container para exibir tabela de pausas
-   * Define 5 colunas: Excluir, Pausa, Início, Fim, Duração
-   * @returns {HTMLElement} caixa container das pausas
-   */
   function ADDCaiPausas() {
-    const caixa = document.createElement("div");
-    caixa.id = "CaiDPa";
-    caixa.style.cssText = `
-        background: ${Ccor.Config};
-        margin-${config.LadoBot ? "left" : "right"}: 5px;
-        margin-top: ${!config.FaixaVerti ? "5px" : ""};
-        border-radius: 8px;
-        padding: 5px;
-        max-height: 214px;
-        height: max-content;
-        border: 1px solid white;
-        transition: 0.5s;
-        overflow: auto;
-        display: grid;
-        grid-template-columns: repeat(4, auto); /* 4 linhas */
-        grid-auto-flow: row; /* Preenche colunas automaticamente */
-        gap: 2px 6px; /* Espaçamento entre itens */
-       `;
+    // Reset de estado para evitar lixo entre execuções
+    AntFim.inicio = "---";
+    AntFim.duracao = "---";
+    AntFim.pausa = "";
 
-    /**
-     * AddTituloCp - cria um elemento título para seção na configuração
-     * @param {string} titulo - texto do título
-     * @returns {HTMLElement} div formatada com título
-     */
+    const container = document.createElement("div");
+    container.id = "CaiDPa";
+    container.style.cssText = `
+    background: ${Ccor.Config};
+    margin-${config.LadoBot ? "left" : "right"}: 5px;
+    margin-top: ${!config.FaixaVerti ? "5px" : ""};
+    border-radius: 8px;
+    padding: 5px;
+    max-height: 214px;
+    height: max-content;
+    border: 1px solid white;
+    transition: 0.5s;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    grid-auto-flow: row;
+    gap: 2px 6px;
+    `;
+
     function AddTituloCp(titulo) {
-      const caixa = document.createElement("div");
-      caixa.textContent = `${titulo}`;
-      caixa.style.cssText = `
-        font-size: 14px;
-            border-bottom-style: dashed;
-            border-width: 1px;
-            display: flex;
-        align-items: center;
-        justify-content: center;
-        `;
-      if (titulo === "Excl") {
-        caixa.style.height = "14px";
-      }
-
-      return caixa;
+      const title = document.createElement("div");
+      title.textContent = titulo;
+      title.style.cssText = `
+      font-size: 14px;
+      border-bottom: 1px dashed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      ${titulo === "Excl" ? "height:14px;" : ""}
+    `;
+      return title;
     }
 
-    caixa.append(
+    function criarItemTabela(id, campo, texto = "---") {
+      const cell = document.createElement("div");
+      cell.id = `${campo}${id}`;
+      cell.textContent = String(texto);
+      cell.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+      if (campo === "id") {
+        cell.style.cursor = "pointer";
+        cell.style.fontSize = "8px";
+        cell.style.height = "14px";
+
+        cell.addEventListener("click", () => {
+          document
+            .getElementById("CaiDPa")
+            ?.appendChild(
+              ADDCaixaDAviso("Excluir", () => removerPausaPorId(id)),
+            );
+        });
+      }
+
+      return cell;
+    }
+
+    function itemdetab(id, pausa, inicio, fim, duracao) {
+      container.append(
+        criarItemTabela(id, "pausa", pausa),
+        criarItemTabela(
+          id,
+          "duracao",
+          duracao === "---" ? duracao : tempoEncurtado(duracao),
+        ),
+        criarItemTabela(id, "inicio", inicio),
+        criarItemTabela(id, "fim", fim),
+      );
+    }
+
+    container.append(
       AddTituloCp("Pausa"),
       AddTituloCp("Duração"),
       AddTituloCp("Início"),
       AddTituloCp("Fim"),
-      //AddTituloCp("Excl")
     );
 
-    /**
-     * criarItemTabela - cria célula de tabela com ícone ou texto
-     * @param {number} id - id da pausa
-     * @param {string} campo - tipo de campo (id, pausa, etc)
-     * @param {string} textoExibicao - texto a exibir
-     * @returns {HTMLElement} célula formatada
-     */
-    function criarItemTabela(id, campo, textoExibicao) {
-      const caixa = document.createElement("div");
-      caixa.id = `${campo}${id}`;
-      caixa.textContent = textoExibicao;
-      caixa.style.cssText = `
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        `;
-
-      if (campo === "id") {
-        caixa.style.cursor = `pointer`;
-        caixa.style.fontSize = "8px";
-        caixa.style.height = "14px";
-
-        caixa.addEventListener("click", () => {
-          const CaiDPa = document.getElementById("CaiDPa");
-          CaiDPa.appendChild(
-            ADDCaixaDAviso("Excluir", () => {
-              removerPausaPorId(id);
-            }),
-          );
-        });
-      }
-
-      return caixa;
+    if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
+      Hwarn("ADDCaiPausas: dadosdePausas vazio ou inválido");
+      return container;
     }
 
-    if (Array.isArray(dadosdePausas) && dadosdePausas.length > 0) {
-      const ordenado = [...dadosdePausas].sort(
-        (a, b) => Number(a.id) - Number(b.id),
-      );
+    const Ignorados = config.HistComp
+      ? ["", ""]
+      : ["TRABALHANDO", "DISPONIVEL", "OFFLINE", "FORCADO"];
 
-      function itemdetab(id, pausa, inicio, fim, duracao) {
-        caixa.append(
-          criarItemTabela(id, "pausa", pausa),
-          criarItemTabela(
-            id,
-            "duracao",
-            duracao === "---" ? duracao : tempoEncurtado(duracao),
-          ),
-          criarItemTabela(id, "inicio", inicio),
-          criarItemTabela(id, "fim", fim),
-          //criarItemTabela(item.id, "id", "❌")
-        );
-      }
+    const agora = gerarDataHora();
 
-      const agora = gerarDataHora();
-      ordenado.forEach((item) => {
-        // Usa as chaves em minúsculas conforme seu objeto atual
-        const inicio = item?.inicio ?? "---";
+    [...dadosdePausas]
+      .sort((a, b) => Number(a.id) - Number(b.id))
+      .forEach((item) => {
+        const pausa = item?.pausa ?? "";
+        const pausaNorm = NorTX(pausa);
+
         const inicioHora = item?.inicio?.hora ?? "---";
-        const fim = item?.fim ?? "---";
         const fimHora = item?.fim?.hora ?? "---";
         const duracao = item?.duracao ?? "---";
-        const pausa = item?.pausa ?? "";
 
-        if (item.id !== 0)
-          if (["TRABALHANDO", "DISPONIVEL"].includes(NorTX(pausa))) return;
+        if (item.id !== 0 && Ignorados.includes(pausaNorm)) {
+          Hlog(`Ignorado: ${pausa}`);
+          return;
+        }
 
         if (item.id === 0) {
           itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
           AntFim.inicio = TempoPausas.LogouA;
           AntFim.duracao = duracao;
-        } else if (AntFim.inicio !== "---" && AntFim.duracao !== "---") {
-          const duracaoReal = calcularDuracao(AntFim.inicio, fim);
+          AntFim.pausa = pausa;
+          return;
+        }
 
-          Hlog(`AntFim.inicio: ${AntFim.inicio}`);
+        if (
+          AntFim.inicio !== "---" &&
+          AntFim.duracao !== "---" &&
+          !config.HistComp
+        ) {
+          const duracaoReal = calcularDuracao(AntFim.inicio, item.fim);
+
+          Hlog("Bloco Trabalhado", {
+            inicio: AntFim.inicio,
+            fim: item.inicio,
+            duracaoReal,
+          });
 
           itemdetab(
-            item.id + "T",
+            `${item.id}T`,
             "Trabalhado",
             AntFim.inicio.hora,
             inicioHora,
             duracaoReal,
           );
-          itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
-
-          AntFim.inicio = fim;
-          AntFim.duracao = duracao;
-          AntFim.pausa = pausa;
         }
-      });
-      const duracaoReal = calcularDuracao(AntFim.inicio, agora);
 
-      if (["TRABALHANDO", "DISPONIVEL"].includes(NorTX(AntFim.pausa)))
-        itemdetab(
-          "ContAtr",
-          "Trabalhando",
-          AntFim.inicio.hora,
-          "---",
-          duracaoReal,
-        );
+        itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
+
+        AntFim.inicio = item.fim;
+        AntFim.duracao = duracao;
+        AntFim.pausa = pausa;
+      });
+
+    if (AntFim.inicio !== "---" && AntFim.duracao !== "---") {
+      const duracaoReal = calcularDuracao(AntFim.inicio, agora);
+      itemdetab(
+        "ContAtr",
+        "Trabalhando",
+        AntFim.inicio.hora,
+        "---",
+        duracaoReal,
+      );
     }
 
-    //Hlog(`Pausas ${JSON.stringify(dadosdePausas)}`);
+    return container;
+  }
 
-    return caixa;
+  function ADDCaiOutr() {
+    const container = document.createElement("div");
+    container.id = "CaiOutr";
+    container.style.cssText = `
+        height: 170px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        background: ${Ccor.Config};
+        transition: all 0.5s ease;
+        flex-direction: column;
+        padding: 6px;
+        overflow: auto;
+        width: max-content;
+        border: 1px solid white;
+        margin-top: ${!config.FaixaVerti ? "5px" : ""};
+        margin-${config.LadoBot ? "left" : "right"}: 5px;
+        max-height: 200px;
+            max-width: 300px;
+    `;
+
+    function LinhO(texto) {
+      const cell = document.createElement("div");
+      //cell.id = `${campo}${id}`;
+
+      cell.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+      cell.textContent = texto;
+      return cell;
+    }
+
+    container.append(
+      LinhO(`Registro Observados`),
+      LinhO(`Trabalhado : ${TempoPausas.Trabalhando}`),
+      LinhO(`Disponivel : ${TempoPausas.Disponivel}`),
+      LinhO(`Indisponivel : ${TempoPausas.Indisponivel}`),
+      LinhO(`Total Logado : ${TempoPausas.Online}`),
+      LinhO(`Atendidas : ${TempoPausas.Atendidas}`),
+    );
+
+    return container;
   }
 
   /**
