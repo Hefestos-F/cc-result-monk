@@ -68,6 +68,7 @@
     Estouro: 0,
     AbaPausas: 0,
     AbaConfig: 0,
+    AbaOutros: 0,
     tempoCumprido: 0,
     temHorasExtras: 0,
     Estour1: 0,
@@ -76,6 +77,7 @@
     LadoBot: 0,
     LadoBotAnterior: 0,
     verificarDurac: 0,
+    ContAnt: 0,
   };
 
   let TempoPausas = {
@@ -326,15 +328,18 @@
 
     stt.Status = formatPrimeiroNome(el.Status);
 
+    let Otimer = el.Timer ? converterParaSegundos(el.Timer) : "---";
+
     // Se não mudou, não faz nada
 
-    if (
-      stt.Status === "" ||
-      stt.Status === "---" ||
-      stt.Status === DDPausa.StatusANT
-    ) {
-      return (stt.andament = 1);
+    let oRet = stt.Status === "" || stt.Status === "---" ? 1 : 0;
+
+    if (stt.Status === DDPausa.StatusANT && Otimer >= stt.ContAnt) {
+      oRet = 1;
     }
+    if (Otimer !== "---") stt.ContAnt = Otimer;
+
+    if (oRet) return (stt.andament = 1);
 
     // ==========================================================
     // 3) Atualiza status anterior
@@ -377,7 +382,7 @@
       //Hlog(`fimObj: ${JSON.stringify(fimObj)}`);
 
       Hlog(`id:${DDPausa.numero}, inicioObj: ${JSON.stringify(inicioObj)}`);
-      if (inicioObj && duracaoObj === "---") {
+      if (inicioObj && (!duracaoObj || duracaoObj === "---")) {
         // Salva fim (objeto)
         await atualizarCampos(DDPausa.numero, "fim", agora);
 
@@ -1155,7 +1160,6 @@
   }
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
-
   function gerarDataHora() {
     const agora = new Date();
     const offsetStr = config.TesteHora ? config.valorTeste : "-03:00";
@@ -1359,9 +1363,8 @@
       Apausa.textContent = el.Status;
       paAB = 1;
     }
-
     if (BotInicial) {
-      BotInicial.textContent = !paAB ? el.Status : "";
+      BotInicial.textContent = paAB ? "" : el.Status;
       BotInicial.style.width = paAB ? "20px" : "auto";
     }
 
@@ -1857,11 +1860,11 @@
   function ADDBotPa() {
     const caixa = document.createElement("div");
     caixa.id = "BPausa";
-    caixa.textContent = "P";
+    caixa.textContent = "Pausas";
     caixa.style.cssText = `
         border: 1px solid white;
         height: 20px;
-        width: 20px;
+        width: auto;
         border-radius: 15px;
         padding: 5px;
         display: flex;
@@ -1909,44 +1912,17 @@
       }
     });
 
-    // Adiciona o evento de mouseover ao botão
-    caixa.addEventListener("mouseover", function () {
-      Controle(1);
-    });
-
-    // Adiciona o evento de mouseout ao botão
-    caixa.addEventListener("mouseout", function () {
-      Controle(0);
-    });
-
-    /**
-     * Controle - alterna entre modo compacto/expandido do botão
-     * @param {number} mostrarTextoCompleto - 1 para expandido, 0 para compacto
-     */
-    function Controle(mostrarTextoCompleto) {
-      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
-      caixa.textContent = mostrarTextoCompleto
-        ? stt.AbaPausas
-          ? "Fechar"
-          : "Pausas"
-        : stt.AbaPausas
-          ? "F"
-          : "P";
-      const BConfig = document.getElementById("BConfig");
-      if (BConfig) BConfig.textContent = "C";
-    }
-
     return caixa;
   }
 
   function ADDBotOutr() {
     const caixa = document.createElement("div");
     caixa.id = "BOutr";
-    caixa.textContent = "P";
+    caixa.textContent = "Outros";
     caixa.style.cssText = `
         border: 1px solid white;
         height: 20px;
-        width: 20px;
+        width: auto;
         border-radius: 15px;
         padding: 5px;
         display: flex;
@@ -1993,44 +1969,17 @@
       }
     });
 
-    // Adiciona o evento de mouseover ao botão
-    caixa.addEventListener("mouseover", function () {
-      Controle(1);
-    });
-
-    // Adiciona o evento de mouseout ao botão
-    caixa.addEventListener("mouseout", function () {
-      Controle(0);
-    });
-
-    /**
-     * Controle - alterna entre modo compacto/expandido do botão
-     * @param {number} mostrarTextoCompleto - 1 para expandido, 0 para compacto
-     */
-    function Controle(mostrarTextoCompleto) {
-      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
-      caixa.textContent = mostrarTextoCompleto
-        ? stt.AbaOutros
-          ? "Fechar"
-          : "Outros"
-        : stt.AbaOutros
-          ? "F"
-          : "O";
-      const BConfig = document.getElementById("BConfig");
-      if (BConfig) BConfig.textContent = "C";
-    }
-
     return caixa;
   }
 
   function ADDBotConfig() {
     const caixa = document.createElement("div");
     caixa.id = "BConfig";
-    caixa.textContent = "C";
+    caixa.textContent = "Config";
     caixa.style.cssText = `
     border: 1px solid white;
     height: 20px;
-    width: 20px;
+    width: auto;
     border-radius: 15px;
     padding: 5px;
     display: flex;
@@ -2078,22 +2027,6 @@
         //Hlog("CaixaConfig adicionada");
       }
     });
-
-    caixa.addEventListener("mouseover", () => Controle(1));
-    caixa.addEventListener("mouseout", () => Controle(0));
-
-    function Controle(mostrarTextoCompleto) {
-      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
-      caixa.textContent = mostrarTextoCompleto
-        ? stt.AbaConfig
-          ? "Fechar"
-          : "Config"
-        : stt.AbaConfig
-          ? "F"
-          : "C";
-      const BPausa = document.getElementById("BPausa");
-      if (BPausa) BPausa.textContent = "P";
-    }
 
     return caixa;
   }
@@ -2307,7 +2240,7 @@
       BotPacontrole(0, "ContPaCo");
     });
     function BotPacontrole(b, z) {
-      let x = stt.AbaPausas || stt.AbaConfig ? 1 : b;
+      let x = stt.AbaPausas || stt.AbaConfig || stt.AbaOutros ? 1 : b;
 
       let a = document.getElementById(z);
 
@@ -2331,13 +2264,6 @@
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
 
-        /*if (config.FaixaVerti) {
-          a.style.marginLeft = config.LadoBot ? (x ? "5px" : "-20px") : "";
-          a.style.marginRight = config.LadoBot ? "" : x ? "5px" : "-20px";
-        } else {
-          a.style.marginLeft = config.LadoBot ? "" : "auto";
-          a.style.marginRight = config.LadoBot ? "auto" : "";
-        }*/
         a.style.marginLeft = config.FaixaVerti
           ? config.LadoBot
             ? x
@@ -2362,9 +2288,10 @@
     }
     const Apausa = document.createElement("div");
     Apausa.id = "Apausa";
+    Apausa.style.marginTop = "4px";
 
-    minhaCaixa.appendChild(Apausa);
     minhaCaixa.appendChild(container);
+    minhaCaixa.appendChild(Apausa);
 
     return minhaCaixa;
   }
@@ -3488,7 +3415,7 @@
     const container = document.createElement("div");
     container.id = "CaiOutr";
     container.style.cssText = `
-        height: 170px;
+        height: 110px;
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -3497,12 +3424,9 @@
         flex-direction: column;
         padding: 6px;
         overflow: auto;
-        width: max-content;
         border: 1px solid white;
         margin-top: ${!config.FaixaVerti ? "5px" : ""};
         margin-${config.LadoBot ? "left" : "right"}: 5px;
-        max-height: 200px;
-            max-width: 300px;
     `;
 
     function LinhO(texto) {

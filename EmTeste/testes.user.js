@@ -53,6 +53,11 @@ if (NorTX(item?.pausa) === 'DISPONIVEL') {
 
   let intervaloId = setInterval(() => {
     function encoStatus() {
+
+
+      class="phone-active__item selected__collapse"
+
+      
       const Atend = document.querySelector(".cus-submenu__icon-arrow");
       if(Atend)Atend.textContent
       const statusName = document.querySelector(".statusName");
