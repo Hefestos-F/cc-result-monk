@@ -34,8 +34,8 @@
     FaixaVerti: 0,
     TolerOff: 40,
     posicaoFl: {
-      top: "0px",
-      right: "115px",
+      top: "34px",
+      right: "105px",
       left: "",
     },
     dBUG: 1,
@@ -286,16 +286,21 @@
 
     const timer = document.querySelector(".side-row-timer__text");
 
-    if (!statusName || !NomeDp || !timer) return false;
+    if (!statusName) return false;
 
     let statusNameTex = statusName.textContent;
     let timerTex = "---";
+    let NomeDpval = false;
 
     const SNT = NorTX(statusNameTex);
+
     if (SNT === "PRONTO") {
       statusNameTex = "Disponivel";
     } else if (SNT === "OCUPADO") {
       statusNameTex = "Trabalhando";
+      if (NomeDp) {
+        NomeDpval = NomeDp.textContent;
+      }
     } else {
       if (NomeDp) {
         statusNameTex = NomeDp.textContent;
@@ -303,11 +308,12 @@
     }
 
     if (timer) {
-      timerTex = timer.textContent;
+      timerTex = timer.textContent.trim();
     }
 
     return {
       Status: statusNameTex,
+      Pausa: NomeDpval,
       Timer: timerTex,
     };
   }
@@ -882,7 +888,7 @@
     div.addEventListener("mouseout", () => contr(0));
 
     function contr(a) {
-      div.style.background = a ? Ccor.AreaAr : "";
+      div.style.background = a ? Ccor.AreaAr : "white";
       div.style.color = a ? "white" : Ccor.AreaAr;
       div.style.borderColor = a ? "" : Ccor.AreaAr;
     }
@@ -1117,7 +1123,7 @@
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
-      margin-left: -20px;
+      margin-left: -52px;
       opacity: 0;
       visibility: hidden;
       transition: 0.5s;
@@ -1271,15 +1277,21 @@
       TempoPausas.ContAtual = el.Timer;
       let paAB = 0;
       if (Apausa) {
+        //Apausa.style.marginTop = "4px";
         //Apausa.textContent = el.Status;
         //paAB = 1;
       }
+
       if (BotInicial) {
-        BotInicial.textContent = paAB ? "" : el.Status;
+        BotInicial.textContent = paAB
+          ? ""
+          : el.Pausa
+            ? `${el.Status} > ${el.Pausa}`
+            : el.Status;
         BotInicial.style.width = paAB ? "20px" : "auto";
       }
     } else {
-      Hwarn("Tempo do agente não encontrado", el);
+      Hdebug("Tempo do agente não encontrado", el);
     }
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
@@ -2270,7 +2282,7 @@
           ? config.LadoBot
             ? x
               ? "5px"
-              : "-20px"
+              : "-52px"
             : ""
           : config.LadoBot
             ? ""
@@ -2280,7 +2292,7 @@
             ? ""
             : x
               ? "5px"
-              : "-20px"
+              : "-52px"
           : config.LadoBot
             ? "auto"
             : "";
@@ -2290,7 +2302,6 @@
     }
     const Apausa = document.createElement("div");
     Apausa.id = "Apausa";
-    Apausa.style.marginTop = "4px";
 
     minhaCaixa.appendChild(container);
     minhaCaixa.appendChild(Apausa);
@@ -2429,7 +2440,7 @@
     function FHistPa() {
       const CHistPa = criarCaixaSeg();
       const HistPa = criarLinhaTextoComBot2(
-        "Iodebb",
+        "HistoDpa",
         "Historico Pausa",
         config.HistComp,
         () => {
@@ -3166,7 +3177,7 @@
     atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);
     atualizarSlidePosi("BotRecalc", !config.logueSalvo);
     atualizarSlidePosi("BotIodebb", config.dBUG);
-    atualizarSlidePosi("BotIodebb", config.HistComp);
+    atualizarSlidePosi("BotHistoDpa", config.HistComp);
   }
 
   /**
