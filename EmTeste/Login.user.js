@@ -286,14 +286,10 @@
 
     const timer = document.querySelector(".side-row-timer__text");
 
-    const dados = document.querySelector("#BotInicial");
+    if (!statusName || !NomeDp || !timer) return false;
 
-    let statusNameTex = "---";
+    let statusNameTex = statusName.textContent;
     let timerTex = "---";
-
-    if (!statusName) return null;
-
-    statusNameTex = statusName.textContent;
 
     const SNT = NorTX(statusNameTex);
     if (SNT === "PRONTO") {
@@ -309,6 +305,7 @@
     if (timer) {
       timerTex = timer.textContent;
     }
+
     return {
       Status: statusNameTex,
       Timer: timerTex,
@@ -875,16 +872,21 @@
     top: 12px;
     right: 80px;
     border-radius: 15px;
-    border: 1px solid #b73737;
+    border: 1px solid;
     cursor: pointer;
     font-size: 14px;
+    padding: 0px 4px;
+    color: ${Ccor.AreaAr};
     `;
-    div.addEventListener("mouseover", () => {
-      div.style.background = Ccor.AreaAr;
-    });
-    div.addEventListener("mouseout", () => {
-      div.style.background = "";
-    });
+    div.addEventListener("mouseover", () => contr(1));
+    div.addEventListener("mouseout", () => contr(0));
+
+    function contr(a) {
+      div.style.background = a ? Ccor.AreaAr : "";
+      div.style.color = a ? "white" : Ccor.AreaAr;
+      div.style.borderColor = a ? "" : Ccor.AreaAr;
+    }
+
     div.addEventListener("click", () => {
       const FlutOB = document.getElementById("FlutOB");
       if (FlutOB) {
@@ -1262,6 +1264,24 @@
     const Apausa = document.getElementById("Apausa");
     const BotInicial = document.getElementById("BotInicial");
 
+    const el = encoStatus();
+    Hdebug("Estado do agente", el);
+
+    if (el) {
+      TempoPausas.ContAtual = el.Timer;
+      let paAB = 0;
+      if (Apausa) {
+        //Apausa.textContent = el.Status;
+        //paAB = 1;
+      }
+      if (BotInicial) {
+        BotInicial.textContent = paAB ? "" : el.Status;
+        BotInicial.style.width = paAB ? "20px" : "auto";
+      }
+    } else {
+      Hwarn("Tempo do agente não encontrado", el);
+    }
+
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
       /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
         time,
@@ -1349,24 +1369,6 @@
     verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
 
     //const el = obterEstadoAgenteComoObjeto();
-    const el = encoStatus();
-    Hdebug("Estado do agente", el);
-
-    if (el && el.Timer) {
-      TempoPausas.ContAtual = el.Timer;
-    } else {
-      Hwarn("Tempo do agente não encontrado", el);
-    }
-
-    let paAB = 0;
-    if (Apausa) {
-      Apausa.textContent = el.Status;
-      paAB = 1;
-    }
-    if (BotInicial) {
-      BotInicial.textContent = paAB ? "" : el.Status;
-      BotInicial.style.width = paAB ? "20px" : "auto";
-    }
 
     if (TempoPausas.Online === undefined) TempoPausas.Online = "00:00:00";
 
