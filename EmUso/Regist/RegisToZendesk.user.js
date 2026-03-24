@@ -21,6 +21,8 @@
 
   const stt = {
     observ: 1,
+    ticket: "",
+    contato: "",
   };
 
   function setInputValue(el, value) {
@@ -29,6 +31,20 @@
     el.value = value ?? "";
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  function NorTX(valor) {
+    if (!valor) return "";
+
+    return valor
+      .toString()
+      .normalize("NFD") // separa acentos
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .toUpperCase()
+      .trim();
+  }
+
+  function contemNumero(valor) {
+    return /\d/.test(String(valor));
   }
 
   window.addEventListener("message", (ev) => {
@@ -42,13 +58,22 @@
       if (!tkEl) {
         warn("Input #ticket não encontrado");
       } else {
+        stt.ticket = ticket;
         if (tkEl.value === "") setInputValue(tkEl, ticket);
       }
 
       if (!ctEl) {
         warn("Input #contato não encontrado");
       } else {
-        if (ctEl.value === "") setInputValue(ctEl, contato);
+        let ocont = NorTX(contato);
+        let onome =
+          ocont === NorTX("Anonymous") ||
+          ocont === NorTX("Anônimo") ||
+          contemNumero(contato)
+            ? "Pax"
+            : contato;
+        stt.contato = onome;
+        if (ctEl.value === "") setInputValue(ctEl, onome);
       }
 
       log("Aplicados:", { ticket, contato });
@@ -71,8 +96,14 @@
     const ct = p.get("contato");
     const tkEl = document.getElementById("ticket");
     const ctEl = document.getElementById("contato");
-    if (tk && tkEl) setInputValue(tkEl, tk);
-    if (ct && ctEl) setInputValue(ctEl, ct);
+    if (tk && tkEl) {
+      stt.ticket = tk;
+      setInputValue(tkEl, tk);
+    }
+    if (ct && ctEl) {
+      stt.contato = ct;
+      setInputValue(ctEl, ct);
+    }
   })();
 
   var entrada1 = "";
@@ -215,18 +246,25 @@
     dd1.appendChild(linha6);
     contentBox.appendChild(dd1);
 
+    document
+      .querySelector('button[onclick="limparTela()"]')
+      .addEventListener("click", () => {
+        entrada1 = "";
+        entrada2 = "";
+        entrada3 = "";
+        linha2in.value = "";
+        linha2in.style.height = "25px";
+        linha4in.value = "";
+        linha4in.style.height = "25px";
+        linha6in.value = "";
+        linha6in.style.height = "25px";
 
-    document.querySelector('button[onclick="limparTela()"]').addEventListener("click", () => {
-      entrada1 = "";
-      entrada2 = "";
-      entrada3 = "";
-      linha2in.value = "";
-      linha2in.style.height = "25px";
-      linha4in.value = "";
-      linha4in.style.height = "25px";
-      linha6in.value = "";
-      linha6in.style.height = "25px";
-    });
+        const tkEl = document.getElementById("ticket");
+        const ctEl = document.getElementById("contato");
+
+        if (stt.ticket && tkEl) setInputValue(tkEl, stt.ticket);
+        if (stt.contato && ctEl) setInputValue(ctEl, stt.contato);
+      });
 
     function preencheregis() {
       var variant1;

@@ -34,7 +34,7 @@
     FaixaVerti: 0,
     TolerOff: 40,
     posicaoFl: {
-      top: "34px",
+      top: "0px",
       right: "105px",
       left: "",
     },
@@ -337,7 +337,7 @@
 
     let oRet = stt.Status === "" || stt.Status === "---" ? 1 : 0;
 
-    if (stt.Status === DDPausa.StatusANT && Otimer >= stt.ContAnt) {
+    if (Otimer >= stt.ContAnt) {
       oRet = 1;
     }
     if (Otimer !== "---") stt.ContAnt = Otimer;
@@ -934,6 +934,8 @@
       alignItems: "center",
       backgroundColor: Ccor.Principal,
       padding: "3px",
+      color: "white",
+      fontSize: "12px",
     });
 
     const handle = document.createElement("div"); // Área para arrastar
@@ -1162,9 +1164,6 @@
 
     const c = document.getElementById("minhaCaixa");
     if (c) c.style.flexDirection = !config.FaixaVerti ? "column" : "";
-
-    const d = document.getElementById("ContPaCo");
-    //if(d) d.style.flexDirection= !config.FaixaVerti ?"column":"";
   }
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
@@ -1268,26 +1267,30 @@
     const InfoV = document.getElementById("InfoV");
     const ContPaCo = document.getElementById("ContPaCo");
     const Apausa = document.getElementById("Apausa");
+    const oStatus = document.getElementById("oStatus");
     const BotInicial = document.getElementById("BotInicial");
-
+    oStatus;
     const el = encoStatus();
     Hdebug("Estado do agente", el);
 
     if (el) {
       TempoPausas.ContAtual = el.Timer;
       let paAB = 0;
+      const exibir = el.Pausa ? `${el.Status} > ${el.Pausa}` : el.Status;
       if (Apausa) {
-        //Apausa.style.marginTop = "4px";
-        //Apausa.textContent = el.Status;
-        //paAB = 1;
+        if (config.FaixaVerti) {
+          Apausa.innerHTML = `
+            <div>${el.Status}</div>
+            <div>${el.Pausa ? `> ${el.Pausa}` : ""}</div>
+           `;
+        } else {
+          Apausa.textContent = exibir;
+        }
+        paAB = 1;
       }
 
       if (BotInicial) {
-        BotInicial.textContent = paAB
-          ? ""
-          : el.Pausa
-            ? `${el.Status} > ${el.Pausa}`
-            : el.Status;
+        BotInicial.textContent = paAB ? "" : exibir;
         BotInicial.style.width = paAB ? "20px" : "auto";
       }
     } else {
@@ -2234,10 +2237,10 @@
     minhaCaixa.style.cssText = `
         
         display: flex;
-        color: white;
+        
         flex-direction: ${!config.FaixaVerti ? "column" : ""};
         z-index: 16;
-        font-size: 12px;
+        
         transition: all 0.5s ease;
         align-items: center;
         `;
@@ -2302,11 +2305,18 @@
     }
     const Apausa = document.createElement("div");
     Apausa.id = "Apausa";
+    Apausa.style.cssText = `
+      display: flex;
+      justify-content: center;
+    `;
+    const Antesd = document.createElement("div");
+    Antesd.id = "Antesd";
 
     minhaCaixa.appendChild(container);
-    minhaCaixa.appendChild(Apausa);
+    Antesd.appendChild(Apausa);
+    Antesd.appendChild(minhaCaixa);
 
-    return minhaCaixa;
+    return Antesd;
   }
 
   async function SalvandoVariConfig(modo) {
