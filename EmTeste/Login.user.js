@@ -905,6 +905,7 @@
         FlutOB.remove();
       } else {
         criarObjetoFlutuante();
+        BotoesLateral();
       }
     });
     document.body.appendChild(div);
@@ -926,11 +927,11 @@
       right: config.posicaoFl.right,
       left: config.posicaoFl.left,
       borderRadius: "8px",
-      zIndex: "16",
+      zIndex: "100",
       boxSizing: "border-box",
       userSelect: "none",
       display: "flex",
-      flexDirection: "column",
+      flexDirection: config.FaixaVerti ? "" : "column",
       alignItems: "center",
       backgroundColor: Ccor.Principal,
       padding: "3px",
@@ -941,17 +942,22 @@
     const handle = document.createElement("div"); // Área para arrastar
     handle.id = "AreaArrast";
     Object.assign(handle.style, {
-      width: "18px",
-      height: "18px",
+      width: config.FaixaVerti ? "20px" : "",
+      height: config.FaixaVerti ? "" : "20px",
       backgroundColor: Ccor.AreaAr,
       cursor: "grab",
       borderRadius: "15px",
       touchAction: "none",
-      position: "absolute",
-      right: "0px",
-      top: "0px",
+      //position: "absolute",
+      //right: "0px",
+      //top: "0px",
+      padding: "0px 4px",
+      writingMode: config.FaixaVerti
+        ? config.LadoBot
+          ? "vertical-lr"
+          : "sideways-lr"
+        : "",
       transition: "all 0.5s ease",
-      zIndex: 17,
     });
 
     // -----
@@ -1119,19 +1125,168 @@
     applySideAnchor(QualLado);
   }
 
+  function AdicionarCaixaAtualizada() {
+    // Função para criar a classe dinamicamente
+    function criarClasse() {
+      const style = document.createElement("style");
+      style.type = "text/css";
+      style.id = "MeuEstiloLogin";
+      style.innerHTML = `
+      #FlutOB,
+      #FlutOB * {
+         box-sizing: border-box;
+      }
+            .info-caixa {
+                text-align: center;
+            }
+            .separadorC {
+                width: 100%;
+                height: 1px;
+                background: #ffffffff;
+                margin: 2px;
+                transition: all 0.5s ease;
+            }
+
+            @keyframes rotate {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            .iconec {
+                background: white;
+            }
+        `;
+      document.getElementsByTagName("head")[0].appendChild(style);
+    }
+
+    // Cria a classe
+    criarClasse();
+
+    // Cria as caixas com as informações
+    const logou = criarCaixaDCv("c", "Logou");
+    const logado = criarCaixaDCv("c", "Logado");
+    const tma = criarCaixaDCv("c", "TMA");
+    const falta = criarCaixaDCv("c", "Falta");
+    const saida = criarCaixaDCv("c", "Saida");
+    const data = criarCaixaDCv("c", "DataX");
+
+    // Cria um contêiner para agrupar as caixas
+    const container = document.createElement("div");
+    container.id = "contValores";
+    container.style.cssText = `
+        display: flex;
+        opacity: 1;
+        padding: 6px;
+        align-items: center;
+        justify-content: space-evenly;
+        transition: all 0.5s ease;
+        border-radius: 15px;
+        visibility: visible;
+        flex-direction: ${config.FaixaVerti ? "column" : ""};
+        overflow: hidden;
+        border: 1px solid white;
+        `;
+
+    // Adiciona as caixas e separadores ao contêiner
+    container.appendChild(logou);
+    container.appendChild(criarSeparadorCV(1));
+    container.appendChild(saida);
+    container.appendChild(criarSeparadorCV(2));
+    container.appendChild(tma);
+    container.appendChild(criarSeparadorCV(3));
+    container.appendChild(logado);
+    container.appendChild(criarSeparadorCV(4));
+    container.appendChild(falta);
+    container.appendChild(criarSeparadorCV(5));
+    container.appendChild(data);
+
+    // Cria um contêiner principal para agrupar tudo
+    const minhaCaixa = document.createElement("div");
+    minhaCaixa.setAttribute("id", "minhaCaixa");
+    minhaCaixa.style.cssText = `
+        
+        display: flex;
+        
+        flex-direction: ${!config.FaixaVerti ? "column" : ""};
+        
+        transition: all 0.5s ease;
+        align-items: center;
+        `;
+
+    // Adiciona o contêiner ao contêiner principal
+
+    // Adiciona o evento de mouseover ao botão
+    minhaCaixa.addEventListener("mouseover", function () {
+      BotPacontrole(1, "ContPaCo");
+    });
+
+    // Adiciona o evento de mouseout ao botão
+    minhaCaixa.addEventListener("mouseout", function () {
+      BotPacontrole(0, "ContPaCo");
+    });
+    function BotPacontrole(b, z) {
+      let x = stt.AbaPausas || stt.AbaConfig || stt.AbaOutros ? 1 : b;
+
+      let a = document.getElementById(z);
+
+      if (!a) BotoesLateral();
+
+      a = document.getElementById(z);
+
+      if (config.LadoBotAnterior !== config.LadoBot) {
+        a.remove();
+        BotoesLateral();
+        config.LadoBotAnterior = config.LadoBot;
+      }
+
+      const c = document.getElementById("AreaArrast");
+      if (c)
+        if (a) {
+          a.style.opacity = x ? "1" : "0";
+          a.style.visibility = x ? "visible" : "hidden";
+
+          a.style.marginLeft = config.FaixaVerti
+            ? config.LadoBot
+              ? x
+                ? "5px"
+                : "-20px"
+              : ""
+            : config.LadoBot
+              ? ""
+              : "auto";
+          a.style.marginRight = config.FaixaVerti
+            ? config.LadoBot
+              ? ""
+              : x
+                ? "5px"
+                : "-20px"
+            : config.LadoBot
+              ? "auto"
+              : "";
+
+          a.style.marginTop = config.FaixaVerti ? "" : x ? "5px" : "-20px";
+        }
+    }
+
+    minhaCaixa.appendChild(container);
+
+    return minhaCaixa;
+  }
+
   function BotoesLateral() {
     if (document.getElementById("ContPaCo")) return;
 
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
-      margin-left: -52px;
+      margin-left: -20px;
+      margin-top:${!config.FaixaVerti ? "-20px" : ""};
       opacity: 0;
       visibility: hidden;
       transition: 0.5s;
       display: flex;
       gap: 5px;
       flex-direction: ${config.FaixaVerti ? "column" : ""};
+      justify-content:${config.FaixaVerti ? "center" : ""};
     `;
 
     const a = document.getElementById("minhaCaixa");
@@ -1141,6 +1296,14 @@
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
     Divbot.appendChild(ADDBotOutr());
+
+    const b = document.getElementById("AreaArrast");
+    if (b) b.style.flexDirection = !config.FaixaVerti ? "column" : "";
+
+    const FlutOB = document.getElementById("FlutOB");
+
+    if (FlutOB)
+      FlutOB.insertBefore(config.LadoBot ? a : b, config.LadoBot ? b : a);
 
     if (config.FaixaVerti) {
       a.insertBefore(Divbot, a.children[config.LadoBot]);
@@ -1266,10 +1429,9 @@
     const vFalta = document.getElementById("vFalta");
     const InfoV = document.getElementById("InfoV");
     const ContPaCo = document.getElementById("ContPaCo");
-    const Apausa = document.getElementById("Apausa");
-    const oStatus = document.getElementById("oStatus");
+    const AreaArrast = document.getElementById("AreaArrast");
     const BotInicial = document.getElementById("BotInicial");
-    oStatus;
+
     const el = encoStatus();
     Hdebug("Estado do agente", el);
 
@@ -1277,17 +1439,10 @@
       TempoPausas.ContAtual = el.Timer;
       let paAB = 0;
       const exibir = el.Pausa ? `${el.Status} > ${el.Pausa}` : el.Status;
-      if (Apausa) {
-        if (config.FaixaVerti) {
-          Apausa.innerHTML = `
-            <div>${el.Status}</div>
-            <div>${el.Pausa ? `> ${el.Pausa}` : ""}</div>
-           `;
-        } else {
-          Apausa.textContent = exibir;
-        }
-        paAB = 1;
+      if (AreaArrast) {
+        AreaArrast.textContent = exibir;
       }
+      paAB = 1;
 
       if (BotInicial) {
         BotInicial.textContent = paAB ? "" : exibir;
@@ -1880,7 +2035,6 @@
     caixa.textContent = "Pausas";
     caixa.style.cssText = `
         border: 1px solid white;
-        height: 20px;
         width: auto;
         border-radius: 15px;
         padding: 5px;
@@ -1889,6 +2043,15 @@
         transition: all 0.5s ease;
         cursor: pointer;
         justify-content: center;
+        height: ${config.FaixaVerti ? "" : "20px"};
+        width:  ${config.FaixaVerti ? "20px" : ""};
+        writing-mode: ${
+          config.FaixaVerti
+            ? config.LadoBot
+              ? "vertical-lr"
+              : "sideways-lr"
+            : ""
+        };
         
         margin-left: ${!config.LadoBot && config.FaixaVerti ? "auto" : ""};
         `;
@@ -1938,7 +2101,6 @@
     caixa.textContent = "Outros";
     caixa.style.cssText = `
         border: 1px solid white;
-        height: 20px;
         width: auto;
         border-radius: 15px;
         padding: 5px;
@@ -1948,6 +2110,15 @@
         cursor: pointer;
         justify-content: center;
         margin-left: ${config.LadoBot ? "" : "auto"};
+        height: ${config.FaixaVerti ? "" : "20px"};
+        width:  ${config.FaixaVerti ? "20px" : ""};
+        writing-mode: ${
+          config.FaixaVerti
+            ? config.LadoBot
+              ? "vertical-lr"
+              : "sideways-lr"
+            : ""
+        };
         `;
 
     caixa.addEventListener("click", function () {
@@ -1995,7 +2166,6 @@
     caixa.textContent = "Config";
     caixa.style.cssText = `
     border: 1px solid white;
-    height: 20px;
     width: auto;
     border-radius: 15px;
     padding: 5px;
@@ -2005,6 +2175,15 @@
     cursor: pointer;
     justify-content: center;
     margin-left: ${!config.LadoBot && config.FaixaVerti ? "auto" : ""};
+    height: ${config.FaixaVerti ? "" : "20px"};
+        width:  ${config.FaixaVerti ? "20px" : ""};
+        writing-mode: ${
+          config.FaixaVerti
+            ? config.LadoBot
+              ? "vertical-lr"
+              : "sideways-lr"
+            : ""
+        };
     `;
 
     caixa.addEventListener("click", function () {
@@ -2155,168 +2334,6 @@
         `;
 
     return caixa;
-  }
-
-  function AdicionarCaixaAtualizada() {
-    // Função para criar a classe dinamicamente
-    function criarClasse() {
-      const style = document.createElement("style");
-      style.type = "text/css";
-      style.id = "MeuEstiloLogin";
-      style.innerHTML = `
-      #FlutOB,
-      #FlutOB * {
-         box-sizing: border-box;
-      }
-            .info-caixa {
-                text-align: center;
-            }
-            .separadorC {
-                width: 100%;
-                height: 1px;
-                background: #ffffffff;
-                margin: 2px;
-                transition: all 0.5s ease;
-            }
-
-            @keyframes rotate {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            .iconec {
-                background: white;
-            }
-        `;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
-
-    // Cria a classe
-    criarClasse();
-
-    // Cria as caixas com as informações
-    const logou = criarCaixaDCv("c", "Logou");
-    const logado = criarCaixaDCv("c", "Logado");
-    const tma = criarCaixaDCv("c", "TMA");
-    const falta = criarCaixaDCv("c", "Falta");
-    const saida = criarCaixaDCv("c", "Saida");
-    const data = criarCaixaDCv("c", "DataX");
-
-    // Cria um contêiner para agrupar as caixas
-    const container = document.createElement("div");
-    container.id = "contValores";
-    container.style.cssText = `
-        display: flex;
-        opacity: 1;
-        padding: 6px;
-        align-items: center;
-        justify-content: space-evenly;
-        transition: all 0.5s ease;
-        border-radius: 15px;
-        visibility: visible;
-        flex-direction: ${config.FaixaVerti ? "column" : ""};
-        overflow: hidden;
-        border: 1px solid white;
-        `;
-
-    // Adiciona as caixas e separadores ao contêiner
-    container.appendChild(logou);
-    container.appendChild(criarSeparadorCV(1));
-    container.appendChild(saida);
-    container.appendChild(criarSeparadorCV(2));
-    container.appendChild(tma);
-    container.appendChild(criarSeparadorCV(3));
-    container.appendChild(logado);
-    container.appendChild(criarSeparadorCV(4));
-    container.appendChild(falta);
-    container.appendChild(criarSeparadorCV(5));
-    container.appendChild(data);
-
-    // Cria um contêiner principal para agrupar tudo
-    const minhaCaixa = document.createElement("div");
-    minhaCaixa.setAttribute("id", "minhaCaixa");
-    minhaCaixa.style.cssText = `
-        
-        display: flex;
-        
-        flex-direction: ${!config.FaixaVerti ? "column" : ""};
-        z-index: 16;
-        
-        transition: all 0.5s ease;
-        align-items: center;
-        `;
-
-    // Adiciona o contêiner ao contêiner principal
-
-    // Adiciona o evento de mouseover ao botão
-    minhaCaixa.addEventListener("mouseover", function () {
-      BotPacontrole(1, "ContPaCo");
-    });
-
-    // Adiciona o evento de mouseout ao botão
-    minhaCaixa.addEventListener("mouseout", function () {
-      BotPacontrole(0, "ContPaCo");
-    });
-    function BotPacontrole(b, z) {
-      let x = stt.AbaPausas || stt.AbaConfig || stt.AbaOutros ? 1 : b;
-
-      let a = document.getElementById(z);
-
-      if (!a) BotoesLateral();
-
-      a = document.getElementById(z);
-
-      if (config.LadoBotAnterior !== config.LadoBot) {
-        a.remove();
-        BotoesLateral();
-        config.LadoBotAnterior = config.LadoBot;
-      }
-
-      const c = document.getElementById("AreaArrast");
-      if (c) {
-        c.style.left = config.LadoBot ? "0px" : "";
-        c.style.right = config.LadoBot ? "" : "0px";
-      }
-
-      if (a) {
-        a.style.opacity = x ? "1" : "0";
-        a.style.visibility = x ? "visible" : "hidden";
-
-        a.style.marginLeft = config.FaixaVerti
-          ? config.LadoBot
-            ? x
-              ? "5px"
-              : "-52px"
-            : ""
-          : config.LadoBot
-            ? ""
-            : "auto";
-        a.style.marginRight = config.FaixaVerti
-          ? config.LadoBot
-            ? ""
-            : x
-              ? "5px"
-              : "-52px"
-          : config.LadoBot
-            ? "auto"
-            : "";
-
-        a.style.marginTop = config.FaixaVerti ? "" : x ? "5px" : "-20px";
-      }
-    }
-    const Apausa = document.createElement("div");
-    Apausa.id = "Apausa";
-    Apausa.style.cssText = `
-      display: flex;
-      justify-content: center;
-    `;
-    const Antesd = document.createElement("div");
-    Antesd.id = "Antesd";
-
-    minhaCaixa.appendChild(container);
-    Antesd.appendChild(Apausa);
-    Antesd.appendChild(minhaCaixa);
-
-    return Antesd;
   }
 
   async function SalvandoVariConfig(modo) {
