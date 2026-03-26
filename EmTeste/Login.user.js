@@ -901,7 +901,6 @@
         config.posicaoFl.left = FlutOB.style.left;
         stt.AbaPausas = 0;
         stt.AbaConfig = 0;
-        stt.flutOc = 1;
         FlutOB.remove();
       } else {
         criarObjetoFlutuante();
@@ -927,13 +926,13 @@
       right: config.posicaoFl.right,
       left: config.posicaoFl.left,
       borderRadius: "8px",
-      zIndex: "100",
+      zIndex: "101",
       boxSizing: "border-box",
       userSelect: "none",
       display: "flex",
       flexDirection: config.FaixaVerti ? "" : "column",
       alignItems: "center",
-      backgroundColor: Ccor.Principal,
+
       padding: "3px",
       color: "white",
       fontSize: "12px",
@@ -942,8 +941,6 @@
     const handle = document.createElement("div"); // Área para arrastar
     handle.id = "AreaArrast";
     Object.assign(handle.style, {
-      width: config.FaixaVerti ? "20px" : "",
-      height: config.FaixaVerti ? "" : "20px",
       backgroundColor: Ccor.AreaAr,
       cursor: "grab",
       borderRadius: "15px",
@@ -951,12 +948,10 @@
       //position: "absolute",
       //right: "0px",
       //top: "0px",
-      padding: "0px 4px",
-      writingMode: config.FaixaVerti
-        ? config.LadoBot
-          ? "vertical-lr"
-          : "sideways-lr"
-        : "",
+
+      display: "flex",
+      alignItems: "center",
+
       transition: "all 0.5s ease",
     });
 
@@ -1181,7 +1176,7 @@
         transition: all 0.5s ease;
         border-radius: 15px;
         visibility: visible;
-        flex-direction: ${config.FaixaVerti ? "column" : ""};
+        
         overflow: hidden;
         border: 1px solid white;
         `;
@@ -1205,9 +1200,9 @@
     minhaCaixa.style.cssText = `
         
         display: flex;
-        
-        flex-direction: ${!config.FaixaVerti ? "column" : ""};
-        
+        background-color: ${Ccor.Principal};
+        padding: 3px;
+        border-radius: 8px;
         transition: all 0.5s ease;
         align-items: center;
         `;
@@ -1224,16 +1219,11 @@
       BotPacontrole(0, "ContPaCo");
     });
     function BotPacontrole(b, z) {
-      let x = stt.AbaPausas || stt.AbaConfig || stt.AbaOutros ? 1 : b;
+      const x = stt.AbaPausas || stt.AbaConfig || stt.AbaOutros ? 1 : b;
 
-      let a = document.getElementById(z);
-
-      if (!a) BotoesLateral();
-
-      a = document.getElementById(z);
+      const a = document.getElementById(z);
 
       if (config.LadoBotAnterior !== config.LadoBot) {
-        a.remove();
         BotoesLateral();
         config.LadoBotAnterior = config.LadoBot;
       }
@@ -1266,53 +1256,90 @@
           a.style.marginTop = config.FaixaVerti ? "" : x ? "5px" : "-20px";
         }
     }
-
-    minhaCaixa.appendChild(container);
-
-    return minhaCaixa;
-  }
-
-  function BotoesLateral() {
-    if (document.getElementById("ContPaCo")) return;
-
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
       margin-left: -20px;
-      margin-top:${!config.FaixaVerti ? "-20px" : ""};
       opacity: 0;
       visibility: hidden;
       transition: 0.5s;
       display: flex;
       gap: 5px;
-      flex-direction: ${config.FaixaVerti ? "column" : ""};
-      justify-content:${config.FaixaVerti ? "center" : ""};
+      
     `;
-
-    const a = document.getElementById("minhaCaixa");
-    if (!a) return;
-    a.style.alignItems = !config.FaixaVerti ? "center" : "";
 
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
     Divbot.appendChild(ADDBotOutr());
 
+    minhaCaixa.appendChild(container);
+    minhaCaixa.appendChild(Divbot);
+
+    return minhaCaixa;
+  }
+
+  function BotoesLateral() {
+    const a = document.getElementById("minhaCaixa");
+    if (!a) return;
+    a.style.flexDirection = config.FaixaVerti ? "" : "column";
+
+    const ContPaCo = document.getElementById("ContPaCo");
+    if (ContPaCo) {
+      ContPaCo.style.marginTop = !config.FaixaVerti ? "-20px" : "";
+      ContPaCo.style.flexDirection = config.FaixaVerti ? "column" : "";
+      ContPaCo.style.justifyContent = config.FaixaVerti ? "center" : "";
+    }
+
+    a.style.alignItems = !config.FaixaVerti ? "center" : "";
+
     const b = document.getElementById("AreaArrast");
-    if (b) b.style.flexDirection = !config.FaixaVerti ? "column" : "";
+    if (b) {
+      b.style.width = config.FaixaVerti ? "20px" : "";
+      b.style.height = config.FaixaVerti ? "" : "20px";
+      b.style.padding = config.FaixaVerti ? "5px 0px" : "0px 5px";
+      b.style.writingMode = config.FaixaVerti
+        ? config.LadoBot
+          ? "sideways-lr"
+          : "vertical-lr"
+        : "";
+      b.style.margin = config.FaixaVerti
+        ? config.LadoBot
+          ? "0px 3px 0px 0px"
+          : "0px 0px 0px 3px"
+        : "0px 0px 3px 0px";
+    }
 
+    ["BConfig", "BPausa", "BOutr"].forEach((x) => {
+      const o = document.getElementById(x);
+      if (!o) return;
+      o.style.height = config.FaixaVerti ? "" : "20px";
+      o.style.width = config.FaixaVerti ? "20px" : "";
+      o.style.writingMode = config.FaixaVerti
+        ? config.LadoBot
+          ? "vertical-lr"
+          : "sideways-lr"
+        : "";
+      o.style.marginLeft = !config.LadoBot && config.FaixaVerti ? "auto" : "";
+    });
     const FlutOB = document.getElementById("FlutOB");
+    if (FlutOB) FlutOB.style.flexDirection = !config.FaixaVerti ? "column" : "";
 
-    if (FlutOB)
-      FlutOB.insertBefore(config.LadoBot ? a : b, config.LadoBot ? b : a);
+    const contValores = document.getElementById("contValores");
 
+    if (contValores)
+      contValores.style.flexDirection = config.FaixaVerti ? "column" : "";
     if (config.FaixaVerti) {
-      a.insertBefore(Divbot, a.children[config.LadoBot]);
+      if (contValores && ContPaCo)
+        a.insertBefore(
+          config.LadoBot ? contValores : ContPaCo,
+          config.LadoBot ? ContPaCo : contValores,
+        );
+
+      if (FlutOB && b)
+        FlutOB.insertBefore(config.LadoBot ? b : a, config.LadoBot ? a : b);
     } else {
-      if (a.children.length >= 2) {
-        a.insertBefore(Divbot, a.children[1]);
-      } else {
-        a.appendChild(Divbot);
-      }
+      if (contValores && ContPaCo) a.insertBefore(contValores, ContPaCo);
+      if (FlutOB && b) FlutOB.insertBefore(b, a);
     }
   }
 
@@ -1441,8 +1468,8 @@
       const exibir = el.Pausa ? `${el.Status} > ${el.Pausa}` : el.Status;
       if (AreaArrast) {
         AreaArrast.textContent = exibir;
+        paAB = 1;
       }
-      paAB = 1;
 
       if (BotInicial) {
         BotInicial.textContent = paAB ? "" : exibir;
@@ -2043,17 +2070,7 @@
         transition: all 0.5s ease;
         cursor: pointer;
         justify-content: center;
-        height: ${config.FaixaVerti ? "" : "20px"};
-        width:  ${config.FaixaVerti ? "20px" : ""};
-        writing-mode: ${
-          config.FaixaVerti
-            ? config.LadoBot
-              ? "vertical-lr"
-              : "sideways-lr"
-            : ""
-        };
         
-        margin-left: ${!config.LadoBot && config.FaixaVerti ? "auto" : ""};
         `;
 
     caixa.addEventListener("click", function () {
@@ -2432,12 +2449,13 @@
       () => {
         config.FaixaVerti = !config.FaixaVerti;
 
-        ["CaiDPa", "CaixaConfig", "ContPaCo"].forEach((s) => {
+        ["CaiDPa", "CaixaConfig", "CaiOutr"].forEach((s) => {
           const a = document.getElementById(s);
           if (a) a.remove();
         });
         stt.AbaPausas = 0;
         stt.AbaConfig = 0;
+        stt.AbaOutros = 0;
 
         BotoesLateral();
         atualizarVisual();
@@ -3179,7 +3197,7 @@
   }
 
   function atualizarVisual(qq = "---") {
-    const FlutOB = document.getElementById("FlutOB");
+    const minhaCaixa = document.getElementById("minhaCaixa");
     const AreaArrast = document.getElementById("AreaArrast");
     const CaixaConfig = document.getElementById("CaixaConfig");
     const CaiDPa = document.getElementById("CaiDPa");
@@ -3190,7 +3208,7 @@
     }
     if (qq === "cor9") Ccor.MetaTMA = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
-    if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
+    if (minhaCaixa) minhaCaixa.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
     if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
@@ -3302,7 +3320,7 @@
     margin-top: ${!config.FaixaVerti ? "5px" : ""};
     border-radius: 8px;
     padding: 5px;
-    max-height: 214px;
+    max-height: 178px;
     height: max-content;
     border: 1px solid white;
     transition: 0.5s;
@@ -3381,7 +3399,7 @@
 
     const Ignorados = config.HistComp
       ? ["", ""]
-      : ["TRABALHANDO", "DISPONIVEL", "OFFLINE", "FORCADO"];
+      : ["TRABALHANDO", "DISPONIVEL", "OFFLINE", "FORCADO", "POS"];
 
     const agora = gerarDataHora();
 
