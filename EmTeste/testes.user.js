@@ -27,6 +27,11 @@
 
 
    function encoStatus() {
+
+    const ozero = document.querySelector(".phone-active__queue");
+    
+const segunda = ozero.textContent.trim().split(/\s+/)[1];
+
       const statusName = document.querySelector(".statusName");
 
       const NomeDp = document.querySelector(".cus-badge__status");

@@ -33,9 +33,14 @@
     MetaTMA: 1,
     FaixaVerti: 0,
     TolerOff: 40,
-    posicaoFl: {
+    posicaoH: {
       top: "0px",
-      right: "105px",
+      right: "106px",
+      left: "",
+    },
+    posicaoV: {
+      top: "260px",
+      right: "0px",
       left: "",
     },
     dBUG: 1,
@@ -888,17 +893,24 @@
     div.addEventListener("mouseout", () => contr(0));
 
     function contr(a) {
-      div.style.background = a ? Ccor.AreaAr : "white";
-      div.style.color = a ? "white" : Ccor.AreaAr;
-      div.style.borderColor = a ? "" : Ccor.AreaAr;
+      div.style.backgroundColor = stt.Estouro
+        ? Ccor.Erro
+        : a
+          ? Ccor.AreaAr
+          : "white";
+      div.style.color = stt.Estouro || a ? "white" : Ccor.AreaAr;
+      div.style.borderColor = stt.Estouro || a ? "" : Ccor.AreaAr;
     }
 
     div.addEventListener("click", () => {
       const FlutOB = document.getElementById("FlutOB");
       if (FlutOB) {
-        config.posicaoFl.top = FlutOB.style.top;
-        config.posicaoFl.right = FlutOB.style.right;
-        config.posicaoFl.left = FlutOB.style.left;
+        const posicao = config.FaixaVerti ? "posicaoV" : "posicaoH";
+
+        config[posicao].top = FlutOB.style.top;
+        config[posicao].right = FlutOB.style.right;
+        config[posicao].left = FlutOB.style.left;
+
         stt.AbaPausas = 0;
         stt.AbaConfig = 0;
         FlutOB.remove();
@@ -920,20 +932,18 @@
 
     const div = document.createElement("div");
     div.id = "FlutOB";
+    const posicao = config.FaixaVerti ? "posicaoV" : "posicaoH";
     Object.assign(div.style, {
       position: "fixed",
-      top: config.posicaoFl.top,
-      right: config.posicaoFl.right,
-      left: config.posicaoFl.left,
-      borderRadius: "8px",
+      top: config[posicao].top,
+      right: config[posicao].right,
+      left: config[posicao].left,
       zIndex: "101",
       boxSizing: "border-box",
       userSelect: "none",
       display: "flex",
       flexDirection: config.FaixaVerti ? "" : "column",
       alignItems: "center",
-
-      padding: "3px",
       color: "white",
       fontSize: "12px",
     });
@@ -1465,7 +1475,14 @@
     if (el) {
       TempoPausas.ContAtual = el.Timer;
       let paAB = 0;
-      const exibir = el.Pausa ? `${el.Status} > ${el.Pausa}` : el.Status;
+
+      const ozero = document.querySelector(".phone-active__queue");
+
+      const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[1] : "";
+
+      const exibir = el.Pausa
+        ? `${el.Status} > ${el.Pausa}`
+        : `${el.Status} ${segunda}`;
       if (AreaArrast) {
         AreaArrast.textContent = exibir;
         paAB = 1;
@@ -1691,6 +1708,10 @@
         : 0;
 
       atualizarComoff(stt.Estouro, Ccor.Erro, "cTMA");
+
+      if (stt.Estouro) {
+        atualizarVisual();
+      }
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
@@ -3201,15 +3222,22 @@
     const AreaArrast = document.getElementById("AreaArrast");
     const CaixaConfig = document.getElementById("CaixaConfig");
     const CaiDPa = document.getElementById("CaiDPa");
+    const BotInicial = document.getElementById("BotInicial");
 
     if (qq === "cor7") {
       Ccor.Principal = Ccor.Varian;
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
+
+    if (BotInicial && !AreaArrast && stt.Estouro) {
+      BotInicial.style.backgroundColor = Ccor.Erro;
+      BotInicial.style.color = "white";
+    }
     if (qq === "cor9") Ccor.MetaTMA = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (minhaCaixa) minhaCaixa.style.backgroundColor = Ccor.Principal;
-    if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
+    if (AreaArrast)
+      AreaArrast.style.backgroundColor = stt.Estouro ? Ccor.Erro : Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
     if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
 
