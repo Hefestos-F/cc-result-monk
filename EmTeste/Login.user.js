@@ -162,8 +162,8 @@
   let dadosLogueManu;
 
   // Configuração do IndexedDB
-  const nomeBD = "Hefestos";
-  //const nomeBD = "HefestosTeste";
+  //const nomeBD = "Hefestos";
+  const nomeBD = "HefestosTeste";
   const StoreBD = "LogueZom";
 
   // ========= LOG UTILS =========

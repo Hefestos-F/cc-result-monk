@@ -43,7 +43,7 @@
       right: "0px",
       left: "",
     },
-    dBUG: 1,
+    dBUG: 0,
     HistComp: 0,
   };
 
