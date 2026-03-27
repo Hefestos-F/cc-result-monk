@@ -43,7 +43,7 @@
       right: "0px",
       left: "",
     },
-    dBUG: 1,
+    dBUG: 0,
     HistComp: 0,
   };
 
@@ -162,8 +162,8 @@
   let dadosLogueManu;
 
   // Configuração do IndexedDB
-  //const nomeBD = "Hefestos";
-  const nomeBD = "HefestosTeste";
+  const nomeBD = "Hefestos";
+  //const nomeBD = "HefestosTeste";
   const StoreBD = "LogueZom";
 
   // ========= LOG UTILS =========
@@ -179,7 +179,7 @@
   function Herror(...args) {
     console.error(PreFixo, ...args);
   }
-  function Hdebug(...args) {
+  function Hodeb(...args) {
     if (config.dBUG) console.debug(PreFixo, ...args);
   }
   function Hinfo(...args) {
@@ -195,35 +195,35 @@
   async function RecuperarTVariaveis() {
     try {
       dadosdePausas = await RecDadosindexdb(ChavePausas);
-      Hdebug("Encontrados em dadosdePausas:", dadosdePausas);
+      Hodeb("Encontrados em dadosdePausas:", dadosdePausas);
     } catch (e) {
       Herror("Erro ao recuperar dadosdePausas:", e);
     }
 
     try {
       dadosSalvosConfi = await RecDadosindexdb(ChaveConfig);
-      Hdebug("Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
+      Hodeb("Encontrados em dadosSalvosConfi:", dadosSalvosConfi);
     } catch (e) {
       Herror("Erro ao recuperar dadosSalvosConfi:", e);
     }
 
     try {
       dadosPrimLogue = await RecDadosindexdb(ChavePrimLogue);
-      Hdebug("Encontrados em dadosPrimLogue:", dadosPrimLogue);
+      Hodeb("Encontrados em dadosPrimLogue:", dadosPrimLogue);
     } catch (e) {
       Herror("Erro ao recuperar dadosPrimLogue:", e);
     }
 
     try {
       dadosLogueManu = await RecDadosindexdb(ChavelogueManu);
-      Hdebug("Encontrados em dadosLogueManu:", dadosLogueManu);
+      Hodeb("Encontrados em dadosLogueManu:", dadosLogueManu);
     } catch (e) {
       Herror("Erro ao recuperar dadosLogueManu:", e);
     }
 
     try {
       dadosPrimLogueOnt = await RecDadosindexdb(ChavePrimLogueOntem);
-      Hdebug("Encontrados em dadosPrimLogueOnt:", dadosPrimLogueOnt);
+      Hodeb("Encontrados em dadosPrimLogueOnt:", dadosPrimLogueOnt);
     } catch (e) {
       Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
     }
@@ -1458,7 +1458,7 @@
 
   // Atualiza o timer a cada segundo
   setInterval(() => {
-    //Hdebug("Tick do timer iniciado");
+    //Hodeb("Tick do timer iniciado");
 
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
@@ -1472,7 +1472,7 @@
     const BotInicial = document.getElementById("BotInicial");
 
     const el = encoStatus();
-    Hdebug("Estado do agente", el);
+    Hodeb("Estado do agente", el);
 
     if (el) {
       TempoPausas.ContAtual = el.Timer;
@@ -1490,11 +1490,11 @@
             : terc
           : "Nada Encontrado";
     } else {
-      Hdebug("Tempo do agente não encontrado", el);
+      Hodeb("Tempo do agente não encontrado", el);
     }
 
     stt.Encontrado = stt.Status === "---" ? 0 : 1;
-    Hdebug("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
+    Hodeb("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
       /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
@@ -1509,7 +1509,7 @@
     }
 
     const agora = gerarDataHora();
-    //Hdebug("Hora atual", agora);
+    //Hodeb("Hora atual", agora);
 
     if (config.TesteHora) {
       const tDataX = document.getElementById("tDataX");
@@ -1528,7 +1528,7 @@
         ? converterParaSegundos(TempoPausas.Trabalhando) / TempoPausas.Atendidas
         : 0;
 
-    Hdebug("Cálculo TMA", {
+    Hodeb("Cálculo TMA", {
       Trabalhando: TempoPausas.Trabalhando,
       Atendidas: TempoPausas.Atendidas,
       TMA: tma,
@@ -1589,7 +1589,7 @@
 
     const onli4 = converterParaTempo(onli2);
 
-    Hdebug(`Andamento Online ContAtual: ${TempoPausas.ContAtual}/
+    Hodeb(`Andamento Online ContAtual: ${TempoPausas.ContAtual}/
        onli4: ${onli4}/
        onli2: ${onli2}/
       `);
@@ -1616,7 +1616,7 @@
 
     const compTole = converterParaSegundos(onli3) - onli2;
     if (compTole > config.TolerOff) {
-      Hdebug(
+      Hodeb(
         "Logado pelo Logue maior que pela tolerancia",
         converterParaTempo(compTole),
       );
@@ -1671,10 +1671,10 @@
       }
     }*/
 
-    Hdebug("Online : ", TempoPausas.Online);
-    Hdebug("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
-    Hdebug("Falta : ", TempoPausas.Falta);
-    Hdebug("Logado : ", TempoPausas.Logado);
+    Hodeb("Online : ", TempoPausas.Online);
+    Hodeb("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
+    Hodeb("Falta : ", TempoPausas.Falta);
+    Hodeb("Logado : ", TempoPausas.Logado);
 
     vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
 
@@ -1718,7 +1718,7 @@
       }
     }
 
-    Hdebug("Tick finalizado com sucesso");
+    Hodeb("Tick finalizado com sucesso");
   }, 1000);
 
   function atualizarComoff(ar, cor, caixa) {
@@ -1845,7 +1845,7 @@
     }
 
     if (c === "duracao") {
-      Hdebug("Tabela salva:", ChavePausas);
+      Hodeb("Tabela salva:", ChavePausas);
     }
   }
 
@@ -1989,7 +1989,7 @@
           const request = store.put(dados, nomechave);
 
           request.onsuccess = function () {
-            Hdebug(`Dados salvos com sucesso na chave "${nomechave}"`);
+            Hodeb(`Dados salvos com sucesso na chave "${nomechave}"`);
             resolve(true);
           };
 
@@ -2092,7 +2092,6 @@
         `;
 
     caixa.addEventListener("click", function () {
-      
       const a = document.getElementById("minhaCaixa");
       if (!a) {
         Hwarn("minhaCaixa não encontrada");
