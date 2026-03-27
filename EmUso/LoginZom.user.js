@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.1
+// @version      0.0.0.2
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -1704,12 +1704,6 @@
         ? compararDatas(agora, TempoPausas.Estouro)
         : 0;
 
-      atualizarComoff(stt.Estouro, Ccor.Erro, "cTMA");
-
-      if (stt.Estouro) {
-        atualizarVisual();
-      }
-
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
         stt.Estour1 = 1;
@@ -3226,15 +3220,14 @@
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
 
-    if (BotInicial && !AreaArrast && stt.Estouro) {
+    if (BotInicial && stt.Estouro) {
       BotInicial.style.backgroundColor = Ccor.Erro;
       BotInicial.style.color = "white";
     }
     if (qq === "cor9") Ccor.MetaTMA = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (minhaCaixa) minhaCaixa.style.backgroundColor = Ccor.Principal;
-    if (AreaArrast)
-      AreaArrast.style.backgroundColor = stt.Estouro ? Ccor.Erro : Ccor.AreaAr;
+    if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
     if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
 
@@ -3456,7 +3449,7 @@
           AntFim.duracao !== "---" &&
           !config.HistComp
         ) {
-          const duracaoReal = calcularDuracao(AntFim.inicio, item.fim);
+          const duracaoReal = calcularDuracao(AntFim.inicio, item.inicio);
 
           Hlog("Bloco Trabalhado", {
             inicio: AntFim.inicio,
