@@ -34,7 +34,7 @@
     FaixaVerti: 0,
     TolerOff: 40,
     posicaoH: {
-      top: "0px",
+      top: "34px",
       right: "106px",
       left: "",
     },
@@ -163,6 +163,7 @@
 
   // Configuração do IndexedDB
   const nomeBD = "Hefestos";
+  //const nomeBD = "HefestosTeste";
   const StoreBD = "LogueZom";
 
   // ========= LOG UTILS =========
@@ -877,16 +878,18 @@
     const div = document.createElement("div");
     div.id = "BotInicial";
     div.style.cssText = `
-    width: 20px;
+    width: auto;
     height: 20px;
     position: absolute;
     top: 12px;
     right: 80px;
     border-radius: 15px;
     border: 1px solid;
+    border-color: ${Ccor.AreaAr};
     cursor: pointer;
     font-size: 14px;
     padding: 0px 4px;
+    background-color: white;
     color: ${Ccor.AreaAr};
     `;
     div.addEventListener("mouseover", () => contr(1));
@@ -905,11 +908,7 @@
     div.addEventListener("click", () => {
       const FlutOB = document.getElementById("FlutOB");
       if (FlutOB) {
-        const posicao = config.FaixaVerti ? "posicaoV" : "posicaoH";
-
-        config[posicao].top = FlutOB.style.top;
-        config[posicao].right = FlutOB.style.right;
-        config[posicao].left = FlutOB.style.left;
+        PosicaoRecFaixa();
 
         stt.AbaPausas = 0;
         stt.AbaConfig = 0;
@@ -917,6 +916,7 @@
       } else {
         criarObjetoFlutuante();
         BotoesLateral();
+        PosicaoFaixa();
       }
     });
     document.body.appendChild(div);
@@ -933,6 +933,7 @@
     const div = document.createElement("div");
     div.id = "FlutOB";
     const posicao = config.FaixaVerti ? "posicaoV" : "posicaoH";
+
     Object.assign(div.style, {
       position: "fixed",
       top: config[posicao].top,
@@ -942,7 +943,7 @@
       boxSizing: "border-box",
       userSelect: "none",
       display: "flex",
-      flexDirection: config.FaixaVerti ? "" : "column",
+      flexDirection: "column",
       alignItems: "center",
       color: "white",
       fontSize: "12px",
@@ -955,14 +956,13 @@
       cursor: "grab",
       borderRadius: "15px",
       touchAction: "none",
-      //position: "absolute",
-      //right: "0px",
-      //top: "0px",
-
       display: "flex",
       alignItems: "center",
-
       transition: "all 0.5s ease",
+      width: "64%",
+      height: "6px",
+      marginBottom: "-6px",
+      zIndex: "1",
     });
 
     // -----
@@ -1012,13 +1012,13 @@
         const left = Math.round(rect.left);
         div.style.left = `${left}px`;
         div.style.right = ""; // limpa para não conflitar
-        config.LadoBot = 1;
+        if (config.FaixaVerti) config.LadoBot = 1;
       } else {
         // right = distância da borda direita da viewport
         const right = Math.round(vw - (rect.left + rect.width));
         div.style.right = `${right}px`;
         div.style.left = ""; // limpa para não conflitar
-        config.LadoBot = 0;
+        if (config.FaixaVerti) config.LadoBot = 0;
       }
 
       // Garante top (sempre por top)
@@ -1186,7 +1186,6 @@
         transition: all 0.5s ease;
         border-radius: 15px;
         visibility: visible;
-        
         overflow: hidden;
         border: 1px solid white;
         `;
@@ -1302,26 +1301,11 @@
 
     a.style.alignItems = !config.FaixaVerti ? "center" : "";
 
-    const b = document.getElementById("AreaArrast");
-    if (b) {
-      b.style.width = config.FaixaVerti ? "20px" : "";
-      b.style.height = config.FaixaVerti ? "" : "20px";
-      b.style.padding = config.FaixaVerti ? "5px 0px" : "0px 5px";
-      b.style.writingMode = config.FaixaVerti
-        ? config.LadoBot
-          ? "sideways-lr"
-          : "vertical-lr"
-        : "";
-      b.style.margin = config.FaixaVerti
-        ? config.LadoBot
-          ? "0px 3px 0px 0px"
-          : "0px 0px 0px 3px"
-        : "0px 0px 3px 0px";
-    }
-
     ["BConfig", "BPausa", "BOutr"].forEach((x) => {
       const o = document.getElementById(x);
       if (!o) return;
+      if (!stt.Encontrado) o.textContent = o.textContent.trim()[0];
+
       o.style.height = config.FaixaVerti ? "" : "20px";
       o.style.width = config.FaixaVerti ? "20px" : "";
       o.style.writingMode = config.FaixaVerti
@@ -1332,24 +1316,35 @@
       o.style.marginLeft = !config.LadoBot && config.FaixaVerti ? "auto" : "";
     });
     const FlutOB = document.getElementById("FlutOB");
-    if (FlutOB) FlutOB.style.flexDirection = !config.FaixaVerti ? "column" : "";
 
     const contValores = document.getElementById("contValores");
 
-    if (contValores)
+    if (contValores) {
       contValores.style.flexDirection = config.FaixaVerti ? "column" : "";
+      contValores.style.width = stt.Encontrado
+        ? config.FaixaVerti
+          ? "60px"
+          : "280px"
+        : "";
+    }
     if (config.FaixaVerti) {
       if (contValores && ContPaCo)
         a.insertBefore(
           config.LadoBot ? contValores : ContPaCo,
           config.LadoBot ? ContPaCo : contValores,
         );
-
-      if (FlutOB && b)
-        FlutOB.insertBefore(config.LadoBot ? b : a, config.LadoBot ? a : b);
     } else {
       if (contValores && ContPaCo) a.insertBefore(contValores, ContPaCo);
-      if (FlutOB && b) FlutOB.insertBefore(b, a);
+    }
+  }
+
+  function PosicaoRecFaixa() {
+    const FlutOB = document.getElementById("FlutOB");
+    if (FlutOB) {
+      const posicao = config.FaixaVerti ? "posicaoV" : "posicaoH";
+      config[posicao].top = FlutOB.style.top;
+      config[posicao].right = FlutOB.style.right;
+      config[posicao].left = FlutOB.style.left;
     }
   }
 
@@ -1364,6 +1359,14 @@
 
     const c = document.getElementById("minhaCaixa");
     if (c) c.style.flexDirection = !config.FaixaVerti ? "column" : "";
+
+    const FlutOB = document.getElementById("FlutOB");
+    if (FlutOB) {
+      const posicao = config.FaixaVerti ? "posicaoV" : "posicaoH";
+      FlutOB.style.top = config[posicao].top;
+      FlutOB.style.right = config[posicao].right;
+      FlutOB.style.left = config[posicao].left;
+    }
   }
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
@@ -1466,7 +1469,6 @@
     const vFalta = document.getElementById("vFalta");
     const InfoV = document.getElementById("InfoV");
     const ContPaCo = document.getElementById("ContPaCo");
-    const AreaArrast = document.getElementById("AreaArrast");
     const BotInicial = document.getElementById("BotInicial");
 
     const el = encoStatus();
@@ -1474,27 +1476,25 @@
 
     if (el) {
       TempoPausas.ContAtual = el.Timer;
-      let paAB = 0;
 
       const ozero = document.querySelector(".phone-active__queue");
 
       const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[1] : "";
 
-      const exibir = el.Pausa
-        ? `${el.Status} > ${el.Pausa}`
-        : `${el.Status} ${segunda}`;
-      if (AreaArrast) {
-        AreaArrast.textContent = exibir;
-        paAB = 1;
-      }
+      const terc = `${el.Status} ${segunda}`;
 
-      if (BotInicial) {
-        BotInicial.textContent = paAB ? "" : exibir;
-        BotInicial.style.width = paAB ? "20px" : "auto";
-      }
+      if (BotInicial)
+        BotInicial.textContent = stt.Encontrado
+          ? el.Pausa
+            ? `${terc} > ${el.Pausa}`
+            : terc
+          : "Nada Encontrado";
     } else {
       Hdebug("Tempo do agente não encontrado", el);
     }
+
+    stt.Encontrado = stt.Status === "---" ? 0 : 1;
+    Hdebug("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
       /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
@@ -1522,9 +1522,6 @@
         vDataX.textContent = agora.hora;
       }
     }
-
-    stt.Encontrado = stt.Status === "---" ? 0 : 1;
-    Hdebug("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
 
     let tma =
       TempoPausas.Atendidas > 0
@@ -1660,7 +1657,7 @@
         calcularDuracao(AntFim.inicio, agora),
       );
 
-    if (!config.LogueManual) {
+    /*if (!config.LogueManual) {
       if (
         !DDPausa.inicioUltimaP ||
         !DDPausa.inicioUltimaP.data ||
@@ -1672,7 +1669,7 @@
         });
         return;
       }
-    }
+    }*/
 
     Hdebug("Online : ", TempoPausas.Online);
     Hdebug("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
@@ -2095,12 +2092,12 @@
         `;
 
     caixa.addEventListener("click", function () {
+      
       const a = document.getElementById("minhaCaixa");
       if (!a) {
         Hwarn("minhaCaixa não encontrada");
         return;
       }
-
       const b = document.getElementById("CaiDPa");
       if (b) {
         b.remove();
@@ -2468,6 +2465,8 @@
       "Faixa Vertical",
       config.FaixaVerti,
       () => {
+        PosicaoRecFaixa();
+
         config.FaixaVerti = !config.FaixaVerti;
 
         ["CaiDPa", "CaixaConfig", "CaiOutr"].forEach((s) => {
@@ -2477,7 +2476,6 @@
         stt.AbaPausas = 0;
         stt.AbaConfig = 0;
         stt.AbaOutros = 0;
-
         BotoesLateral();
         atualizarVisual();
         PosicaoFaixa();
