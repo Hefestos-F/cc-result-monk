@@ -633,9 +633,15 @@
       onlineTxt: converterParaTempo?.(onlineSeg) ?? "00:00:00",
     };
 
+    const obdeat = [
+      ...document.querySelectorAll(".cus-submenu__title span"),
+    ].find((s) => s.textContent.includes("CONCLUÍDO"));
+
+    const asatend = obdeat && obdeat.textContent.match(/\((\d+)\)/)?.[1];
+
     // Preenche objeto global se existir
     if (typeof TempoPausas === "object" && TempoPausas !== null) {
-      TempoPausas.Trabalhando = result.trabalhandoTxt;
+      TempoPausas.Trabalhando = asatend ? asatend : result.trabalhandoTxt;
       TempoPausas.Disponivel = result.disponivelTxt;
       TempoPausas.Indisponivel = result.indisponivelTxt;
       TempoPausas.Online = result.onlineTxt;
@@ -875,6 +881,7 @@
   }
 
   function CriarBotInicial() {
+    if (document.getElementById("FlutOB")) return;
     const div = document.createElement("div");
     div.id = "BotInicial";
     div.style.cssText = `
@@ -2176,6 +2183,7 @@
           d.remove();
           stt.AbaPausas = 0;
         }
+        somarDuracoesGeral();
         const novoElemento = ADDCaiOutr();
         if (!novoElemento) {
           Herror("criarC() não retornou um elemento válido");

@@ -23,6 +23,7 @@
     observ: 1,
     ticket: "",
     contato: "",
+    textHonr: "",
   };
 
   function setInputValue(el, value) {
@@ -258,6 +259,8 @@
         linha4in.style.height = "25px";
         linha6in.value = "";
         linha6in.style.height = "25px";
+        document.getElementById("FerHonra").textContent = "";
+        document.getElementById("ClinhaAssin").style.display = "none";
 
         const tkEl = document.getElementById("ticket");
         const ctEl = document.getElementById("contato");
@@ -307,30 +310,26 @@
         `;
 
     const linhahbgt1 = document.createElement("p");
-    linhahbgt1.textContent = "AE¥U";
+    linhahbgt1.textContent = "N° Serviço:";
 
     const Input8 = CriarInput(0, "");
     Input8.placeholder = "12";
     Input8.style.width = "20px";
 
+    const linhahbgt2 = document.createElement("p");
+    linhahbgt2.textContent = "Valor:";
+
     const Input9 = CriarInput(0, "");
     Input9.placeholder = "11000";
     Input9.style.width = "40px";
 
-    const linhahbgt2 = document.createElement("p");
-    linhahbgt2.textContent = "/BASE-";
-
     const linhahbgt3 = document.createElement("p");
-    linhahbgt3.textContent = "¥TTL-";
-
-    const linhahbgt4 = document.createElement("p");
-    linhahbgt4.textContent = "11000";
-    Input9.addEventListener("input", function () {
-      linhahbgt4.textContent = Input9.value || "0000";
-    });
-
-    const linhahbgt5 = document.createElement("p");
-    linhahbgt5.textContent = "¥DEC-2";
+    linhahbgt3.id = "FerHonra";
+    linhahbgt3.style.cssText = `
+      display: flex;
+      justify-content: center;
+      `;
+    linhahbgt3.textContent = "";
 
     function CriarBot(texto) {
       var a = document.createElement("button");
@@ -347,19 +346,17 @@
       return a;
     }
 
+    [Input8, Input9].forEach((d) => {
+      d.addEventListener("input", () => {
+        const oInput9 = Input9[Input9.value ? "value" : "placeholder"];
+        linhahbgt3.textContent = `AE¥U${Input8[Input8.value ? "value" : "placeholder"]}/BASE-${oInput9}¥TTL-${oInput9}¥DEC-2`;
+      });
+    });
+
     const botCop8 = CriarBot("Copiar");
 
     botCop8.addEventListener("click", function () {
-      const textToCopy =
-        linhahbgt1.textContent +
-        Input8.value +
-        linhahbgt2.textContent +
-        Input9.value +
-        linhahbgt3.textContent +
-        linhahbgt4.textContent +
-        linhahbgt5.textContent;
-
-      navigator.clipboard.writeText(textToCopy).then(
+      navigator.clipboard.writeText(linhahbgt3.textContent).then(
         function () {
           console.log("Texto copiado com sucesso.");
         },
@@ -373,9 +370,6 @@
     linhahbg.appendChild(Input8);
     linhahbg.appendChild(linhahbgt2);
     linhahbg.appendChild(Input9);
-    linhahbg.appendChild(linhahbgt3);
-    linhahbg.appendChild(linhahbgt4);
-    linhahbg.appendChild(linhahbgt5);
     linhahbg.appendChild(botCop8);
 
     const linhahbgbt = document.createElement("div");
@@ -387,10 +381,13 @@
     botFerr.addEventListener("click", function () {
       linhahbg.style.display =
         linhahbg.style.display === "flex" ? "none" : "flex";
+      if (linhahbg.style.display === "none")
+        document.getElementById("FerHonra").textContent = "";
     });
 
     linhahbgbt.appendChild(botFerr);
     linhahbgbt.appendChild(linhahbg);
+    linhahbgbt.appendChild(linhahbgt3);
 
     contentBox.appendChild(linhahbgbt);
 

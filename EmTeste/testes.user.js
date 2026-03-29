@@ -32,6 +32,8 @@
     
 const segunda = ozero.textContent.trim().split(/\s+/)[1];
 
+const alig = document.querySelector(".is-closed .cus-submenu__title");
+
       const statusName = document.querySelector(".statusName");
 
       const NomeDp = document.querySelector(".cus-badge__status");
