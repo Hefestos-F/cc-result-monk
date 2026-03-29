@@ -915,6 +915,7 @@
         FlutOB.remove();
       } else {
         criarObjetoFlutuante();
+        oloop();
         BotoesLateral();
         PosicaoFaixa();
       }
@@ -1456,48 +1457,48 @@
     };
   }
 
-  // Atualiza o timer a cada segundo
-  setInterval(() => {
-    //Hodeb("Tick do timer iniciado");
+  function oloop() {
+    {
+      //Hodeb("Tick do timer iniciado");
 
-    const time = document.getElementById("vTMA");
-    const titulo = document.getElementById("tTMA");
-    const vLogou = document.getElementById("vLogou");
-    const vSaida = document.getElementById("vSaida");
-    const vLogado = document.getElementById("vLogado");
-    const tFalta = document.getElementById("tFalta");
-    const vFalta = document.getElementById("vFalta");
-    const InfoV = document.getElementById("InfoV");
-    const ContPaCo = document.getElementById("ContPaCo");
-    const BotInicial = document.getElementById("BotInicial");
+      const time = document.getElementById("vTMA");
+      const titulo = document.getElementById("tTMA");
+      const vLogou = document.getElementById("vLogou");
+      const vSaida = document.getElementById("vSaida");
+      const vLogado = document.getElementById("vLogado");
+      const tFalta = document.getElementById("tFalta");
+      const vFalta = document.getElementById("vFalta");
+      const InfoV = document.getElementById("InfoV");
+      const ContPaCo = document.getElementById("ContPaCo");
+      const BotInicial = document.getElementById("BotInicial");
 
-    const el = encoStatus();
-    Hodeb("Estado do agente", el);
+      const el = encoStatus();
+      Hodeb("Estado do agente", el);
 
-    if (el) {
-      TempoPausas.ContAtual = el.Timer;
+      if (el) {
+        TempoPausas.ContAtual = el.Timer;
 
-      const ozero = document.querySelector(".phone-active__queue");
+        const ozero = document.querySelector(".phone-active__queue");
 
-      const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[1] : "";
+        const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[1] : "";
 
-      const terc = `${el.Status} ${segunda}`;
+        const terc = `${el.Status} ${segunda}`;
 
-      if (BotInicial)
-        BotInicial.textContent = stt.Encontrado
-          ? el.Pausa
-            ? `${terc} > ${el.Pausa}`
-            : terc
-          : "Nada Encontrado";
-    } else {
-      Hodeb("Tempo do agente não encontrado", el);
-    }
+        if (BotInicial)
+          BotInicial.textContent = stt.Encontrado
+            ? el.Pausa
+              ? `${terc} > ${el.Pausa}`
+              : terc
+            : "Nada Encontrado";
+      } else {
+        Hodeb("Tempo do agente não encontrado", el);
+      }
 
-    stt.Encontrado = stt.Status === "---" ? 0 : 1;
-    Hodeb("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
+      stt.Encontrado = stt.Status === "---" ? 0 : 1;
+      Hodeb("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
 
-    if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
-      /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
+      if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
+        /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
         time,
         titulo,
         vLogou,
@@ -1505,159 +1506,160 @@
         vLogado,
         vFalta,
       });*/
-      return;
-    }
-
-    const agora = gerarDataHora();
-    //Hodeb("Hora atual", agora);
-
-    if (config.TesteHora) {
-      const tDataX = document.getElementById("tDataX");
-      const vDataX = document.getElementById("vDataX");
-
-      if (!tDataX || !vDataX) {
-        Hwarn("TesteHora ativo mas elementos não encontrados");
-      } else {
-        tDataX.textContent = agora.data;
-        vDataX.textContent = agora.hora;
+        return;
       }
-    }
 
-    let tma =
-      TempoPausas.Atendidas > 0
-        ? converterParaSegundos(TempoPausas.Trabalhando) / TempoPausas.Atendidas
-        : 0;
+      const agora = gerarDataHora();
+      //Hodeb("Hora atual", agora);
 
-    Hodeb("Cálculo TMA", {
-      Trabalhando: TempoPausas.Trabalhando,
-      Atendidas: TempoPausas.Atendidas,
-      TMA: tma,
-    });
+      if (config.TesteHora) {
+        const tDataX = document.getElementById("tDataX");
+        const vDataX = document.getElementById("vDataX");
 
-    atualizarComoff(
-      tma > config.ValorMetaTMA && config.MetaTMA && stt.Encontrado,
-      Ccor.MetaTMA,
-      "cTMA",
-    );
+        if (!tDataX || !vDataX) {
+          Hwarn("TesteHora ativo mas elementos não encontrados");
+        } else {
+          tDataX.textContent = agora.data;
+          vDataX.textContent = agora.hora;
+        }
+      }
 
-    titulo.textContent = stt.Encontrado ? "TMA" : "Não";
-    time.textContent = stt.Encontrado ? Math.floor(tma) : "Encontrado";
+      let tma =
+        TempoPausas.Atendidas > 0
+          ? converterParaSegundos(TempoPausas.Trabalhando) /
+            TempoPausas.Atendidas
+          : 0;
 
-    if (!InfoV) {
-      //Hwarn("InfoV não encontrado");
-    } else if (
-      stt.Encontrado ||
-      config.LogueManual ||
-      stt.AbaPausas ||
-      stt.AbaConfig
-    ) {
-      ContPaCo.style.minHeight = "164px";
-      InfoV.style.display = "";
-    } else {
-      InfoV.style.display = "none";
-      ContPaCo.style.minHeight = "";
-    }
+      Hodeb("Cálculo TMA", {
+        Trabalhando: TempoPausas.Trabalhando,
+        Atendidas: TempoPausas.Atendidas,
+        TMA: tma,
+      });
 
-    verificarMouse(
-      [
-        "cLogou",
-        "SepCVal1",
-        "cSaida",
-        "SepCVal3",
-        "cLogado",
-        "SepCVal4",
-        "cFalta",
-      ],
-      stt.Encontrado || config.LogueManual,
-    );
+      atualizarComoff(
+        tma > config.ValorMetaTMA && config.MetaTMA && stt.Encontrado,
+        Ccor.MetaTMA,
+        "cTMA",
+      );
 
-    verificarMouse(
-      ["SepCVal2"],
-      config.LogueManual && stt.Encontrado ? 1 : stt.Encontrado ? 1 : 0,
-    );
+      titulo.textContent = stt.Encontrado ? "TMA" : "Não";
+      time.textContent = stt.Encontrado ? Math.floor(tma) : "Encontrado";
 
-    verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
-    verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
+      if (!InfoV) {
+        //Hwarn("InfoV não encontrado");
+      } else if (
+        stt.Encontrado ||
+        config.LogueManual ||
+        stt.AbaPausas ||
+        stt.AbaConfig
+      ) {
+        ContPaCo.style.minHeight = "164px";
+        InfoV.style.display = "";
+      } else {
+        InfoV.style.display = "none";
+        ContPaCo.style.minHeight = "";
+      }
 
-    //const el = obterEstadoAgenteComoObjeto();
+      verificarMouse(
+        [
+          "cLogou",
+          "SepCVal1",
+          "cSaida",
+          "SepCVal3",
+          "cLogado",
+          "SepCVal4",
+          "cFalta",
+        ],
+        stt.Encontrado || config.LogueManual,
+      );
 
-    if (TempoPausas.Online === undefined) TempoPausas.Online = "00:00:00";
+      verificarMouse(
+        ["SepCVal2"],
+        config.LogueManual && stt.Encontrado ? 1 : stt.Encontrado ? 1 : 0,
+      );
 
-    const onli2 =
-      converterParaSegundos(TempoPausas.Online) +
-      converterParaSegundos(TempoPausas.ContAtual);
+      verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
+      verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
 
-    const onli4 = converterParaTempo(onli2);
+      //const el = obterEstadoAgenteComoObjeto();
 
-    Hodeb(`Andamento Online ContAtual: ${TempoPausas.ContAtual}/
+      if (TempoPausas.Online === undefined) TempoPausas.Online = "00:00:00";
+
+      const onli2 =
+        converterParaSegundos(TempoPausas.Online) +
+        converterParaSegundos(TempoPausas.ContAtual);
+
+      const onli4 = converterParaTempo(onli2);
+
+      Hodeb(`Andamento Online ContAtual: ${TempoPausas.ContAtual}/
        onli4: ${onli4}/
        onli2: ${onli2}/
       `);
 
-    const QLogou = config.LogueManual
-      ? dadosLogueManu
-      : config.logueSalvo
-        ? dadosPrimLogue
-        : null;
+      const QLogou = config.LogueManual
+        ? dadosLogueManu
+        : config.logueSalvo
+          ? dadosPrimLogue
+          : null;
 
-    const horafun = horarios(QLogou, onli4);
+      const horafun = horarios(QLogou, onli4);
 
-    TempoPausas.Logou = horafun.Logou.hora;
-    TempoPausas.LogouA = horafun.Logou;
+      TempoPausas.Logou = horafun.Logou.hora;
+      TempoPausas.LogouA = horafun.Logou;
 
-    TempoPausas.Saida = horafun.Saida.hora;
+      TempoPausas.Saida = horafun.Saida.hora;
 
-    vLogou.textContent = TempoPausas.Logou;
+      vLogou.textContent = TempoPausas.Logou;
 
-    vSaida.textContent = TempoPausas.Saida;
+      vSaida.textContent = TempoPausas.Saida;
 
-    const onli3 = exibirAHora(agora, 0, horafun.Logou).hora;
-    //TempoPausas.Online = onli2;
+      const onli3 = exibirAHora(agora, 0, horafun.Logou).hora;
+      //TempoPausas.Online = onli2;
 
-    const compTole = converterParaSegundos(onli3) - onli2;
-    if (compTole > config.TolerOff) {
-      Hodeb(
-        "Logado pelo Logue maior que pela tolerancia",
-        converterParaTempo(compTole),
-      );
-      TempoPausas.Falta = horafun.Falta;
-    } else {
-      TempoPausas.Falta = converterParaTempo(
-        converterParaSegundos(horafun.Falta) + compTole,
-      );
-    }
-
-    TempoPausas.Logado = horafun.Logado;
-
-    const oLogou = document.getElementById("oLogou");
-    const oSaida = document.getElementById("oSaida");
-
-    oLogou.textContent = config.TesteHora ? horafun.Logou.data : "";
-    oSaida.textContent = config.TesteHora ? horafun.Saida.data : "";
-
-    if (
-      !config.LogueManual &&
-      config.logueSalvo &&
-      dadosPrimLogue &&
-      compararDatas(dadosPrimLogue, horafun.Logou)
-    ) {
-      if (stt.verificarDurac) {
-        Hlog("Atualizando dadosPrimLogue");
-        dadosPrimLogue = horafun.Logou;
-        verifiDataLogue(1, horafun.Logou);
-        stt.verificarDurac = 0;
+      const compTole = converterParaSegundos(onli3) - onli2;
+      if (compTole > config.TolerOff) {
+        Hodeb(
+          "Logado pelo Logue maior que pela tolerancia",
+          converterParaTempo(compTole),
+        );
+        TempoPausas.Falta = horafun.Falta;
+      } else {
+        TempoPausas.Falta = converterParaTempo(
+          converterParaSegundos(horafun.Falta) + compTole,
+        );
       }
-      somarDuteracoesGeral();
-      stt.verificarDurac = 1;
-    }
 
-    const duracaoContAtr = document.getElementById("duracaoContAtr");
-    if (duracaoContAtr)
-      duracaoContAtr.textContent = tempoEncurtado(
-        calcularDuracao(AntFim.inicio, agora),
-      );
+      TempoPausas.Logado = horafun.Logado;
 
-    /*if (!config.LogueManual) {
+      const oLogou = document.getElementById("oLogou");
+      const oSaida = document.getElementById("oSaida");
+
+      oLogou.textContent = config.TesteHora ? horafun.Logou.data : "";
+      oSaida.textContent = config.TesteHora ? horafun.Saida.data : "";
+
+      if (
+        !config.LogueManual &&
+        config.logueSalvo &&
+        dadosPrimLogue &&
+        compararDatas(dadosPrimLogue, horafun.Logou)
+      ) {
+        if (stt.verificarDurac) {
+          Hlog("Atualizando dadosPrimLogue");
+          dadosPrimLogue = horafun.Logou;
+          verifiDataLogue(1, horafun.Logou);
+          stt.verificarDurac = 0;
+        }
+        somarDuteracoesGeral();
+        stt.verificarDurac = 1;
+      }
+
+      const duracaoContAtr = document.getElementById("duracaoContAtr");
+      if (duracaoContAtr)
+        duracaoContAtr.textContent = tempoEncurtado(
+          calcularDuracao(AntFim.inicio, agora),
+        );
+
+      /*if (!config.LogueManual) {
       if (
         !DDPausa.inicioUltimaP ||
         !DDPausa.inicioUltimaP.data ||
@@ -1671,49 +1673,52 @@
       }
     }*/
 
-    Hodeb("Online : ", TempoPausas.Online);
-    Hodeb("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
-    Hodeb("Falta : ", TempoPausas.Falta);
-    Hodeb("Logado : ", TempoPausas.Logado);
+      Hodeb("Online : ", TempoPausas.Online);
+      Hodeb("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
+      Hodeb("Falta : ", TempoPausas.Falta);
+      Hodeb("Logado : ", TempoPausas.Logado);
 
-    vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
+      vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
 
-    if (compararDatas(agora, exibirHora(horafun.Saida, 1, "00:10:00"))) {
-      stt.temHorasExtras = 1;
-      stt.tempoCumprido = 0;
-    } else if (compararDatas(agora, horafun.Saida)) {
-      stt.tempoCumprido = 1;
-      stt.temHorasExtras = 0;
-    } else {
-      stt.tempoCumprido = 0;
-      stt.temHorasExtras = 0;
-    }
-
-    tFalta.textContent = stt.temHorasExtras
-      ? "HE"
-      : stt.tempoCumprido
-        ? "Tempo"
-        : "Falta:";
-
-    vFalta.textContent = stt.tempoCumprido
-      ? "Cumprido"
-      : tempoEncurtado(TempoPausas.Falta);
-
-    if (config.pausalimitada && config.notiEstouro) {
-      stt.Estouro = TempoPausas.Estouro
-        ? compararDatas(agora, TempoPausas.Estouro)
-        : 0;
-
-      if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
-        Hwarn("Estouro de pausa detectado");
-        stt.Estour1 = 1;
-        tocarBeep();
-        setTimeout(RepetirBeep, 15000);
+      if (compararDatas(agora, exibirHora(horafun.Saida, 1, "00:10:00"))) {
+        stt.temHorasExtras = 1;
+        stt.tempoCumprido = 0;
+      } else if (compararDatas(agora, horafun.Saida)) {
+        stt.tempoCumprido = 1;
+        stt.temHorasExtras = 0;
+      } else {
+        stt.tempoCumprido = 0;
+        stt.temHorasExtras = 0;
       }
-    }
 
-    Hodeb("Tick finalizado com sucesso");
-  }, 1000);
+      tFalta.textContent = stt.temHorasExtras
+        ? "HE"
+        : stt.tempoCumprido
+          ? "Tempo"
+          : "Falta:";
+
+      vFalta.textContent = stt.tempoCumprido
+        ? "Cumprido"
+        : tempoEncurtado(TempoPausas.Falta);
+
+      if (config.pausalimitada && config.notiEstouro) {
+        stt.Estouro = TempoPausas.Estouro
+          ? compararDatas(agora, TempoPausas.Estouro)
+          : 0;
+
+        if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
+          Hwarn("Estouro de pausa detectado");
+          stt.Estour1 = 1;
+          tocarBeep();
+          setTimeout(RepetirBeep, 15000);
+        }
+      }
+
+      Hodeb("Tick finalizado com sucesso");
+    }
+  }
+  // Atualiza o timer a cada segundo
+  setInterval(oloop, 1000);
 
   function atualizarComoff(ar, cor, caixa) {
     var x = document.getElementById(caixa);
