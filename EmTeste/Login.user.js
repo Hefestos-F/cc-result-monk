@@ -1502,16 +1502,15 @@
 
       const terc = `${el.Status} ${segunda}`;
 
-      const ofor = NorTX(stt.Status) === "FORCADO" ? 1 : 0;
+      const ofor = NorTX(stt.Status) === "FORCADO" || stt.Estouro ? 1 : 0;
       if (BotInicial)
-        if (
-          BotInicial.style.backgroundColor === Ccor.Erro &&
-          (!stt.Estouro || !ofor)
-        ) {
+        if (ofor) {
+          BotInicial.style.backgroundColor = Ccor.Erro;
+          BotInicial.style.color = "white";
+        } else if (BotInicial.style.backgroundColor === Ccor.Erro && !ofor) {
           atualizarVisual();
         }
 
-      if (ofor) atualizarVisual();
       BotInicial.textContent = stt.Encontrado
         ? el.Pausa
           ? `${terc} > ${el.Pausa}`
@@ -2902,7 +2901,7 @@
         LinhaSelCor(7, "Principal", Ccor.Principal),
         //LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
         LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
-        //LinhaSelCor(10, "Erro", Ccor.Erro),
+        LinhaSelCor(10, "Aviso", Ccor.Erro),
         //LinhaSelCor(11, "Offline", Ccor.Offline),
         LinhaSelCor(12, "Config", Ccor.Config),
       );
