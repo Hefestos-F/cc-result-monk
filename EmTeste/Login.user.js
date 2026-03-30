@@ -1507,8 +1507,11 @@
         if (ofor) {
           BotInicial.style.backgroundColor = Ccor.Erro;
           BotInicial.style.color = "white";
+          BotInicial.style.borderColor = "";
         } else if (BotInicial.style.backgroundColor === Ccor.Erro && !ofor) {
-          atualizarVisual();
+          BotInicial.style.backgroundColor = "white";
+          BotInicial.style.color = Ccor.AreaAr;
+          BotInicial.style.borderColor = Ccor.AreaAr;
         }
 
       BotInicial.textContent = stt.Encontrado
@@ -3230,18 +3233,12 @@
     const AreaArrast = document.getElementById("AreaArrast");
     const CaixaConfig = document.getElementById("CaixaConfig");
     const CaiDPa = document.getElementById("CaiDPa");
-    const BotInicial = document.getElementById("BotInicial");
 
     if (qq === "cor7") {
       Ccor.Principal = Ccor.Varian;
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
 
-    if (BotInicial) {
-      const ofor = NorTX(stt.Status) === "FORCADO" || stt.Estouro ? 1 : 0;
-      BotInicial.style.backgroundColor = ofor ? Ccor.Erro : "white";
-      BotInicial.style.color = ofor ? "white" : Ccor.AreaAr;
-    }
     if (qq === "cor9") Ccor.MetaTMA = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (minhaCaixa) minhaCaixa.style.backgroundColor = Ccor.Principal;

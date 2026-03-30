@@ -25,6 +25,12 @@
       .trim();
   }
 
+  const acor1 = #992e2e  ;
+
+ const acor2 = rgb(153, 46, 46);
+
+ if (acor1 === acor2)
+
   function encoStatus() {
     const ozero = document.querySelector(".phone-active__queue");
 
