@@ -1502,12 +1502,21 @@
 
       const terc = `${el.Status} ${segunda}`;
 
+      const ofor = NorTX(stt.Status) === "FORCADO" ? 1 : 0;
       if (BotInicial)
-        BotInicial.textContent = stt.Encontrado
-          ? el.Pausa
-            ? `${terc} > ${el.Pausa}`
-            : terc
-          : "Nada Encontrado";
+        if (
+          BotInicial.style.backgroundColor === Ccor.Erro &&
+          (!stt.Estouro || !ofor)
+        ) {
+          atualizarVisual();
+        }
+
+      if (ofor) atualizarVisual();
+      BotInicial.textContent = stt.Encontrado
+        ? el.Pausa
+          ? `${terc} > ${el.Pausa}`
+          : terc
+        : "Nada Encontrado";
     } else {
       Hodeb("Tempo do agente não encontrado", el);
     }
@@ -3229,9 +3238,10 @@
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
 
-    if (BotInicial && stt.Estouro) {
-      BotInicial.style.backgroundColor = Ccor.Erro;
-      BotInicial.style.color = "white";
+    if (BotInicial) {
+      const ofor = NorTX(stt.Status) === "FORCADO" || stt.Estouro ? 1 : 0;
+      BotInicial.style.backgroundColor = ofor ? Ccor.Erro : "white";
+      BotInicial.style.color = ofor ? "white" : Ccor.AreaAr;
     }
     if (qq === "cor9") Ccor.MetaTMA = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
