@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.2
+// @version      0.0.0.3
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -31,7 +31,7 @@
     LadoBot: 0,
     LadoBotAnterior: 0,
     MetaTMA: 1,
-    FaixaVerti: 0,
+    FaixaVerti: 1,
     TolerOff: 40,
     posicaoH: {
       top: "34px",
@@ -589,7 +589,7 @@
     let totalTrabalhandoSeg = 0;
     let totalDisponivelSeg = 0;
     let totalIndisponivelSeg = 0;
-    TempoPausas.Atendidas = 0;
+    let asatendidas = 0;
 
     for (const item of arr) {
       // Ignora itens inválidos
@@ -602,7 +602,7 @@
       // Classificação
       if (NorTX(item?.pausa) === "TRABALHANDO") {
         totalTrabalhandoSeg += seg;
-        TempoPausas.Atendidas += 1;
+        asatendidas += 1;
       } else if (NorTX(item?.pausa) === "DISPONIVEL") {
         // Side-effect (intencional)
         try {
@@ -633,6 +633,20 @@
       onlineTxt: converterParaTempo?.(onlineSeg) ?? "00:00:00",
     };
 
+    const obdeat = [
+      ...document.querySelectorAll(".cus-submenu__title span"),
+    ].find((s) => s.textContent.includes("CONCLUÍDO"));
+
+    const asatend = obdeat && obdeat.textContent.match(/\((\d+)\)/)?.[1];
+
+    let atendNum = Number(asatend);
+
+    const omais = document.querySelector(".recent-closed__more");
+
+    if (omais) atendNum += Number(omais.textContent.replace(/^\+/, ""));
+
+    TempoPausas.Atendidas = Number.isFinite(atendNum) ? atendNum : asatendidas;
+
     // Preenche objeto global se existir
     if (typeof TempoPausas === "object" && TempoPausas !== null) {
       TempoPausas.Trabalhando = result.trabalhandoTxt;
@@ -656,8 +670,12 @@
     const inicioObj = await getValorDadosPausa(item?.id, "inicio"); // { data, hora } ou undefined
     const duracaoObj = await getValorDadosPausa(item?.id, "duracao"); // "HH:MM:SS" ou "---"
     const fimObj = await getValorDadosPausa(item?.id, "fim"); // { data, hora } ou undefined
-    if (!duracaoObj) return;
+
+    if (duracaoObj === "---" || fimObj === "---") return;
     // Efeito colateral explícito (mantido, mas isolado do somatório)
+    /*Hlog(
+      `OS Disponiveis :${JSON.stringify(inicioObj)} , ${duracaoObj} , ${JSON.stringify(fimObj)}`,
+    );*/
     await AddouAtualizarPausas(
       0,
       "Disponivel",
@@ -875,6 +893,7 @@
   }
 
   function CriarBotInicial() {
+    if (document.getElementById("FlutOB")) return;
     const div = document.createElement("div");
     div.id = "BotInicial";
     div.style.cssText = `
@@ -915,6 +934,7 @@
         FlutOB.remove();
       } else {
         criarObjetoFlutuante();
+        oloop();
         BotoesLateral();
         PosicaoFaixa();
       }
@@ -1456,8 +1476,7 @@
     };
   }
 
-  // Atualiza o timer a cada segundo
-  setInterval(() => {
+  function oloop() {
     //Hodeb("Tick do timer iniciado");
 
     const time = document.getElementById("vTMA");
@@ -1657,20 +1676,6 @@
         calcularDuracao(AntFim.inicio, agora),
       );
 
-    /*if (!config.LogueManual) {
-      if (
-        !DDPausa.inicioUltimaP ||
-        !DDPausa.inicioUltimaP.data ||
-        !stt.Encontrado
-      ) {
-        Hwarn("Retorno antecipado por pausa ou status inválido", {
-          DDPausa,
-          stt,
-        });
-        return;
-      }
-    }*/
-
     Hodeb("Online : ", TempoPausas.Online);
     Hodeb("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
     Hodeb("Falta : ", TempoPausas.Falta);
@@ -1713,7 +1718,10 @@
     }
 
     Hodeb("Tick finalizado com sucesso");
-  }, 1000);
+  }
+
+  // Atualiza o timer a cada segundo
+  setInterval(oloop, 1000);
 
   function atualizarComoff(ar, cor, caixa) {
     var x = document.getElementById(caixa);
@@ -2171,6 +2179,7 @@
           d.remove();
           stt.AbaPausas = 0;
         }
+        somarDuracoesGeral();
         const novoElemento = ADDCaiOutr();
         if (!novoElemento) {
           Herror("criarC() não retornou um elemento válido");

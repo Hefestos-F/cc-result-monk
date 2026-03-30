@@ -25,58 +25,57 @@
       .trim();
   }
 
-
-   function encoStatus() {
-
+  function encoStatus() {
     const ozero = document.querySelector(".phone-active__queue");
-    
-const segunda = ozero.textContent.trim().split(/\s+/)[1];
 
-const alig = document.querySelector(".is-closed .cus-submenu__title");
+    const segunda = ozero.textContent.trim().split(/\s+/)[1];
 
-      const statusName = document.querySelector(".statusName");
+    const alig = document.querySelector(".is-closed .cus-submenu__title");
 
-      const NomeDp = document.querySelector(".cus-badge__status");
+    const omais = document.querySelector(".recent-closed__more");
 
-      const timer = document.querySelector(".side-row-timer__text");
+    const onum = Number(omais.textContent.replace(/^\+/, ""));
 
-      if (!statusName) return false;
+    const statusName = document.querySelector(".statusName");
 
-      let statusNameTex = statusName.textContent;
-      let timerTex = "---";
-      let NomeDpval = false;
+    const NomeDp = document.querySelector(".cus-badge__status");
 
-      const SNT = NorTX(statusNameTex);
+    const timer = document.querySelector(".side-row-timer__text");
 
-      if (SNT === "PRONTO") {
-        statusNameTex = "Disponivel";
-      } else if (SNT === "OCUPADO") {
-        statusNameTex = "Trabalhando";
-        if (NomeDp) {
-          NomeDpval = NomeDp.textContent;
-        }
-      } else {
-        if (NomeDp) {
-          statusNameTex = NomeDp.textContent;
-        }
+    if (!statusName) return false;
+
+    let statusNameTex = statusName.textContent;
+    let timerTex = "---";
+    let NomeDpval = false;
+
+    const SNT = NorTX(statusNameTex);
+
+    if (SNT === "PRONTO") {
+      statusNameTex = "Disponivel";
+    } else if (SNT === "OCUPADO") {
+      statusNameTex = "Trabalhando";
+      if (NomeDp) {
+        NomeDpval = NomeDp.textContent;
       }
-
-      if (timer) {
-        timerTex = timer.textContent;
+    } else {
+      if (NomeDp) {
+        statusNameTex = NomeDp.textContent;
       }
-
-      return {
-        Status: statusNameTex,
-        Pausa: NomeDpval,
-        Timer: timerTex,
-      };
     }
-    encoStatus();
 
-  
+    if (timer) {
+      timerTex = timer.textContent;
+    }
+
+    return {
+      Status: statusNameTex,
+      Pausa: NomeDpval,
+      Timer: timerTex,
+    };
+  }
+  encoStatus();
+
   let intervaloId = setInterval(() => {
-   
-
     dados.textContent = `
   Status: ${statusNameTex} / Timer: ${timerTex}
   `;
