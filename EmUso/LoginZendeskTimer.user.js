@@ -3061,6 +3061,7 @@
       "}";
 
     Hlog(`ticketsSet = ${pretty}`);
+    //Preenc();
   }
 
   // ========= OBSERVAÇÃO DE TICKET =========

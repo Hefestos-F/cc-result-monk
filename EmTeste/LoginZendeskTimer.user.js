@@ -1657,6 +1657,19 @@
     Divbot.appendChild(InfoV);
     minhaCaixa.appendChild(Divbot);
 
+    const DadosOc = document.createElement("div");
+    DadosOc.style.cssText = `
+    display: none;
+    `;
+    const Dad1 = document.createElement("div");
+    Dad1.id = "NomeOcAtivo";
+    const Dad2 = document.createElement("div");
+    Dad2.id = "IdOcAtivo";
+
+    DadosOc.appendChild(Dad1);
+    DadosOc.appendChild(Dad2);
+    minhaCaixa.appendChild(DadosOc);
+
     return minhaCaixa;
   }
 
@@ -3059,7 +3072,90 @@
       "}";
 
     Hlog(`ticketsSet = ${pretty}`);
+    Preenc();
   }
+
+  //atualizar nome ===>>
+  function obterEntityIdSelecionado() {
+    const item = document.querySelector('[data-selected="true"]');
+    if (!item) return null; // ou "", ou false — como preferir
+
+    return item.getAttribute("data-entity-id");
+  }
+
+  const normalizeNome = (s) => (s || "").replace(/\s+/g, " ").trim();
+  // Utilitário: formata "fulano" -> "Fulano"
+  const formatPrimeiroNomeDIF = (txt) => {
+    const t = (txt || "").trim();
+    if (!t) return "";
+    // Extrai a primeira "palavra" (até espaço)
+    const first = t.split(/\s+/)[0];
+    const lower = first.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  };
+
+  function getNomeAntesDoTicket(numeroTicket) {
+    if (!numeroTicket) return "-X";
+
+    const ticketSpan = [
+      ...document.querySelectorAll(
+        '[data-test-id="tabs-section-nav-item-ticket"]',
+      ),
+    ].find((el) => el.textContent.includes(`Ticket #${numeroTicket}`));
+
+    if (!ticketSpan) return "X-X";
+
+    const anterior = ticketSpan.previousElementSibling;
+    if (!anterior) return "XX-";
+
+    const NomeENcon = anterior.textContent;
+
+    const nomeCompleto = normalizeNome(NomeENcon);
+
+    return {
+      PrimeNome: formatPrimeiroNomeDIF(nomeCompleto),
+      nomeCompleto: nomeCompleto,
+    };
+  }
+
+  function nomeETicket() {
+    const numero = obterEntityIdSelecionado();
+    const ticket = numero || "000000";
+
+    let contato = "X-";
+    try {
+      const res = getNomeAntesDoTicket(ticket);
+      contato = res && res.PrimeNome ? res.PrimeNome : "XX-XX";
+    } catch (e) {
+      Hwarn("Falha ao obter contato via encontrarNome():", e);
+    }
+
+    return {
+      contato,
+      ticket,
+    };
+  }
+
+  function Preenc() {
+    const oSNom = nomeETicket();
+
+    const NomeOcAtivo = document.getElementById("NomeOcAtivo");
+    const IdOcAtivo = document.getElementById("IdOcAtivo");
+
+    if (NomeOcAtivo) NomeOcAtivo.textContent = oSNom.contato;
+    if (IdOcAtivo) IdOcAtivo.textContent = oSNom.ticket;
+
+    const nome = NomeOcAtivo ? "NomeOcAtivo true" : "NomeOcAtivo False";
+
+    const tick = IdOcAtivo ? "IdOcAtivo true" : "IdOcAtivo False";
+
+    return {
+      nome: nome,
+      tick: tick,
+    };
+  }
+
+  //>> ==== atualizar nome Fim
 
   // ========= OBSERVAÇÃO DE TICKET =========
   async function observarTicket(id) {

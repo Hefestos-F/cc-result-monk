@@ -14,78 +14,101 @@
 // ==/UserScript==
 
 (function () {
-  function NorTX(valor) {
-    if (!valor) return "";
+  const PreFixo = "O Teste:";
 
-    return valor
-      .toString()
-      .normalize("NFD") // separa acentos
-      .replace(/[\u0300-\u036f]/g, "") // remove acentos
-      .toUpperCase()
-      .trim();
+  function Hlog(...args) {
+    console.log(PreFixo, ...args);
+  }
+  function Hwarn(...args) {
+    console.warn(PreFixo, ...args);
+  }
+  function Herror(...args) {
+    console.error(PreFixo, ...args);
+  }
+  function Hodeb(...args) {
+    console.debug(PreFixo, ...args);
+  }
+  function Hinfo(...args) {
+    console.info(PreFixo, ...args);
   }
 
-  const acor1 = #992e2e  ;
+  function obterEntityIdSelecionado() {
+    const item = document.querySelector('[data-selected="true"]');
+    if (!item) return null; // ou "", ou false — como preferir
 
- const acor2 = rgb(153, 46, 46);
+    return item.getAttribute("data-entity-id");
+  }
+  const normalize = (s) => (s || "").replace(/\s+/g, " ").trim();
+  // Utilitário: formata "fulano" -> "Fulano"
+  const formatPrimeiroNome = (txt) => {
+    const t = (txt || "").trim();
+    if (!t) return "";
+    // Extrai a primeira "palavra" (até espaço)
+    const first = t.split(/\s+/)[0];
+    const lower = first.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  };
 
- if (acor1 === acor2)
+  function getNomeAntesDoTicket(numeroTicket) {
+    if (!numeroTicket) return "-X";
 
-  function encoStatus() {
-    const ozero = document.querySelector(".phone-active__queue");
+    const ticketSpan = [
+      ...document.querySelectorAll(
+        '[data-test-id="tabs-section-nav-item-ticket"]',
+      ),
+    ].find((el) => el.textContent.includes(`Ticket #${numeroTicket}`));
 
-    const segunda = ozero.textContent.trim().split(/\s+/)[1];
+    if (!ticketSpan) return "X-X";
 
-    const alig = document.querySelector(".is-closed .cus-submenu__title");
+    const anterior = ticketSpan.previousElementSibling;
+    if (!anterior) return "XX-";
 
-    const omais = document.querySelector(".recent-closed__more");
+    const NomeENcon = anterior.textContent;
 
-    const onum = Number(omais.textContent.replace(/^\+/, ""));
+    const nomeCompleto = normalize(NomeENcon);
 
-    const statusName = document.querySelector(".statusName");
+    return {
+      PrimeNome: formatPrimeiroNome(nomeCompleto),
+      nomeCompleto: nomeCompleto,
+    };
+  }
 
-    const NomeDp = document.querySelector(".cus-badge__status");
+  function nomeETicket() {
+    const numero = obterEntityIdSelecionado();
+    const ticket = numero || "000000";
 
-    const timer = document.querySelector(".side-row-timer__text");
-
-    if (!statusName) return false;
-
-    let statusNameTex = statusName.textContent;
-    let timerTex = "---";
-    let NomeDpval = false;
-
-    const SNT = NorTX(statusNameTex);
-
-    if (SNT === "PRONTO") {
-      statusNameTex = "Disponivel";
-    } else if (SNT === "OCUPADO") {
-      statusNameTex = "Trabalhando";
-      if (NomeDp) {
-        NomeDpval = NomeDp.textContent;
-      }
-    } else {
-      if (NomeDp) {
-        statusNameTex = NomeDp.textContent;
-      }
-    }
-
-    if (timer) {
-      timerTex = timer.textContent;
+    let contato = "X-";
+    try {
+      const res = getNomeAntesDoTicket(ticket);
+      contato = res && res.PrimeNome ? res.PrimeNome : "XX-XX";
+    } catch (e) {
+      Hwarn("Falha ao obter contato via encontrarNome():", e);
     }
 
     return {
-      Status: statusNameTex,
-      Pausa: NomeDpval,
-      Timer: timerTex,
+      contato,
+      ticket,
     };
   }
-  encoStatus();
 
-  let intervaloId = setInterval(() => {
-    dados.textContent = `
-  Status: ${statusNameTex} / Timer: ${timerTex}
-  `;
-  }, 1000);
-  CriarBotInicial();
-  //clearInterval(intervaloId);
+  function Preenc() {
+    const oSNom = nomeETicket();
+
+    const NomeOcAtivo = document.getElementById("NomeOcAtivo");
+    const IdOcAtivo = document.getElementById("IdOcAtivo");
+
+    if (NomeOcAtivo) NomeOcAtivo.textContent = oSNom.contato;
+    if (IdOcAtivo) IdOcAtivo.textContent = oSNom.ticket;
+    
+    const nome = NomeOcAtivo ? "NomeOcAtivo true" : "NomeOcAtivo False";
+
+    const tick = IdOcAtivo ? "IdOcAtivo true" : "IdOcAtivo False";
+
+    return {
+      nome: nome,
+      tick: tick,
+    };
+  }
+
+  console.log("O Encontrar", JSON.stringify(nomeETicket()));
 })();
