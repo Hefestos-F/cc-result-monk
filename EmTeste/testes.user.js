@@ -38,7 +38,9 @@
 
     return item.getAttribute("data-entity-id");
   }
+
   const normalize = (s) => (s || "").replace(/\s+/g, " ").trim();
+
   // Utilitário: formata "fulano" -> "Fulano"
   const formatPrimeiroNome = (txt) => {
     const t = (txt || "").trim();
@@ -78,15 +80,18 @@
     const ticket = numero || "000000";
 
     let contato = "X-";
+    let nomeCompleto = "zz";
     try {
       const res = getNomeAntesDoTicket(ticket);
       contato = res && res.PrimeNome ? res.PrimeNome : "XX-XX";
+      nomeCompleto = res.nomeCompleto;
     } catch (e) {
       Hwarn("Falha ao obter contato via encontrarNome():", e);
     }
 
     return {
       contato,
+      nomeCompleto,
       ticket,
     };
   }

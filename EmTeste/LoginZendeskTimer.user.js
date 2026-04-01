@@ -2496,9 +2496,9 @@
         transition: 0.5s;
         overflow: auto;
         display: grid;
-        grid-template-rows: repeat(4, auto); /* 4 linhas */
-        grid-auto-flow: column; /* Preenche colunas automaticamente */
-        gap: 2px 6px; /* Espaçamento entre itens */
+        grid-template-columns: repeat(4, auto);
+        grid-auto-flow: row;
+        gap: 2px 6px;
        `;
 
     /**
@@ -2507,22 +2507,27 @@
      * @returns {HTMLElement} div formatada com título
      */
     function AddTituloCp(titulo) {
-      const caixa = document.createElement("div");
-      caixa.innerHTML = `${titulo}`;
-      caixa.style.cssText = `
-        font-size: 14px;
-            border-bottom-style: dashed;
-            border-width: 1px;
-            display: flex;
-        align-items: center;
-        justify-content: center;
-        `;
-      if (titulo === "Excl") {
-        caixa.style.height = "14px";
-      }
-
-      return caixa;
+      const title = document.createElement("div");
+      title.textContent = titulo;
+      title.style.cssText = `
+      font-size: 14px;
+      border-bottom: 1px dashed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      ${titulo === "Excl" ? "height:14px;" : ""}
+    `;
+      return title;
     }
+    function criarItemTabela(id, campo, texto = "---") {
+      const cell = document.createElement("div");
+      cell.id = `${campo}${id}`;
+      cell.textContent = String(texto);
+      cell.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
 
     caixa.append(
       AddTituloCp("Pausa"),
