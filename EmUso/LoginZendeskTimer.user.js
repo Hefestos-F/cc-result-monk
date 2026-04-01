@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.7.11
+// @version      1.3.7.12
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -853,6 +853,8 @@
     const InfoV = document.getElementById("InfoV");
     const ContPaCo = document.getElementById("ContPaCo");
 
+    Preenc();
+
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
 
     const agora = gerarDataHora();
@@ -1657,6 +1659,19 @@
     Divbot.appendChild(InfoV);
     minhaCaixa.appendChild(Divbot);
 
+    const DadosOc = document.createElement("div");
+    DadosOc.style.cssText = `
+    display: none;
+    `;
+    const Dad1 = document.createElement("div");
+    Dad1.id = "NomeOcAtivo";
+    const Dad2 = document.createElement("div");
+    Dad2.id = "IdOcAtivo";
+
+    DadosOc.appendChild(Dad1);
+    DadosOc.appendChild(Dad2);
+    minhaCaixa.appendChild(DadosOc);
+
     return minhaCaixa;
   }
 
@@ -1744,7 +1759,6 @@
         width: max-content;
         border: 1px solid white;
         margin-left: 5px;
-        max-height: 200px;
     `;
 
     function criarCaixaSeg() {
@@ -2371,7 +2385,6 @@
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
-    //Hlog(`O valor de qq2:${qq}`);
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
@@ -2477,15 +2490,15 @@
         margin-left: 5px;
         border-radius: 8px;
         padding: 5px;
+        max-width: 400px;
         height: max-content;
         border: 1px solid white;
         transition: 0.5s;
         overflow: auto;
         display: grid;
-        grid-template-columns: repeat(4, auto); /* 4 linhas */
-        grid-auto-flow: row; /* Preenche colunas automaticamente */
+        grid-template-rows: repeat(4, auto); /* 4 linhas */
+        grid-auto-flow: column; /* Preenche colunas automaticamente */
         gap: 2px 6px; /* Espaçamento entre itens */
-        max-height: 185px;
        `;
 
     /**
@@ -3061,8 +3074,89 @@
       "}";
 
     Hlog(`ticketsSet = ${pretty}`);
-    //Preenc();
   }
+
+  //atualizar nome ===>>
+  function obterEntityIdSelecionado() {
+    const item = document.querySelector('[data-selected="true"]');
+    if (!item) return null; // ou "", ou false — como preferir
+
+    return item.getAttribute("data-entity-id");
+  }
+
+  const normalizeNome = (s) => (s || "").replace(/\s+/g, " ").trim();
+  // Utilitário: formata "fulano" -> "Fulano"
+  const formatPrimeiroNomeDIF = (txt) => {
+    const t = (txt || "").trim();
+    if (!t) return "";
+    // Extrai a primeira "palavra" (até espaço)
+    const first = t.split(/\s+/)[0];
+    const lower = first.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  };
+
+  function getNomeAntesDoTicket(numeroTicket) {
+    if (!numeroTicket) return "-X";
+
+    const ticketSpan = [
+      ...document.querySelectorAll(
+        '[data-test-id="tabs-section-nav-item-ticket"]',
+      ),
+    ].find((el) => el.textContent.includes(`Ticket #${numeroTicket}`));
+
+    if (!ticketSpan) return "X-X";
+
+    const anterior = ticketSpan.previousElementSibling;
+    if (!anterior) return "XX-";
+
+    const NomeENcon = anterior.textContent;
+
+    const nomeCompleto = normalizeNome(NomeENcon);
+
+    return {
+      PrimeNome: formatPrimeiroNomeDIF(nomeCompleto),
+      nomeCompleto: nomeCompleto,
+    };
+  }
+
+  function nomeETicket() {
+    const numero = obterEntityIdSelecionado();
+    const ticket = numero || "000000";
+
+    let contato = "X-";
+    try {
+      const res = getNomeAntesDoTicket(ticket);
+      contato = res && res.PrimeNome ? res.PrimeNome : "XX-XX";
+    } catch (e) {
+      Hwarn("Falha ao obter contato via encontrarNome():", e);
+    }
+
+    return {
+      contato,
+      ticket,
+    };
+  }
+
+  function Preenc() {
+    const oSNom = nomeETicket();
+
+    const NomeOcAtivo = document.getElementById("NomeOcAtivo");
+    const IdOcAtivo = document.getElementById("IdOcAtivo");
+
+    if (NomeOcAtivo) NomeOcAtivo.textContent = oSNom.contato;
+    if (IdOcAtivo) IdOcAtivo.textContent = oSNom.ticket;
+
+    const nome = NomeOcAtivo ? "NomeOcAtivo true" : "NomeOcAtivo False";
+
+    const tick = IdOcAtivo ? "IdOcAtivo true" : "IdOcAtivo False";
+
+    return {
+      nome: nome,
+      tick: tick,
+    };
+  }
+
+  //>> ==== atualizar nome Fim
 
   // ========= OBSERVAÇÃO DE TICKET =========
   async function observarTicket(id) {

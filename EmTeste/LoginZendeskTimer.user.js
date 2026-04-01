@@ -853,6 +853,8 @@
     const InfoV = document.getElementById("InfoV");
     const ContPaCo = document.getElementById("ContPaCo");
 
+    Preenc();
+
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
 
     const agora = gerarDataHora();
@@ -3072,7 +3074,6 @@
       "}";
 
     Hlog(`ticketsSet = ${pretty}`);
-    Preenc();
   }
 
   //atualizar nome ===>>
