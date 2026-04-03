@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat\EmTeste
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.7.10
+// @version      0.0.0.0
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -1088,14 +1088,6 @@
     return formatHHMMSS(diffSec);
   }
 
-  function normalizarCampo(campo) {
-    return String(campo || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // remove acentos
-      .trim()
-      .toLowerCase();
-  }
-
   function normalizarArrayPausas(valor) {
     if (Array.isArray(valor)) return valor;
     if (valor === false || valor == null) return [];
@@ -1260,19 +1252,17 @@
   function ADDBotPa() {
     const caixa = document.createElement("div");
     caixa.id = "BPausa";
-    caixa.textContent = "P";
+    caixa.textContent = "Pausa";
     caixa.style.cssText = `
-        border: 1px solid white;
-        height: 20px;
-        width: 20px;
-        border-radius: 15px;
-        padding: 5px;
-        display: flex;
-        align-items: center;
-        transition: all 0.5s ease;
-        cursor: pointer;
-        justify-content: center;
-        `;
+      border: 1px solid white;
+      width: 23px;
+      border-radius: 15px;
+      display: flex;
+      transition: 0.5s;
+      cursor: pointer;
+      padding: 5px 0px;
+      align-items: center;
+    `;
 
     caixa.addEventListener("click", function () {
       const a = document.getElementById("minhaCaixa");
@@ -1305,52 +1295,22 @@
       }
     });
 
-    // Adiciona o evento de mouseover ao botão
-    caixa.addEventListener("mouseover", function () {
-      Controle(1);
-    });
-
-    // Adiciona o evento de mouseout ao botão
-    caixa.addEventListener("mouseout", function () {
-      Controle(0);
-    });
-
-    /**
-     * Controle - alterna entre modo compacto/expandido do botão
-     * @param {number} mostrarTextoCompleto - 1 para expandido, 0 para compacto
-     */
-    function Controle(mostrarTextoCompleto) {
-      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
-      caixa.textContent = mostrarTextoCompleto
-        ? stt.AbaPausas
-          ? "Fechar"
-          : "Pausas"
-        : stt.AbaPausas
-          ? "F"
-          : "P";
-      const BConfig = document.getElementById("BConfig");
-      if (BConfig) BConfig.textContent = "C";
-    }
-
     return caixa;
   }
 
   function ADDBotConfig() {
     const caixa = document.createElement("div");
     caixa.id = "BConfig";
-    caixa.textContent = "C";
+    caixa.textContent = "Config";
     caixa.style.cssText = `
-    border: 1px solid white;
-    height: 20px;
-    width: 20px;
-    border-radius: 15px;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    transition: all 0.5s ease;
-    cursor: pointer;
-    justify-content: center;
-
+      border: 1px solid white;
+      width: 23px;
+      border-radius: 15px;
+      display: flex;
+      transition: 0.5s;
+      cursor: pointer;
+      padding: 5px 0px;
+      align-items: center;
     `;
 
     caixa.addEventListener("click", function () {
@@ -1385,22 +1345,6 @@
         //Hlog("CaixaConfig adicionada");
       }
     });
-
-    caixa.addEventListener("mouseover", () => Controle(1));
-    caixa.addEventListener("mouseout", () => Controle(0));
-
-    function Controle(mostrarTextoCompleto) {
-      caixa.style.width = mostrarTextoCompleto ? "auto" : "20px";
-      caixa.textContent = mostrarTextoCompleto
-        ? stt.AbaConfig
-          ? "Fechar"
-          : "Config"
-        : stt.AbaConfig
-          ? "F"
-          : "C";
-      const BPausa = document.getElementById("BPausa");
-      if (BPausa) BPausa.textContent = "P";
-    }
 
     return caixa;
   }
@@ -1617,7 +1561,7 @@
       if (a) {
         a.style.opacity = x ? "1" : "0";
         a.style.visibility = x ? "visible" : "hidden";
-        a.style.marginLeft = x ? "5px" : "-20px";
+        a.style.marginLeft = x ? "5px" : "-23px";
       }
     }
 
@@ -1626,37 +1570,17 @@
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
-    margin-left: -20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.5s;
-    display: flex;
-    gap: 5px;
-    flex-direction: column;
-    `;
-
-    const InfoV = document.createElement("div");
-    InfoV.id = "InfoV";
-    InfoV.textContent = `Versão P Chat ${GM_info.script.version || "?-?"}`;
-    InfoV.style.cssText = `
-    transform: rotate(-90deg);
-    transform-origin: right bottom;
-    white-space: nowrap;
-    color: #ffffff;
-    width: 16px;
-    position: relative;
-    bottom: 22px;
-    `;
-
-    const Space = document.createElement("div");
-    Space.style.cssText = `
-    flex: 1;
+      margin-left: -23px;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.5s;
+      display: flex;
+      gap: 5px;
+      writing-mode: vertical-lr;
     `;
 
     Divbot.appendChild(ADDBotConfig());
     Divbot.appendChild(ADDBotPa());
-    Divbot.appendChild(Space);
-    Divbot.appendChild(InfoV);
     minhaCaixa.appendChild(Divbot);
 
     const DadosOc = document.createElement("div");
@@ -2486,20 +2410,20 @@
     const caixa = document.createElement("div");
     caixa.id = "CaiDPa";
     caixa.style.cssText = `
-        background: ${Ccor.Config};
-        margin-left: 5px;
-        border-radius: 8px;
-        padding: 5px;
-        max-width: 400px;
-        height: max-content;
-        border: 1px solid white;
-        transition: 0.5s;
-        overflow: auto;
-        display: grid;
-        grid-template-columns: repeat(4, auto);
-        grid-auto-flow: row;
-        gap: 2px 6px;
-       `;
+      background: ${Ccor.Config};
+      margin-left: 5px;
+      border-radius: 8px;
+      padding: 5px;
+      max-height: 178px;
+      height: max-content;
+      border: 1px solid white;
+      transition: 0.5s;
+      overflow: auto;
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      grid-auto-flow: row;
+      gap: 2px 6px;
+    `;
 
     /**
      * AddTituloCp - cria um elemento título para seção na configuração
@@ -2510,32 +2434,31 @@
       const title = document.createElement("div");
       title.textContent = titulo;
       title.style.cssText = `
-      font-size: 14px;
-      border-bottom: 1px dashed;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      ${titulo === "Excl" ? "height:14px;" : ""}
-    `;
+        font-size: 14px;
+        border-bottom: 1px dashed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
       return title;
     }
-    function criarItemTabela(id, campo, texto = "---") {
-      const cell = document.createElement("div");
-      cell.id = `${campo}${id}`;
-      cell.textContent = String(texto);
-      cell.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    `;
 
-    caixa.append(
-      AddTituloCp("Pausa"),
-      AddTituloCp("Duração"),
-      AddTituloCp("Início"),
-      AddTituloCp("Fim"),
-      //AddTituloCp("Excl")
-    );
+    ["Pausa", "Duração", "Início", "Fim"].forEach((f) => {
+      caixa.append(AddTituloCp(f));
+    });
+
+    function itemdetab(id, pausa, inicio, fim, duracao) {
+      caixa.append(
+        criarItemTabela(id, "pausa", pausa),
+        criarItemTabela(
+          id,
+          "duracao",
+          duracao === "---" ? duracao : tempoEncurtado(duracao),
+        ),
+        criarItemTabela(id, "inicio", inicio),
+        criarItemTabela(id, "fim", fim),
+      );
+    }
 
     /**
      * criarItemTabela - cria célula de tabela com ícone ou texto
@@ -2554,21 +2477,6 @@
         justify-content: center;
         `;
 
-      if (campo === "id") {
-        caixa.style.cursor = `pointer`;
-        caixa.style.fontSize = "8px";
-        caixa.style.height = "14px";
-
-        caixa.addEventListener("click", () => {
-          const CaiDPa = document.getElementById("CaiDPa");
-          CaiDPa.appendChild(
-            ADDCaixaDAviso("Excluir", () => {
-              removerPausaPorId(id);
-            }),
-          );
-        });
-      }
-
       return caixa;
     }
 
@@ -2584,13 +2492,7 @@
         const duracao = item?.duracao ?? "<--->";
         const pausa = item?.pausa ?? "";
 
-        caixa.append(
-          criarItemTabela(item.id, "pausa", pausa),
-          criarItemTabela(item.id, "duracao", duracao),
-          criarItemTabela(item.id, "inicio", inicioHora),
-          criarItemTabela(item.id, "fim", fimHora),
-          //criarItemTabela(item.id, "id", "❌")
-        );
+        itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
       });
     }
 
