@@ -25,6 +25,7 @@
     TesteHora: 0,
     valorTeste: "-03:00",
     VoltarPad: 0,
+    logueSalvo: 1,
   };
 
   const configPadrao = {
@@ -907,7 +908,9 @@
 
     const Logou = config.LogueManual
       ? dadosLogueManu
-      : exibirHora(agora, 0, TempoPausas.Logado);
+      : config.logueSalvo
+        ? dadosPrimLogue
+        : exibirHora(agora, 0, TempoPausas.Logado);
     TempoPausas.Logou = Logou.hora;
 
     const Saida = exibirHora(Logou, 1, config.TempoEscaladoHoras);
@@ -2119,6 +2122,40 @@
       return c;
     }
 
+    function modoCalculo() {
+      const CaixaModos = criarCaixaSeg();
+
+      CaixaModos.id = "idCaixaModos";
+      const item1Modos = criarLinhaTextoComBot2(
+        "logueSalvo",
+        "Primeiro Logue",
+        config.logueSalvo,
+        () => {
+          config.logueSalvo = !config.logueSalvo;
+          atualizarVisual();
+        },
+      );
+
+      const item2Modos = criarLinhaTextoComBot2(
+        "Recalc",
+        "Recalcular",
+        !config.logueSalvo,
+        () => {
+          config.logueSalvo = !config.logueSalvo;
+          atualizarVisual();
+          somarDuracoesGeral();
+        },
+      );
+
+      CaixaModos.append(item1Modos, item2Modos);
+
+      const a = CaixaDeOcultar(
+        criarBotSalv("ModCal", "Modo de Calculo"),
+        CaixaModos,
+      );
+      return a;
+    }
+
     function Cbotavan() {
       const CBancDa = criarCaixaSeg();
       CBancDa.id = "CBancDa";
@@ -2181,6 +2218,8 @@
       ContTempEsc(),
       criarSeparador(),
       ContlogueManual(),
+      criarSeparador(),
+      modoCalculo(),
       criarSeparador(),
       CIgEst,
       criarSeparador(),
@@ -3050,8 +3089,10 @@
     const NomeOcAtivo = document.getElementById("NomeOcAtivo");
     const IdOcAtivo = document.getElementById("IdOcAtivo");
 
-    if (NomeOcAtivo) NomeOcAtivo.textContent = oSNom.contato;
-    if (IdOcAtivo) IdOcAtivo.textContent = oSNom.ticket;
+    if (NomeOcAtivo && NomeOcAtivo.textContent !== oSNom.contato)
+      NomeOcAtivo.textContent = oSNom.contato;
+    if (IdOcAtivo && IdOcAtivo.textContent !== oSNom.ticket)
+      IdOcAtivo.textContent = oSNom.ticket;
 
     const nome = NomeOcAtivo ? "NomeOcAtivo true" : "NomeOcAtivo False";
 
