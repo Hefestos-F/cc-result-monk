@@ -51,6 +51,33 @@
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   };
 
+  function getStatusAntesDoTicket(numeroTicket) {
+    if (!numeroTicket) return { resolvido: false, status: "DESCONHECIDO" };
+
+    const ticketSpan = [
+      ...document.querySelectorAll(
+        '[data-test-id="tabs-section-nav-item-ticket"]',
+      ),
+    ].find((el) => el.textContent.includes(`Ticket #${numeroTicket}`));
+
+    if (!ticketSpan) {
+      return { resolvido: false, status: "NÃO ENCONTRADO" };
+    }
+
+    const statusEl = ticketSpan.querySelector(".ticket_status_label");
+
+    if (!statusEl) {
+      return { resolvido: false, status: "EM ANDAMENTO" };
+    }
+
+    const statusTxt = normalize(statusEl.textContent).toUpperCase();
+
+    return {
+      resolvido: /RESOLVIDO|SOLVED|ENCERRADO/.test(statusTxt),
+      status: statusTxt,
+    };
+  }
+
   function getNomeAntesDoTicket(numeroTicket) {
     if (!numeroTicket) return "-X";
 
@@ -104,7 +131,7 @@
 
     if (NomeOcAtivo) NomeOcAtivo.textContent = oSNom.contato;
     if (IdOcAtivo) IdOcAtivo.textContent = oSNom.ticket;
-    
+
     const nome = NomeOcAtivo ? "NomeOcAtivo true" : "NomeOcAtivo False";
 
     const tick = IdOcAtivo ? "IdOcAtivo true" : "IdOcAtivo False";
