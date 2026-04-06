@@ -3259,14 +3259,7 @@
       `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
     );
 
-    //data-test-id="header-non-chat-tab-avatar"
-
     a.style.borderRadius = "20px 20px 0px 0px";
-
-    const ostatus = getStatusAntesDoTicket(id).status;
-    if (outrav.includes(ostatus)) {
-      return;
-    }
 
     const b = document.createElement("div");
     b.id = e;
@@ -3615,16 +3608,23 @@
     if (!(ticketsSet instanceof Map)) return;
 
     for (const [id, info] of ticketsSet) {
-      if (!info || !info.seqPrimeiroDatetime || !info.nome) continue; // precisa ter datatime
+      if (!info || !info.seqPrimeiroDatetime || !info.nome || info.status)
+        continue; // precisa ter datatime
 
-      const ostatus = getStatusAntesDoTicket(id).status;
-      if (outrav.includes(ostatus)) {
+      const e = document.querySelector(
+        `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
+      );
+      if (e && e.style.background !== "") e.style.background = "";
+
+      const el = document.getElementById(`Contador${id}`);
+      const acom = outrav.includes(info.status) ? 1 : 0;
+      if (!el && !acom) {
+        addContagem(id); // cria contador se não existir
         continue;
       }
 
-      const el = document.getElementById(`Contador${id}`);
-      if (!el) {
-        addContagem(id); // cria contador se não existir
+      if (acom && el) {
+        el.remove();
         continue;
       }
 
@@ -3636,10 +3636,6 @@
 
       const c = exibirAHora(agora, 0, a);
       const d = converterParaSegundos(c.hora);
-
-      const e = document.querySelector(
-        `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
-      );
 
       // --- COR DO FUNDO ---
       const SeisM = converterParaSegundos("00:06:00");
