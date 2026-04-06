@@ -78,6 +78,9 @@
     };
   }
 
+  
+  
+
   function getNomeAntesDoTicket(numeroTicket) {
     if (!numeroTicket) return "-X";
 

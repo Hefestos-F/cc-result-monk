@@ -105,6 +105,8 @@
     TVarian: "",
   };
 
+  const outrav = ["RESOLVIDO", "FECHADO", "NOVO"];
+
   // Chaves usadas no IndexedDB/local storage
   const ChavePausas = "DadosDePausas";
   const ChaveConfig = "Configuções";
@@ -3203,13 +3205,22 @@
     const changedSeqPrimeiro =
       seqPrimeiroDatetimeAtual !== prev.seqPrimeiroDatetime;
 
-    if (changedDate || changedName || changedSeqQtd || changedSeqPrimeiro) {
+    const ostatus = getStatusAntesDoTicket(id).status;
+
+    if (
+      changedDate ||
+      changedName ||
+      changedSeqQtd ||
+      changedSeqPrimeiro ||
+      ostatus
+    ) {
       ticketsSet.set(id, {
         id,
         datatime: datatimeAtual,
         nome: nomeAtual,
         seqQtd: seqQtdAtual,
         seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
+        status: ostatus,
       });
 
       if (changedDate) {
@@ -3245,8 +3256,17 @@
       return;
     }
     const a = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-is-chat="true"]`,
+      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
     );
+
+    //data-test-id="header-non-chat-tab-avatar"
+
+    a.style.borderRadius = "20px 20px 0px 0px";
+
+    const ostatus = getStatusAntesDoTicket(id).status;
+    if (outrav.includes(ostatus)) {
+      return;
+    }
 
     const b = document.createElement("div");
     b.id = e;
@@ -3597,6 +3617,11 @@
     for (const [id, info] of ticketsSet) {
       if (!info || !info.seqPrimeiroDatetime || !info.nome) continue; // precisa ter datatime
 
+      const ostatus = getStatusAntesDoTicket(id).status;
+      if (outrav.includes(ostatus)) {
+        continue;
+      }
+
       const el = document.getElementById(`Contador${id}`);
       if (!el) {
         addContagem(id); // cria contador se não existir
@@ -3613,10 +3638,8 @@
       const d = converterParaSegundos(c.hora);
 
       const e = document.querySelector(
-        `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-is-chat="true"]`,
+        `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
       );
-
-      //if (!document.getElementById(`Contador${id}`)) return;
 
       // --- COR DO FUNDO ---
       const SeisM = converterParaSegundos("00:06:00");
@@ -3633,6 +3656,33 @@
       // --- TEXTO DO CONTADOR ---
       el.textContent = tempoEncurtado(c.hora);
     }
+  }
+
+  function getStatusAntesDoTicket(numeroTicket) {
+    if (!numeroTicket) return { resolvido: false, status: "DESCONHECIDO" };
+
+    const ticketSpan = [
+      ...document.querySelectorAll(
+        '[data-test-id="tabs-section-nav-item-ticket"]',
+      ),
+    ].find((el) => el.textContent.includes(`Ticket #${numeroTicket}`));
+
+    if (!ticketSpan) {
+      return { resolvido: false, status: "NÃO ENCONTRADO" };
+    }
+
+    const statusEl = ticketSpan.querySelector(".ticket_status_label");
+
+    if (!statusEl) {
+      return { resolvido: false, status: "EM ANDAMENTO" };
+    }
+
+    const statusTxt = normalize(statusEl.textContent).toUpperCase();
+
+    return {
+      resolvido: /RESOLVIDO|SOLVED|ENCERRADO/.test(statusTxt),
+      status: statusTxt,
+    };
   }
 
   //desligamento e pausa
