@@ -54,6 +54,8 @@
     Estour1: 0,
     BeepRet: 0,
     Encontrado: 0,
+    NdeIdAtivo: 0,
+    apausaAnt: "",
   };
 
   let TempoPausas = {
@@ -843,6 +845,25 @@
     }
   }
 
+  async function ContDisp(z) {
+    if (z) {
+      await AddouAtualizarPausas(
+        0,
+        stt.Status,
+        agora, // inicio: {data,hora}
+        fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
+        "---", // duracao prevista: "HH:MM:SS" ou "---"
+      );
+    } else {
+      const inicioObj = await getValorDadosPausa(0, "inicio"); // {data,hora} ou undefined
+
+      const duracaoReal = calcularDuracao(inicioObj, agora);
+
+      await atualizarCampos(0, "duracao", duracaoReal);
+      await atualizarCampos(0, "fim", agora);
+    }
+  }
+
   // Atualiza o timer a cada segundo
   setInterval(() => {
     if (config.OBS_ATIVO) AtualizarTimerChat();
@@ -871,8 +892,21 @@
     stt.Encontrado = stt.Status === "---" ? 0 : 1;
     let ContAtual = stt.Encontrado ? "0" : "Encontrado";
 
-    titulo.textContent = stt.Encontrado ? stt.Status : "Não";
+    titulo.textContent = stt.Encontrado
+      ? stt.NdeIdAtivo === 0 && stt.Status === "Online"
+        ? "Disponivel"
+        : stt.Status
+      : "Não";
     time.textContent = ContAtual;
+
+    if (titulo.textContent === "Disponivel" && stt.apausaAnt !== "Disponivel") {
+      ContDisp(1);
+    }
+    if (titulo.textContent !== "Disponivel" && stt.apausaAnt === "Disponivel") {
+      ContDisp(0);
+    }
+
+    stt.apausaAnt = titulo.textContent;
 
     if (!InfoV) {
     } else if (
@@ -2962,12 +2996,19 @@
           id,
           datatime: null,
           nome: null,
+          status: null,
         });
 
         observarTicket(id);
         Hlog(`Novo ID observado: ${id}`);
       });
     }
+
+    stt.NdeIdAtivo = 0;
+    novos.forEach((id) => {
+      const os = getStatusAntesDoTicket(id).status;
+      if (os && outrav.includes(os)) stt.NdeIdAtivo += 1;
+    });
 
     // --- Verificar/reconectar os já existentes (anteriores) ---
     // Para todos os IDs que ainda estão na aba agora
@@ -3016,7 +3057,7 @@
           (v) =>
             `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(
               v.nome,
-            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime} }`,
+            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime}, status: ${v.status}}`,
         )
         .join(", ") +
       "}";
@@ -3112,6 +3153,10 @@
   async function observarTicket(id) {
     if (ticketObservers.has(id)) return;
 
+    const ostatus = getStatusAntesDoTicket(id).status;
+
+    if (ostatus && outrav.includes(ostatus)) return;
+
     const selector = () =>
       document.querySelector(
         `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
@@ -3169,12 +3214,14 @@
   // ========= CALLBACK DE MUDANÇA DO TICKET =========
   function handleTicketChange(id) {
     const info = EncontrarOUltimoTime(id);
+    const ostatus = getStatusAntesDoTicket(id).status;
     const prev = ticketsSet.get(id) ?? {
       id,
       datatime: null,
       nome: null,
       seqQtd: null,
       seqPrimeiroDatetime: null,
+      status: null,
     };
 
     if (!info) {
@@ -3204,8 +3251,6 @@
     const changedSeqQtd = seqQtdAtual !== prev.seqQtd;
     const changedSeqPrimeiro =
       seqPrimeiroDatetimeAtual !== prev.seqPrimeiroDatetime;
-
-    const ostatus = getStatusAntesDoTicket(id).status;
 
     if (
       changedDate ||
@@ -3241,7 +3286,9 @@
       }
 
       logTicketsSet();
-      addContagem(id);
+      if (ostatus) {
+        if (!outrav.includes(ostatus)) addContagem(id);
+      }
     } else {
       Hlog(`(sem mudança) ticket ${id}`);
     }
@@ -3608,7 +3655,7 @@
     if (!(ticketsSet instanceof Map)) return;
 
     for (const [id, info] of ticketsSet) {
-      if (!info || !info.seqPrimeiroDatetime || !info.nome || info.status)
+      if (!info || !info.seqPrimeiroDatetime || !info.nome || !info.status)
         continue; // precisa ter datatime
 
       const e = document.querySelector(
@@ -3617,13 +3664,14 @@
       if (e && e.style.background !== "") e.style.background = "";
 
       const el = document.getElementById(`Contador${id}`);
-      const acom = outrav.includes(info.status) ? 1 : 0;
-      if (!el && !acom) {
-        addContagem(id); // cria contador se não existir
+      const statusNeg = outrav.includes(info.status) ? 1 : 0;
+      if (!el) {
+        if (!statusNeg) addContagem(id); // cria contador se não existir
+
         continue;
       }
 
-      if (acom && el) {
+      if (statusNeg) {
         el.remove();
         continue;
       }
@@ -3672,6 +3720,8 @@
     if (!statusEl) {
       return { resolvido: false, status: "EM ANDAMENTO" };
     }
+
+    const normalize = (s) => (s || "").replace(/\s+/g, " ").trim();
 
     const statusTxt = normalize(statusEl.textContent).toUpperCase();
 
