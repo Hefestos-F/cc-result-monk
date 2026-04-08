@@ -872,6 +872,7 @@
     if (config.OBS_ATIVO) AtualizarTimerChat();
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
+    const tLogou = document.getElementById("tLogou");
     const vLogou = document.getElementById("vLogou");
     const vSaida = document.getElementById("vSaida");
     const vLogado = document.getElementById("vLogado");
@@ -883,6 +884,11 @@
     Preenc();
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
+
+    if (config.LogueManual !== stt.LogueManual) {
+      tLogou.textContent = config.LogueManual ? "logou:M" : "logou:";
+      stt.LogueManual = config.LogueManual;
+    }
 
     const agora = gerarDataHora();
     if (config.TesteHora) {
@@ -3048,25 +3054,25 @@
       });
     }
 
-    stt.NdeIdAtivo = 0;
-
-    // Em Map, usamos .size em vez de .length
-    if (ticketsSet.size > 0) {
-      // No forEach de Map, o 1º parâmetro é o VALOR, o 2º é a CHAVE
-      ticketsSet.forEach((id) => {
-        const os = getStatusAntesDoTicket(id).status;
-        if (os && outrav.includes(os)) {
-          stt.NdeIdAtivo += 1;
-        }
-      });
-    }
-
     // Exibe tudo (debug)
     logTicketsSet();
   }
 
   // ========= LOG DO MAP (formato objeto como você pediu) =========
   function logTicketsSet() {
+    let aCont = 0;
+
+    // Em Map, usamos .size em vez de .length
+    if (ticketsSet.size > 0) {
+      // No forEach de Map, o 1º parâmetro é o VALOR, o 2º é a CHAVE
+      ticketsSet.forEach((id) => {
+        const os = getStatusAntesDoTicket(id).status;
+        if (os && !outrav.includes(os)) {
+          aCont += 1;
+        }
+      });
+      stt.NdeIdAtivo = aCont;
+    }
     const pretty =
       "{" +
       Array.from(ticketsSet.values())
