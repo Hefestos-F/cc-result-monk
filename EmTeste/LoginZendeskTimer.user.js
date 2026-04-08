@@ -56,6 +56,8 @@
     Encontrado: 0,
     NdeIdAtivo: 0,
     apausaAnt: "",
+    Atencao: 0,
+    AtencaoAnt: 0,
   };
 
   let TempoPausas = {
@@ -300,7 +302,7 @@
         config.pausalimitada = 0;
         stt.Estouro = 0;
         stt.Estour1 = 0;
-        atualizarComoff(0, "cTMA");
+        atualizarComoff(0, "cTMA", Ccor.Erro);
         SalvandoVariConfig(1);
         // Calcula duração real (string HH:MM:SS)
         const duracaoReal = calcularDuracao(inicioObj, agora);
@@ -846,12 +848,13 @@
   }
 
   async function ContDisp(z) {
+    const agora = gerarDataHora();
     if (z) {
       await AddouAtualizarPausas(
         0,
         stt.Status,
         agora, // inicio: {data,hora}
-        fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
+        "---", // fim previsto: {data,hora} ou null
         "---", // duracao prevista: "HH:MM:SS" ou "---"
       );
     } else {
@@ -897,16 +900,23 @@
         ? "Disponivel"
         : stt.Status
       : "Não";
+    const OStt = titulo.textContent;
+
+    stt.Atencao =
+      OStt === "Particular" || (OStt === "Pré" && stt.NdeIdAtivo === 0) ? 1 : 0;
+
     time.textContent = ContAtual;
 
-    if (titulo.textContent === "Disponivel" && stt.apausaAnt !== "Disponivel") {
-      ContDisp(1);
-    }
-    if (titulo.textContent !== "Disponivel" && stt.apausaAnt === "Disponivel") {
-      ContDisp(0);
+    if (stt.Atencao !== stt.AtencaoAnt) {
+      atualizarComoff(stt.Atencao, "cTMA", "#d2661e");
+      stt.AtencaoAnt = stt.Atencao;
     }
 
-    stt.apausaAnt = titulo.textContent;
+    if (OStt !== stt.apausaAnt) {
+      if (OStt === "Disponivel" || stt.apausaAnt === "Disponivel")
+        ContDisp(OStt === "Disponivel" ? 1 : 0);
+      stt.apausaAnt = OStt;
+    }
 
     if (!InfoV) {
     } else if (
@@ -1021,7 +1031,7 @@
 
     if (config.pausalimitada && config.notiEstouro) {
       stt.Estouro = compararDatas(agora, TempoPausas.Estouro);
-      atualizarComoff(stt.Estouro, "cTMA");
+      atualizarComoff(stt.Estouro, "cTMA", Ccor.Erro);
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         stt.Estour1 = 1;
@@ -1033,10 +1043,10 @@
     }
   }, 1000);
 
-  function atualizarComoff(ar, caixa) {
+  function atualizarComoff(ar, caixa, cor) {
     var x = document.getElementById(caixa);
     if (x) {
-      x.style.background = ar ? Ccor.Erro : "";
+      x.style.background = ar ? cor : "";
       x.style.borderRadius = ar ? "6px" : "";
       x.style.padding = ar ? "0px 4px" : "";
       x.style.margin = ar ? "0px -4px" : "";
@@ -2119,7 +2129,7 @@
         config.notiEstouro = !config.notiEstouro;
         atualizarVisual();
 
-        if (!config.notiEstouro) atualizarComoff(0, "cTMA");
+        if (!config.notiEstouro) atualizarComoff(0, "cTMA", Ccor.Erro);
       },
     );
     const IgEstSom = criarLinhaTextoComBot2(
@@ -3004,12 +3014,6 @@
       });
     }
 
-    stt.NdeIdAtivo = 0;
-    novos.forEach((id) => {
-      const os = getStatusAntesDoTicket(id).status;
-      if (os && outrav.includes(os)) stt.NdeIdAtivo += 1;
-    });
-
     // --- Verificar/reconectar os já existentes (anteriores) ---
     // Para todos os IDs que ainda estão na aba agora
     atual.forEach((id) => {
@@ -3041,6 +3045,19 @@
         pararObservacaoTicket(id);
         ticketsSet.delete(id);
         Hlog(`ID removido e observador limpo: ${id}`);
+      });
+    }
+
+    stt.NdeIdAtivo = 0;
+
+    // Em Map, usamos .size em vez de .length
+    if (ticketsSet.size > 0) {
+      // No forEach de Map, o 1º parâmetro é o VALOR, o 2º é a CHAVE
+      ticketsSet.forEach((id) => {
+        const os = getStatusAntesDoTicket(id).status;
+        if (os && outrav.includes(os)) {
+          stt.NdeIdAtivo += 1;
+        }
       });
     }
 
@@ -3671,11 +3688,6 @@
         continue;
       }
 
-      if (statusNeg) {
-        el.remove();
-        continue;
-      }
-
       const agora = gerarDataHora(); // { data: "YYYY-MM-DD", hora: "HH:mm:ss" }
       const a = isoParaDataHora(info.seqPrimeiroDatetime); // idem, vindo do ISO salvo
 
@@ -3691,14 +3703,25 @@
       const TresM = converterParaSegundos("00:03:00");
       //const CincS = converterParaSegundos("00:00:05");
 
-      //info.nome !== e.getAttribute("aria-label")
-      el.style.background =
-        d > CincM ? "#df0c0c" : d > TresM ? "#d2661e" : "darkcyan";
+      el.style.backgroundColor =
+        d > CincM
+          ? d > SeisM
+            ? "white"
+            : "#ad1414"
+          : d > TresM
+            ? "#d2661e"
+            : "darkcyan";
+
+      el.style.color = d > SeisM ? "#ad1414" : "white";
 
       if (e) e.style.background = d >= SeisM ? "#ad1414" : "";
 
       // --- TEXTO DO CONTADOR ---
       el.textContent = tempoEncurtado(c.hora);
+
+      if (statusNeg) {
+        el.remove();
+      }
     }
   }
 
