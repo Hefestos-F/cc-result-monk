@@ -78,9 +78,6 @@
     };
   }
 
-  
-  
-
   function getNomeAntesDoTicket(numeroTicket) {
     if (!numeroTicket) return "-X";
 
@@ -146,4 +143,45 @@
   }
 
   console.log("O Encontrar", JSON.stringify(nomeETicket()));
+
+  function EncontrarAtribuido(id) {
+    // 1. Container do ticket
+    const ticket = document.querySelector(
+      `[data-test-id="ticket-${id}-standard-layout"]`,
+    );
+    if (!ticket) return null;
+
+    // 2. Campo de agente atribuído
+    const assigneeField = ticket.querySelector(
+      '[data-test-id="assignee-field-selected-agent-tag"]',
+    );
+    if (!assigneeField) return null;
+
+    // 3. Elementos que possuem atributo title
+    const elementosComTitle = assigneeField.querySelectorAll("[title]");
+    if (elementosComTitle.length < 2) return null;
+
+    // 4. Retorna o title do segundo item
+    return elementosComTitle[1].getAttribute("title");
+  }
+
+
+  function BusOPerfil() {
+    const OPerfil = document.querySelector(
+      '[data-test-id="toolbar-profile-menu"]',
+    );
+    if (!OPerfil) return null;
+
+    const OsTitle = OPerfil.querySelectorAll("[title]");
+
+    if (!OsTitle) return null;
+
+     if (OsTitle.length < 1) return null;
+
+    return OsTitle.getAttribute("title");
+
+
+  }
+
+  console.log(BusOPerfil());
 })();

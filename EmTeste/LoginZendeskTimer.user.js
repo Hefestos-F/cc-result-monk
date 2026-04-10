@@ -26,6 +26,7 @@
     valorTeste: "-03:00",
     VoltarPad: 0,
     logueSalvo: 1,
+    NomeAt: "",
   };
 
   const configPadrao = {
@@ -249,6 +250,8 @@
       stt.Status = "---";
       return (stt.andament = 1);
     }
+    const Onome = BuscarNomePerfil();
+    if (Onome && config.NomeAt !== Onome) config.NomeAt = Onome;
 
     let statusAtual = formatPrimeiroNome(el.textContent.trim());
     if (statusAtual === "Pausa") statusAtual = "Particular";
@@ -867,8 +870,37 @@
     }
   }
 
+  function horarios(logou, logado) {
+    const agora = gerarDataHora();
+
+    //Hlog(`logado:${JSON.stringify(logado)}`);
+
+    let LogouCalc = logou ? logou : exibirHora(agora, 0, logado);
+    let LogadoCalc = !logou ? logado : exibirAHora(agora, 0, LogouCalc).hora;
+
+    //Hlog(`Logou:${JSON.stringify(Logou)}`);
+
+    const Saida = exibirHora(LogouCalc, 1, config.TempoEscaladoHoras);
+
+    //Hlog(`Saida:${JSON.stringify(Saida)}`);
+    //Hlog(`agora:${JSON.stringify(agora)}`);
+
+    const Falta = exibirAHora(Saida, 0, agora).hora;
+
+    //Hlog(`Falta:${JSON.stringify(Falta)}`);
+
+    return {
+      Logou: LogouCalc,
+      Saida: Saida,
+      Logado: LogadoCalc,
+      Falta: Falta,
+    };
+  }
+
   // Atualiza o timer a cada segundo
-  setInterval(() => {
+  setInterval(oLoop, 1000);
+
+  function oLoop() {
     if (config.OBS_ATIVO) AtualizarTimerChat();
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
@@ -1047,7 +1079,7 @@
         }, 15000);
       }
     }
-  }, 1000);
+  }
 
   function atualizarComoff(ar, caixa, cor) {
     var x = document.getElementById(caixa);
@@ -2991,6 +3023,47 @@
     );
   }
 
+  function EncontrarAtribuido(id) {
+    // 1. Container do ticket
+    const ticket = document.querySelector(
+      `[data-test-id="ticket-${id}-standard-layout"]`,
+    );
+    if (!ticket) return null;
+
+    // 2. Campo de agente atribuído
+    const assigneeField = ticket.querySelector(
+      '[data-test-id="assignee-field-selected-agent-tag"]',
+    );
+    if (!assigneeField) return null;
+
+    // 3. Elementos que possuem atributo title
+    const elementosComTitle = assigneeField.querySelectorAll("[title]");
+    if (elementosComTitle.length < 2) return null;
+
+    // 4. Retorna o title do segundo item
+    return elementosComTitle[1].getAttribute("title");
+  }
+
+  function BuscarNomePerfil() {
+    // guia único permitido
+    const viewProfile = document.querySelector(
+      '[data-test-id="toolbar-profile-menu-view-profile"]',
+    );
+    if (!viewProfile) return null;
+
+    // sobe para o elemento pai mais próximo que contenha um div com title
+    let atual = viewProfile.parentElement;
+    while (atual) {
+      const divComTitle = atual.querySelector(":scope > div[title]");
+      if (divComTitle) {
+        return divComTitle.getAttribute("title");
+      }
+      atual = atual.parentElement;
+    }
+
+    return null;
+  }
+
   // ========= SYNC DE IDS =========
   function SincronizarTicketsObservados() {
     Hlog("Sincronizando tickets observados...");
@@ -3060,19 +3133,6 @@
 
   // ========= LOG DO MAP (formato objeto como você pediu) =========
   function logTicketsSet() {
-    let aCont = 0;
-
-    // Em Map, usamos .size em vez de .length
-    if (ticketsSet.size > 0) {
-      // No forEach de Map, o 1º parâmetro é o VALOR, o 2º é a CHAVE
-      ticketsSet.forEach((id) => {
-        const os = getStatusAntesDoTicket(id).status;
-        if (os && !outrav.includes(os)) {
-          aCont += 1;
-        }
-      });
-      stt.NdeIdAtivo = aCont;
-    }
     const pretty =
       "{" +
       Array.from(ticketsSet.values())
@@ -3080,7 +3140,7 @@
           (v) =>
             `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(
               v.nome,
-            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime}, status: ${v.status}}`,
+            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime}, status: ${v.status}, QuemAt: ${v.QuemAt}`,
         )
         .join(", ") +
       "}";
@@ -3178,6 +3238,8 @@
 
     const ostatus = getStatusAntesDoTicket(id).status;
 
+    const EnconAt = EncontrarAtribuido(id);
+
     if (ostatus && outrav.includes(ostatus)) return;
 
     const selector = () =>
@@ -3238,6 +3300,7 @@
   function handleTicketChange(id) {
     const info = EncontrarOUltimoTime(id);
     const ostatus = getStatusAntesDoTicket(id).status;
+    const QuemAt = EncontrarAtribuido(id);
     const prev = ticketsSet.get(id) ?? {
       id,
       datatime: null,
@@ -3245,6 +3308,7 @@
       seqQtd: null,
       seqPrimeiroDatetime: null,
       status: null,
+      QuemAt: null,
     };
 
     if (!info) {
@@ -3289,6 +3353,7 @@
         seqQtd: seqQtdAtual,
         seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
         status: ostatus,
+        QuemAt: QuemAt,
       });
 
       if (changedDate) {
@@ -3677,6 +3742,7 @@
   function AtualizarTimerChat() {
     if (!(ticketsSet instanceof Map)) return;
 
+    let aCont = 0;
     for (const [id, info] of ticketsSet) {
       if (!info || !info.seqPrimeiroDatetime || !info.nome || !info.status)
         continue; // precisa ter datatime
@@ -3720,7 +3786,14 @@
 
       el.style.color = d > SeisM ? "#ad1414" : "white";
 
-      if (e) e.style.background = d >= SeisM ? "#ad1414" : "";
+      if (e) {
+        e.style.background = d >= SeisM ? "#ad1414" : "";
+        const ItemSele = e.getAttribute("data-selected");
+        if (stt.ItemSele !== ItemSele) {
+          e.style.borderTop = ItemSele === "true" ? "solid 2px #1b81ff" : "";
+          stt.ItemSele = ItemSele;
+        }
+      }
 
       // --- TEXTO DO CONTADOR ---
       el.textContent = tempoEncurtado(c.hora);
@@ -3728,7 +3801,16 @@
       if (statusNeg) {
         el.remove();
       }
+
+      const os = getStatusAntesDoTicket(id).status;
+
+      const EnconAt = EncontrarAtribuido(id);
+
+      if (os && !outrav.includes(os) && config.NomeAt === EnconAt) {
+        aCont += 1;
+      }
     }
+    stt.NdeIdAtivo = aCont;
   }
 
   function getStatusAntesDoTicket(numeroTicket) {
