@@ -59,6 +59,8 @@
     apausaAnt: "",
     Atencao: 0,
     AtencaoAnt: 0,
+    ForceSalv: 0,
+    idSelecionado: {},
   };
 
   let TempoPausas = {
@@ -492,6 +494,7 @@
 
     const totalSegundos = dadosdePausas.reduce((acc, item) => {
       // tenta pegar o campo; qualquer coisa inválida vira 0
+      if (item.id === 0) return;
       const s = converterParaSegundos(item?.duracao);
       return acc + (Number.isFinite(s) ? s : 0);
     }, 0);
@@ -901,6 +904,7 @@
   setInterval(oLoop, 1000);
 
   function oLoop() {
+    MudarOitemProt();
     if (config.OBS_ATIVO) AtualizarTimerChat();
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
@@ -994,22 +998,35 @@
       ? dadosLogueManu
       : config.logueSalvo
         ? dadosPrimLogue
-        : exibirHora(agora, 0, TempoPausas.Logado);
-    TempoPausas.Logou = Logou.hora;
+        : 0;
 
-    const Saida = exibirHora(Logou, 1, config.TempoEscaladoHoras);
+    const oshorarios = horarios(Logou, TempoPausas.Logado);
 
-    TempoPausas.Saida = Saida.hora;
-    if (!config.LogueManual && compararDatas(dadosPrimLogue, Logou)) {
-      dadosPrimLogue = Logou;
-      verifiDataLogue(1);
+    TempoPausas.Logou = oshorarios.Logou.hora;
+
+    if (TempoPausas.Logado) {
+      const newlog = exibirHora(agora, 0, TempoPausas.Logado);
+
+      //Hlog(`Newlog:${JSON.stringify(newlog)}`);
+
+      if (
+        (!config.LogueManual && compararDatas(dadosPrimLogue, newlog)) ||
+        stt.ForceSalv
+      ) {
+        dadosPrimLogue = newlog;
+        verifiDataLogue(1);
+
+        if (stt.ForceSalv) stt.ForceSalv = 0;
+      }
     }
+
+    TempoPausas.Saida = oshorarios.Saida.hora;
 
     const oLogou = document.getElementById("oLogou");
     const oSaida = document.getElementById("oSaida");
 
-    oLogou.textContent = config.TesteHora ? Logou.data : "";
-    oSaida.textContent = config.TesteHora ? Saida.data : "";
+    oLogou.textContent = config.TesteHora ? oshorarios.Logou.data : "";
+    oSaida.textContent = config.TesteHora ? oshorarios.Saida.data : "";
 
     vLogou.textContent = TempoPausas.Logou;
     vSaida.textContent = TempoPausas.Saida;
@@ -1031,25 +1048,23 @@
         ? "-?-"
         : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
 
-    TempoPausas.Logado = config.LogueManual
-      ? exibirAHora(agora, 0, Logou).hora
-      : converterParaTempo(
-          TempoPausas.Online + converterParaSegundos(ContAtual),
-        );
+    TempoPausas.Logado = converterParaTempo(
+      TempoPausas.Online + converterParaSegundos(ContAtual),
+    );
 
     time.textContent =
       ContAtual === "---" || ContAtual === "-?-"
         ? ContAtual
         : tempoEncurtado(ContAtual);
 
-    TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
+    TempoPausas.Falta = oshorarios.Falta;
 
     vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
 
-    if (compararDatas(agora, exibirHora(Saida, 1, "00:10:00"))) {
+    if (compararDatas(agora, exibirHora(oshorarios.Saida, 1, "00:10:00"))) {
       stt.temHorasExtras = 1;
       stt.tempoCumprido = 0;
-    } else if (compararDatas(agora, Saida)) {
+    } else if (compararDatas(agora, oshorarios.Saida)) {
       stt.tempoCumprido = 1;
       stt.temHorasExtras = 0;
     } else {
@@ -1079,6 +1094,35 @@
         }, 15000);
       }
     }
+  }
+
+  function MudarOitemProt() {
+    const itens = document.querySelectorAll("[data-selected]");
+
+    if (!itens) return;
+
+    itens.forEach((item) => {
+      const itemSele = item.dataset.selected; // "true" | "false"
+      const oId = item.dataset.entityId; // "24380006"
+
+      const estado = stt.idSelecionado[oId];
+
+      if (
+        !estado ||
+        estado.dataselected !== itemSele ||
+        estado.borderTop !== item.style.borderTop ||
+        estado.borderRadius !== item.style.borderRadius
+      ) {
+        item.style.borderRadius = "20px 20px 0px 0px";
+        item.style.borderTop = itemSele === "true" ? "2px solid #1b81ff" : "";
+
+        stt.idSelecionado[oId] = {
+          dataselected: itemSele,
+          borderRadius: item.style.borderRadius,
+          borderTop: item.style.borderTop,
+        };
+      }
+    });
   }
 
   function atualizarComoff(ar, caixa, cor) {
@@ -2227,7 +2271,6 @@
         () => {
           config.logueSalvo = !config.logueSalvo;
           atualizarVisual();
-          somarDuracoesGeral();
         },
       );
 
@@ -2270,12 +2313,31 @@
       const caixaDeBotres = criarCaixaSeg();
       caixaDeBotres.append(BotaoResetT);
 
+      function funForcSalv() {
+        const CForcSalv = criarCaixaSeg();
+        const IForcSalv = criarLinhaTextoComBot2(
+          "IdIForcSalv",
+          "Forçar Novo Primeiro logue",
+          stt.ForceSalv,
+          () => {
+            stt.ForceSalv = !stt.ForceSalv;
+
+            atualizarVisual();
+            //SalvandoVariConfig(1);
+          },
+        );
+        CForcSalv.append(IForcSalv);
+        return CForcSalv;
+      }
+
       const Cavancado = criarCaixaSeg();
       Cavancado.id = "Cavancado";
       Cavancado.style.padding = "0px 8px";
       Cavancado.append(
         criarSeparador(),
         CBBancDa,
+        criarSeparador(),
+        funForcSalv(),
         criarSeparador(),
         ContModoTeste(),
         criarSeparador(),
@@ -2397,6 +2459,100 @@
   }
 
   /**
+   * listarChavesEConteudos - lista todas as chaves e conteúdos do IndexedDB
+   * Exibe painel interativo com visualização e exclusão de registros
+   */
+  function listarChavesEConteudos() {
+    abrirDB(function (db) {
+      const transacao = db.transaction([StoreBD], "readonly");
+      const store = transacao.objectStore(StoreBD);
+      const request = store.getAllKeys();
+
+      request.onsuccess = function (event) {
+        const chaves = event.target.result;
+
+        let contador = 0;
+        chaves.forEach((nomeChave) => {
+          const requisicaoConteudo = store.get(nomeChave);
+
+          requisicaoConteudo.onsuccess = function (e) {
+            const conteudoChave = e.target.result;
+
+            const CaixaConfig = document.getElementById("CaixaConfig");
+            const CBancDa = document.getElementById("CBancDa");
+
+            // Criar estrutura HTML
+            const divPai = document.createElement("div");
+            divPai.style.cssText = `max-width: 200px;`;
+            const TituloEBot = document.createElement("div");
+            TituloEBot.style.cssText = `
+                        display: flex;
+                        width: 100%;
+                        justify-content: space-between;
+                        margin: 6px 0px;
+                        `;
+
+            const divChave = document.createElement("div");
+            divChave.textContent = nomeChave;
+            divChave.style.cssText = `
+                        cursor: pointer;
+                        text-decoration: underline;
+                        font-size: 13px;
+                        `;
+
+            const divConteudo = document.createElement("div");
+            divConteudo.style.cssText = `
+                        display: none;
+                        justify-content: center;
+                        `;
+
+            divConteudo.textContent = JSON.stringify(conteudoChave, null, 2);
+
+            divChave.addEventListener("click", function () {
+              if (
+                divConteudo.style.display === "none" ||
+                divConteudo.style.display === ""
+              ) {
+                divConteudo.style.display = "flex";
+              } else {
+                divConteudo.style.display = "none";
+              }
+            });
+
+            contador = contador + 1;
+            const botaoExcluir = document.createElement("div");
+            botaoExcluir.id = `Chave${contador}`;
+            botaoExcluir.style.cssText = `
+                        cursor: pointer;
+                        `;
+            botaoExcluir.textContent = "❌";
+            botaoExcluir.addEventListener("click", function () {
+              CaixaConfig.appendChild(
+                ADDCaixaDAviso("Excluir", () => {
+                  ApagarChaveIndexDB(nomeChave);
+                  CBancDa.innerHTML = "";
+                  listarChavesEConteudos();
+                }),
+              );
+            });
+
+            TituloEBot.appendChild(divChave);
+            TituloEBot.appendChild(botaoExcluir);
+            divPai.appendChild(TituloEBot);
+            divPai.appendChild(divConteudo);
+
+            CBancDa.appendChild(divPai);
+          };
+        });
+      };
+
+      request.onerror = function (event) {
+        Herror("Erro ao listar as chaves:", event.target.errorCode);
+      };
+    });
+  }
+
+  /**
    * atualizarSlidePosi - atualiza estado visual de um botão slide
    * @param {string} idBotao - id do botão (ex: "Bot14")
    * @param {boolean} estaAtivo - se botão deve estar ativo/não ativo
@@ -2441,6 +2597,7 @@
     atualizarSlidePosi("BotLogManu", config.LogueManual);
     atualizarSlidePosi("BotTFuso", config.TesteHora);
     atualizarSlidePosi("BotNotEst", config.notiEstouro);
+    atualizarSlidePosi("BotIdIForcSalv", stt.ForceSalv);
   }
 
   /**
@@ -3394,8 +3551,6 @@
       `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
     );
 
-    a.style.borderRadius = "20px 20px 0px 0px";
-
     const b = document.createElement("div");
     b.id = e;
     b.style.cssText = `
@@ -3776,24 +3931,9 @@
       //const CincS = converterParaSegundos("00:00:05");
 
       el.style.backgroundColor =
-        d > CincM
-          ? d > SeisM
-            ? "white"
-            : "#ad1414"
-          : d > TresM
-            ? "#d2661e"
-            : "darkcyan";
+        d > CincM ? Ccor.Erro : d > TresM ? "#d2661e" : "darkcyan";
 
-      el.style.color = d > SeisM ? "#ad1414" : "white";
-
-      if (e) {
-        e.style.background = d >= SeisM ? "#ad1414" : "";
-        const ItemSele = e.getAttribute("data-selected");
-        if (stt.ItemSele !== ItemSele) {
-          e.style.borderTop = ItemSele === "true" ? "solid 2px #1b81ff" : "";
-          stt.ItemSele = ItemSele;
-        }
-      }
+      if (e) e.style.borderBottom = d >= SeisM ? `6px solid ${Ccor.Erro}` : "";
 
       // --- TEXTO DO CONTADOR ---
       el.textContent = tempoEncurtado(c.hora);

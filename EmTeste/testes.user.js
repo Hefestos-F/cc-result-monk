@@ -165,22 +165,26 @@
     return elementosComTitle[1].getAttribute("title");
   }
 
+  const stt = { ItemSele: 0 };
 
-  function BusOPerfil() {
-    const OPerfil = document.querySelector(
-      '[data-test-id="toolbar-profile-menu"]',
-    );
-    if (!OPerfil) return null;
+  function MudarOitemProt() {
+    const itens = document.querySelectorAll("[data-selected]");
 
-    const OsTitle = OPerfil.querySelectorAll("[title]");
+    itens.forEach((item) => {
+      const itemSele = item.getAttribute("data-selected");
 
-    if (!OsTitle) return null;
+      if (
+        stt.ItemSele !== itemSele ||
+        (item.style.borderTop === "" && itemSele === "true")||
+        item.style.borderRadius !== "20px 20px 0px 0px"
+      ) {
+        item.style.borderTop = itemSele === "true" ? "2px solid #1b81ff" : "";
 
-     if (OsTitle.length < 1) return null;
+        item.style.borderRadius = "20px 20px 0px 0px";
 
-    return OsTitle.getAttribute("title");
-
-
+        stt.ItemSele = itemSele;
+      }
+    });
   }
 
   console.log(BusOPerfil());
