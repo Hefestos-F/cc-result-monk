@@ -61,12 +61,14 @@
     AtencaoAnt: 0,
     ForceSalv: 0,
     idSelecionado: {},
+    StatusTk: {},
   };
 
   let TempoPausas = {
     Logou: 0,
     LogouA: 0,
     Logado: 0,
+    LogadoSomas: 0,
     Saida: 0,
     SaidaA: 0,
     Falta: 0,
@@ -80,6 +82,7 @@
     inicioUltimaP: 0,
     inicioUltimaPa: 0,
     StatusANT: "",
+    oDisp: {},
   };
 
   /**
@@ -300,7 +303,7 @@
       const agora = gerarDataHora(); // { data, hora }
 
       Hlog(`id:${DDPausa.numero}, inicioObj: ${JSON.stringify(inicioObj)}`);
-      if (inicioObj && duracaoObj === "---") {
+      if (inicioObj && duracaoObj === "---" && DDPausa.numero !== 0) {
         // Salva fim (objeto)
         await atualizarCampos(DDPausa.numero, "fim", agora);
 
@@ -334,8 +337,8 @@
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
-      DDPausa.numero = DDPausa.numero + 1;
-      if (DDPausa.numero > 30) DDPausa.numero = 1;
+      DDPausa.numero += 1;
+      if (DDPausa.numero > 100) DDPausa.numero = 1;
 
       const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
       let fimPrevistoObj = null;
@@ -494,7 +497,7 @@
 
     const totalSegundos = dadosdePausas.reduce((acc, item) => {
       // tenta pegar o campo; qualquer coisa inválida vira 0
-      if (item.id === 0) return;
+      if (item?.id === 0) return acc;
       const s = converterParaSegundos(item?.duracao);
       return acc + (Number.isFinite(s) ? s : 0);
     }, 0);
@@ -856,20 +859,16 @@
   async function ContDisp(z) {
     const agora = gerarDataHora();
     if (z) {
+      DDPausa.oDisp = agora;
+    } else if (DDPausa.oDisp) {
+      const duracaoReal = calcularDuracao(DDPausa.oDisp, agora);
       await AddouAtualizarPausas(
         0,
-        stt.Status,
-        agora, // inicio: {data,hora}
-        "---", // fim previsto: {data,hora} ou null
-        "---", // duracao prevista: "HH:MM:SS" ou "---"
+        "Disponivel",
+        DDPausa.oDisp, // inicio: {data,hora}
+        agora, // fim previsto: {data,hora} ou null
+        duracaoReal, // duracao prevista: "HH:MM:SS" ou "---"
       );
-    } else {
-      const inicioObj = await getValorDadosPausa(0, "inicio"); // {data,hora} ou undefined
-
-      const duracaoReal = calcularDuracao(inicioObj, agora);
-
-      await atualizarCampos(0, "duracao", duracaoReal);
-      await atualizarCampos(0, "fim", agora);
     }
   }
 
@@ -949,7 +948,10 @@
 
     time.textContent = ContAtual;
 
-    if (stt.Atencao !== stt.AtencaoAnt) {
+    if (
+      stt.Atencao !== stt.AtencaoAnt ||
+      (stt.Atencao && document.getElementById("cTMA").style.background === "")
+    ) {
       atualizarComoff(stt.Atencao, "cTMA", "#d2661e");
       stt.AtencaoAnt = stt.Atencao;
     }
@@ -1004,8 +1006,8 @@
 
     TempoPausas.Logou = oshorarios.Logou.hora;
 
-    if (TempoPausas.Logado) {
-      const newlog = exibirHora(agora, 0, TempoPausas.Logado);
+    if (TempoPausas.LogadoSomas) {
+      const newlog = exibirHora(agora, 0, TempoPausas.LogadoSomas);
 
       //Hlog(`Newlog:${JSON.stringify(newlog)}`);
 
@@ -1048,7 +1050,9 @@
         ? "-?-"
         : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
 
-    TempoPausas.Logado = converterParaTempo(
+    TempoPausas.Logado = oshorarios.Logado;
+
+    TempoPausas.LogadoSomas = converterParaTempo(
       TempoPausas.Online + converterParaSegundos(ContAtual),
     );
 
@@ -3393,11 +3397,9 @@
   async function observarTicket(id) {
     if (ticketObservers.has(id)) return;
 
-    const ostatus = getStatusAntesDoTicket(id).status;
+    const ostatus = EstaResolvido(id);
 
-    const EnconAt = EncontrarAtribuido(id);
-
-    if (ostatus && outrav.includes(ostatus)) return;
+    if (ostatus.eMeu && !ostatus.Resol) return;
 
     const selector = () =>
       document.querySelector(
@@ -3451,130 +3453,6 @@
     const ContadorId = `Contador${id}`;
     const Contador = document.getElementById(ContadorId);
     if (Contador) Contador.remove();
-  }
-
-  // ========= CALLBACK DE MUDANÇA DO TICKET =========
-  function handleTicketChange(id) {
-    const info = EncontrarOUltimoTime(id);
-    const ostatus = getStatusAntesDoTicket(id).status;
-    const QuemAt = EncontrarAtribuido(id);
-    const prev = ticketsSet.get(id) ?? {
-      id,
-      datatime: null,
-      nome: null,
-      seqQtd: null,
-      seqPrimeiroDatetime: null,
-      status: null,
-      QuemAt: null,
-    };
-
-    if (!info) {
-      Hlog(`(sem dados) ticket ${id}, mantendo anterior`);
-      return;
-    }
-
-    // --- Compatibilidade com retorno antigo e novo ---
-    // Antigo:  { datatime, nome }
-    // Novo:    { ultimoDatetime, ultimoNome, sequencia: { nome, quantidade, primeiroDatetime } }
-    const datatimeAtual = info.ultimoDatetime ?? info.datatime ?? null;
-    const nomeAtual = info.ultimoNome ?? info.nome ?? null;
-
-    const seqQtdAtual =
-      info.sequencia && typeof info.sequencia.quantidade === "number"
-        ? info.sequencia.quantidade
-        : null;
-
-    const seqPrimeiroDatetimeAtual =
-      info.sequencia && info.sequencia.primeiroDatetime
-        ? info.sequencia.primeiroDatetime
-        : null;
-
-    // --- Detectar mudanças ---
-    const changedDate = datatimeAtual !== prev.datatime;
-    const changedName = nomeAtual !== prev.nome;
-    const changedSeqQtd = seqQtdAtual !== prev.seqQtd;
-    const changedSeqPrimeiro =
-      seqPrimeiroDatetimeAtual !== prev.seqPrimeiroDatetime;
-
-    if (
-      changedDate ||
-      changedName ||
-      changedSeqQtd ||
-      changedSeqPrimeiro ||
-      ostatus
-    ) {
-      ticketsSet.set(id, {
-        id,
-        datatime: datatimeAtual,
-        nome: nomeAtual,
-        seqQtd: seqQtdAtual,
-        seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
-        status: ostatus,
-        QuemAt: QuemAt,
-      });
-
-      if (changedDate) {
-        Hlog(`Atualizado datatime do ticket ${id}: ${datatimeAtual}`);
-      }
-      if (changedName) {
-        Hlog(`Atualizado nome do ticket ${id}: ${nomeAtual}`);
-      }
-      if (changedSeqQtd) {
-        Hlog(
-          `Atualizada sequência do mesmo remetente no ticket ${id}: quantidade = ${seqQtdAtual}`,
-        );
-      }
-      if (changedSeqPrimeiro) {
-        Hlog(
-          `Atualizado primeiro datetime da sequência no ticket ${id}: ${seqPrimeiroDatetimeAtual}`,
-        );
-      }
-
-      logTicketsSet();
-      if (ostatus) {
-        if (!outrav.includes(ostatus)) addContagem(id);
-      }
-    } else {
-      Hlog(`(sem mudança) ticket ${id}`);
-    }
-  }
-
-  function addContagem(id) {
-    const e = `Contador${id}`;
-    const c = document.getElementById(e);
-
-    if (c) {
-      Hlog(`${e} ja existe`);
-      return;
-    }
-    const a = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
-    );
-
-    const b = document.createElement("div");
-    b.id = e;
-    b.style.cssText = `
-      box-sizing: border-box;
-      justify-self: center;
-      background: darkcyan;
-      border-radius: 6px;
-      padding: 0px 3px;
-      margin-bottom: -8px;
-      font-size: 12px;
-      position: relative;
-      z-index: 1;
-      color: white;
-    `;
-    b.textContent = "00:00";
-
-    if (a) {
-      const d = a.querySelectorAll("div")[0];
-      d.prepend(b);
-
-      Hlog(`Adicionado em data-entity-id="${id}"`);
-    } else {
-      Hlog(`data-entity-id="${id}" não encontrado`);
-    }
   }
 
   // ========= ENCONTRAR ÚLTIMO TIMESTAMP =========
@@ -3744,6 +3622,131 @@
     }
   }
 
+  // ========= CALLBACK DE MUDANÇA DO TICKET =========
+  function handleTicketChange(id) {
+    const info = EncontrarOUltimoTime(id);
+    const ostatus = getStatusAntesDoTicket(id).status;
+    const QuemAt = EncontrarAtribuido(id);
+    const prev = ticketsSet.get(id) ?? {
+      id,
+      datatime: null,
+      nome: null,
+      seqQtd: null,
+      seqPrimeiroDatetime: null,
+      status: null,
+      QuemAt: null,
+    };
+
+    if (!info) {
+      Hlog(`(sem dados) ticket ${id}, mantendo anterior`);
+      return;
+    }
+
+    // --- Compatibilidade com retorno antigo e novo ---
+    // Antigo:  { datatime, nome }
+    // Novo:    { ultimoDatetime, ultimoNome, sequencia: { nome, quantidade, primeiroDatetime } }
+    const datatimeAtual = info.ultimoDatetime ?? info.datatime ?? null;
+    const nomeAtual = info.ultimoNome ?? info.nome ?? null;
+
+    const seqQtdAtual =
+      info.sequencia && typeof info.sequencia.quantidade === "number"
+        ? info.sequencia.quantidade
+        : null;
+
+    const seqPrimeiroDatetimeAtual =
+      info.sequencia && info.sequencia.primeiroDatetime
+        ? info.sequencia.primeiroDatetime
+        : null;
+
+    // --- Detectar mudanças ---
+    const changedDate = datatimeAtual !== prev.datatime;
+    const changedName = nomeAtual !== prev.nome;
+    const changedSeqQtd = seqQtdAtual !== prev.seqQtd;
+    const changedSeqPrimeiro =
+      seqPrimeiroDatetimeAtual !== prev.seqPrimeiroDatetime;
+
+    if (
+      changedDate ||
+      changedName ||
+      changedSeqQtd ||
+      changedSeqPrimeiro ||
+      ostatus
+    ) {
+      ticketsSet.set(id, {
+        id,
+        datatime: datatimeAtual,
+        nome: nomeAtual,
+        seqQtd: seqQtdAtual,
+        seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
+        status: ostatus,
+        QuemAt: QuemAt,
+      });
+
+      if (changedDate) {
+        Hlog(`Atualizado datatime do ticket ${id}: ${datatimeAtual}`);
+      }
+      if (changedName) {
+        Hlog(`Atualizado nome do ticket ${id}: ${nomeAtual}`);
+      }
+      if (changedSeqQtd) {
+        Hlog(
+          `Atualizada sequência do mesmo remetente no ticket ${id}: quantidade = ${seqQtdAtual}`,
+        );
+      }
+      if (changedSeqPrimeiro) {
+        Hlog(
+          `Atualizado primeiro datetime da sequência no ticket ${id}: ${seqPrimeiroDatetimeAtual}`,
+        );
+      }
+
+      logTicketsSet();
+      if (ostatus) {
+        const alis = EstaResolvido(id);
+        if (alis.eMeu && !alis.Resol) addContagem(id);
+      }
+    } else {
+      Hlog(`(sem mudança) ticket ${id}`);
+    }
+  }
+
+  function addContagem(id) {
+    const e = `Contador${id}`;
+    const c = document.getElementById(e);
+
+    if (c) {
+      Hlog(`${e} ja existe`);
+      return;
+    }
+    const a = document.querySelector(
+      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
+    );
+
+    const b = document.createElement("div");
+    b.id = e;
+    b.style.cssText = `
+      box-sizing: border-box;
+      justify-self: center;
+      background: darkcyan;
+      border-radius: 6px;
+      padding: 0px 3px;
+      margin-bottom: -8px;
+      font-size: 12px;
+      position: relative;
+      z-index: 1;
+      color: white;
+    `;
+    b.textContent = "00:00";
+
+    if (a) {
+      const d = a.querySelectorAll("div")[0];
+      d.prepend(b);
+
+      Hlog(`Adicionado em data-entity-id="${id}"`);
+    } else {
+      Hlog(`data-entity-id="${id}" não encontrado`);
+    }
+  }
+
   // ========= BOOTSTRAP =========
   (async function bootstrap() {
     const SELECTOR = '[data-test-id="header-tablist"]';
@@ -3893,6 +3896,33 @@
       return { data, hora };
     }
   }
+  function EstaResolvido(id) {
+    const e = document.querySelector(
+      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
+    );
+
+    const Alterado = e.querySelector(
+      '[data-test-id="omnitab-dirty-notification"]',
+    );
+    const os = getStatusAntesDoTicket(id).status;
+
+    const EnconAt = EncontrarAtribuido(id);
+
+    if (!EnconAt || !os)
+      return {
+        eMeu: null,
+        Resol: null,
+      };
+
+    let eMeu = config.NomeAt === EnconAt ? 1 : 0;
+
+    let Resol = !Alterado && outrav.includes(os) ? 1 : 0;
+
+    return {
+      eMeu: eMeu,
+      Resol: Resol,
+    };
+  }
 
   function AtualizarTimerChat() {
     if (!(ticketsSet instanceof Map)) return;
@@ -3908,7 +3938,10 @@
       if (e && e.style.background !== "") e.style.background = "";
 
       const el = document.getElementById(`Contador${id}`);
-      const statusNeg = outrav.includes(info.status) ? 1 : 0;
+
+      const os = EstaResolvido(id);
+      const statusNeg = os.eMeu && !os.Resol ? 1 : 0;
+
       if (!el) {
         if (!statusNeg) addContagem(id); // cria contador se não existir
 
@@ -3942,11 +3975,7 @@
         el.remove();
       }
 
-      const os = getStatusAntesDoTicket(id).status;
-
-      const EnconAt = EncontrarAtribuido(id);
-
-      if (os && !outrav.includes(os) && config.NomeAt === EnconAt) {
+      if (os.eMeu && !os.Resol) {
         aCont += 1;
       }
     }
@@ -3967,6 +3996,16 @@
     }
 
     const statusEl = ticketSpan.querySelector(".ticket_status_label");
+
+    const oId = document.querySelector(
+      `[data-entity-id="${CSS.escape(numeroTicket)}"][data-test-id="header-tab"]`,
+    );
+
+    const Alterado = oId.querySelector(
+      '[data-test-id="omnitab-dirty-notification"]',
+    );
+
+    const EnconAt = EncontrarAtribuido(numeroTicket);
 
     if (!statusEl) {
       return { resolvido: false, status: "EM ANDAMENTO" };
