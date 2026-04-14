@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat\EmTeste
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.0
+// @version      0.0.0.1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -3929,7 +3929,7 @@
 
     let eMeu = config.NomeAt === EnconAt ? 1 : 0;
 
-    let Resol = !ErroSalv && !Alterado && outrav.includes(os) ? 1 : 0;
+    let Resol = !ErroSalv  && outrav.includes(os) ? 1 : 0;
 
     return {
       eMeu: eMeu,
