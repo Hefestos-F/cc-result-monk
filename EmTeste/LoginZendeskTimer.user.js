@@ -90,7 +90,10 @@
    */
   const Ccor = {
     Offline: "#3a82cf",
+    Alerta: "#992e2e",
     Atualizando: "#c97123ff",
+    Aviso: "#c97123ff",
+    Contagem: "darkcyan",
     Erro: "#992e2e",
     MetaTMA: "#229b8d",
     Principal: "#4c95bd",
@@ -952,7 +955,7 @@
       stt.Atencao !== stt.AtencaoAnt ||
       (stt.Atencao && document.getElementById("cTMA").style.background === "")
     ) {
-      atualizarComoff(stt.Atencao, "cTMA", "#d2661e");
+      atualizarComoff(stt.Atencao, "cTMA", Ccor.Alerta);
       stt.AtencaoAnt = stt.Atencao;
     }
 
@@ -2179,9 +2182,9 @@
       c1aixaDeCor.id = "c1aixaDeCor";
       c1aixaDeCor.append(
         LinhaSelCor(7, "Principal", Ccor.Principal),
-        //LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
-        //LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
-        //LinhaSelCor(10, "Erro", Ccor.Erro),
+        LinhaSelCor(8, "Alerta", Ccor.Alerta),
+        LinhaSelCor(9, "Aviso", Ccor.Aviso),
+        LinhaSelCor(10, "Contagem", Ccor.Contagem),
         //LinhaSelCor(11, "Offline", Ccor.Offline),
         LinhaSelCor(12, "Config", Ccor.Config),
       );
@@ -3896,6 +3899,7 @@
       return { data, hora };
     }
   }
+
   function EstaResolvido(id) {
     const e = document.querySelector(
       `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
@@ -3940,10 +3944,9 @@
       const el = document.getElementById(`Contador${id}`);
 
       const os = EstaResolvido(id);
-      const statusNeg = os.eMeu && !os.Resol ? 1 : 0;
 
       if (!el) {
-        if (!statusNeg) addContagem(id); // cria contador se não existir
+        if (os.eMeu && !os.Resol) addContagem(id); // cria contador se não existir
 
         continue;
       }
@@ -3952,7 +3955,10 @@
       const a = isoParaDataHora(info.seqPrimeiroDatetime); // idem, vindo do ISO salvo
 
       // Só calcula se a data for a mesma
-      if (agora.data !== a.data) continue;
+      if (agora.data !== a.data) {
+        el.remove();
+        continue;
+      }
 
       const c = exibirAHora(agora, 0, a);
       const d = converterParaSegundos(c.hora);
@@ -3964,22 +3970,22 @@
       //const CincS = converterParaSegundos("00:00:05");
 
       el.style.backgroundColor =
-        d > CincM ? Ccor.Erro : d > TresM ? "#d2661e" : "darkcyan";
+        d > CincM ? Ccor.Alerta : d > TresM ? Ccor.Aviso : Ccor.Contagem;
 
-      if (e) e.style.borderBottom = d >= SeisM ? `6px solid ${Ccor.Erro}` : "";
+      if (e) e.style.borderBottom = d >= SeisM ? `6px solid ${Ccor.Alerta}` : "";
 
       // --- TEXTO DO CONTADOR ---
       el.textContent = tempoEncurtado(c.hora);
 
-      if (statusNeg) {
+      if (os.Resol) {
         el.remove();
       }
 
       if (os.eMeu && !os.Resol) {
         aCont += 1;
       }
+      stt.NdeIdAtivo = aCont;
     }
-    stt.NdeIdAtivo = aCont;
   }
 
   function getStatusAntesDoTicket(numeroTicket) {
