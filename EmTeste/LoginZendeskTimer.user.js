@@ -78,6 +78,7 @@
   };
 
   const DDPausa = {
+    inicioDispo: 0,
     numero: 1,
     inicioUltimaP: 0,
     inicioUltimaPa: 0,
@@ -862,13 +863,13 @@
   async function ContDisp(z) {
     const agora = gerarDataHora();
     if (z) {
-      DDPausa.oDisp = agora;
-    } else if (DDPausa.oDisp) {
-      const duracaoReal = calcularDuracao(DDPausa.oDisp, agora);
+      DDPausa.oDispo = agora;
+    } else if (DDPausa.oDispo) {
+      const duracaoReal = calcularDuracao(DDPausa.oDispo, agora);
       await AddouAtualizarPausas(
         0,
         "Disponivel",
-        DDPausa.oDisp, // inicio: {data,hora}
+        DDPausa.oDispo, // inicio: {data,hora}
         agora, // fim previsto: {data,hora} ou null
         duracaoReal, // duracao prevista: "HH:MM:SS" ou "---"
       );
@@ -955,7 +956,7 @@
       stt.Atencao !== stt.AtencaoAnt ||
       (stt.Atencao && document.getElementById("cTMA").style.background === "")
     ) {
-      atualizarComoff(stt.Atencao, "cTMA", Ccor.Alerta);
+      atualizarComoff(stt.Atencao, "cTMA", Ccor.Aviso);
       stt.AtencaoAnt = stt.Atencao;
     }
 
@@ -1059,8 +1060,14 @@
       TempoPausas.Online + converterParaSegundos(ContAtual),
     );
 
-    time.textContent =
-      ContAtual === "---" || ContAtual === "-?-"
+    let arme = 0;
+    if (OStt === "Disponivel") {
+      arme = exibirAHora(agora, 0, DDPausa.oDispo).hora;
+    }
+
+    time.textContent = arme
+      ? tempoEncurtado(arme)
+      : ContAtual === "---" || ContAtual === "-?-"
         ? ContAtual
         : tempoEncurtado(ContAtual);
 
@@ -3905,36 +3912,34 @@
   }
 
   function EstaResolvido(id) {
-    const e = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
+    const f = document.querySelector(
+      `[data-test-id="ticket-${CSS.escape(id)}-standard-layout"]`,
     );
 
-    const Alterado = e.querySelector(
-      '[data-test-id="omnitab-dirty-notification"]',
-    );
-
-    const ErroSalv = e.querySelector(
+    const erroSalv = f?.querySelector(
       '[data-test-id="ticket_saving_error_notification"]',
     );
 
-    const os = getStatusAntesDoTicket(id).status;
+    const os = getStatusAntesDoTicket(id)?.status;
+    const enconAt = EncontrarAtribuido(id);
 
-    const EnconAt = EncontrarAtribuido(id);
-
-    if (!EnconAt || !os)
+    // fallback seguro do cache
+    if (!os || !enconAt) {
+      Hlog("Falso");
       return {
-        eMeu: null,
-        Resol: null,
+        eMeu: stt.StatusTk?.[id]?.eMeu ?? 0,
+        resol: stt.StatusTk?.[id]?.resol ?? 0,
       };
+    }
 
-    let eMeu = config.NomeAt === EnconAt ? 1 : 0;
+    const eMeu = config.NomeAt === enconAt ? 1 : 0;
 
-    let Resol = !ErroSalv  && outrav.includes(os) ? 1 : 0;
+    const resol = !erroSalv && outrav.includes(os) ? 1 : 0;
 
-    return {
-      eMeu: eMeu,
-      Resol: Resol,
-    };
+    stt.StatusTk[id] = { eMeu, resol };
+
+    Hlog(`Resolvido: ${resol} / Emeu: ${eMeu}`);
+    return { eMeu, resol };
   }
 
   function AtualizarTimerChat() {
