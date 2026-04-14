@@ -2590,11 +2590,15 @@
     const CaixaConfig = document.getElementById("CaixaConfig");
     const CaiDPa = document.getElementById("CaiDPa");
 
+    if (qq === "cor8") Ccor.Alerta = Ccor.Varian;
+    if (qq === "cor9") Ccor.Aviso = Ccor.Varian;
+    if (qq === "cor10") Ccor.Contagem = Ccor.Varian;
+    if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (qq === "cor7") {
       Ccor.Principal = Ccor.Varian;
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
-    if (qq === "cor12") Ccor.Config = Ccor.Varian;
+
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
