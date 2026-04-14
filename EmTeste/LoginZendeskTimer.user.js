@@ -3908,6 +3908,11 @@
     const Alterado = e.querySelector(
       '[data-test-id="omnitab-dirty-notification"]',
     );
+
+    const ErroSalv = e.querySelector(
+      '[data-test-id="ticket_saving_error_notification"]',
+    );
+
     const os = getStatusAntesDoTicket(id).status;
 
     const EnconAt = EncontrarAtribuido(id);
@@ -3920,7 +3925,7 @@
 
     let eMeu = config.NomeAt === EnconAt ? 1 : 0;
 
-    let Resol = !Alterado && outrav.includes(os) ? 1 : 0;
+    let Resol = !ErroSalv && !Alterado && outrav.includes(os) ? 1 : 0;
 
     return {
       eMeu: eMeu,
@@ -3972,7 +3977,8 @@
       el.style.backgroundColor =
         d > CincM ? Ccor.Alerta : d > TresM ? Ccor.Aviso : Ccor.Contagem;
 
-      if (e) e.style.borderBottom = d >= SeisM ? `6px solid ${Ccor.Alerta}` : "";
+      if (e)
+        e.style.borderBottom = d >= SeisM ? `6px solid ${Ccor.Alerta}` : "";
 
       // --- TEXTO DO CONTADOR ---
       el.textContent = tempoEncurtado(c.hora);
