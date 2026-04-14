@@ -3925,7 +3925,7 @@
 
     let eMeu = config.NomeAt === EnconAt ? 1 : 0;
 
-    let Resol = !ErroSalv && outrav.includes(os) ? 1 : 0;
+    let Resol = !ErroSalv && !Alterado && outrav.includes(os) ? 1 : 0;
 
     return {
       eMeu: eMeu,
