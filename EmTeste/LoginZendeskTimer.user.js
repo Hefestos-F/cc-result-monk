@@ -83,6 +83,7 @@
     inicioUltimaP: 0,
     inicioUltimaPa: 0,
     StatusANT: "",
+    apausaAnt: "",
     oDisp: {},
   };
 
@@ -256,21 +257,23 @@
 
     if (!el) {
       Hlog("Alteração aconteceu, mas ainda sem status");
-      stt.Status = "---";
+      DDPausa.statusAtual = "---";
       return (stt.andament = 1);
     }
     const Onome = BuscarNomePerfil();
-    if (Onome && config.NomeAt !== Onome) config.NomeAt = Onome;
+    if (Onome && config.NomeAt !== Onome) {
+      config.NomeAt = Onome;
+      SalvandoVariConfig(1);
+    }
 
-    let statusAtual = formatPrimeiroNome(el.textContent.trim());
-    if (statusAtual === "Pausa") statusAtual = "Particular";
+    DDPausa.statusAtual = formatPrimeiroNome(el.textContent.trim());
+
+    if (DDPausa.statusAtual === "Pausa") DDPausa.statusAtual = "Particular";
     //Hlog(`Status: ${statusAtual}`);
 
     // Se não mudou, não faz nada
 
-    stt.Status = statusAtual;
-
-    if (DDPausa.StatusANT === stt.Status) {
+    if (DDPausa.StatusANT === DDPausa.statusAtual) {
       return (stt.andament = 1);
     }
 
@@ -278,8 +281,8 @@
     // 3) Atualiza status anterior
     // ==========================================================
 
-    Hlog(`Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`);
-    DDPausa.StatusANT = stt.Status;
+    Hlog(`Troca de Status: ${DDPausa.statusAtual} / ant: ${DDPausa.StatusANT}`);
+    DDPausa.StatusANT = DDPausa.statusAtual;
 
     // Helpers
     const duracaoPrevistaPorStatus = (s) => {
@@ -324,11 +327,9 @@
         TempoPausas.Online = somarDuracoes().totalSegundos;
       }
 
-    
-
       // Só executa lógica se NÃO estiver Offline e se houve mudança
-      if (stt.Status.includes("Offline")) {
-        Hlog(`Inclui Off ${stt.Status}`);
+      if (DDPausa.statusAtual.includes("Offline")) {
+        Hlog(`Inclui Off ${DDPausa.statusAtual}`);
         return (stt.andament = 1);
       }
 
@@ -336,7 +337,7 @@
       DDPausa.numero += 1;
       if (DDPausa.numero > 100) DDPausa.numero = 1;
 
-      const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
+      const duracaoPrevista = duracaoPrevistaPorStatus(DDPausa.statusAtual);
       let fimPrevistoObj = null;
 
       if (duracaoPrevista) {
@@ -354,7 +355,7 @@
       // Cria/atualiza pausa no array + IndexedDB
       await AddouAtualizarPausas(
         DDPausa.numero,
-        stt.Status,
+        DDPausa.statusAtual,
         agora, // inicio: {data,hora}
         fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
         "---", // duracao prevista: "HH:MM:SS" ou "---"
@@ -929,13 +930,13 @@
       vDataX.textContent = agora.hora;
     }
 
-    stt.Encontrado = stt.Status === "---" ? 0 : 1;
+    stt.Encontrado = DDPausa.statusAtual === "---" ? 0 : 1;
     let ContAtual = stt.Encontrado ? "0" : "Encontrado";
 
     titulo.textContent = stt.Encontrado
-      ? stt.NdeIdAtivo === 0 && stt.Status === "Online"
+      ? stt.NdeIdAtivo === 0 && DDPausa.statusAtual === "Online"
         ? "Disponivel"
-        : stt.Status
+        : DDPausa.statusAtual
       : "Não";
     const OStt = titulo.textContent;
 
@@ -952,10 +953,12 @@
       stt.AtencaoAnt = stt.Atencao;
     }
 
-    if (OStt !== stt.apausaAnt) {
-      if (OStt === "Disponivel" || stt.apausaAnt === "Disponivel")
+    if (OStt !== "" && stt.Encontrado && OStt !== DDPausa.apausaAnt) {
+      if (OStt === "Disponivel" || DDPausa.apausaAnt === "Disponivel") {
         ContDisp(OStt === "Disponivel" ? 1 : 0);
-      stt.apausaAnt = OStt;
+        SalvandoVariConfig(1);
+      }
+      DDPausa.apausaAnt = OStt;
     }
 
     if (!InfoV) {
@@ -1037,7 +1040,7 @@
       if (
         !DDPausa.inicioUltimaP ||
         !DDPausa.inicioUltimaP.data ||
-        stt.Status.includes("Offline") ||
+        DDPausa.statusAtual.includes("Offline") ||
         !stt.Encontrado
       ) {
         return;
@@ -1051,8 +1054,6 @@
         : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
 
     TempoPausas.Logado = oshorarios.Logado;
-
-    
 
     let arme = 0;
     if (OStt === "Disponivel") {
@@ -3193,6 +3194,8 @@
   }
 
   function EncontrarAtribuido(id) {
+    let oAtribuido = ticketsSet.has(id).QuemAt;
+    if (oAtribuido) return oAtribuido;
     // 1. Container do ticket
     const ticket = document.querySelector(
       `[data-test-id="ticket-${id}-standard-layout"]`,
@@ -3209,12 +3212,8 @@
     const elementosComTitle = assigneeField.querySelectorAll("[title]");
     if (elementosComTitle.length < 2) return null;
 
-    let oAtribuido = ticketsSet.has(id).QuemAt
-      ? ticketsSet.has(id).QuemAt
-      : elementosComTitle[1].getAttribute("title");
-
     // 4. Retorna o title do segundo item
-    return oAtribuido;
+    return elementosComTitle[1].getAttribute("title");
   }
 
   function BuscarNomePerfil() {
@@ -3936,7 +3935,7 @@
 
     stt.StatusTk[id] = { eMeu, Resol };
 
-    Hlog(`Resolvido: ${Resol} / Emeu: ${eMeu}`);
+    //Hlog(`Resolvido: ${Resol} / Emeu: ${eMeu}`);
     return { eMeu, Resol };
   }
 
