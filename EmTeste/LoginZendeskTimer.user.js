@@ -78,13 +78,14 @@
   };
 
   const DDPausa = {
+    oDispo: "",
+    statusAtual: "",
     inicioDispo: 0,
     numero: 1,
     inicioUltimaP: 0,
     inicioUltimaPa: 0,
     StatusANT: "",
     apausaAnt: "",
-    oDisp: {},
   };
 
   /**
@@ -207,20 +208,17 @@
     criarObjetoFlutuante();
   }
 
-  function observarItem(aoMudar) {
+  function observarItem(aoMudar, target = document.body) {
     const observer = new MutationObserver(() => {
       if (stt.andament) {
         stt.andament = 0;
         aoMudar();
       }
-      // Desconecta somente se já achamos o valor (stt.observa = 0)
-      if (stt.observa === 0) {
-        observer.disconnect();
-        Hlog("observer Desconectado");
-      }
+      if (stt.observa === 0) observer.disconnect();
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(target, { childList: true, subtree: true });
+    return observer;
   }
 
   /**

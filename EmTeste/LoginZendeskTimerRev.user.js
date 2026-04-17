@@ -159,6 +159,29 @@
     console.info(PreFixo, ...args);
   }
 
+  // ========= CONFIG =========
+  const DEBOUNCE_MS = 300;
+
+  // Referências globais para que possamos desconectar depois
+  //let OBS_ATIVO = true; // flag opcional para bloquear reconexões enquanto limpa
+  let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
+  let docObs = null; // observer temporário usado até o tablist aparecer
+  let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
+
+  // ========= ESTADO =========
+
+  /** @typedef {{ id: string, datatime: string|null, nome: string|null }} TicketInfo */
+
+  /** @type {Map<string, TicketInfo>} */
+  const ticketsSet = new Map();
+
+  /** @type {Map<string, MutationObserver>} */
+  const ticketObservers = new Map();
+  /** @type {Map<string, Function>} */
+  const ticketDebouncers = new Map();
+
+  let tooltipObserver = null;
+
   RecuperarTVariaveis();
 
   /**
@@ -323,8 +346,6 @@
         Hlog(`fim: ${JSON.stringify(agora)}`);
         TempoPausas.Online = somarDuracoes().totalSegundos;
       }
-
-    
 
       // Só executa lógica se NÃO estiver Offline e se houve mudança
       if (stt.Status.includes("Offline")) {
@@ -1052,8 +1073,6 @@
 
     TempoPausas.Logado = oshorarios.Logado;
 
-    
-
     let arme = 0;
     if (OStt === "Disponivel") {
       arme = exibirAHora(agora, 0, DDPausa.oDispo).hora;
@@ -1103,6 +1122,163 @@
       }
     }
   }
+
+  // ===============================
+  // LOOP MELHORADO (baseado no original)
+  // ===============================
+
+  let loopEmExecucao = false;
+  let cacheLoopUI = null;
+
+  // Mantém a busca dos elementos do seu código original,
+  // mas com cache para não ficar fazendo query toda hora
+  function obterRefsLoop() {
+    if (
+      cacheLoopUI &&
+      cacheLoopUI.InfoV &&
+      document.body.contains(cacheLoopUI.InfoV)
+    ) {
+      return cacheLoopUI;
+    }
+
+    cacheLoopUI = {
+      time: document.getElementById("vTMA"),
+      titulo: document.getElementById("tTMA"),
+      tLogou: document.getElementById("tLogou"),
+      vLogou: document.getElementById("vLogou"),
+      vSaida: document.getElementById("vSaida"),
+      vLogado: document.getElementById("vLogado"),
+      tFalta: document.getElementById("tFalta"),
+      vFalta: document.getElementById("vFalta"),
+      InfoV: document.getElementById("InfoV"),
+      ContPaCo: document.getElementById("ContPaCo"),
+    };
+
+    return cacheLoopUI;
+  }
+
+  // Evita erro silencioso nas funções chamadas dentro do loop
+  function chamarComSeguranca(fn, nome) {
+    try {
+      if (typeof fn === "function") {
+        return fn();
+      }
+    } catch (err) {
+      console.error("Erro em " + nome + ":", err);
+    }
+  }
+
+  // Só troca texto se realmente mudou
+  function atualizarTextoSeguro(el, valor) {
+    if (!el) return;
+    const novoValor = String(valor ?? "---");
+    if (el.textContent !== novoValor) {
+      el.textContent = novoValor;
+    }
+  }
+
+  // Atualização visual centralizada
+  function atualizarInterfaceLoop(refs) {
+    if (!refs) return;
+
+    // Exemplo de comportamento visual aproveitando seus estados
+    if (refs.titulo) {
+      atualizarTextoSeguro(refs.titulo, stt.Estouro ? "TMA / ALERTA" : "TMA");
+    }
+
+    // Destaques visuais
+    atualizarComoff(!!stt.Estouro, "vTMA", Ccor.Alerta || Ccor.Erro);
+    atualizarComoff(!!stt.tempoCumprido, "vLogado", Ccor.MetaTMA);
+    atualizarComoff(
+      !!stt.temHorasExtras,
+      "vSaida",
+      Ccor.Aviso || Ccor.Atualizando,
+    );
+
+    // Mostra/oculta área de pausas conforme estado
+    if (refs.ContPaCo) {
+      refs.ContPaCo.style.display = stt.AbaPausas ? "" : "none";
+    }
+
+    // Ajuste visual leve da área principal
+    if (refs.InfoV) {
+      refs.InfoV.style.opacity = config.OBS_ATIVO ? "1" : "0.85";
+    }
+  }
+
+  // Se quiser concentrar cálculos do loop, use essa função
+  function atualizarDadosLoop(refs) {
+    if (!refs) return;
+
+    // Aqui você encaixa sua lógica real
+    // Exemplo seguro usando estados/valores já existentes
+    if (TempoPausas) {
+      if (refs.vLogou)
+        atualizarTextoSeguro(
+          refs.vLogou,
+          converterParaTempo(TempoPausas.Logou || 0),
+        );
+      if (refs.vSaida)
+        atualizarTextoSeguro(
+          refs.vSaida,
+          converterParaTempo(TempoPausas.Saida || 0),
+        );
+      if (refs.vLogado)
+        atualizarTextoSeguro(
+          refs.vLogado,
+          converterParaTempo(TempoPausas.Logado || 0),
+        );
+      if (refs.vFalta)
+        atualizarTextoSeguro(
+          refs.vFalta,
+          converterParaTempo(TempoPausas.Falta || 0),
+        );
+    }
+  }
+
+  // Função principal do loop
+  function oLoop() {
+    if (loopEmExecucao) return;
+    loopEmExecucao = true;
+
+    try {
+      // 1) Atualiza proteção/seleção visual
+      chamarComSeguranca(MudarOitemProt, "MudarOitemProt");
+
+      // 2) Atualiza observação do chat se estiver ativa
+      if (config.OBS_ATIVO) {
+        chamarComSeguranca(AtualizarTimerChat, "AtualizarTimerChat");
+      }
+
+      // 3) Obtém refs da UI
+      const refs = obterRefsLoop();
+
+      // Se a UI ainda não existe, sai sem quebrar
+      if (!refs.InfoV) return;
+
+      // 4) Atualiza valores
+      atualizarDadosLoop(refs);
+
+      // 5) Atualiza visual
+      atualizarInterfaceLoop(refs);
+    } catch (err) {
+      console.error("Erro geral no oLoop:", err);
+    } finally {
+      loopEmExecucao = false;
+    }
+  }
+
+  // Inicialização do loop
+  function iniciarLoopPrincipal() {
+    // Executa uma vez imediatamente
+    oLoop();
+
+    // Depois mantém o intervalo original
+    return setInterval(oLoop, 1000);
+  }
+
+  // Chamada principal
+  const loopPrincipalID = iniciarLoopPrincipal();
 
   function MudarOitemProt() {
     const itens = document.querySelectorAll("[data-selected]");
@@ -3097,15 +3273,6 @@
     return caixa;
   }
 
-  // ========= CONFIG =========
-  const DEBOUNCE_MS = 300;
-
-  // Referências globais para que possamos desconectar depois
-  //let OBS_ATIVO = true; // flag opcional para bloquear reconexões enquanto limpa
-  let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
-  let docObs = null; // observer temporário usado até o tablist aparecer
-  let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
-
   // ========= HELPERS =========
   function debounce(fn, wait) {
     let t;
@@ -3157,20 +3324,6 @@
       );
     });
   }
-
-  // ========= ESTADO =========
-
-  /** @typedef {{ id: string, datatime: string|null, nome: string|null }} TicketInfo */
-
-  /** @type {Map<string, TicketInfo>} */
-  const ticketsSet = new Map();
-
-  /** @type {Map<string, MutationObserver>} */
-  const ticketObservers = new Map();
-  /** @type {Map<string, Function>} */
-  const ticketDebouncers = new Map();
-
-  let tooltipObserver = null;
 
   // ========= COLETA DE IDS =========
   function ObterEntityId() {
