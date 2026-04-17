@@ -3928,7 +3928,7 @@
 
     // fallback seguro do cache
     if (!os || !enconAt) {
-      Hlog("Falso");
+      //Hlog("Falso");
       return {
         eMeu: stt.StatusTk?.[id]?.eMeu ?? 0,
         Resol: stt.StatusTk?.[id]?.Resol ?? 0,
