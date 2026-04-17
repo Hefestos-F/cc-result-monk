@@ -1028,9 +1028,11 @@
         ? dadosPrimLogue
         : 0;
 
-    const oshorarios = horarios(Logou, TempoPausas.Logado);
+    const oshorarios = horarios(Logou, TempoPausas.LogadoSomas);
 
     TempoPausas.Logou = oshorarios.Logou.hora;
+
+    if (!TempoPausas.Online) TempoPausas.Online = somarDuracoes().totalSegundos;
 
     TempoPausas.LogadoSomas = converterParaTempo(
       TempoPausas.Online + converterParaSegundos(ContAtual),
@@ -2638,6 +2640,8 @@
     atualizarSlidePosi("BotTFuso", config.TesteHora);
     atualizarSlidePosi("BotNotEst", config.notiEstouro);
     atualizarSlidePosi("BotIdIForcSalv", stt.ForceSalv);
+    atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);
+    atualizarSlidePosi("BotRecalc", !config.logueSalvo);
   }
 
   /**
