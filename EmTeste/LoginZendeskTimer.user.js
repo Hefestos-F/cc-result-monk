@@ -3752,7 +3752,7 @@
       z-index: 1;
       color: white;
     `;
-    b.textContent = "00:00";
+    b.textContent = "...";
 
     if (a) {
       const d = a.querySelectorAll("div")[0];
@@ -3956,7 +3956,6 @@
       const e = document.querySelector(
         `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
       );
-      if (e && e.style.background !== "") e.style.background = "";
 
       const el = document.getElementById(`Contador${id}`);
 
@@ -3973,6 +3972,7 @@
 
       // Só calcula se a data for a mesma
       if (agora.data !== a.data) {
+        if (e && e.style.borderBottom !== "") e.style.borderBottom = "";
         el.remove();
         continue;
       }
@@ -3996,6 +3996,7 @@
       el.textContent = tempoEncurtado(c.hora);
 
       if (os.Resol) {
+        if (e && e.style.borderBottom !== "") e.style.borderBottom = "";
         el.remove();
       }
 
