@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat\EmTeste
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.2
+// @version      0.0.0.3
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -55,7 +55,6 @@
     Estour1: 0,
     BeepRet: 0,
     Encontrado: 0,
-    NdeIdAtivo: 0,
     apausaAnt: "",
     Atencao: 0,
     AtencaoAnt: 0,
@@ -86,6 +85,7 @@
     inicioUltimaPa: 0,
     StatusANT: "",
     apausaAnt: "",
+    NdeIdAtivo: 0,
   };
 
   /**
@@ -160,6 +160,29 @@
   function Hinfo(...args) {
     console.info(PreFixo, ...args);
   }
+
+  // ========= CONFIG =========
+  const DEBOUNCE_MS = 300;
+
+  // Referências globais para que possamos desconectar depois
+  //let OBS_ATIVO = true; // flag opcional para bloquear reconexões enquanto limpa
+  let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
+  let docObs = null; // observer temporário usado até o tablist aparecer
+  let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
+
+  // ========= ESTADO =========
+
+  /** @typedef {{ id: string, datatime: string|null, nome: string|null }} TicketInfo */
+
+  /** @type {Map<string, TicketInfo>} */
+  const ticketsSet = new Map();
+
+  /** @type {Map<string, MutationObserver>} */
+  const ticketObservers = new Map();
+  /** @type {Map<string, Function>} */
+  const ticketDebouncers = new Map();
+
+  let tooltipObserver = null;
 
   RecuperarTVariaveis();
 
@@ -932,14 +955,16 @@
     let ContAtual = stt.Encontrado ? "0" : "Encontrado";
 
     titulo.textContent = stt.Encontrado
-      ? stt.NdeIdAtivo === 0 && DDPausa.statusAtual === "Online"
+      ? DDPausa.NdeIdAtivo === 0 && DDPausa.statusAtual === "Online"
         ? "Disponivel"
         : DDPausa.statusAtual
       : "Não";
     const OStt = titulo.textContent;
 
     stt.Atencao =
-      OStt === "Particular" || (OStt === "Pré" && stt.NdeIdAtivo === 0) ? 1 : 0;
+      OStt === "Particular" || (OStt === "Pré" && DDPausa.NdeIdAtivo === 0)
+        ? 1
+        : 0;
 
     time.textContent = ContAtual;
 
@@ -951,12 +976,16 @@
       stt.AtencaoAnt = stt.Atencao;
     }
 
+    /*Hlog(
+      `DDPausa.apausaAnt:${DDPausa.apausaAnt} / OStt:${OStt} / DDPausa.apausaAnt:${DDPausa.apausaAnt}`,
+    );*/
+
     if (OStt !== "" && stt.Encontrado && OStt !== DDPausa.apausaAnt) {
       if (OStt === "Disponivel" || DDPausa.apausaAnt === "Disponivel") {
         ContDisp(OStt === "Disponivel" ? 1 : 0);
-        SalvandoVariConfig(1);
       }
       DDPausa.apausaAnt = OStt;
+      SalvandoVariConfig(1);
     }
 
     if (!InfoV) {
@@ -3096,14 +3125,7 @@
     return caixa;
   }
 
-  // ========= CONFIG =========
-  const DEBOUNCE_MS = 300;
-
-  // Referências globais para que possamos desconectar depois
-  //let OBS_ATIVO = true; // flag opcional para bloquear reconexões enquanto limpa
-  let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
-  let docObs = null; // observer temporário usado até o tablist aparecer
-  let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
+  //partes do times >>>
 
   // ========= HELPERS =========
   function debounce(fn, wait) {
@@ -3156,20 +3178,6 @@
       );
     });
   }
-
-  // ========= ESTADO =========
-
-  /** @typedef {{ id: string, datatime: string|null, nome: string|null }} TicketInfo */
-
-  /** @type {Map<string, TicketInfo>} */
-  const ticketsSet = new Map();
-
-  /** @type {Map<string, MutationObserver>} */
-  const ticketObservers = new Map();
-  /** @type {Map<string, Function>} */
-  const ticketDebouncers = new Map();
-
-  let tooltipObserver = null;
 
   // ========= COLETA DE IDS =========
   function ObterEntityId() {
@@ -3994,7 +4002,10 @@
       if (os.eMeu && !os.Resol) {
         aCont += 1;
       }
-      stt.NdeIdAtivo = aCont;
+      if (aCont !== DDPausa.NdeIdAtivo) {
+        DDPausa.NdeIdAtivo = aCont;
+        SalvandoVariConfig(1);
+      }
     }
   }
 
