@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat\EmTeste
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.3
+// @version      0.0.0.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -404,37 +404,40 @@
   }
 
   async function verifiDataLogue(x = 0) {
-    const a = gerarDataHora();
-    const e = exibirHora(a, 0, "23:59:59");
+    const as = gerarDataHora();
+    const is = "23:59:59";
+    as.hora = is;
+    const e = exibirHora(as, 0, is);
 
+    let y = 0;
     if (
       !dadosPrimLogue ||
-      (dadosPrimLogue.data !== a.data && dadosPrimLogue.data !== e.data)
+      (dadosPrimLogue.data !== as.data && dadosPrimLogue.data !== e.data)
     ) {
-      dadosPrimLogue = a;
-      x = 1;
-      ApagarChaveIndexDB(ChavePausas);
-      dadosdePausas = [];
-      TempoPausas = {};
-      SalvandoVariConfig(1);
+      y = 1;
     }
 
     const b = exibirHora(dadosPrimLogue, 1, config.TempoEscaladoHoras);
 
     config.logueEntreDatas = dadosPrimLogue.data !== b.data ? 1 : 0;
-    if (!config.logueEntreDatas && dadosPrimLogue.data !== a.data) {
+    if (!config.logueEntreDatas && dadosPrimLogue.data !== as.data) {
+      y = 1;
+    }
+    if (y) {
       ApagarChaveIndexDB(ChavePausas);
-      dadosPrimLogue = a;
+      dadosPrimLogue = as;
       dadosdePausas = [];
       TempoPausas = {};
       SalvandoVariConfig(1);
       x = 1;
     }
+
     Hlog(`
       config.logueEntreDatas = ${config.logueEntreDatas} /
       dadosPrimLogue.data = ${dadosPrimLogue.data} /
       b.data = ${b.data}
       `);
+
     if (x) await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
   }
 
@@ -1044,7 +1047,9 @@
       //Hlog(`Newlog:${JSON.stringify(newlog)}`);
 
       if (
-        (!config.LogueManual && compararDatas(dadosPrimLogue, newlog)) ||
+        (!config.LogueManual &&
+          compararDatas(dadosPrimLogue, newlog) &&
+          !DDPausa.statusAtual.includes("Offline")) ||
         stt.ForceSalv
       ) {
         dadosPrimLogue = newlog;
