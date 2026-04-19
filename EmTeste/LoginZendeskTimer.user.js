@@ -1055,7 +1055,10 @@
         dadosPrimLogue = newlog;
         verifiDataLogue(1);
 
-        if (stt.ForceSalv) stt.ForceSalv = 0;
+        if (stt.ForceSalv) {
+          stt.ForceSalv = 0;
+          atualizarVisual();
+        }
       }
     }
 
@@ -1157,7 +1160,10 @@
         estado.borderRadius !== item.style.borderRadius
       ) {
         item.style.borderRadius = "20px 20px 0px 0px";
-        item.style.borderTop = itemSele === "true" ? "2px solid #1b81ff" : "";
+
+        ["borderTop", "borderRight", "borderLeft"].forEach((a) => {
+          item.style[a] = itemSele === "true" ? "2px solid #1b81ff" : "";
+        });
 
         stt.idSelecionado[oId] = {
           dataselected: itemSele,
@@ -3421,21 +3427,24 @@
 
   // ========= OBSERVAÇÃO DE TICKET =========
   async function observarTicket(id) {
+    // Evita criar mais de um observer para o mesmo ticket
     if (ticketObservers.has(id)) return;
 
-    const ostatus = EstaResolvido(id);
-
-    if (ostatus.eMeu && !ostatus.Resol) return;
-
+    // Função que localiza o container de logs do ticket pelo data-ticket-id
     const selector = () =>
       document.querySelector(
         `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
       );
 
+    // Tenta encontrar o elemento imediatamente
     let root = selector();
+
+    // Se não encontrar, aguarda o elemento aparecer no DOM (até 20s)
     if (!root) {
       root = await waitForElement(selector, document, 20000);
     }
+
+    // Se mesmo após aguardar o elemento não existir, registra um aviso e sai
     if (!root) {
       Hwarn(
         `Não foi possível localizar o omni-log-container para o ticket ${id} (timeout).`,
@@ -3443,22 +3452,30 @@
       return;
     }
 
+    // Cria um debounce para o ticket caso ainda não exista
     if (!ticketDebouncers.has(id)) {
       ticketDebouncers.set(
         id,
         debounce(() => handleTicketChange(id), DEBOUNCE_MS),
       );
     }
+
+    // Recupera a função debounced associada ao ticket
     const debounced = ticketDebouncers.get(id);
 
+    // Cria um MutationObserver para reagir a mudanças no DOM
     const obs = new MutationObserver(() => {
+      // Ao detectar alterações, chama o handler de forma debounced
       debounced();
     });
 
-    // 👉 Pega datetime imediatamente
+    // 👉 Executa imediatamente para capturar o estado inicial (ex.: datetime atual)
     handleTicketChange(id);
 
+    // Observa adições/remoções de nós dentro do container, inclusive em subárvores
     obs.observe(root, { childList: true, subtree: true });
+
+    // Armazena o observer para evitar duplicações e permitir controle futuro
     ticketObservers.set(id, obs);
   }
 
