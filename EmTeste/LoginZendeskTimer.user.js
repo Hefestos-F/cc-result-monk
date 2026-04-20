@@ -957,7 +957,11 @@
     }
 
     stt.Encontrado = DDPausa.statusAtual === "---" ? 0 : 1;
-    let ContAtual = stt.Encontrado ? "0" : "Encontrado";
+    let ContAtual = 0;
+
+    if (!stt.Encontrado) {
+      ContAtual = "Encontrado";
+    }
 
     titulo.textContent = stt.Encontrado
       ? DDPausa.NdeIdAtivo === 0 && DDPausa.statusAtual === "Online"
@@ -1027,11 +1031,32 @@
 
     verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
 
+    ContAtual = !stt.Encontrado
+      ? "---"
+      : !DDPausa.inicioUltimaP || !DDPausa.inicioUltimaP.data
+        ? "-?-"
+        : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
+
+    let arme = 0;
+    if (OStt === "Disponivel") {
+      arme = exibirAHora(agora, 0, DDPausa.oDispo).hora;
+    }
+
+    time.textContent = arme
+      ? tempoEncurtado(arme)
+      : ContAtual === "---" || ContAtual === "-?-"
+        ? ContAtual
+        : tempoEncurtado(ContAtual);
+
     const Logou = config.LogueManual
       ? dadosLogueManu
       : config.logueSalvo
         ? dadosPrimLogue
         : 0;
+
+    TempoPausas.LogadoSomas = converterParaTempo(
+      TempoPausas.Online + converterParaSegundos(ContAtual),
+    );
 
     const oshorarios = horarios(Logou, TempoPausas.LogadoSomas);
 
@@ -1039,9 +1064,7 @@
 
     if (!TempoPausas.Online) TempoPausas.Online = somarDuracoes().totalSegundos;
 
-    TempoPausas.LogadoSomas = converterParaTempo(
-      TempoPausas.Online + converterParaSegundos(ContAtual),
-    );
+    TempoPausas.Logado = oshorarios.Logado;
 
     if (TempoPausas.LogadoSomas) {
       const newlog = exibirHora(agora, 0, TempoPausas.LogadoSomas);
@@ -1086,25 +1109,6 @@
         return;
       }
     }
-
-    ContAtual = !stt.Encontrado
-      ? "---"
-      : !DDPausa.inicioUltimaP || !DDPausa.inicioUltimaP.data
-        ? "-?-"
-        : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
-
-    TempoPausas.Logado = oshorarios.Logado;
-
-    let arme = 0;
-    if (OStt === "Disponivel") {
-      arme = exibirAHora(agora, 0, DDPausa.oDispo).hora;
-    }
-
-    time.textContent = arme
-      ? tempoEncurtado(arme)
-      : ContAtual === "---" || ContAtual === "-?-"
-        ? ContAtual
-        : tempoEncurtado(ContAtual);
 
     TempoPausas.Falta = oshorarios.Falta;
 
