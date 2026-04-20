@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat\EmTeste
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.4
+// @version      0.0.0.5
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -281,10 +281,12 @@
       DDPausa.statusAtual = "---";
       return (stt.andament = 1);
     }
-    const Onome = BuscarNomePerfil();
-    if (Onome && config.NomeAt !== Onome) {
-      config.NomeAt = Onome;
-      SalvandoVariConfig(1);
+
+    if (!config.NomeAt) {
+      BuscarNomePerfil().then((nome) => {
+        config.NomeAt = nome;
+        if (nome) SalvandoVariConfig(1);
+      });
     }
 
     DDPausa.statusAtual = formatPrimeiroNome(el.textContent.trim());
@@ -1049,7 +1051,8 @@
       if (
         (!config.LogueManual &&
           compararDatas(dadosPrimLogue, newlog) &&
-          !DDPausa.statusAtual.includes("Offline")) ||
+          DDPausa.statusAtual &&
+          !["Offline", "---", ""].includes(DDPausa.statusAtual)) ||
         stt.ForceSalv
       ) {
         dadosPrimLogue = newlog;
@@ -3237,24 +3240,70 @@
     return elementosComTitle[1].getAttribute("title");
   }
 
-  function BuscarNomePerfil() {
-    // guia único permitido
-    const viewProfile = document.querySelector(
+  async function BuscarNomePerfil() {
+    const oBotao = document.querySelector(
+      '[data-test-id="toolbar-profile-menu-button"]',
+    );
+    if (!oBotao) return null;
+
+    // função auxiliar para esperar um elemento aparecer
+    function esperarElemento(seletor, timeout = 3000) {
+      return new Promise((resolve) => {
+        const inicio = Date.now();
+
+        const intervalo = setInterval(() => {
+          const el = document.querySelector(seletor);
+          if (el) {
+            clearInterval(intervalo);
+            resolve(el);
+          }
+
+          if (Date.now() - inicio > timeout) {
+            clearInterval(intervalo);
+            resolve(null);
+          }
+        }, 100);
+      });
+    }
+
+    let viewProfile = document.querySelector(
       '[data-test-id="toolbar-profile-menu-view-profile"]',
     );
-    if (!viewProfile) return null;
 
-    // sobe para o elemento pai mais próximo que contenha um div com title
+    let cliquei = 0;
+    // Se o menu não estiver aberto, abre
+    if (!viewProfile) {
+      oBotao.click();
+
+      cliquei = 1;
+      viewProfile = await esperarElemento(
+        '[data-test-id="toolbar-profile-menu-view-profile"]',
+      );
+
+      if (!viewProfile) {
+        // não apareceu, fecha o menu e sai
+        oBotao.click();
+        return null;
+      }
+    }
+
+    // sobe na árvore procurando div com title
     let atual = viewProfile.parentElement;
+    let nome = null;
+
     while (atual) {
       const divComTitle = atual.querySelector(":scope > div[title]");
       if (divComTitle) {
-        return divComTitle.getAttribute("title");
+        nome = divComTitle.getAttribute("title");
+        break;
       }
       atual = atual.parentElement;
     }
 
-    return null;
+    // fecha o menu se ele foi aberto
+    if (cliquei) oBotao.click();
+
+    return nome;
   }
 
   // ========= SYNC DE IDS =========
@@ -3278,7 +3327,10 @@
           id,
           datatime: null,
           nome: null,
+          seqQtd: null,
+          seqPrimeiroDatetime: null,
           status: null,
+          QuemAt: null,
         });
 
         observarTicket(id);
