@@ -1759,7 +1759,7 @@
                 text-align: center;
             }
                 .BackGroundBot {
-            background-color: ${escurecer(Ccor.Config)};
+            
     }
             .separadorC {
                 width: 100%;
@@ -1994,7 +1994,7 @@
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            
+            background-color: ${escurecer(Ccor.Config)};
             color: white;
             font-size: 12px;
             height: 22px;
