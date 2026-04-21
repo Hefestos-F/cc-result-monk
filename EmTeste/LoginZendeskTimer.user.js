@@ -50,6 +50,7 @@
     Estouro: 0,
     AbaPausas: 0,
     AbaConfig: 0,
+    AbaOutros: 0,
     tempoCumprido: 0,
     temHorasExtras: 0,
     Estour1: 0,
@@ -61,6 +62,9 @@
     ForceSalv: 0,
     idSelecionado: {},
     StatusTk: {},
+    tentativaNome: 0,
+    seFalharAnt: 0,
+    seFalhar: 0,
   };
 
   let TempoPausas = {
@@ -94,10 +98,8 @@
   const Ccor = {
     Offline: "#3a82cf",
     Alerta: "#992e2e",
-    Atualizando: "#c97123ff",
     Aviso: "#c97123ff",
     Contagem: "darkcyan",
-    Erro: "#992e2e",
     MetaTMA: "#229b8d",
     Principal: "#4c95bd",
     AreaAr: "#337091",
@@ -111,8 +113,9 @@
    */
   const CorPad = {
     Offline: "#3a82cf",
-    Atualizando: "#c97123ff",
-    Erro: "#992e2e",
+    Alerta: "#992e2e",
+    Aviso: "#c97123ff",
+    Contagem: "darkcyan",
     MetaTMA: "#229b8d",
     Principal: "#4c95bd",
     AreaAr: "#337091",
@@ -122,6 +125,12 @@
   };
 
   const outrav = ["RESOLVIDO", "FECHADO", "NOVO"];
+
+  const asAbas = [
+    { id: "CaixaConfig", chave: "AbaConfig" },
+    { id: "CaiDPa", chave: "AbaPausas" },
+    { id: "CaiOutro", chave: "AbaOutros" },
+  ];
 
   // Chaves usadas no IndexedDB/local storage
   const ChavePausas = "DadosDePausas";
@@ -282,10 +291,11 @@
       return (stt.andament = 1);
     }
 
-    if (!config.NomeAt) {
+    if (!config.NomeAt && stt.tentativaNome < 3) {
       BuscarNomePerfil().then((nome) => {
         config.NomeAt = nome;
         if (nome) SalvandoVariConfig(1);
+        stt.tentativaNome = 0;
       });
     }
 
@@ -340,7 +350,7 @@
         config.pausalimitada = 0;
         stt.Estouro = 0;
         stt.Estour1 = 0;
-        atualizarComoff(0, "cTMA", Ccor.Erro);
+        atualizarComoff(0, "cTMA", Ccor.Alerta);
         SalvandoVariConfig(1);
         // Calcula duração real (string HH:MM:SS)
         const duracaoReal = calcularDuracao(inicioObj, agora);
@@ -408,7 +418,7 @@
   async function verifiDataLogue(x = 0) {
     const as = gerarDataHora();
     const is = "23:59:59";
-    as.hora = is;
+    //as.hora = is;
     const e = exibirHora(as, 0, is);
 
     let y = 0;
@@ -427,7 +437,7 @@
     }
     if (y) {
       ApagarChaveIndexDB(ChavePausas);
-      dadosPrimLogue = as;
+      dadosPrimLogue = "-?-";
       dadosdePausas = [];
       TempoPausas = {};
       SalvandoVariConfig(1);
@@ -816,6 +826,16 @@
     // Monta estrutura
     div.appendChild(handle);
     div.appendChild(AdicionarCaixaAtualizada());
+
+    const aDivAlert = document.createElement("div");
+    aDivAlert.id = "aDivAlert";
+    aDivAlert.style.cssText = `
+      width: 100%;
+      border-radius: 4px;
+      
+      `;
+
+    div.appendChild(aDivAlert);
     document.body.appendChild(div);
   }
 
@@ -940,6 +960,7 @@
     const ContPaCo = document.getElementById("ContPaCo");
 
     Preenc();
+    asFalhas();
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
 
@@ -959,10 +980,6 @@
     stt.Encontrado = DDPausa.statusAtual === "---" ? 0 : 1;
     let ContAtual = 0;
 
-    if (!stt.Encontrado) {
-      ContAtual = "Encontrado";
-    }
-
     titulo.textContent = stt.Encontrado
       ? DDPausa.NdeIdAtivo === 0 && DDPausa.statusAtual === "Online"
         ? "Disponivel"
@@ -974,8 +991,6 @@
       OStt === "Particular" || (OStt === "Pré" && DDPausa.NdeIdAtivo === 0)
         ? 1
         : 0;
-
-    time.textContent = ContAtual;
 
     if (
       stt.Atencao !== stt.AtencaoAnt ||
@@ -1031,10 +1046,9 @@
 
     verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
 
-    ContAtual = !stt.Encontrado
-      ? "---"
-      : !DDPausa.inicioUltimaP || !DDPausa.inicioUltimaP.data
-        ? "-?-"
+    ContAtual =
+      !DDPausa.inicioUltimaP || !DDPausa.inicioUltimaP.data
+        ? 0
         : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
 
     let arme = 0;
@@ -1042,16 +1056,18 @@
       arme = exibirAHora(agora, 0, DDPausa.oDispo).hora;
     }
 
-    time.textContent = arme
-      ? tempoEncurtado(arme)
-      : ContAtual === "---" || ContAtual === "-?-"
-        ? ContAtual
+    time.textContent = !stt.Encontrado
+      ? "Encontrado"
+      : arme
+        ? tempoEncurtado(arme)
         : tempoEncurtado(ContAtual);
+
+    let DadosAlterPrimLogue = dadosPrimLogue !== "-?-" ? dadosPrimLogue : agora;
 
     const Logou = config.LogueManual
       ? dadosLogueManu
       : config.logueSalvo
-        ? dadosPrimLogue
+        ? DadosAlterPrimLogue
         : 0;
 
     TempoPausas.LogadoSomas = converterParaTempo(
@@ -1073,7 +1089,7 @@
 
       if (
         (!config.LogueManual &&
-          compararDatas(dadosPrimLogue, newlog) &&
+          compararDatas(DadosAlterPrimLogue, newlog) &&
           DDPausa.statusAtual &&
           !["Offline", "---", ""].includes(DDPausa.statusAtual)) ||
         stt.ForceSalv
@@ -1137,7 +1153,7 @@
 
     if (config.pausalimitada && config.notiEstouro) {
       stt.Estouro = compararDatas(agora, TempoPausas.Estouro);
-      atualizarComoff(stt.Estouro, "cTMA", Ccor.Erro);
+      atualizarComoff(stt.Estouro, "cTMA", Ccor.Alerta);
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         stt.Estour1 = 1;
@@ -1146,6 +1162,25 @@
           RepetirBeep();
         }, 15000);
       }
+    }
+  }
+
+  function asFalhas() {
+    const aDivAlert = document.getElementById("aDivAlert");
+
+    if (!aDivAlert) return null;
+
+    let os = !config.NomeAt ? 1 : 0;
+
+    if (
+      (aDivAlert.style.height === "" && os) ||
+      (aDivAlert.style.marginTop === "" && os) ||
+      (aDivAlert.style.height !== "" && !os) ||
+      (aDivAlert.style.marginTop !== "" && !os)
+    ) {
+      aDivAlert.style.height = os ? "5px" : "";
+      aDivAlert.style.marginTop = os ? "5px" : "";
+      aDivAlert.style.background = Ccor.Alerta;
     }
   }
 
@@ -1458,17 +1493,78 @@
         return;
       }
 
-      const b = document.getElementById("CaiDPa");
+      const minhaAba = "CaiDPa";
+
+      const b = document.getElementById(minhaAba);
       if (b) {
         b.remove();
         stt.AbaPausas = 0;
       } else {
-        const c = document.getElementById("CaixaConfig");
-        if (c) {
-          c.remove();
-          stt.AbaConfig = 0;
-        }
+        asAbas.forEach(({ id, chave }) => {
+          if (minhaAba === id) return;
+          const oid = document.getElementById(id);
+          if (oid) {
+            oid.remove();
+            stt[chave] = 0;
+          }
+        });
+
         const novoElemento = ADDCaiPausas();
+        if (!novoElemento) {
+          Herror("criarC() não retornou um elemento válido");
+          return;
+        }
+        if (a.children.length >= 2) {
+          a.insertBefore(novoElemento, a.children[1]);
+        } else {
+          a.appendChild(novoElemento);
+        }
+        stt.AbaPausas = 1;
+      }
+    });
+
+    return caixa;
+  }
+
+  function ADDBotOut() {
+    const caixa = document.createElement("div");
+    caixa.id = "BOutro";
+    caixa.textContent = "Outros";
+    caixa.style.cssText = `
+      border: 1px solid white;
+      width: 23px;
+      border-radius: 15px;
+      display: flex;
+      transition: 0.5s;
+      cursor: pointer;
+      padding: 5px 0px;
+      align-items: center;
+    `;
+
+    caixa.addEventListener("click", function () {
+      const a = document.getElementById("minhaCaixa");
+      if (!a) {
+        Hwarn("minhaCaixa não encontrada");
+        return;
+      }
+
+      const minhaAba = "CaiOutro";
+
+      const b = document.getElementById(minhaAba);
+      if (b) {
+        b.remove();
+        stt.AbaPausas = 0;
+      } else {
+        asAbas.forEach(({ id, chave }) => {
+          if (minhaAba === id) return;
+          const oid = document.getElementById(id);
+          if (oid) {
+            oid.remove();
+            stt[chave] = 0;
+          }
+        });
+
+        const novoElemento = ADDCaiOutros();
         if (!novoElemento) {
           Herror("criarC() não retornou um elemento válido");
           return;
@@ -1507,17 +1603,21 @@
         Hwarn("minhaCaixa não encontrada");
         return;
       }
+      const minhaAba = "CaixaConfig";
 
-      const b = document.getElementById("CaixaConfig");
+      const b = document.getElementById(minhaAba);
       if (b) {
         b.remove();
         stt.AbaConfig = 0;
       } else {
-        const c = document.getElementById("CaiDPa");
-        if (c) {
-          c.remove();
-          stt.AbaPausas = 0;
-        }
+        asAbas.forEach(({ id, chave }) => {
+          if (minhaAba === id) return;
+          const oid = document.getElementById(id);
+          if (oid) {
+            oid.remove();
+            stt[chave] = 0;
+          }
+        });
         const novoElemento = criarC();
         if (!novoElemento) {
           Herror("criarC() não retornou um elemento válido");
@@ -1658,6 +1758,9 @@
             .info-caixa {
                 text-align: center;
             }
+                .BackGroundBot {
+            background-color: ${escurecer(Ccor.Config)};
+    }
             .separadorC {
                 width: 100%;
                 height: 1px;
@@ -1885,12 +1988,13 @@
     function CaixaDeOcultar(titulo, objeto) {
       const Titulofeito = titulo;
       const CaixaPrincipal = criarCaixaSeg();
+      Titulofeito.classList.add("BackGroundBot");
       Titulofeito.style.cssText = `
             padding: 2px 4px;
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            background-color: transparent;
+            
             color: white;
             font-size: 12px;
             height: 22px;
@@ -2267,7 +2371,7 @@
         config.notiEstouro = !config.notiEstouro;
         atualizarVisual();
 
-        if (!config.notiEstouro) atualizarComoff(0, "cTMA", Ccor.Erro);
+        if (!config.notiEstouro) atualizarComoff(0, "cTMA", Ccor.Alerta);
       },
     );
     const IgEstSom = criarLinhaTextoComBot2(
@@ -2647,6 +2751,10 @@
       Ccor.Principal = Ccor.Varian;
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
+
+    document.querySelectorAll(".BackGroundBot").forEach((bot) => {
+      bot.style.backgroundColor = escurecer(Ccor.Config);
+    });
 
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
