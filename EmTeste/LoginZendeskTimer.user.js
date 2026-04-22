@@ -65,6 +65,7 @@
     tentativaNome: 0,
     seFalharAnt: 0,
     seFalhar: 0,
+    GetInicial: 0,
   };
 
   let TempoPausas = {
@@ -980,10 +981,27 @@
     stt.Encontrado = DDPausa.statusAtual === "---" ? 0 : 1;
     let ContAtual = 0;
 
+    [
+      ["BConfig", "Config", "C"],
+      ["BPausa", "Pausas", "P"],
+    ].forEach(([a, b, c]) => {
+      const d = document.getElementById(a);
+      if (
+        d &&
+        ((stt.Encontrado && d.textContent !== b) ||
+          (!stt.Encontrado && d.textContent !== c))
+      ) {
+        d.textContent = stt.Encontrado ? b : c;
+        d.style.height = stt.Encontrado ? "" : "23px";
+      }
+    });
+
     titulo.textContent = stt.Encontrado
-      ? DDPausa.NdeIdAtivo === 0 && DDPausa.statusAtual === "Online"
-        ? "Disponivel"
-        : DDPausa.statusAtual
+      ? dadosPrimLogue === "-?-"
+        ? "Sem login"
+        : DDPausa.NdeIdAtivo === 0 && DDPausa.statusAtual === "Online"
+          ? "Disponivel"
+          : DDPausa.statusAtual
       : "Não";
     const OStt = titulo.textContent;
 
@@ -1010,6 +1028,7 @@
       }
       DDPausa.apausaAnt = OStt;
       SalvandoVariConfig(1);
+      Hlog(`Comparação disponivel`);
     }
 
     if (!InfoV) {
@@ -1058,9 +1077,11 @@
 
     time.textContent = !stt.Encontrado
       ? "Encontrado"
-      : arme
-        ? tempoEncurtado(arme)
-        : tempoEncurtado(ContAtual);
+      : dadosPrimLogue === "-?-"
+        ? "Inicial"
+        : arme
+          ? tempoEncurtado(arme)
+          : tempoEncurtado(ContAtual);
 
     let DadosAlterPrimLogue = dadosPrimLogue !== "-?-" ? dadosPrimLogue : agora;
 
@@ -1074,6 +1095,8 @@
       TempoPausas.Online + converterParaSegundos(ContAtual),
     );
 
+    //Hlog(`TempoPausas.Online: ${TempoPausas.Online}/ ContAtual: ${ContAtual}`);
+
     const oshorarios = horarios(Logou, TempoPausas.LogadoSomas);
 
     TempoPausas.Logou = oshorarios.Logou.hora;
@@ -1086,6 +1109,8 @@
       const newlog = exibirHora(agora, 0, TempoPausas.LogadoSomas);
 
       //Hlog(`Newlog:${JSON.stringify(newlog)}`);
+      //Hlog(`TempoPausas.LogadoSomas:${JSON.stringify(TempoPausas.LogadoSomas)}`);
+      //Hlog(`DadosAlterPrimLogue:${JSON.stringify(DadosAlterPrimLogue)}`);
 
       if (
         (!config.LogueManual &&
@@ -1096,6 +1121,7 @@
       ) {
         dadosPrimLogue = newlog;
         verifiDataLogue(1);
+        Hlog(`Novo logue 1`);
 
         if (stt.ForceSalv) {
           stt.ForceSalv = 0;
@@ -1128,7 +1154,10 @@
 
     TempoPausas.Falta = oshorarios.Falta;
 
-    vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
+    vLogado.textContent = !TempoPausas.Logado
+      ? 0
+      : tempoEncurtado(TempoPausas.Logado);
+    //Hlog(`TempoPausas.Logado: ${TempoPausas.Logado}`);
 
     if (compararDatas(agora, exibirHora(oshorarios.Saida, 1, "00:10:00"))) {
       stt.temHorasExtras = 1;
@@ -1474,7 +1503,7 @@
   function ADDBotPa() {
     const caixa = document.createElement("div");
     caixa.id = "BPausa";
-    caixa.textContent = "Pausa";
+    caixa.textContent = "P";
     caixa.style.cssText = `
       border: 1px solid white;
       width: 23px;
@@ -1484,6 +1513,7 @@
       cursor: pointer;
       padding: 5px 0px;
       align-items: center;
+      justify-content: center;
     `;
 
     caixa.addEventListener("click", function () {
@@ -1529,7 +1559,7 @@
   function ADDBotOut() {
     const caixa = document.createElement("div");
     caixa.id = "BOutro";
-    caixa.textContent = "Outros";
+    caixa.textContent = "O";
     caixa.style.cssText = `
       border: 1px solid white;
       width: 23px;
@@ -1539,6 +1569,7 @@
       cursor: pointer;
       padding: 5px 0px;
       align-items: center;
+      justify-content: center;
     `;
 
     caixa.addEventListener("click", function () {
@@ -1584,7 +1615,7 @@
   function ADDBotConfig() {
     const caixa = document.createElement("div");
     caixa.id = "BConfig";
-    caixa.textContent = "Config";
+    caixa.textContent = "C";
     caixa.style.cssText = `
       border: 1px solid white;
       width: 23px;
@@ -1594,6 +1625,7 @@
       cursor: pointer;
       padding: 5px 0px;
       align-items: center;
+      justify-content: center;
     `;
 
     caixa.addEventListener("click", function () {
@@ -1889,7 +1921,7 @@
     return minhaCaixa;
   }
 
-  async function SalvandoVariConfig(modo) {
+  async function SalvandoVariConfig(modo = 0) {
     if (config.VoltarPad) {
       for (const chave in configPadrao) {
         config[chave] = configPadrao[chave];
@@ -1939,12 +1971,12 @@
       }
     }
 
-    if (modo) {
+    if (modo && stt.GetInicial) {
       await AddOuAtuIindexdb(ChaveConfig, AsVari);
-
       Hlog(`Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`);
     } else {
       aplicarConfiguracao(dadosSalvosConfi);
+      stt.GetInicial = 1;
     }
   }
 
