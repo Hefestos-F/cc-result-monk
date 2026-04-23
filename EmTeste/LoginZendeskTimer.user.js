@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat\EmTeste
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.5
+// @version      0.0.0.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
