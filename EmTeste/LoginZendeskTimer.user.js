@@ -68,7 +68,7 @@
     GetInicial: 0,
   };
 
-  let TempoPausas = {
+  const TempoPausas = {
     Logou: 0,
     LogouA: 0,
     Logado: 0,
@@ -444,7 +444,11 @@
       for (const chave in TempoPausas) {
         TempoPausas[chave] = 0;
       }
-      SalvandoVariConfig(1);
+      for (const chave in DDPausa) {
+        DDPausa[chave] = 0;
+      }
+
+      await SalvandoVariConfig(1);
       x = 1;
     }
 
@@ -1182,6 +1186,10 @@
     vFalta.textContent = stt.tempoCumprido
       ? "Cumprido"
       : tempoEncurtado(TempoPausas.Falta);
+
+    const elimi = ["Decanso", "Lanche"].includes(OStt);
+    if ((config.pausalimitada && !elimi) || (!config.pausalimitada && elimi))
+      config.pausalimitada = elimi;
 
     if (config.pausalimitada && config.notiEstouro) {
       stt.Estouro = compararDatas(agora, TempoPausas.Estouro);
