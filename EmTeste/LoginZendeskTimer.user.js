@@ -1187,9 +1187,12 @@
       ? "Cumprido"
       : tempoEncurtado(TempoPausas.Falta);
 
-    const elimi = ["Decanso", "Lanche"].includes(OStt);
+    const elimi = ["Decanso", "Lanche"].includes(OStt) ? 1 : 0;
+
     if ((config.pausalimitada && !elimi) || (!config.pausalimitada && elimi))
       config.pausalimitada = elimi;
+
+    //Hlog(`elimi: ${elimi}`);
 
     if (config.pausalimitada && config.notiEstouro) {
       stt.Estouro = compararDatas(agora, TempoPausas.Estouro);
