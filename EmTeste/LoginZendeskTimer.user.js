@@ -235,8 +235,8 @@
     } catch (e) {
       Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
     }
-    await verifiDataLogue();
     await SalvandoVariConfig(0);
+    await verifiDataLogue();
     await verifLogueManual();
     criarObjetoFlutuante();
   }
@@ -440,7 +440,10 @@
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = "-?-";
       dadosdePausas = [];
-      TempoPausas = {};
+
+      for (const chave in TempoPausas) {
+        TempoPausas[chave] = 0;
+      }
       SalvandoVariConfig(1);
       x = 1;
     }
@@ -524,7 +527,7 @@
     // Se não é array ou está vazio, retorna zero direto
     if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
       return {
-        totalSegundos: 0,
+        totalSegundos: 1,
         totalFormatado: "00:00:00",
       };
     }
@@ -1109,7 +1112,7 @@
       const newlog = exibirHora(agora, 0, TempoPausas.LogadoSomas);
 
       //Hlog(`Newlog:${JSON.stringify(newlog)}`);
-      //Hlog(`TempoPausas.LogadoSomas:${JSON.stringify(TempoPausas.LogadoSomas)}`);
+      //Hlog(`TempoPausas.LogadoSomas:${JSON.stringify(TempoPausas.LogadoSomas)}`,);
       //Hlog(`DadosAlterPrimLogue:${JSON.stringify(DadosAlterPrimLogue)}`);
 
       if (
@@ -1122,7 +1125,7 @@
         dadosPrimLogue = newlog;
         verifiDataLogue(1);
         Hlog(`Novo logue 1`);
-
+        TempoPausas.Online = somarDuracoes().totalSegundos;
         if (stt.ForceSalv) {
           stt.ForceSalv = 0;
           atualizarVisual();
