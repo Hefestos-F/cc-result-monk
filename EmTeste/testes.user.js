@@ -14,7 +14,9 @@
 // ==/UserScript==
 
 (function () {
-  const PreFixo = "O Teste:";
+  // ========= LOG UTILS =========
+
+  const PreFixo = "Test HefestoLog:";
 
   function Hlog(...args) {
     console.log(PreFixo, ...args);
@@ -25,167 +27,80 @@
   function Herror(...args) {
     console.error(PreFixo, ...args);
   }
-  function Hodeb(...args) {
+  function Hdebug(...args) {
     console.debug(PreFixo, ...args);
   }
   function Hinfo(...args) {
     console.info(PreFixo, ...args);
   }
 
-  function obterEntityIdSelecionado() {
-    const item = document.querySelector('[data-selected="true"]');
-    if (!item) return null; // ou "", ou false — como preferir
+  function aMarcacaoObrig(f, erroSalv) {
+    if (!f || !erroSalv) return;
 
-    return item.getAttribute("data-entity-id");
-  }
-
-  const normalize = (s) => (s || "").replace(/\s+/g, " ").trim();
-
-  // Utilitário: formata "fulano" -> "Fulano"
-  const formatPrimeiroNome = (txt) => {
-    const t = (txt || "").trim();
-    if (!t) return "";
-    // Extrai a primeira "palavra" (até espaço)
-    const first = t.split(/\s+/)[0];
-    const lower = first.toLowerCase();
-    return lower.charAt(0).toUpperCase() + lower.slice(1);
-  };
-
-  function getStatusAntesDoTicket(numeroTicket) {
-    if (!numeroTicket) return { resolvido: false, status: "DESCONHECIDO" };
-
-    const ticketSpan = [
-      ...document.querySelectorAll(
-        '[data-test-id="tabs-section-nav-item-ticket"]',
-      ),
-    ].find((el) => el.textContent.includes(`Ticket #${numeroTicket}`));
-
-    if (!ticketSpan) {
-      return { resolvido: false, status: "NÃO ENCONTRADO" };
+    // 🔴 CSS de erro (injetado uma vez)
+    const STYLE_ID = "estilo-ErroOb";
+    if (!document.getElementById(STYLE_ID)) {
+      const style = document.createElement("style");
+      style.id = STYLE_ID;
+      style.textContent = `
+        .erro-obrigatorio {
+          border: 1px solid red;
+    border-radius: 15px;
+    padding: 0px 2px;
+        }
+      `;
+      document.head.appendChild(style);
     }
 
-    const statusEl = ticketSpan.querySelector(".ticket_status_label");
-
-    if (!statusEl) {
-      return { resolvido: false, status: "EM ANDAMENTO" };
-    }
-
-    const statusTxt = normalize(statusEl.textContent).toUpperCase();
-
-    return {
-      resolvido: /RESOLVIDO|SOLVED|ENCERRADO/.test(statusTxt),
-      status: statusTxt,
-    };
-  }
-
-  function getNomeAntesDoTicket(numeroTicket) {
-    if (!numeroTicket) return "-X";
-
-    const ticketSpan = [
-      ...document.querySelectorAll(
-        '[data-test-id="tabs-section-nav-item-ticket"]',
-      ),
-    ].find((el) => el.textContent.includes(`Ticket #${numeroTicket}`));
-
-    if (!ticketSpan) return "X-X";
-
-    const anterior = ticketSpan.previousElementSibling;
-    if (!anterior) return "XX-";
-
-    const NomeENcon = anterior.textContent;
-
-    const nomeCompleto = normalize(NomeENcon);
-
-    return {
-      PrimeNome: formatPrimeiroNome(nomeCompleto),
-      nomeCompleto: nomeCompleto,
-    };
-  }
-
-  function nomeETicket() {
-    const numero = obterEntityIdSelecionado();
-    const ticket = numero || "000000";
-
-    let contato = "X-";
-    let nomeCompleto = "zz";
-    try {
-      const res = getNomeAntesDoTicket(ticket);
-      contato = res && res.PrimeNome ? res.PrimeNome : "XX-XX";
-      nomeCompleto = res.nomeCompleto;
-    } catch (e) {
-      Hwarn("Falha ao obter contato via encontrarNome():", e);
-    }
-
-    return {
-      contato,
-      nomeCompleto,
-      ticket,
-    };
-  }
-
-  function Preenc() {
-    const oSNom = nomeETicket();
-
-    const NomeOcAtivo = document.getElementById("NomeOcAtivo");
-    const IdOcAtivo = document.getElementById("IdOcAtivo");
-
-    if (NomeOcAtivo) NomeOcAtivo.textContent = oSNom.contato;
-    if (IdOcAtivo) IdOcAtivo.textContent = oSNom.ticket;
-
-    const nome = NomeOcAtivo ? "NomeOcAtivo true" : "NomeOcAtivo False";
-
-    const tick = IdOcAtivo ? "IdOcAtivo true" : "IdOcAtivo False";
-
-    return {
-      nome: nome,
-      tick: tick,
-    };
-  }
-
-  console.log("O Encontrar", JSON.stringify(nomeETicket()));
-
-  function EncontrarAtribuido(id) {
-    // 1. Container do ticket
-    const ticket = document.querySelector(
-      `[data-test-id="ticket-${id}-standard-layout"]`,
+    // ✅ lê corretamente os spans do erro
+    const osObrig = Array.from(erroSalv.querySelectorAll("li span")).map(
+      (span) =>
+        span.textContent.replace(" é obrigatório", "").replace(/"/g, "").trim(),
     );
-    if (!ticket) return null;
 
-    // 2. Campo de agente atribuído
-    const assigneeField = ticket.querySelector(
-      '[data-test-id="assignee-field-selected-agent-tag"]',
+    const oSidebar = f.querySelector("#ticket_sidebar");
+    if (!oSidebar) return;
+
+    // 🔎 normalização segura
+    const normalizar = (txt = "") =>
+      txt
+        .replace("*", "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .trim();
+
+    // 🧹 limpa erros antigos
+    oSidebar
+      .querySelectorAll(".erro-obrigatorio")
+      .forEach((el) => el.classList.remove("erro-obrigatorio"));
+
+    if (osObrig.length === 0) return;
+
+    const obrigNorm = osObrig.map(normalizar);
+
+    // ✅ agora buscamos os LABELS (não "*")
+    const labels = oSidebar.querySelectorAll(
+      '[data-garden-container-id="containers.tooltip"] label',
     );
-    if (!assigneeField) return null;
 
-    // 3. Elementos que possuem atributo title
-    const elementosComTitle = assigneeField.querySelectorAll("[title]");
-    if (elementosComTitle.length < 2) return null;
+    labels.forEach((label) => {
+      const textoLabel = normalizar(label.textContent);
 
-    // 4. Retorna o title do segundo item
-    return elementosComTitle[1].getAttribute("title");
-  }
-
-  const stt = { ItemSele: 0 };
-
-  function MudarOitemProt() {
-    const itens = document.querySelectorAll("[data-selected]");
-
-    itens.forEach((item) => {
-      const itemSele = item.getAttribute("data-selected");
-
-      if (
-        stt.ItemSele !== itemSele ||
-        (item.style.borderTop === "" && itemSele === "true")||
-        item.style.borderRadius !== "20px 20px 0px 0px"
-      ) {
-        item.style.borderTop = itemSele === "true" ? "2px solid #1b81ff" : "";
-
-        item.style.borderRadius = "20px 20px 0px 0px";
-
-        stt.ItemSele = itemSele;
+      if (obrigNorm.includes(textoLabel)) {
+        label.classList.add("erro-obrigatorio");
       }
     });
   }
 
-  console.log(BusOPerfil());
+  const f = document.querySelector(
+    `[data-test-id="ticket-${CSS.escape(24627398)}-standard-layout"]`,
+  );
+
+  const erroSalv = f?.querySelector(
+    '[data-test-id="ticket_saving_error_notification"]',
+  );
+
+  aMarcacaoObrig(f, erroSalv);
+
 })();

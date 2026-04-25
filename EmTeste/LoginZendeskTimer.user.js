@@ -4150,6 +4150,67 @@
     }
   }
 
+  function aMarcacaoObrig(f, erroSalv) {
+    if (!f || !erroSalv) return;
+
+    // ✅ injeta o CSS só uma vez
+    function StyleDErro() {
+      const oId = "estilo-ErroOb";
+      if (document.getElementById(oId)) return;
+
+      const elementoEstilo = document.createElement("style");
+      elementoEstilo.id = oId;
+      elementoEstilo.textContent = `
+      .erro-obrigatorio {
+        border: 1px solid red !important;
+        color: red !important;
+        background-color: #ffe6e6;
+      }
+     `;
+      document.head.appendChild(elementoEstilo);
+    }
+    StyleDErro();
+
+    // ✅ CORREÇÃO PRINCIPAL:
+    // erroSalv é uma DIV → buscamos os spans dentro dela
+    const osObrig = Array.from(erroSalv.querySelectorAll("li span")).map(
+      (span) =>
+        span.textContent.replace(" é obrigatório", "").replace(/"/g, "").trim(),
+    );
+
+    const oSidebar = f.querySelector("#ticket_sidebar");
+    if (!oSidebar) return;
+
+    // ✅ utilitário para comparação segura
+    const normalizar = (txt = "") =>
+      txt
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .trim();
+
+    // ✅ sempre limpa erros antigos
+    oSidebar
+      .querySelectorAll(".erro-obrigatorio")
+      .forEach((el) => el.classList.remove("erro-obrigatorio"));
+
+    // ✅ se não houver erros obrigatórios, apenas limpa e sai
+    if (osObrig.length === 0) return;
+
+    const obrigNorm = osObrig.map(normalizar);
+
+    // ⚠️ seletor genérico (pode ser refinado depois)
+    const sidebarItens = oSidebar.querySelectorAll("*");
+
+    sidebarItens.forEach((el) => {
+      const texto = normalizar(el.textContent);
+
+      if (texto && obrigNorm.includes(texto)) {
+        el.classList.add("erro-obrigatorio");
+      }
+    });
+  }
+
   function EstaResolvido(id) {
     const f = document.querySelector(
       `[data-test-id="ticket-${CSS.escape(id)}-standard-layout"]`,
@@ -4158,6 +4219,8 @@
     const erroSalv = f?.querySelector(
       '[data-test-id="ticket_saving_error_notification"]',
     );
+
+    //aMarcacaoObrig(f, erroSalv);
 
     const os = getStatusAntesDoTicket(id)?.status;
     const enconAt = EncontrarAtribuido(id);
