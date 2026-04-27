@@ -1187,7 +1187,7 @@
       ? "Cumprido"
       : tempoEncurtado(TempoPausas.Falta);
 
-    const elimi = ["Decanso", "Lanche"].includes(OStt) ? 1 : 0;
+    const elimi = ["Descanso", "Lanche"].includes(OStt) ? 1 : 0;
 
     if ((config.pausalimitada && !elimi) || (!config.pausalimitada && elimi))
       config.pausalimitada = elimi;
