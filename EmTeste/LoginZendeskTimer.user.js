@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat\EmTeste
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.6
+// @version      0.0.0.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -4153,26 +4153,22 @@
   function aMarcacaoObrig(f, erroSalv) {
     if (!f || !erroSalv) return;
 
-    // ✅ injeta o CSS só uma vez
-    function StyleDErro() {
-      const oId = "estilo-ErroOb";
-      if (document.getElementById(oId)) return;
-
-      const elementoEstilo = document.createElement("style");
-      elementoEstilo.id = oId;
-      elementoEstilo.textContent = `
-      .erro-obrigatorio {
-        border: 1px solid red !important;
-        color: red !important;
-        background-color: #ffe6e6;
-      }
-     `;
-      document.head.appendChild(elementoEstilo);
+    // 🔴 CSS de erro (injetado uma vez)
+    const STYLE_ID = "estilo-ErroOb";
+    if (!document.getElementById(STYLE_ID)) {
+      const style = document.createElement("style");
+      style.id = STYLE_ID;
+      style.textContent = `
+        .erro-obrigatorio {
+          border: 1px solid red;
+          border-radius: 15px;
+          padding: 0px 2px;
+        }
+      `;
+      document.head.appendChild(style);
     }
-    StyleDErro();
 
-    // ✅ CORREÇÃO PRINCIPAL:
-    // erroSalv é uma DIV → buscamos os spans dentro dela
+    // ✅ lê corretamente os spans do erro
     const osObrig = Array.from(erroSalv.querySelectorAll("li span")).map(
       (span) =>
         span.textContent.replace(" é obrigatório", "").replace(/"/g, "").trim(),
@@ -4181,32 +4177,34 @@
     const oSidebar = f.querySelector("#ticket_sidebar");
     if (!oSidebar) return;
 
-    // ✅ utilitário para comparação segura
+    // 🔎 normalização segura
     const normalizar = (txt = "") =>
       txt
+        .replace("*", "")
         .toLowerCase()
         .normalize("NFD")
         .replace(/\p{Diacritic}/gu, "")
         .trim();
 
-    // ✅ sempre limpa erros antigos
+    // 🧹 limpa erros antigos
     oSidebar
       .querySelectorAll(".erro-obrigatorio")
       .forEach((el) => el.classList.remove("erro-obrigatorio"));
 
-    // ✅ se não houver erros obrigatórios, apenas limpa e sai
     if (osObrig.length === 0) return;
 
     const obrigNorm = osObrig.map(normalizar);
 
-    // ⚠️ seletor genérico (pode ser refinado depois)
-    const sidebarItens = oSidebar.querySelectorAll("*");
+    // ✅ agora buscamos os LABELS (não "*")
+    const labels = oSidebar.querySelectorAll(
+      'label[data-garden-id="forms.input_label"]',
+    );
 
-    sidebarItens.forEach((el) => {
-      const texto = normalizar(el.textContent);
+    labels.forEach((label) => {
+      const textoLabel = normalizar(label.textContent);
 
-      if (texto && obrigNorm.includes(texto)) {
-        el.classList.add("erro-obrigatorio");
+      if (obrigNorm.includes(textoLabel)) {
+        label.classList.add("erro-obrigatorio");
       }
     });
   }
@@ -4220,7 +4218,7 @@
       '[data-test-id="ticket_saving_error_notification"]',
     );
 
-    //aMarcacaoObrig(f, erroSalv);
+    aMarcacaoObrig(f, erroSalv);
 
     const os = getStatusAntesDoTicket(id)?.status;
     const enconAt = EncontrarAtribuido(id);

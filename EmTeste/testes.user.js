@@ -45,8 +45,8 @@
       style.textContent = `
         .erro-obrigatorio {
           border: 1px solid red;
-    border-radius: 15px;
-    padding: 0px 2px;
+          border-radius: 15px;
+          padding: 0px 2px;
         }
       `;
       document.head.appendChild(style);
@@ -81,7 +81,7 @@
 
     // ✅ agora buscamos os LABELS (não "*")
     const labels = oSidebar.querySelectorAll(
-      '[data-garden-container-id="containers.tooltip"] label',
+      'label[data-garden-id="forms.input_label"]',
     );
 
     labels.forEach((label) => {
@@ -94,7 +94,7 @@
   }
 
   const f = document.querySelector(
-    `[data-test-id="ticket-${CSS.escape(24627398)}-standard-layout"]`,
+    `[data-test-id="ticket-${CSS.escape(24646586)}-standard-layout"]`,
   );
 
   const erroSalv = f?.querySelector(
@@ -102,5 +102,4 @@
   );
 
   aMarcacaoObrig(f, erroSalv);
-
 })();
