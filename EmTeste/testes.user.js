@@ -35,7 +35,7 @@
   }
 
   function aMarcacaoObrig(f, erroSalv) {
-    if (!f || !erroSalv) return;
+    if (!f) return;
 
     // 🔴 CSS de erro (injetado uma vez)
     const STYLE_ID = "estilo-ErroOb";
@@ -52,14 +52,21 @@
       document.head.appendChild(style);
     }
 
+    const oSidebar = f.querySelector("#ticket_sidebar");
+    if (!oSidebar) return;
+
+    // 🧹 limpa erros antigos
+    oSidebar
+      .querySelectorAll(".erro-obrigatorio")
+      .forEach((el) => el.classList.remove("erro-obrigatorio"));
+
+    if (!erroSalv) return;
+
     // ✅ lê corretamente os spans do erro
     const osObrig = Array.from(erroSalv.querySelectorAll("li span")).map(
       (span) =>
         span.textContent.replace(" é obrigatório", "").replace(/"/g, "").trim(),
     );
-
-    const oSidebar = f.querySelector("#ticket_sidebar");
-    if (!oSidebar) return;
 
     // 🔎 normalização segura
     const normalizar = (txt = "") =>
@@ -69,11 +76,6 @@
         .normalize("NFD")
         .replace(/\p{Diacritic}/gu, "")
         .trim();
-
-    // 🧹 limpa erros antigos
-    oSidebar
-      .querySelectorAll(".erro-obrigatorio")
-      .forEach((el) => el.classList.remove("erro-obrigatorio"));
 
     if (osObrig.length === 0) return;
 
