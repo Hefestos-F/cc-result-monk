@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.7.14
+// @version      1.3.7.13
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -25,8 +25,6 @@
     TesteHora: 0,
     valorTeste: "-03:00",
     VoltarPad: 0,
-    logueSalvo: 1,
-    NomeAt: "",
   };
 
   const configPadrao = {
@@ -50,29 +48,17 @@
     Estouro: 0,
     AbaPausas: 0,
     AbaConfig: 0,
-    AbaOutros: 0,
     tempoCumprido: 0,
     temHorasExtras: 0,
     Estour1: 0,
     BeepRet: 0,
     Encontrado: 0,
-    apausaAnt: "",
-    Atencao: 0,
-    AtencaoAnt: 0,
-    ForceSalv: 0,
-    idSelecionado: {},
-    StatusTk: {},
-    tentativaNome: 0,
-    seFalharAnt: 0,
-    seFalhar: 0,
-    GetInicial: 0,
   };
 
-  const TempoPausas = {
+  let TempoPausas = {
     Logou: 0,
     LogouA: 0,
     Logado: 0,
-    LogadoSomas: 0,
     Saida: 0,
     SaidaA: 0,
     Falta: 0,
@@ -82,15 +68,10 @@
   };
 
   const DDPausa = {
-    oDispo: "",
-    statusAtual: "",
-    inicioDispo: 0,
     numero: 1,
     inicioUltimaP: 0,
     inicioUltimaPa: 0,
     StatusANT: "",
-    apausaAnt: "",
-    NdeIdAtivo: 0,
   };
 
   /**
@@ -98,9 +79,8 @@
    */
   const Ccor = {
     Offline: "#3a82cf",
-    Alerta: "#992e2e",
-    Aviso: "#c97123ff",
-    Contagem: "darkcyan",
+    Atualizando: "#c97123ff",
+    Erro: "#992e2e",
     MetaTMA: "#229b8d",
     Principal: "#4c95bd",
     AreaAr: "#337091",
@@ -114,9 +94,8 @@
    */
   const CorPad = {
     Offline: "#3a82cf",
-    Alerta: "#992e2e",
-    Aviso: "#c97123ff",
-    Contagem: "darkcyan",
+    Atualizando: "#c97123ff",
+    Erro: "#992e2e",
     MetaTMA: "#229b8d",
     Principal: "#4c95bd",
     AreaAr: "#337091",
@@ -124,14 +103,6 @@
     Varian: "",
     TVarian: "",
   };
-
-  const outrav = ["RESOLVIDO", "FECHADO", "NOVO"];
-
-  const asAbas = [
-    { id: "CaixaConfig", chave: "AbaConfig" },
-    { id: "CaiDPa", chave: "AbaPausas" },
-    { id: "CaiOutro", chave: "AbaOutros" },
-  ];
 
   // Chaves usadas no IndexedDB/local storage
   const ChavePausas = "DadosDePausas";
@@ -170,29 +141,6 @@
   function Hinfo(...args) {
     console.info(PreFixo, ...args);
   }
-
-  // ========= CONFIG =========
-  const DEBOUNCE_MS = 300;
-
-  // Referências globais para que possamos desconectar depois
-  //let OBS_ATIVO = true; // flag opcional para bloquear reconexões enquanto limpa
-  let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
-  let docObs = null; // observer temporário usado até o tablist aparecer
-  let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
-
-  // ========= ESTADO =========
-
-  /** @typedef {{ id: string, datatime: string|null, nome: string|null }} TicketInfo */
-
-  /** @type {Map<string, TicketInfo>} */
-  const ticketsSet = new Map();
-
-  /** @type {Map<string, MutationObserver>} */
-  const ticketObservers = new Map();
-  /** @type {Map<string, Function>} */
-  const ticketDebouncers = new Map();
-
-  let tooltipObserver = null;
 
   RecuperarTVariaveis();
 
@@ -235,23 +183,26 @@
     } catch (e) {
       Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
     }
-    await SalvandoVariConfig(0);
     await verifiDataLogue();
+    await SalvandoVariConfig(0);
     await verifLogueManual();
     criarObjetoFlutuante();
   }
 
-  function observarItem(aoMudar, target = document.body) {
+  function observarItem(aoMudar) {
     const observer = new MutationObserver(() => {
       if (stt.andament) {
         stt.andament = 0;
         aoMudar();
       }
-      if (stt.observa === 0) observer.disconnect();
+      // Desconecta somente se já achamos o valor (stt.observa = 0)
+      if (stt.observa === 0) {
+        observer.disconnect();
+        Hlog("observer Desconectado");
+      }
     });
 
-    observer.observe(target, { childList: true, subtree: true });
-    return observer;
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   /**
@@ -288,26 +239,19 @@
 
     if (!el) {
       Hlog("Alteração aconteceu, mas ainda sem status");
-      DDPausa.statusAtual = "---";
+      stt.Status = "---";
       return (stt.andament = 1);
     }
 
-    if (!config.NomeAt && stt.tentativaNome < 3) {
-      BuscarNomePerfil().then((nome) => {
-        config.NomeAt = nome;
-        if (nome) SalvandoVariConfig(1);
-        stt.tentativaNome = 0;
-      });
-    }
-
-    DDPausa.statusAtual = formatPrimeiroNome(el.textContent.trim());
-
-    if (DDPausa.statusAtual === "Pausa") DDPausa.statusAtual = "Particular";
+    let statusAtual = formatPrimeiroNome(el.textContent.trim());
+    if (statusAtual === "Pausa") statusAtual = "Particular";
     //Hlog(`Status: ${statusAtual}`);
 
     // Se não mudou, não faz nada
 
-    if (DDPausa.StatusANT === DDPausa.statusAtual) {
+    stt.Status = statusAtual;
+
+    if (DDPausa.StatusANT === stt.Status) {
       return (stt.andament = 1);
     }
 
@@ -315,8 +259,8 @@
     // 3) Atualiza status anterior
     // ==========================================================
 
-    Hlog(`Troca de Status: ${DDPausa.statusAtual} / ant: ${DDPausa.StatusANT}`);
-    DDPausa.StatusANT = DDPausa.statusAtual;
+    Hlog(`Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`);
+    DDPausa.StatusANT = stt.Status;
 
     // Helpers
     const duracaoPrevistaPorStatus = (s) => {
@@ -344,14 +288,14 @@
       const agora = gerarDataHora(); // { data, hora }
 
       Hlog(`id:${DDPausa.numero}, inicioObj: ${JSON.stringify(inicioObj)}`);
-      if (inicioObj && duracaoObj === "---" && DDPausa.numero !== 0) {
+      if (inicioObj && duracaoObj === "---") {
         // Salva fim (objeto)
         await atualizarCampos(DDPausa.numero, "fim", agora);
 
         config.pausalimitada = 0;
         stt.Estouro = 0;
         stt.Estour1 = 0;
-        atualizarComoff(0, "cTMA", Ccor.Alerta);
+        atualizarComoff(0, "cTMA");
         SalvandoVariConfig(1);
         // Calcula duração real (string HH:MM:SS)
         const duracaoReal = calcularDuracao(inicioObj, agora);
@@ -361,17 +305,27 @@
         TempoPausas.Online = somarDuracoes().totalSegundos;
       }
 
+      /*if (dadosPrimLogue) {
+        const c = converterParaSegundos(dadosPrimLogue.hora);
+        const d = converterParaSegundos(TempoPausas.Logou);
+
+        if (d < c) {
+          dadosPrimLogue.hora = TempoPausas.Logou;
+          verifiDataLogue(1);
+        }
+      }*/
+
       // Só executa lógica se NÃO estiver Offline e se houve mudança
-      if (DDPausa.statusAtual.includes("Offline")) {
-        Hlog(`Inclui Off ${DDPausa.statusAtual}`);
+      if (stt.Status.includes("Offline")) {
+        Hlog(`Inclui Off ${stt.Status}`);
         return (stt.andament = 1);
       }
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
-      DDPausa.numero += 1;
-      if (DDPausa.numero > 100) DDPausa.numero = 1;
+      DDPausa.numero = DDPausa.numero + 1;
+      if (DDPausa.numero > 30) DDPausa.numero = 1;
 
-      const duracaoPrevista = duracaoPrevistaPorStatus(DDPausa.statusAtual);
+      const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
       let fimPrevistoObj = null;
 
       if (duracaoPrevista) {
@@ -389,7 +343,7 @@
       // Cria/atualiza pausa no array + IndexedDB
       await AddouAtualizarPausas(
         DDPausa.numero,
-        DDPausa.statusAtual,
+        stt.Status,
         agora, // inicio: {data,hora}
         fimPrevistoObj || "---", // fim previsto: {data,hora} ou null
         "---", // duracao prevista: "HH:MM:SS" ou "---"
@@ -417,47 +371,37 @@
   }
 
   async function verifiDataLogue(x = 0) {
-    const as = gerarDataHora();
-    const is = "23:59:59";
-    //as.hora = is;
-    const e = exibirHora(as, 0, is);
+    const a = gerarDataHora();
+    const e = exibirHora(a, 0, "23:59:59");
 
-    let y = 0;
     if (
       !dadosPrimLogue ||
-      (dadosPrimLogue.data !== as.data && dadosPrimLogue.data !== e.data)
+      (dadosPrimLogue.data !== a.data && dadosPrimLogue.data !== e.data)
     ) {
-      y = 1;
+      dadosPrimLogue = a;
+      x = 1;
+      ApagarChaveIndexDB(ChavePausas);
+      dadosdePausas = [];
+      TempoPausas = {};
+      SalvandoVariConfig(1);
     }
 
     const b = exibirHora(dadosPrimLogue, 1, config.TempoEscaladoHoras);
 
     config.logueEntreDatas = dadosPrimLogue.data !== b.data ? 1 : 0;
-    if (!config.logueEntreDatas && dadosPrimLogue.data !== as.data) {
-      y = 1;
-    }
-    if (y) {
+    if (!config.logueEntreDatas && dadosPrimLogue.data !== a.data) {
       ApagarChaveIndexDB(ChavePausas);
-      dadosPrimLogue = "-?-";
+      dadosPrimLogue = a;
       dadosdePausas = [];
-
-      for (const chave in TempoPausas) {
-        TempoPausas[chave] = 0;
-      }
-      for (const chave in DDPausa) {
-        DDPausa[chave] = 0;
-      }
-
-      await SalvandoVariConfig(1);
+      TempoPausas = {};
+      SalvandoVariConfig(1);
       x = 1;
     }
-
     Hlog(`
       config.logueEntreDatas = ${config.logueEntreDatas} /
       dadosPrimLogue.data = ${dadosPrimLogue.data} /
       b.data = ${b.data}
       `);
-
     if (x) await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
   }
 
@@ -531,14 +475,13 @@
     // Se não é array ou está vazio, retorna zero direto
     if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
       return {
-        totalSegundos: 1,
+        totalSegundos: 0,
         totalFormatado: "00:00:00",
       };
     }
 
     const totalSegundos = dadosdePausas.reduce((acc, item) => {
       // tenta pegar o campo; qualquer coisa inválida vira 0
-      if (item?.id === 0) return acc;
       const s = converterParaSegundos(item?.duracao);
       return acc + (Number.isFinite(s) ? s : 0);
     }, 0);
@@ -834,16 +777,6 @@
     // Monta estrutura
     div.appendChild(handle);
     div.appendChild(AdicionarCaixaAtualizada());
-
-    const aDivAlert = document.createElement("div");
-    aDivAlert.id = "aDivAlert";
-    aDivAlert.style.cssText = `
-      width: 100%;
-      border-radius: 4px;
-      
-      `;
-
-    div.appendChild(aDivAlert);
     document.body.appendChild(div);
   }
 
@@ -907,58 +840,11 @@
     }
   }
 
-  async function ContDisp(z) {
-    const agora = gerarDataHora();
-    if (z) {
-      DDPausa.oDispo = agora;
-    } else if (DDPausa.oDispo) {
-      const duracaoReal = calcularDuracao(DDPausa.oDispo, agora);
-      await AddouAtualizarPausas(
-        0,
-        "Disponivel",
-        DDPausa.oDispo, // inicio: {data,hora}
-        agora, // fim previsto: {data,hora} ou null
-        duracaoReal, // duracao prevista: "HH:MM:SS" ou "---"
-      );
-    }
-  }
-
-  function horarios(logou, logado) {
-    const agora = gerarDataHora();
-
-    //Hlog(`logado:${JSON.stringify(logado)}`);
-
-    let LogouCalc = logou ? logou : exibirHora(agora, 0, logado);
-    let LogadoCalc = !logou ? logado : exibirAHora(agora, 0, LogouCalc).hora;
-
-    //Hlog(`Logou:${JSON.stringify(Logou)}`);
-
-    const Saida = exibirHora(LogouCalc, 1, config.TempoEscaladoHoras);
-
-    //Hlog(`Saida:${JSON.stringify(Saida)}`);
-    //Hlog(`agora:${JSON.stringify(agora)}`);
-
-    const Falta = exibirAHora(Saida, 0, agora).hora;
-
-    //Hlog(`Falta:${JSON.stringify(Falta)}`);
-
-    return {
-      Logou: LogouCalc,
-      Saida: Saida,
-      Logado: LogadoCalc,
-      Falta: Falta,
-    };
-  }
-
   // Atualiza o timer a cada segundo
-  setInterval(oLoop, 1000);
-
-  function oLoop() {
-    MudarOitemProt();
+  setInterval(() => {
     if (config.OBS_ATIVO) AtualizarTimerChat();
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
-    const tLogou = document.getElementById("tLogou");
     const vLogou = document.getElementById("vLogou");
     const vSaida = document.getElementById("vSaida");
     const vLogado = document.getElementById("vLogado");
@@ -968,14 +854,8 @@
     const ContPaCo = document.getElementById("ContPaCo");
 
     Preenc();
-    asFalhas();
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) return;
-
-    if (config.LogueManual !== stt.LogueManual) {
-      tLogou.textContent = config.LogueManual ? "logou:M" : "logou:";
-      stt.LogueManual = config.LogueManual;
-    }
 
     const agora = gerarDataHora();
     if (config.TesteHora) {
@@ -985,58 +865,11 @@
       vDataX.textContent = agora.hora;
     }
 
-    stt.Encontrado = DDPausa.statusAtual === "---" ? 0 : 1;
-    let ContAtual = 0;
+    stt.Encontrado = stt.Status === "---" ? 0 : 1;
+    let ContAtual = stt.Encontrado ? "0" : "Encontrado";
 
-    [
-      ["BConfig", "Config", "C"],
-      ["BPausa", "Pausas", "P"],
-    ].forEach(([a, b, c]) => {
-      const d = document.getElementById(a);
-      if (
-        d &&
-        ((stt.Encontrado && d.textContent !== b) ||
-          (!stt.Encontrado && d.textContent !== c))
-      ) {
-        d.textContent = stt.Encontrado ? b : c;
-        d.style.height = stt.Encontrado ? "" : "23px";
-      }
-    });
-
-    titulo.textContent = stt.Encontrado
-      ? dadosPrimLogue === "-?-"
-        ? "Sem login"
-        : DDPausa.NdeIdAtivo === 0 && DDPausa.statusAtual === "Online"
-          ? "Disponivel"
-          : DDPausa.statusAtual
-      : "Não";
-    const OStt = titulo.textContent;
-
-    stt.Atencao =
-      OStt === "Particular" || (OStt === "Pré" && DDPausa.NdeIdAtivo === 0)
-        ? 1
-        : 0;
-
-    if (
-      stt.Atencao !== stt.AtencaoAnt ||
-      (stt.Atencao && document.getElementById("cTMA").style.background === "")
-    ) {
-      atualizarComoff(stt.Atencao, "cTMA", Ccor.Aviso);
-      stt.AtencaoAnt = stt.Atencao;
-    }
-
-    /*Hlog(
-      `DDPausa.apausaAnt:${DDPausa.apausaAnt} / OStt:${OStt} / DDPausa.apausaAnt:${DDPausa.apausaAnt}`,
-    );*/
-
-    if (OStt !== "" && stt.Encontrado && OStt !== DDPausa.apausaAnt) {
-      if (OStt === "Disponivel" || DDPausa.apausaAnt === "Disponivel") {
-        ContDisp(OStt === "Disponivel" ? 1 : 0);
-      }
-      DDPausa.apausaAnt = OStt;
-      SalvandoVariConfig(1);
-      Hlog(`Comparação disponivel`);
-    }
+    titulo.textContent = stt.Encontrado ? stt.Status : "Não";
+    time.textContent = ContAtual;
 
     if (!InfoV) {
     } else if (
@@ -1072,78 +905,24 @@
 
     verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
 
-    ContAtual =
-      !DDPausa.inicioUltimaP || !DDPausa.inicioUltimaP.data
-        ? 0
-        : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
-
-    let arme = 0;
-    if (OStt === "Disponivel") {
-      arme = exibirAHora(agora, 0, DDPausa.oDispo).hora;
-    }
-
-    time.textContent = !stt.Encontrado
-      ? "Encontrado"
-      : dadosPrimLogue === "-?-"
-        ? "Inicial"
-        : arme
-          ? tempoEncurtado(arme)
-          : tempoEncurtado(ContAtual);
-
-    let DadosAlterPrimLogue = dadosPrimLogue !== "-?-" ? dadosPrimLogue : agora;
-
     const Logou = config.LogueManual
       ? dadosLogueManu
-      : config.logueSalvo
-        ? DadosAlterPrimLogue
-        : 0;
+      : exibirHora(agora, 0, TempoPausas.Logado);
+    TempoPausas.Logou = Logou.hora;
 
-    TempoPausas.LogadoSomas = converterParaTempo(
-      TempoPausas.Online + converterParaSegundos(ContAtual),
-    );
+    const Saida = exibirHora(Logou, 1, config.TempoEscaladoHoras);
 
-    //Hlog(`TempoPausas.Online: ${TempoPausas.Online}/ ContAtual: ${ContAtual}`);
-
-    const oshorarios = horarios(Logou, TempoPausas.LogadoSomas);
-
-    TempoPausas.Logou = oshorarios.Logou.hora;
-
-    if (!TempoPausas.Online) TempoPausas.Online = somarDuracoes().totalSegundos;
-
-    TempoPausas.Logado = oshorarios.Logado;
-
-    if (TempoPausas.LogadoSomas) {
-      const newlog = exibirHora(agora, 0, TempoPausas.LogadoSomas);
-
-      //Hlog(`Newlog:${JSON.stringify(newlog)}`);
-      //Hlog(`TempoPausas.LogadoSomas:${JSON.stringify(TempoPausas.LogadoSomas)}`,);
-      //Hlog(`DadosAlterPrimLogue:${JSON.stringify(DadosAlterPrimLogue)}`);
-
-      if (
-        (!config.LogueManual &&
-          compararDatas(DadosAlterPrimLogue, newlog) &&
-          DDPausa.statusAtual &&
-          !["Offline", "---", ""].includes(DDPausa.statusAtual)) ||
-        stt.ForceSalv
-      ) {
-        dadosPrimLogue = newlog;
-        verifiDataLogue(1);
-        Hlog(`Novo logue 1`);
-        TempoPausas.Online = somarDuracoes().totalSegundos;
-        if (stt.ForceSalv) {
-          stt.ForceSalv = 0;
-          atualizarVisual();
-        }
-      }
+    TempoPausas.Saida = Saida.hora;
+    if (!config.LogueManual && compararDatas(dadosPrimLogue, Logou)) {
+      dadosPrimLogue = Logou;
+      verifiDataLogue(1);
     }
-
-    TempoPausas.Saida = oshorarios.Saida.hora;
 
     const oLogou = document.getElementById("oLogou");
     const oSaida = document.getElementById("oSaida");
 
-    oLogou.textContent = config.TesteHora ? oshorarios.Logou.data : "";
-    oSaida.textContent = config.TesteHora ? oshorarios.Saida.data : "";
+    oLogou.textContent = config.TesteHora ? Logou.data : "";
+    oSaida.textContent = config.TesteHora ? Saida.data : "";
 
     vLogou.textContent = TempoPausas.Logou;
     vSaida.textContent = TempoPausas.Saida;
@@ -1152,24 +931,38 @@
       if (
         !DDPausa.inicioUltimaP ||
         !DDPausa.inicioUltimaP.data ||
-        DDPausa.statusAtual.includes("Offline") ||
+        stt.Status.includes("Offline") ||
         !stt.Encontrado
       ) {
         return;
       }
     }
 
-    TempoPausas.Falta = oshorarios.Falta;
+    ContAtual = !stt.Encontrado
+      ? "---"
+      : !DDPausa.inicioUltimaP || !DDPausa.inicioUltimaP.data
+        ? "-?-"
+        : exibirAHora(agora, 0, DDPausa.inicioUltimaP).hora;
 
-    vLogado.textContent = !TempoPausas.Logado
-      ? 0
-      : tempoEncurtado(TempoPausas.Logado);
-    //Hlog(`TempoPausas.Logado: ${TempoPausas.Logado}`);
+    TempoPausas.Logado = config.LogueManual
+      ? exibirAHora(agora, 0, Logou).hora
+      : converterParaTempo(
+          TempoPausas.Online + converterParaSegundos(ContAtual),
+        );
 
-    if (compararDatas(agora, exibirHora(oshorarios.Saida, 1, "00:10:00"))) {
+    time.textContent =
+      ContAtual === "---" || ContAtual === "-?-"
+        ? ContAtual
+        : tempoEncurtado(ContAtual);
+
+    TempoPausas.Falta = exibirAHora(Saida, 0, agora).hora;
+
+    vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
+
+    if (compararDatas(agora, exibirHora(Saida, 1, "00:10:00"))) {
       stt.temHorasExtras = 1;
       stt.tempoCumprido = 0;
-    } else if (compararDatas(agora, oshorarios.Saida)) {
+    } else if (compararDatas(agora, Saida)) {
       stt.tempoCumprido = 1;
       stt.temHorasExtras = 0;
     } else {
@@ -1187,16 +980,9 @@
       ? "Cumprido"
       : tempoEncurtado(TempoPausas.Falta);
 
-    const elimi = ["Descanso", "Lanche"].includes(OStt) ? 1 : 0;
-
-    if ((config.pausalimitada && !elimi) || (!config.pausalimitada && elimi))
-      config.pausalimitada = elimi;
-
-    //Hlog(`elimi: ${elimi}`);
-
     if (config.pausalimitada && config.notiEstouro) {
       stt.Estouro = compararDatas(agora, TempoPausas.Estouro);
-      atualizarComoff(stt.Estouro, "cTMA", Ccor.Alerta);
+      atualizarComoff(stt.Estouro, "cTMA");
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         stt.Estour1 = 1;
@@ -1206,63 +992,12 @@
         }, 15000);
       }
     }
-  }
+  }, 1000);
 
-  function asFalhas() {
-    const aDivAlert = document.getElementById("aDivAlert");
-
-    if (!aDivAlert) return null;
-
-    let os = !config.NomeAt ? 1 : 0;
-
-    if (
-      (aDivAlert.style.height === "" && os) ||
-      (aDivAlert.style.marginTop === "" && os) ||
-      (aDivAlert.style.height !== "" && !os) ||
-      (aDivAlert.style.marginTop !== "" && !os)
-    ) {
-      aDivAlert.style.height = os ? "5px" : "";
-      aDivAlert.style.marginTop = os ? "5px" : "";
-      aDivAlert.style.background = Ccor.Alerta;
-    }
-  }
-
-  function MudarOitemProt() {
-    const itens = document.querySelectorAll("[data-selected]");
-
-    if (!itens) return;
-
-    itens.forEach((item) => {
-      const itemSele = item.dataset.selected; // "true" | "false"
-      const oId = item.dataset.entityId; // "24380006"
-
-      const estado = stt.idSelecionado[oId];
-
-      if (
-        !estado ||
-        estado.dataselected !== itemSele ||
-        estado.borderTop !== item.style.borderTop ||
-        estado.borderRadius !== item.style.borderRadius
-      ) {
-        item.style.borderRadius = "20px 20px 0px 0px";
-
-        ["borderTop", "borderRight", "borderLeft"].forEach((a) => {
-          item.style[a] = itemSele === "true" ? "2px solid #1b81ff" : "";
-        });
-
-        stt.idSelecionado[oId] = {
-          dataselected: itemSele,
-          borderRadius: item.style.borderRadius,
-          borderTop: item.style.borderTop,
-        };
-      }
-    });
-  }
-
-  function atualizarComoff(ar, caixa, cor) {
+  function atualizarComoff(ar, caixa) {
     var x = document.getElementById(caixa);
     if (x) {
-      x.style.background = ar ? cor : "";
+      x.style.background = ar ? Ccor.Erro : "";
       x.style.borderRadius = ar ? "6px" : "";
       x.style.padding = ar ? "0px 4px" : "";
       x.style.margin = ar ? "0px -4px" : "";
@@ -1517,7 +1252,7 @@
   function ADDBotPa() {
     const caixa = document.createElement("div");
     caixa.id = "BPausa";
-    caixa.textContent = "P";
+    caixa.textContent = "Pausa";
     caixa.style.cssText = `
       border: 1px solid white;
       width: 23px;
@@ -1527,7 +1262,6 @@
       cursor: pointer;
       padding: 5px 0px;
       align-items: center;
-      justify-content: center;
     `;
 
     caixa.addEventListener("click", function () {
@@ -1537,79 +1271,17 @@
         return;
       }
 
-      const minhaAba = "CaiDPa";
-
-      const b = document.getElementById(minhaAba);
+      const b = document.getElementById("CaiDPa");
       if (b) {
         b.remove();
         stt.AbaPausas = 0;
       } else {
-        asAbas.forEach(({ id, chave }) => {
-          if (minhaAba === id) return;
-          const oid = document.getElementById(id);
-          if (oid) {
-            oid.remove();
-            stt[chave] = 0;
-          }
-        });
-
+        const c = document.getElementById("CaixaConfig");
+        if (c) {
+          c.remove();
+          stt.AbaConfig = 0;
+        }
         const novoElemento = ADDCaiPausas();
-        if (!novoElemento) {
-          Herror("criarC() não retornou um elemento válido");
-          return;
-        }
-        if (a.children.length >= 2) {
-          a.insertBefore(novoElemento, a.children[1]);
-        } else {
-          a.appendChild(novoElemento);
-        }
-        stt.AbaPausas = 1;
-      }
-    });
-
-    return caixa;
-  }
-
-  function ADDBotOut() {
-    const caixa = document.createElement("div");
-    caixa.id = "BOutro";
-    caixa.textContent = "O";
-    caixa.style.cssText = `
-      border: 1px solid white;
-      width: 23px;
-      border-radius: 15px;
-      display: flex;
-      transition: 0.5s;
-      cursor: pointer;
-      padding: 5px 0px;
-      align-items: center;
-      justify-content: center;
-    `;
-
-    caixa.addEventListener("click", function () {
-      const a = document.getElementById("minhaCaixa");
-      if (!a) {
-        Hwarn("minhaCaixa não encontrada");
-        return;
-      }
-
-      const minhaAba = "CaiOutro";
-
-      const b = document.getElementById(minhaAba);
-      if (b) {
-        b.remove();
-        stt.AbaPausas = 0;
-      } else {
-        asAbas.forEach(({ id, chave }) => {
-          if (minhaAba === id) return;
-          const oid = document.getElementById(id);
-          if (oid) {
-            oid.remove();
-            stt[chave] = 0;
-          }
-        });
-
-        const novoElemento = ADDCaiOutros();
         if (!novoElemento) {
           Herror("criarC() não retornou um elemento válido");
           return;
@@ -1629,7 +1301,7 @@
   function ADDBotConfig() {
     const caixa = document.createElement("div");
     caixa.id = "BConfig";
-    caixa.textContent = "C";
+    caixa.textContent = "Config";
     caixa.style.cssText = `
       border: 1px solid white;
       width: 23px;
@@ -1639,7 +1311,6 @@
       cursor: pointer;
       padding: 5px 0px;
       align-items: center;
-      justify-content: center;
     `;
 
     caixa.addEventListener("click", function () {
@@ -1649,21 +1320,17 @@
         Hwarn("minhaCaixa não encontrada");
         return;
       }
-      const minhaAba = "CaixaConfig";
 
-      const b = document.getElementById(minhaAba);
+      const b = document.getElementById("CaixaConfig");
       if (b) {
         b.remove();
         stt.AbaConfig = 0;
       } else {
-        asAbas.forEach(({ id, chave }) => {
-          if (minhaAba === id) return;
-          const oid = document.getElementById(id);
-          if (oid) {
-            oid.remove();
-            stt[chave] = 0;
-          }
-        });
+        const c = document.getElementById("CaiDPa");
+        if (c) {
+          c.remove();
+          stt.AbaPausas = 0;
+        }
         const novoElemento = criarC();
         if (!novoElemento) {
           Herror("criarC() não retornou um elemento válido");
@@ -1804,9 +1471,6 @@
             .info-caixa {
                 text-align: center;
             }
-                .BackGroundBot {
-            
-    }
             .separadorC {
                 width: 100%;
                 height: 1px;
@@ -1935,7 +1599,7 @@
     return minhaCaixa;
   }
 
-  async function SalvandoVariConfig(modo = 0) {
+  async function SalvandoVariConfig(modo) {
     if (config.VoltarPad) {
       for (const chave in configPadrao) {
         config[chave] = configPadrao[chave];
@@ -1985,12 +1649,12 @@
       }
     }
 
-    if (modo && stt.GetInicial) {
+    if (modo) {
       await AddOuAtuIindexdb(ChaveConfig, AsVari);
+
       Hlog(`Salvo ${ChaveConfig}: ${JSON.stringify(AsVari)}`);
     } else {
       aplicarConfiguracao(dadosSalvosConfi);
-      stt.GetInicial = 1;
     }
   }
 
@@ -2034,13 +1698,12 @@
     function CaixaDeOcultar(titulo, objeto) {
       const Titulofeito = titulo;
       const CaixaPrincipal = criarCaixaSeg();
-      Titulofeito.classList.add("BackGroundBot");
       Titulofeito.style.cssText = `
             padding: 2px 4px;
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            background-color: ${escurecer(Ccor.Config)};
+            background-color: transparent;
             color: white;
             font-size: 12px;
             height: 22px;
@@ -2381,9 +2044,9 @@
       c1aixaDeCor.id = "c1aixaDeCor";
       c1aixaDeCor.append(
         LinhaSelCor(7, "Principal", Ccor.Principal),
-        LinhaSelCor(8, "Alerta", Ccor.Alerta),
-        LinhaSelCor(9, "Aviso", Ccor.Aviso),
-        LinhaSelCor(10, "Contagem", Ccor.Contagem),
+        //LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
+        //LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
+        //LinhaSelCor(10, "Erro", Ccor.Erro),
         //LinhaSelCor(11, "Offline", Ccor.Offline),
         LinhaSelCor(12, "Config", Ccor.Config),
       );
@@ -2417,7 +2080,7 @@
         config.notiEstouro = !config.notiEstouro;
         atualizarVisual();
 
-        if (!config.notiEstouro) atualizarComoff(0, "cTMA", Ccor.Alerta);
+        if (!config.notiEstouro) atualizarComoff(0, "cTMA");
       },
     );
     const IgEstSom = criarLinhaTextoComBot2(
@@ -2456,39 +2119,6 @@
       return c;
     }
 
-    function modoCalculo() {
-      const CaixaModos = criarCaixaSeg();
-
-      CaixaModos.id = "idCaixaModos";
-      const item1Modos = criarLinhaTextoComBot2(
-        "logueSalvo",
-        "Primeiro Logue",
-        config.logueSalvo,
-        () => {
-          config.logueSalvo = !config.logueSalvo;
-          atualizarVisual();
-        },
-      );
-
-      const item2Modos = criarLinhaTextoComBot2(
-        "Recalc",
-        "Recalcular",
-        !config.logueSalvo,
-        () => {
-          config.logueSalvo = !config.logueSalvo;
-          atualizarVisual();
-        },
-      );
-
-      CaixaModos.append(item1Modos, item2Modos);
-
-      const a = CaixaDeOcultar(
-        criarBotSalv("ModCal", "Modo de Calculo"),
-        CaixaModos,
-      );
-      return a;
-    }
-
     function Cbotavan() {
       const CBancDa = criarCaixaSeg();
       CBancDa.id = "CBancDa";
@@ -2519,31 +2149,12 @@
       const caixaDeBotres = criarCaixaSeg();
       caixaDeBotres.append(BotaoResetT);
 
-      function funForcSalv() {
-        const CForcSalv = criarCaixaSeg();
-        const IForcSalv = criarLinhaTextoComBot2(
-          "IdIForcSalv",
-          "Forçar Novo Primeiro logue",
-          stt.ForceSalv,
-          () => {
-            stt.ForceSalv = !stt.ForceSalv;
-
-            atualizarVisual();
-            //SalvandoVariConfig(1);
-          },
-        );
-        CForcSalv.append(IForcSalv);
-        return CForcSalv;
-      }
-
       const Cavancado = criarCaixaSeg();
       Cavancado.id = "Cavancado";
       Cavancado.style.padding = "0px 8px";
       Cavancado.append(
         criarSeparador(),
         CBBancDa,
-        criarSeparador(),
-        funForcSalv(),
         criarSeparador(),
         ContModoTeste(),
         criarSeparador(),
@@ -2570,8 +2181,6 @@
       ContTempEsc(),
       criarSeparador(),
       ContlogueManual(),
-      criarSeparador(),
-      modoCalculo(),
       criarSeparador(),
       CIgEst,
       criarSeparador(),
@@ -2665,100 +2274,6 @@
   }
 
   /**
-   * listarChavesEConteudos - lista todas as chaves e conteúdos do IndexedDB
-   * Exibe painel interativo com visualização e exclusão de registros
-   */
-  function listarChavesEConteudos() {
-    abrirDB(function (db) {
-      const transacao = db.transaction([StoreBD], "readonly");
-      const store = transacao.objectStore(StoreBD);
-      const request = store.getAllKeys();
-
-      request.onsuccess = function (event) {
-        const chaves = event.target.result;
-
-        let contador = 0;
-        chaves.forEach((nomeChave) => {
-          const requisicaoConteudo = store.get(nomeChave);
-
-          requisicaoConteudo.onsuccess = function (e) {
-            const conteudoChave = e.target.result;
-
-            const CaixaConfig = document.getElementById("CaixaConfig");
-            const CBancDa = document.getElementById("CBancDa");
-
-            // Criar estrutura HTML
-            const divPai = document.createElement("div");
-            divPai.style.cssText = `max-width: 200px;`;
-            const TituloEBot = document.createElement("div");
-            TituloEBot.style.cssText = `
-                        display: flex;
-                        width: 100%;
-                        justify-content: space-between;
-                        margin: 6px 0px;
-                        `;
-
-            const divChave = document.createElement("div");
-            divChave.textContent = nomeChave;
-            divChave.style.cssText = `
-                        cursor: pointer;
-                        text-decoration: underline;
-                        font-size: 13px;
-                        `;
-
-            const divConteudo = document.createElement("div");
-            divConteudo.style.cssText = `
-                        display: none;
-                        justify-content: center;
-                        `;
-
-            divConteudo.textContent = JSON.stringify(conteudoChave, null, 2);
-
-            divChave.addEventListener("click", function () {
-              if (
-                divConteudo.style.display === "none" ||
-                divConteudo.style.display === ""
-              ) {
-                divConteudo.style.display = "flex";
-              } else {
-                divConteudo.style.display = "none";
-              }
-            });
-
-            contador = contador + 1;
-            const botaoExcluir = document.createElement("div");
-            botaoExcluir.id = `Chave${contador}`;
-            botaoExcluir.style.cssText = `
-                        cursor: pointer;
-                        `;
-            botaoExcluir.textContent = "❌";
-            botaoExcluir.addEventListener("click", function () {
-              CaixaConfig.appendChild(
-                ADDCaixaDAviso("Excluir", () => {
-                  ApagarChaveIndexDB(nomeChave);
-                  CBancDa.innerHTML = "";
-                  listarChavesEConteudos();
-                }),
-              );
-            });
-
-            TituloEBot.appendChild(divChave);
-            TituloEBot.appendChild(botaoExcluir);
-            divPai.appendChild(TituloEBot);
-            divPai.appendChild(divConteudo);
-
-            CBancDa.appendChild(divPai);
-          };
-        });
-      };
-
-      request.onerror = function (event) {
-        Herror("Erro ao listar as chaves:", event.target.errorCode);
-      };
-    });
-  }
-
-  /**
    * atualizarSlidePosi - atualiza estado visual de um botão slide
    * @param {string} idBotao - id do botão (ex: "Bot14")
    * @param {boolean} estaAtivo - se botão deve estar ativo/não ativo
@@ -2789,19 +2304,11 @@
     const CaixaConfig = document.getElementById("CaixaConfig");
     const CaiDPa = document.getElementById("CaiDPa");
 
-    if (qq === "cor8") Ccor.Alerta = Ccor.Varian;
-    if (qq === "cor9") Ccor.Aviso = Ccor.Varian;
-    if (qq === "cor10") Ccor.Contagem = Ccor.Varian;
-    if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (qq === "cor7") {
       Ccor.Principal = Ccor.Varian;
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
-
-    document.querySelectorAll(".BackGroundBot").forEach((bot) => {
-      bot.style.backgroundColor = escurecer(Ccor.Config);
-    });
-
+    if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (FlutOB) FlutOB.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
@@ -2811,9 +2318,6 @@
     atualizarSlidePosi("BotLogManu", config.LogueManual);
     atualizarSlidePosi("BotTFuso", config.TesteHora);
     atualizarSlidePosi("BotNotEst", config.notiEstouro);
-    atualizarSlidePosi("BotIdIForcSalv", stt.ForceSalv);
-    atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);
-    atualizarSlidePosi("BotRecalc", !config.logueSalvo);
   }
 
   /**
@@ -3301,7 +2805,14 @@
     return caixa;
   }
 
-  //partes do times >>>
+  // ========= CONFIG =========
+  const DEBOUNCE_MS = 300;
+
+  // Referências globais para que possamos desconectar depois
+  //let OBS_ATIVO = true; // flag opcional para bloquear reconexões enquanto limpa
+  let lifecycleObs = null; // observer que monitora sumiço/volta do tablist
+  let docObs = null; // observer temporário usado até o tablist aparecer
+  let tablistRef = null; // referência atual do [data-test-id="header-tablist"]
 
   // ========= HELPERS =========
   function debounce(fn, wait) {
@@ -3355,6 +2866,20 @@
     });
   }
 
+  // ========= ESTADO =========
+
+  /** @typedef {{ id: string, datatime: string|null, nome: string|null }} TicketInfo */
+
+  /** @type {Map<string, TicketInfo>} */
+  const ticketsSet = new Map();
+
+  /** @type {Map<string, MutationObserver>} */
+  const ticketObservers = new Map();
+  /** @type {Map<string, Function>} */
+  const ticketDebouncers = new Map();
+
+  let tooltipObserver = null;
+
   // ========= COLETA DE IDS =========
   function ObterEntityId() {
     const container = document.querySelector('[data-test-id="header-tablist"]');
@@ -3373,95 +2898,6 @@
     return document.querySelector(
       `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
     );
-  }
-
-  function EncontrarAtribuido(id) {
-    let oAtribuido = ticketsSet.has(id).QuemAt;
-    if (oAtribuido) return oAtribuido;
-    // 1. Container do ticket
-    const ticket = document.querySelector(
-      `[data-test-id="ticket-${id}-standard-layout"]`,
-    );
-    if (!ticket) return null;
-
-    // 2. Campo de agente atribuído
-    const assigneeField = ticket.querySelector(
-      '[data-test-id="assignee-field-selected-agent-tag"]',
-    );
-    if (!assigneeField) return null;
-
-    // 3. Elementos que possuem atributo title
-    const elementosComTitle = assigneeField.querySelectorAll("[title]");
-    if (elementosComTitle.length < 2) return null;
-
-    // 4. Retorna o title do segundo item
-    return elementosComTitle[1].getAttribute("title");
-  }
-
-  async function BuscarNomePerfil() {
-    const oBotao = document.querySelector(
-      '[data-test-id="toolbar-profile-menu-button"]',
-    );
-    if (!oBotao) return null;
-
-    // função auxiliar para esperar um elemento aparecer
-    function esperarElemento(seletor, timeout = 3000) {
-      return new Promise((resolve) => {
-        const inicio = Date.now();
-
-        const intervalo = setInterval(() => {
-          const el = document.querySelector(seletor);
-          if (el) {
-            clearInterval(intervalo);
-            resolve(el);
-          }
-
-          if (Date.now() - inicio > timeout) {
-            clearInterval(intervalo);
-            resolve(null);
-          }
-        }, 100);
-      });
-    }
-
-    let viewProfile = document.querySelector(
-      '[data-test-id="toolbar-profile-menu-view-profile"]',
-    );
-
-    let cliquei = 0;
-    // Se o menu não estiver aberto, abre
-    if (!viewProfile) {
-      oBotao.click();
-
-      cliquei = 1;
-      viewProfile = await esperarElemento(
-        '[data-test-id="toolbar-profile-menu-view-profile"]',
-      );
-
-      if (!viewProfile) {
-        // não apareceu, fecha o menu e sai
-        oBotao.click();
-        return null;
-      }
-    }
-
-    // sobe na árvore procurando div com title
-    let atual = viewProfile.parentElement;
-    let nome = null;
-
-    while (atual) {
-      const divComTitle = atual.querySelector(":scope > div[title]");
-      if (divComTitle) {
-        nome = divComTitle.getAttribute("title");
-        break;
-      }
-      atual = atual.parentElement;
-    }
-
-    // fecha o menu se ele foi aberto
-    if (cliquei) oBotao.click();
-
-    return nome;
   }
 
   // ========= SYNC DE IDS =========
@@ -3485,10 +2921,6 @@
           id,
           datatime: null,
           nome: null,
-          seqQtd: null,
-          seqPrimeiroDatetime: null,
-          status: null,
-          QuemAt: null,
         });
 
         observarTicket(id);
@@ -3543,7 +2975,7 @@
           (v) =>
             `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(
               v.nome,
-            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime}, status: ${v.status}, QuemAt: ${v.QuemAt}`,
+            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime} }`,
         )
         .join(", ") +
       "}";
@@ -3618,10 +3050,8 @@
     const NomeOcAtivo = document.getElementById("NomeOcAtivo");
     const IdOcAtivo = document.getElementById("IdOcAtivo");
 
-    if (NomeOcAtivo && NomeOcAtivo.textContent !== oSNom.contato)
-      NomeOcAtivo.textContent = oSNom.contato;
-    if (IdOcAtivo && IdOcAtivo.textContent !== oSNom.ticket)
-      IdOcAtivo.textContent = oSNom.ticket;
+    if (NomeOcAtivo) NomeOcAtivo.textContent = oSNom.contato;
+    if (IdOcAtivo) IdOcAtivo.textContent = oSNom.ticket;
 
     const nome = NomeOcAtivo ? "NomeOcAtivo true" : "NomeOcAtivo False";
 
@@ -3637,24 +3067,17 @@
 
   // ========= OBSERVAÇÃO DE TICKET =========
   async function observarTicket(id) {
-    // Evita criar mais de um observer para o mesmo ticket
     if (ticketObservers.has(id)) return;
 
-    // Função que localiza o container de logs do ticket pelo data-ticket-id
     const selector = () =>
       document.querySelector(
         `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
       );
 
-    // Tenta encontrar o elemento imediatamente
     let root = selector();
-
-    // Se não encontrar, aguarda o elemento aparecer no DOM (até 20s)
     if (!root) {
       root = await waitForElement(selector, document, 20000);
     }
-
-    // Se mesmo após aguardar o elemento não existir, registra um aviso e sai
     if (!root) {
       Hwarn(
         `Não foi possível localizar o omni-log-container para o ticket ${id} (timeout).`,
@@ -3662,30 +3085,22 @@
       return;
     }
 
-    // Cria um debounce para o ticket caso ainda não exista
     if (!ticketDebouncers.has(id)) {
       ticketDebouncers.set(
         id,
         debounce(() => handleTicketChange(id), DEBOUNCE_MS),
       );
     }
-
-    // Recupera a função debounced associada ao ticket
     const debounced = ticketDebouncers.get(id);
 
-    // Cria um MutationObserver para reagir a mudanças no DOM
     const obs = new MutationObserver(() => {
-      // Ao detectar alterações, chama o handler de forma debounced
       debounced();
     });
 
-    // 👉 Executa imediatamente para capturar o estado inicial (ex.: datetime atual)
+    // 👉 Pega datetime imediatamente
     handleTicketChange(id);
 
-    // Observa adições/remoções de nós dentro do container, inclusive em subárvores
     obs.observe(root, { childList: true, subtree: true });
-
-    // Armazena o observer para evitar duplicações e permitir controle futuro
     ticketObservers.set(id, obs);
   }
 
@@ -3706,6 +3121,116 @@
     const ContadorId = `Contador${id}`;
     const Contador = document.getElementById(ContadorId);
     if (Contador) Contador.remove();
+  }
+
+  // ========= CALLBACK DE MUDANÇA DO TICKET =========
+  function handleTicketChange(id) {
+    const info = EncontrarOUltimoTime(id);
+    const prev = ticketsSet.get(id) ?? {
+      id,
+      datatime: null,
+      nome: null,
+      seqQtd: null,
+      seqPrimeiroDatetime: null,
+    };
+
+    if (!info) {
+      Hlog(`(sem dados) ticket ${id}, mantendo anterior`);
+      return;
+    }
+
+    // --- Compatibilidade com retorno antigo e novo ---
+    // Antigo:  { datatime, nome }
+    // Novo:    { ultimoDatetime, ultimoNome, sequencia: { nome, quantidade, primeiroDatetime } }
+    const datatimeAtual = info.ultimoDatetime ?? info.datatime ?? null;
+    const nomeAtual = info.ultimoNome ?? info.nome ?? null;
+
+    const seqQtdAtual =
+      info.sequencia && typeof info.sequencia.quantidade === "number"
+        ? info.sequencia.quantidade
+        : null;
+
+    const seqPrimeiroDatetimeAtual =
+      info.sequencia && info.sequencia.primeiroDatetime
+        ? info.sequencia.primeiroDatetime
+        : null;
+
+    // --- Detectar mudanças ---
+    const changedDate = datatimeAtual !== prev.datatime;
+    const changedName = nomeAtual !== prev.nome;
+    const changedSeqQtd = seqQtdAtual !== prev.seqQtd;
+    const changedSeqPrimeiro =
+      seqPrimeiroDatetimeAtual !== prev.seqPrimeiroDatetime;
+
+    if (changedDate || changedName || changedSeqQtd || changedSeqPrimeiro) {
+      ticketsSet.set(id, {
+        id,
+        datatime: datatimeAtual,
+        nome: nomeAtual,
+        seqQtd: seqQtdAtual,
+        seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
+      });
+
+      if (changedDate) {
+        Hlog(`Atualizado datatime do ticket ${id}: ${datatimeAtual}`);
+      }
+      if (changedName) {
+        Hlog(`Atualizado nome do ticket ${id}: ${nomeAtual}`);
+      }
+      if (changedSeqQtd) {
+        Hlog(
+          `Atualizada sequência do mesmo remetente no ticket ${id}: quantidade = ${seqQtdAtual}`,
+        );
+      }
+      if (changedSeqPrimeiro) {
+        Hlog(
+          `Atualizado primeiro datetime da sequência no ticket ${id}: ${seqPrimeiroDatetimeAtual}`,
+        );
+      }
+
+      logTicketsSet();
+      addContagem(id);
+    } else {
+      Hlog(`(sem mudança) ticket ${id}`);
+    }
+  }
+
+  function addContagem(id) {
+    const e = `Contador${id}`;
+    const c = document.getElementById(e);
+
+    if (c) {
+      Hlog(`${e} ja existe`);
+      return;
+    }
+    const a = document.querySelector(
+      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-is-chat="true"]`,
+    );
+
+    const b = document.createElement("div");
+    b.id = e;
+    b.style.cssText = `
+      box-sizing: border-box;
+      justify-self: center;
+      background: darkcyan;
+      border-radius: 6px;
+      padding: 0px 3px;
+      margin-bottom: -8px;
+      font-size: 12px;
+      position: relative;
+      z-index: 1;
+      color: white;
+    `;
+    b.textContent = "00:00";
+
+    if (a) {
+      const d = a.querySelectorAll("div")[0];
+      d.prepend(b);
+
+      Hlog(`Adicionado em data-entity-id="${id}"`);
+    } else {
+      Hlog(`data-entity-id="${id}" não encontrado`);
+    }
   }
 
   // ========= ENCONTRAR ÚLTIMO TIMESTAMP =========
@@ -3875,131 +3400,6 @@
     }
   }
 
-  // ========= CALLBACK DE MUDANÇA DO TICKET =========
-  function handleTicketChange(id) {
-    const info = EncontrarOUltimoTime(id);
-    const ostatus = getStatusAntesDoTicket(id).status;
-    const QuemAt = EncontrarAtribuido(id);
-    const prev = ticketsSet.get(id) ?? {
-      id,
-      datatime: null,
-      nome: null,
-      seqQtd: null,
-      seqPrimeiroDatetime: null,
-      status: null,
-      QuemAt: null,
-    };
-
-    if (!info) {
-      Hlog(`(sem dados) ticket ${id}, mantendo anterior`);
-      return;
-    }
-
-    // --- Compatibilidade com retorno antigo e novo ---
-    // Antigo:  { datatime, nome }
-    // Novo:    { ultimoDatetime, ultimoNome, sequencia: { nome, quantidade, primeiroDatetime } }
-    const datatimeAtual = info.ultimoDatetime ?? info.datatime ?? null;
-    const nomeAtual = info.ultimoNome ?? info.nome ?? null;
-
-    const seqQtdAtual =
-      info.sequencia && typeof info.sequencia.quantidade === "number"
-        ? info.sequencia.quantidade
-        : null;
-
-    const seqPrimeiroDatetimeAtual =
-      info.sequencia && info.sequencia.primeiroDatetime
-        ? info.sequencia.primeiroDatetime
-        : null;
-
-    // --- Detectar mudanças ---
-    const changedDate = datatimeAtual !== prev.datatime;
-    const changedName = nomeAtual !== prev.nome;
-    const changedSeqQtd = seqQtdAtual !== prev.seqQtd;
-    const changedSeqPrimeiro =
-      seqPrimeiroDatetimeAtual !== prev.seqPrimeiroDatetime;
-
-    if (
-      changedDate ||
-      changedName ||
-      changedSeqQtd ||
-      changedSeqPrimeiro ||
-      ostatus
-    ) {
-      ticketsSet.set(id, {
-        id,
-        datatime: datatimeAtual,
-        nome: nomeAtual,
-        seqQtd: seqQtdAtual,
-        seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
-        status: ostatus,
-        QuemAt: QuemAt,
-      });
-
-      if (changedDate) {
-        Hlog(`Atualizado datatime do ticket ${id}: ${datatimeAtual}`);
-      }
-      if (changedName) {
-        Hlog(`Atualizado nome do ticket ${id}: ${nomeAtual}`);
-      }
-      if (changedSeqQtd) {
-        Hlog(
-          `Atualizada sequência do mesmo remetente no ticket ${id}: quantidade = ${seqQtdAtual}`,
-        );
-      }
-      if (changedSeqPrimeiro) {
-        Hlog(
-          `Atualizado primeiro datetime da sequência no ticket ${id}: ${seqPrimeiroDatetimeAtual}`,
-        );
-      }
-
-      logTicketsSet();
-      if (ostatus) {
-        const alis = EstaResolvido(id);
-        if (alis.eMeu && !alis.Resol) addContagem(id);
-      }
-    } else {
-      Hlog(`(sem mudança) ticket ${id}`);
-    }
-  }
-
-  function addContagem(id) {
-    const e = `Contador${id}`;
-    const c = document.getElementById(e);
-
-    if (c) {
-      Hlog(`${e} ja existe`);
-      return;
-    }
-    const a = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
-    );
-
-    const b = document.createElement("div");
-    b.id = e;
-    b.style.cssText = `
-      box-sizing: border-box;
-      justify-self: center;
-      background: darkcyan;
-      border-radius: 6px;
-      padding: 0px 3px;
-      margin-bottom: -8px;
-      font-size: 12px;
-      position: relative;
-      z-index: 1;
-      color: white;
-    `;
-    b.textContent = "...";
-
-    if (a) {
-      const d = a.querySelectorAll("div")[0];
-      d.prepend(b);
-
-      Hlog(`Adicionado em data-entity-id="${id}"`);
-    } else {
-      Hlog(`data-entity-id="${id}" não encontrado`);
-    }
-  }
-
   // ========= BOOTSTRAP =========
   (async function bootstrap() {
     const SELECTOR = '[data-test-id="header-tablist"]';
@@ -4150,119 +3550,15 @@
     }
   }
 
-  function aMarcacaoObrig(f, erroSalv) {
-    if (!f) return;
-
-    // 🔴 CSS de erro (injetado uma vez)
-    const STYLE_ID = "estilo-ErroOb";
-    if (!document.getElementById(STYLE_ID)) {
-      const style = document.createElement("style");
-      style.id = STYLE_ID;
-      style.textContent = `
-        .erro-obrigatorio {
-          border: 1px solid red;
-          border-radius: 15px;
-          padding: 0px 2px;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    const oSidebar = f.querySelector("#ticket_sidebar");
-    if (!oSidebar) return;
-
-    // 🧹 limpa erros antigos
-    oSidebar
-      .querySelectorAll(".erro-obrigatorio")
-      .forEach((el) => el.classList.remove("erro-obrigatorio"));
-
-    if (!erroSalv) return;
-
-    // ✅ lê corretamente os spans do erro
-    const osObrig = Array.from(erroSalv.querySelectorAll("li span")).map(
-      (span) =>
-        span.textContent.replace(" é obrigatório", "").replace(/"/g, "").trim(),
-    );
-
-    // 🔎 normalização segura
-    const normalizar = (txt = "") =>
-      txt
-        .replace("*", "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "")
-        .trim();
-
-    if (osObrig.length === 0) return;
-
-    const obrigNorm = osObrig.map(normalizar);
-
-    // ✅ agora buscamos os LABELS (não "*")
-    const labels = oSidebar.querySelectorAll(
-      'label[data-garden-id="forms.input_label"]',
-    );
-
-    labels.forEach((label) => {
-      const textoLabel = normalizar(label.textContent);
-
-      if (obrigNorm.includes(textoLabel)) {
-        label.classList.add("erro-obrigatorio");
-      }
-    });
-  }
-
-  function EstaResolvido(id) {
-    const f = document.querySelector(
-      `[data-test-id="ticket-${CSS.escape(id)}-standard-layout"]`,
-    );
-
-    const erroSalv = f?.querySelector(
-      '[data-test-id="ticket_saving_error_notification"]',
-    );
-
-    aMarcacaoObrig(f, erroSalv);
-
-    const os = getStatusAntesDoTicket(id)?.status;
-    const enconAt = EncontrarAtribuido(id);
-
-    // fallback seguro do cache
-    if (!os || !enconAt) {
-      //Hlog("Falso");
-      return {
-        eMeu: stt.StatusTk?.[id]?.eMeu ?? 0,
-        Resol: stt.StatusTk?.[id]?.Resol ?? 0,
-      };
-    }
-
-    const eMeu = config.NomeAt === enconAt ? 1 : 0;
-
-    const Resol = !erroSalv && outrav.includes(os) ? 1 : 0;
-
-    stt.StatusTk[id] = { eMeu, Resol };
-
-    //Hlog(`Resolvido: ${Resol} / Emeu: ${eMeu}`);
-    return { eMeu, Resol };
-  }
-
   function AtualizarTimerChat() {
     if (!(ticketsSet instanceof Map)) return;
 
-    let aCont = 0;
     for (const [id, info] of ticketsSet) {
-      if (!info || !info.seqPrimeiroDatetime || !info.nome || !info.status)
-        continue; // precisa ter datatime
-
-      const e = document.querySelector(
-        `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
-      );
+      if (!info || !info.seqPrimeiroDatetime || !info.nome) continue; // precisa ter datatime
 
       const el = document.getElementById(`Contador${id}`);
-
-      const os = EstaResolvido(id);
-
       if (!el) {
-        if (os.eMeu && !os.Resol) addContagem(id); // cria contador se não existir
-
+        addContagem(id); // cria contador se não existir
         continue;
       }
 
@@ -4270,14 +3566,16 @@
       const a = isoParaDataHora(info.seqPrimeiroDatetime); // idem, vindo do ISO salvo
 
       // Só calcula se a data for a mesma
-      if (agora.data !== a.data) {
-        if (e && e.style.borderBottom !== "") e.style.borderBottom = "";
-        el.remove();
-        continue;
-      }
+      if (agora.data !== a.data) continue;
 
       const c = exibirAHora(agora, 0, a);
       const d = converterParaSegundos(c.hora);
+
+      const e = document.querySelector(
+        `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"][data-is-chat="true"]`,
+      );
+
+      //if (!document.getElementById(`Contador${id}`)) return;
 
       // --- COR DO FUNDO ---
       const SeisM = converterParaSegundos("00:06:00");
@@ -4285,67 +3583,15 @@
       const TresM = converterParaSegundos("00:03:00");
       //const CincS = converterParaSegundos("00:00:05");
 
-      el.style.backgroundColor =
-        d > CincM ? Ccor.Alerta : d > TresM ? Ccor.Aviso : Ccor.Contagem;
+      //info.nome !== e.getAttribute("aria-label")
+      el.style.background =
+        d > CincM ? "#df0c0c" : d > TresM ? "#d2661e" : "darkcyan";
 
-      if (e)
-        e.style.borderBottom = d >= SeisM ? `6px solid ${Ccor.Alerta}` : "";
+      if (e) e.style.background = d >= SeisM ? "#ad1414" : "";
 
       // --- TEXTO DO CONTADOR ---
       el.textContent = tempoEncurtado(c.hora);
-
-      if (os.Resol) {
-        if (e && e.style.borderBottom !== "") e.style.borderBottom = "";
-        el.remove();
-      }
-
-      if (os.eMeu && !os.Resol) {
-        aCont += 1;
-      }
-      if (aCont !== DDPausa.NdeIdAtivo) {
-        DDPausa.NdeIdAtivo = aCont;
-        SalvandoVariConfig(1);
-      }
     }
-  }
-
-  function getStatusAntesDoTicket(numeroTicket) {
-    if (!numeroTicket) return { resolvido: false, status: "DESCONHECIDO" };
-
-    const ticketSpan = [
-      ...document.querySelectorAll(
-        '[data-test-id="tabs-section-nav-item-ticket"]',
-      ),
-    ].find((el) => el.textContent.includes(`Ticket #${numeroTicket}`));
-
-    if (!ticketSpan) {
-      return { resolvido: false, status: "NÃO ENCONTRADO" };
-    }
-
-    const statusEl = ticketSpan.querySelector(".ticket_status_label");
-
-    const oId = document.querySelector(
-      `[data-entity-id="${CSS.escape(numeroTicket)}"][data-test-id="header-tab"]`,
-    );
-
-    const Alterado = oId.querySelector(
-      '[data-test-id="omnitab-dirty-notification"]',
-    );
-
-    const EnconAt = EncontrarAtribuido(numeroTicket);
-
-    if (!statusEl) {
-      return { resolvido: false, status: "EM ANDAMENTO" };
-    }
-
-    const normalize = (s) => (s || "").replace(/\s+/g, " ").trim();
-
-    const statusTxt = normalize(statusEl.textContent).toUpperCase();
-
-    return {
-      resolvido: /RESOLVIDO|SOLVED|ENCERRADO/.test(statusTxt),
-      status: statusTxt,
-    };
   }
 
   //desligamento e pausa
