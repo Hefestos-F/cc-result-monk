@@ -4,7 +4,7 @@
 // @version      1
 // @description  that's all folks!
 // @author       almaviva.fpsilva
-// @match        https://www.google.com/*
+// @match        https://smileshelp.zendesk.com/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @updateURL    https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/testes.user.js
 // @downloadURL  https://raw.githubusercontent.com/Hefestos-F/cc-result-monk/main/EmTeste/testes.user.js
@@ -14,6 +14,19 @@
 // ==/UserScript==
 
 (function () {
+  const stt = {
+    andament: 1,
+    observa: 1,
+    idSelecionado: {},
+    StatusTk: {},
+  };
+
+  const config = {
+    NomeAt: "",
+  };
+
+  const outrav = ["RESOLVIDO", "FECHADO", "NOVO"];
+
   // ========= LOG UTILS =========
 
   const PreFixo = "Test HefestoLog:";
@@ -35,10 +48,11 @@
   }
 
   function observarItem(aoMudar, target = document.body) {
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver(async () => {
       if (stt.andament) {
         stt.andament = 0;
-        aoMudar();
+        await aoMudar();
+        stt.andament = 1;
       }
       if (stt.observa === 0) observer.disconnect();
     });
@@ -54,23 +68,23 @@
     return item.getAttribute("data-entity-id");
   }
 
+  /*
   observarItem(() => {
     const a = obterEntityIdSelecionado();
 
-    if (!a) return (stt.andament = 1);
+    if (!a) return 
 
     EstaResolvido(a);
 
-    stt.andament = 1;
   }, document.querySelector('[data-test-id="header-toolbar"]'));
+*/
 
-
-  function oloop(){
-    MudarOitemProt()
+  function oloop() {
+    MudarOitemProt();
   }
 
   // Atualiza o timer a cada segundo
-  setInterval(oLoop, 1000);
+  setInterval(oloop, 1000);
 
   function MudarOitemProt() {
     const itens = document.querySelectorAll("[data-selected]");
@@ -82,6 +96,8 @@
       const oId = item.dataset.entityId; // "24380006"
 
       const estado = stt.idSelecionado[oId];
+
+      if (itemSele) EstaResolvido(oId);
 
       if (
         !estado ||
@@ -177,8 +193,6 @@
   }
 
   function EncontrarAtribuido(id) {
-    let oAtribuido = ticketsSet.has(id).QuemAt;
-    if (oAtribuido) return oAtribuido;
     // 1. Container do ticket
     const ticket = document.querySelector(
       `[data-test-id="ticket-${id}-standard-layout"]`,

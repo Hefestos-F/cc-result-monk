@@ -53,17 +53,12 @@
   const log = (...args) => CONFIG.debug && console.log(LOG_PREFIX, ...args);
   const warn = (...args) => console.warn(LOG_PREFIX, ...args);
 
-  
-function obterEntityIdSelecionado() {
-  const item = document.querySelector('[data-selected="true"]');
-  if (!item) return null; // ou "", ou false — como preferir
-  
-  return item.getAttribute('data-entity-id');
-}
+  function obterEntityIdSelecionado() {
+    const item = document.querySelector('[data-selected="true"]');
+    if (!item) return null; // ou "", ou false — como preferir
 
-
-
-  
+    return item.getAttribute("data-entity-id");
+  }
 
   /** ===========================
    *  ACHAR "Ticket #<n>" E NOME ANTERIOR NO DOC ATUAL
@@ -372,7 +367,7 @@ function obterEntityIdSelecionado() {
         <button id="rc-close" class="rc-btn primary">Fechar</button>
       </div>
     </div>
-  `;
+    `;
   document.body.appendChild(panel);
 
   // Iframe criado corretamente (evita markup quebrado)
