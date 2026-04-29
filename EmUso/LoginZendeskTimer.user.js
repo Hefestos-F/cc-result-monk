@@ -2040,7 +2040,7 @@
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            background-color: ${escurecer(Ccor.Config)};
+            background-color: ${escurecer(Ccor.Config,0.2)};
             color: white;
             font-size: 12px;
             height: 22px;
