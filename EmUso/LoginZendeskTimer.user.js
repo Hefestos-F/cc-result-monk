@@ -1090,6 +1090,9 @@
           ? tempoEncurtado(arme)
           : tempoEncurtado(ContAtual);
 
+    const duracaoAg = document.getElementById("duracaoAg");
+    if (duracaoAg) duracaoAg.textContent = tempoEncurtado(ContAtual);
+
     let DadosAlterPrimLogue = dadosPrimLogue !== "-?-" ? dadosPrimLogue : agora;
 
     const Logou = config.LogueManual
@@ -2040,7 +2043,7 @@
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            background-color: ${escurecer(Ccor.Config,0.2)};
+            background-color: ${escurecer(Ccor.Config, 0.2)};
             color: white;
             font-size: 12px;
             height: 22px;
@@ -2988,7 +2991,9 @@
         const duracao = item?.duracao ?? "<--->";
         const pausa = item?.pausa ?? "";
 
-        itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
+        let oId = fimHora === "<--->" ? "Ag" : item.id;
+
+        itemdetab(oId, pausa, inicioHora, fimHora, duracao);
       });
     }
 
