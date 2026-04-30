@@ -97,11 +97,11 @@
    * Ccor - Cores usadas na interface (valores em hex)
    */
   const Ccor = {
-    Offline: "#3a82cf",
     Alerta: "#992e2e",
     Aviso: "#c97123ff",
     Contagem: "darkcyan",
     MetaTMA: "#229b8d",
+    destaque:"#1b81ff",
     Principal: "#4c95bd",
     AreaAr: "#337091",
     Config: "#96a8bb",
@@ -1250,7 +1250,7 @@
         item.style.borderRadius = "20px 20px 0px 0px";
 
         ["borderTop", "borderRight", "borderLeft"].forEach((a) => {
-          item.style[a] = itemSele === "true" ? "2px solid #1b81ff" : "";
+          item.style[a] = itemSele === "true" ? `2px solid ${Ccor.destaque}` : "";
         });
 
         stt.idSelecionado[oId] = {
@@ -2387,7 +2387,7 @@
         LinhaSelCor(8, "Alerta", Ccor.Alerta),
         LinhaSelCor(9, "Aviso", Ccor.Aviso),
         LinhaSelCor(10, "Contagem", Ccor.Contagem),
-        //LinhaSelCor(11, "Offline", Ccor.Offline),
+        LinhaSelCor(11, "Dest. aba", Ccor.destaque),
         LinhaSelCor(12, "Config", Ccor.Config),
       );
 
@@ -2795,6 +2795,7 @@
     if (qq === "cor8") Ccor.Alerta = Ccor.Varian;
     if (qq === "cor9") Ccor.Aviso = Ccor.Varian;
     if (qq === "cor10") Ccor.Contagem = Ccor.Varian;
+    if (qq === "cor11") Ccor.destaque = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (qq === "cor7") {
       Ccor.Principal = Ccor.Varian;
