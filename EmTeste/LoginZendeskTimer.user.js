@@ -101,7 +101,7 @@
     Aviso: "#c97123ff",
     Contagem: "darkcyan",
     MetaTMA: "#229b8d",
-    destaque:"#1b81ff",
+    destaque: "#1b81ff",
     Principal: "#4c95bd",
     AreaAr: "#337091",
     Config: "#96a8bb",
@@ -113,11 +113,11 @@
    * PCcor - Cores padrão (backup)
    */
   const CorPad = {
-    Offline: "#3a82cf",
     Alerta: "#992e2e",
     Aviso: "#c97123ff",
     Contagem: "darkcyan",
     MetaTMA: "#229b8d",
+    destaque: "#1b81ff",
     Principal: "#4c95bd",
     AreaAr: "#337091",
     Config: "#96a8bb",
@@ -1250,7 +1250,8 @@
         item.style.borderRadius = "20px 20px 0px 0px";
 
         ["borderTop", "borderRight", "borderLeft"].forEach((a) => {
-          item.style[a] = itemSele === "true" ? `2px solid ${Ccor.destaque}` : "";
+          item.style[a] =
+            itemSele === "true" ? `2px solid ${Ccor.destaque}` : "";
         });
 
         stt.idSelecionado[oId] = {
