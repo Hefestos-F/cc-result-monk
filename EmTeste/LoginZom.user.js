@@ -398,6 +398,7 @@
         config.pausalimitada = 0;
         stt.Estouro = 0;
         stt.Estour1 = 0;
+
         atualizarComoff(0, Ccor.Erro, "cTMA");
         SalvandoVariConfig(1);
         // Calcula duração real (string HH:MM:SS)
@@ -914,16 +915,6 @@
     div.addEventListener("mouseover", () => contr(1));
     div.addEventListener("mouseout", () => contr(0));
 
-    function contr(a) {
-      div.style.backgroundColor = stt.Estouro
-        ? Ccor.Erro
-        : a
-          ? Ccor.AreaAr
-          : "white";
-      div.style.color = stt.Estouro || a ? "white" : Ccor.AreaAr;
-      div.style.borderColor = stt.Estouro || a ? "" : Ccor.AreaAr;
-    }
-
     div.addEventListener("click", () => {
       const FlutOB = document.getElementById("FlutOB");
       if (FlutOB) {
@@ -940,6 +931,17 @@
       }
     });
     document.body.appendChild(div);
+  }
+
+  function contr(a = 0) {
+    const div = document.getElementById("BotInicial");
+    div.style.backgroundColor = stt.Estouro
+      ? Ccor.Erro
+      : a
+        ? Ccor.AreaAr
+        : "white";
+    div.style.color = stt.Estouro || a ? "white" : Ccor.AreaAr;
+    div.style.borderColor = stt.Estouro || a ? "" : Ccor.AreaAr;
   }
 
   function criarObjetoFlutuante(options = {}) {
@@ -1703,6 +1705,11 @@
     vFalta.textContent = stt.tempoCumprido
       ? "Cumprido"
       : tempoEncurtado(TempoPausas.Falta);
+
+    if (BotInicial && stt.Estouro !== stt.EstouroAnt) {
+      contr();
+      stt.EstouroAnt = stt.Estouro;
+    }
 
     if (config.pausalimitada && config.notiEstouro) {
       stt.Estouro = TempoPausas.Estouro
@@ -3229,10 +3236,6 @@
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
 
-    if (BotInicial && stt.Estouro) {
-      BotInicial.style.backgroundColor = Ccor.Erro;
-      BotInicial.style.color = "white";
-    }
     if (qq === "cor9") Ccor.MetaTMA = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (minhaCaixa) minhaCaixa.style.backgroundColor = Ccor.Principal;
