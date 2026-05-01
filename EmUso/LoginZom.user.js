@@ -2365,7 +2365,7 @@
       caixa.style.display = "none";
     }
     caixa.innerHTML = `
-        <div id="t${titulo}">${titulo === "Logou" ? letraD.Logou : titulo}</div>
+        <div id="t${titulo}">${titulo === "Logou" ? (config.LogueManual ? "Logou:M" : "Logou:") : titulo}</div>
         <div id="o${titulo}"></div>
         <div id="v${titulo}">...</div>
         `;
@@ -2538,7 +2538,7 @@
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            background-color: transparent;
+            background-color: ${escurecer(Ccor.Config, 0.2)};
             color: white;
             font-size: 12px;
             height: 22px;
