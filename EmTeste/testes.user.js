@@ -281,4 +281,16 @@
       }
     });
   }
+
+  const ozero = document.querySelectorAll(".recent-closed__queue");
+
+  if (!ozero.length) {
+    console.log("Nenhum elemento .recent-closed__queue encontrado");
+  } else {
+    ozero.forEach((s) => {
+      const segunda = s.textContent.trim().split(/\s+/)[0];
+
+      console.log(segunda);
+    });
+  }
 })();

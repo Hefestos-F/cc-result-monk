@@ -71,12 +71,13 @@
     andament: 1,
     ocultarValor: 0,
     Estouro: 0,
+    Estour1: 0,
+    EstouroAnt: 0,
     AbaPausas: 0,
     AbaConfig: 0,
     AbaOutros: 0,
     tempoCumprido: 0,
     temHorasExtras: 0,
-    Estour1: 0,
     BeepRet: 0,
     Encontrado: 0,
     LadoBot: 0,
@@ -228,7 +229,6 @@
       Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
     }
     await SalvandoVariConfig(0);
-    await verifLogueManual();
     CriarBotInicial();
   }
 
@@ -440,24 +440,6 @@
     stt.andament = 1;
   });
 
-  async function verifLogueManual() {
-    const hoje = new Date();
-    const hojeFormatado = hoje.toISOString().split("T")[0];
-    const ontem = new Date(hoje);
-    ontem.setDate(hoje.getDate() - 1);
-    const ontemFormatado = ontem.toISOString().split("T")[0];
-    const agora = gerarDataHora();
-
-    if (
-      !dadosLogueManu ||
-      (dadosLogueManu.data !== hojeFormatado &&
-        dadosLogueManu.data !== ontemFormatado)
-    ) {
-      dadosLogueManu = agora;
-      AddOuAtuIindexdb(ChavelogueManu, dadosLogueManu);
-    }
-  }
-
   async function verifiDataLogue(x = 0, z = 0) {
     const a = gerarDataHora();
     const e = exibirHora(a, 0, "23:59:59");
@@ -483,6 +465,7 @@
       dadosPrimLogue = z || a;
       dadosdePausas = [];
       DDPausa.numero = 0;
+      config.LogueManual = 0;
       ApagarChaveIndexDB(ChavePausas);
       SalvandoVariConfig(1);
     }
@@ -633,7 +616,7 @@
       indisponivelTxt: converterParaTempo?.(totalIndisponivelSeg) ?? "00:00:00",
       onlineTxt: converterParaTempo?.(onlineSeg) ?? "00:00:00",
     };
-
+    /*
     const obdeat = [
       ...document.querySelectorAll(".cus-submenu__title span"),
     ].find((s) => s.textContent.includes("CONCLUÍDO"));
@@ -647,6 +630,8 @@
     if (omais) atendNum += Number(omais.textContent.replace(/^\+/, ""));
 
     TempoPausas.Atendidas = Number.isFinite(atendNum) ? atendNum : asatendidas;
+*/
+    TempoPausas.Atendidas = asatendidas;
 
     // Preenche objeto global se existir
     if (typeof TempoPausas === "object" && TempoPausas !== null) {
@@ -1500,9 +1485,9 @@
 
       const ozero = document.querySelector(".phone-active__queue");
 
-      const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[1] : "";
+      const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
 
-      const terc = `${el.Status} ${segunda}`;
+      const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
 
       if (BotInicial)
         BotInicial.textContent = stt.Encontrado
@@ -1706,15 +1691,20 @@
       ? "Cumprido"
       : tempoEncurtado(TempoPausas.Falta);
 
-    if (BotInicial && stt.Estouro !== stt.EstouroAnt) {
-      contr();
-      stt.EstouroAnt = stt.Estouro;
+    function atcorest() {
+      if (BotInicial && stt.Estouro !== stt.EstouroAnt) {
+        contr();
+        stt.EstouroAnt = stt.Estouro;
+      }
     }
+
+    atcorest();
 
     if (config.pausalimitada && config.notiEstouro) {
       stt.Estouro = TempoPausas.Estouro
         ? compararDatas(agora, TempoPausas.Estouro)
         : 0;
+      if (stt.Estouro) contr();
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
