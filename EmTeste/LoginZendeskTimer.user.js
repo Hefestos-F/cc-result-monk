@@ -4278,7 +4278,7 @@
       };
     }
 
-    const eMeu = 1; //config.NomeAt === enconAt ? 1 : 0;
+    const eMeu = config.NomeAt === enconAt ? 1 : 0;
 
     const Resol = !erroSalv && outrav.includes(os) ? 1 : 0;
 
