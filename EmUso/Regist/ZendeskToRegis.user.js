@@ -67,7 +67,8 @@
   const warn = (...args) => console.warn(LOG_PREFIX, ...args);
 
   function obterEntityIdSelecionado() {
-    const item = document.querySelector('[data-selected="true"]');
+    //const item = document.querySelector('[data-selected="true"]');
+    const item = document.querySelector('[data-entity-is-selected="true"]');
     if (!item) return null; // ou "", ou false — como preferir
 
     return item.getAttribute("data-entity-id");

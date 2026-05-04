@@ -125,6 +125,19 @@
     TVarian: "",
   };
 
+  const statusPermit = [
+    "Online",
+    "Ausente",
+    "Apenas",
+    "Offline",
+    "Almoço",
+    "Descanso",
+    "Lanche",
+    "Pausa",
+    "Pré",
+    "Treinamento",
+  ];
+
   const outrav = ["RESOLVIDO", "FECHADO", "NOVO"];
 
   const asAbas = [
@@ -333,7 +346,17 @@
       stt.tentativaNome = 0;
     }
 
-    DDPausa.statusAtual = formatPrimeiroNome(el.encStatus.textContent.trim());
+    const dsaTT = formatPrimeiroNome(el.encStatus.textContent.trim());
+
+    let oiteme = 0;
+    statusPermit.forEach((s) => {
+      if (normalizeNome(s) === normalizeNome(dsaTT)) oiteme = 1;
+    });
+
+    if (!oiteme) return (stt.andament = 1);
+
+    //Hlog(`DDPausa.statusAtual: "${dsaTT}"`);
+    DDPausa.statusAtual = dsaTT;
 
     if (DDPausa.statusAtual === "Pausa") DDPausa.statusAtual = "Particular";
     //Hlog(`Status: ${statusAtual}`);
