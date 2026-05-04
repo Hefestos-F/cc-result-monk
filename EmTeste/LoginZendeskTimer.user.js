@@ -237,7 +237,6 @@
     }
     await SalvandoVariConfig(0);
     await verifiDataLogue();
-    await verifLogueManual();
     criarObjetoFlutuante();
   }
 
@@ -432,24 +431,6 @@
     stt.andament = 1;
   });
 
-  async function verifLogueManual() {
-    const hoje = new Date();
-    const hojeFormatado = hoje.toISOString().split("T")[0];
-    const ontem = new Date(hoje);
-    ontem.setDate(hoje.getDate() - 1);
-    const ontemFormatado = ontem.toISOString().split("T")[0];
-    const agora = gerarDataHora();
-
-    if (
-      !dadosLogueManu ||
-      (dadosLogueManu.data !== hojeFormatado &&
-        dadosLogueManu.data !== ontemFormatado)
-    ) {
-      dadosLogueManu = agora;
-      AddOuAtuIindexdb(ChavelogueManu, dadosLogueManu);
-    }
-  }
-
   async function verifiDataLogue(x = 0) {
     const as = gerarDataHora();
     const is = "23:59:59";
@@ -474,7 +455,7 @@
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = "-?-";
       dadosdePausas = [];
-
+      dadosLogueManu = agora;
       for (const chave in TempoPausas) {
         TempoPausas[chave] = 0;
       }
@@ -3594,7 +3575,8 @@
 
   //atualizar nome ===>>
   function obterEntityIdSelecionado() {
-    const item = document.querySelector('[data-selected="true"]');
+    //const item = document.querySelector('[data-selected="true"]');
+    const item = document.querySelector('[data-entity-is-selected="true"]');
     if (!item) return null; // ou "", ou false — como preferir
 
     return item.getAttribute("data-entity-id");
@@ -3614,23 +3596,33 @@
   function getNomeAntesDoTicket(numeroTicket) {
     if (!numeroTicket) return "-X";
 
-    const ticketSpan = [
-      ...document.querySelectorAll(
-        '[data-test-id="tabs-section-nav-item-ticket"]',
-      ),
-    ].find((el) => el.textContent.includes(`Ticket #${numeroTicket}`));
+    // span do ticket
+    const ticketSpan = document.querySelector(
+      '[data-test-id="tabs-section-nav-item-ticket"]',
+    );
 
-    if (!ticketSpan) return "X-X";
+    if (
+      !ticketSpan ||
+      !ticketSpan.textContent.includes(`Ticket #${numeroTicket}`)
+    ) {
+      return "X-X";
+    }
 
+    // span imediatamente anterior (usuário)
     const anterior = ticketSpan.previousElementSibling;
     if (!anterior) return "XX-";
 
-    const NomeENcon = anterior.textContent;
+    // pega o texto real do nome (interno)
+    const nomeEncontrado =
+      anterior.querySelector(".react-wrapper")?.textContent?.trim() ||
+      anterior.textContent.trim();
 
-    const nomeCompleto = normalizeNome(NomeENcon);
+    if (!nomeEncontrado) return "XXX";
+
+    const nomeCompleto = normalizeNome(nomeEncontrado);
 
     return {
-      PrimeNome: formatPrimeiroNomeDIF(nomeCompleto),
+      primeiroNome: formatPrimeiroNomeDIF(nomeCompleto),
       nomeCompleto: nomeCompleto,
     };
   }
@@ -3642,7 +3634,7 @@
     let contato = "X-";
     try {
       const res = getNomeAntesDoTicket(ticket);
-      contato = res && res.PrimeNome ? res.PrimeNome : "XX-XX";
+      contato = res && res.primeiroNome ? res.primeiroNome : "XX-XX";
     } catch (e) {
       Hwarn("Falha ao obter contato via encontrarNome():", e);
     }
