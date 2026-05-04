@@ -280,11 +280,47 @@
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   };
 
+  function getAltFromToolbarProfile() {
+    const container = document.querySelector(
+      '[data-test-id="toolbar-profile-menu-button"]',
+    );
+    if (!container) return null;
+
+    const elComAlt = container.querySelector("[alt]");
+    return elComAlt ? elComAlt.getAttribute("alt") : null;
+  }
+
+  function getTypographySpanByProfileAlt() {
+    const alt = getAltFromToolbarProfile();
+    if (!alt) return null;
+
+    // Encontra elementos cujo texto seja exatamente igual ao alt
+    const itens = [...document.querySelectorAll("*")].filter(
+      (el) => el.textContent?.trim() === alt,
+    );
+
+    if (!itens.length) return null;
+
+    let ocorreto = null;
+    itens.forEach((s) => {
+      // spans no mesmo container
+      const noPai = s.parentElement?.querySelector(
+        'span[data-garden-id="typography.font"]',
+      );
+      if (noPai) ocorreto = noPai;
+    });
+
+    return { nomeAg: alt, encStatus: ocorreto };
+  }
+
   observarItem(() => {
-    //const el = document.querySelector('[data-garden-id="typography.font"]');
-    const el = document.querySelector(
+    /*const el = document.querySelector('[data-garden-id="typography.font"]');
+     */
+    const el1 = document.querySelector(
       '[data-test-id="toolbar-profile-menu-button-tooltip"] div',
     );
+
+    const el = getTypographySpanByProfileAlt();
 
     if (!el) {
       Hlog("Alteração aconteceu, mas ainda sem status");
@@ -293,14 +329,12 @@
     }
 
     if (!config.NomeAt && stt.tentativaNome < 3) {
-      BuscarNomePerfil().then((nome) => {
-        config.NomeAt = nome;
-        if (nome) SalvandoVariConfig(1);
-        stt.tentativaNome = 0;
-      });
+      config.NomeAt = el.nomeAg;
+      SalvandoVariConfig(1);
+      stt.tentativaNome = 0;
     }
 
-    DDPausa.statusAtual = formatPrimeiroNome(el.textContent.trim());
+    DDPausa.statusAtual = formatPrimeiroNome(el.encStatus.textContent.trim());
 
     if (DDPausa.statusAtual === "Pausa") DDPausa.statusAtual = "Particular";
     //Hlog(`Status: ${statusAtual}`);
@@ -3977,9 +4011,10 @@
       Hlog(`${e} ja existe`);
       return;
     }
-    const a = document.querySelector(
-      `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
-    );
+
+    const ab = document.querySelector('[data-test-id="header-tablist"]');
+
+    const a = ab.querySelector(`[data-entity-id="${CSS.escape(id)}"]`);
 
     const b = document.createElement("div");
     b.id = e;
@@ -3989,7 +4024,7 @@
       background: darkcyan;
       border-radius: 6px;
       padding: 0px 3px;
-      margin-bottom: -8px;
+      margin-bottom: -2px;
       font-size: 12px;
       position: relative;
       z-index: 1;
@@ -3997,8 +4032,10 @@
     `;
     b.textContent = "...";
 
-    if (a) {
+    if (a && ab) {
       const d = a.querySelectorAll("div")[0];
+      d.style.flexDirection = "column";
+
       d.prepend(b);
 
       Hlog(`Adicionado em data-entity-id="${id}"`);
@@ -4241,7 +4278,7 @@
       };
     }
 
-    const eMeu = config.NomeAt === enconAt ? 1 : 0;
+    const eMeu = 1; //config.NomeAt === enconAt ? 1 : 0;
 
     const Resol = !erroSalv && outrav.includes(os) ? 1 : 0;
 

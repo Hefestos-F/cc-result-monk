@@ -293,4 +293,40 @@
       console.log(segunda);
     });
   }
+
+  function getAltFromToolbarProfile() {
+    const container = document.querySelector(
+      '[data-test-id="toolbar-profile-menu-button"]',
+    );
+    if (!container) return null;
+
+    const elComAlt = container.querySelector("[alt]");
+    return elComAlt ? elComAlt.getAttribute("alt") : null;
+  }
+
+  function getTypographySpanByProfileAlt() {
+    const alt = getAltFromToolbarProfile();
+    if (!alt) return null;
+
+    // Encontra elementos cujo texto seja exatamente igual ao alt
+    const itens = [...document.querySelectorAll("*")].filter(
+      (el) => el.textContent?.trim() === alt,
+    );
+
+    if (!itens.length) return null;
+
+    let ocorreto = null;
+    itens.forEach((s) => {
+        // spans no mesmo container
+        const noPai = s.parentElement?.querySelector(
+          'span[data-garden-id="typography.font"]',
+        );
+        if(noPai)ocorreto = noPai;
+
+      });
+
+    return ocorreto;
+  }
+
+  getTypographySpanByProfileAlt();
 })();
