@@ -317,16 +317,47 @@
 
     let ocorreto = null;
     itens.forEach((s) => {
-        // spans no mesmo container
-        const noPai = s.parentElement?.querySelector(
-          'span[data-garden-id="typography.font"]',
-        );
-        if(noPai)ocorreto = noPai;
-
-      });
+      // spans no mesmo container
+      const noPai = s.parentElement?.querySelector(
+        'span[data-garden-id="typography.font"]',
+      );
+      if (noPai) ocorreto = noPai;
+    });
 
     return ocorreto;
   }
 
-  getTypographySpanByProfileAlt();
+  function getNomeAntesDoTicket(numeroTicket) {
+    if (!numeroTicket) return "-X";
+
+    // span do ticket
+    const ticketSpan = document.querySelectorAll(
+      '[data-test-id="tabs-section-nav-item-ticket"]',
+    );
+
+    if (ticketSpan.length === 0) {
+      return "X-X";
+    }
+    let onomecer = "XZX";
+
+    ticketSpan.forEach((s) => {
+      if (s.textContent.includes(`Ticket #${numeroTicket}`)) {
+        const gg = s.parentElement.querySelector(
+          '[data-test-id="tabs-nav-item-users"]',
+        );
+
+        if (gg) onomecer = gg.textContent;
+      }
+    });
+
+
+    const nomeCompleto = normalizeNome(onomecer);
+
+    return {
+      primeiroNome: formatPrimeiroNomeDIF(nomeCompleto),
+      nomeCompleto: nomeCompleto,
+    };
+  }
+
+  getNomeAntesDoTicket(24769962)
 })();

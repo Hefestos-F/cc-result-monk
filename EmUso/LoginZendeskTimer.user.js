@@ -3620,29 +3620,26 @@
     if (!numeroTicket) return "-X";
 
     // span do ticket
-    const ticketSpan = document.querySelector(
+    const ticketSpan = document.querySelectorAll(
       '[data-test-id="tabs-section-nav-item-ticket"]',
     );
 
-    if (
-      !ticketSpan ||
-      !ticketSpan.textContent.includes(`Ticket #${numeroTicket}`)
-    ) {
+    if (ticketSpan.length === 0) {
       return "X-X";
     }
+    let onomecer = "XZX";
 
-    // span imediatamente anterior (usuário)
-    const anterior = ticketSpan.previousElementSibling;
-    if (!anterior) return "XX-";
+    ticketSpan.forEach((s) => {
+      if (s.textContent.includes(`Ticket #${numeroTicket}`)) {
+        const gg = s.parentElement.querySelector(
+          '[data-test-id="tabs-nav-item-users"]',
+        );
 
-    // pega o texto real do nome (interno)
-    const nomeEncontrado =
-      anterior.querySelector(".react-wrapper")?.textContent?.trim() ||
-      anterior.textContent.trim();
+        if (gg) onomecer = gg.textContent;
+      }
+    });
 
-    if (!nomeEncontrado) return "XXX";
-
-    const nomeCompleto = normalizeNome(nomeEncontrado);
+    const nomeCompleto = normalizeNome(onomecer);
 
     return {
       primeiroNome: formatPrimeiroNomeDIF(nomeCompleto),
@@ -4492,3 +4489,4 @@
     Hlog(`Observação retomada: ${motivo}`);
   }
 })();
+
