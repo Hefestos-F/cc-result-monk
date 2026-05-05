@@ -1006,7 +1006,6 @@
   setInterval(oLoop, 1000);
 
   function oLoop() {
-    MudarOitemProt();
     if (config.OBS_ATIVO) AtualizarTimerChat();
     const time = document.getElementById("vTMA");
     const titulo = document.getElementById("tTMA");
@@ -1280,39 +1279,6 @@
       aDivAlert.style.marginTop = os ? "5px" : "";
       aDivAlert.style.background = Ccor.Alerta;
     }
-  }
-
-  function MudarOitemProt() {
-    const itens = document.querySelectorAll("[data-selected]");
-
-    if (!itens) return;
-
-    itens.forEach((item) => {
-      const itemSele = item.dataset.selected; // "true" | "false"
-      const oId = item.dataset.entityId; // "24380006"
-
-      const estado = stt.idSelecionado[oId];
-
-      if (
-        !estado ||
-        estado.dataselected !== itemSele ||
-        estado.borderTop !== item.style.borderTop ||
-        estado.borderRadius !== item.style.borderRadius
-      ) {
-        item.style.borderRadius = "20px 20px 0px 0px";
-
-        ["borderTop", "borderRight", "borderLeft"].forEach((a) => {
-          item.style[a] =
-            itemSele === "true" ? `2px solid ${Ccor.destaque}` : "";
-        });
-
-        stt.idSelecionado[oId] = {
-          dataselected: itemSele,
-          borderRadius: item.style.borderRadius,
-          borderTop: item.style.borderTop,
-        };
-      }
-    });
   }
 
   function atualizarComoff(ar, caixa, cor) {
