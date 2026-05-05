@@ -363,11 +363,47 @@
 
     let c = "Nada encontrado";
     if (a.length > 0) {
-      forEach((b) => {
-        if (a.textContent.includes("CONCLUÍDO ")) c = a;
+      a.forEach((b) => {
+        if (b.textContent.includes("CONCLUÍDO (")) {
+          const opai = b.parentElement;
+
+          const ul = opai.querySelector("ul");
+
+          if (!ul) return;
+          //c = ul;
+
+          const filhos = Array.from(ul.children);
+
+          let count = 0;
+          let adiv1 = 0;
+
+          // percorre os filhos em ordem
+          for (const el of filhos) {
+            console.log(
+              "[DEBUG] Analisando elemento:",
+              el.tagName,
+              el.textContent.trim(),
+            );
+
+            // ➜ se encontrar um DIV (divisor), para a contagem
+            if (el.tagName === "DIV") {
+              console.log(
+                "[DEBUG] DIV encontrada, parando contagem:",
+                el.textContent.trim(),
+              );
+              if (adiv1) break;
+              adiv1 = 1;
+            }
+
+            // ➜ se for LI, conta
+            if (el.tagName === "LI") {
+              count++;
+              console.log("[DEBUG] LI contado, total agora:", count);
+            }
+          }
+          c = count;
+        }
       });
-    }else{
-      c= "";
     }
 
     return c;
