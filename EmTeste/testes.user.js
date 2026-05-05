@@ -408,5 +408,45 @@
 
     return c;
   }
-  getAtendiHoje();
+
+  async function getNomeDUsuario() {
+    const SELECTOR_CONTAINER =
+      '[data-garden-id="navigation.profile-menu-item-group-content-detail"] div';
+
+    const BOTAO_SELECTOR = '[data-test-id="toolbar-profile-menu-button"]';
+
+    // Função auxiliar para aguardar
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    // Tenta buscar o texto
+    const getTexto = () => {
+      const container = document.querySelector(SELECTOR_CONTAINER);
+      return container?.textContent?.trim() || "";
+    };
+
+    // Primeira tentativa
+    let texto = getTexto();
+    if (texto) return texto;
+
+    // Se não encontrou texto, tenta clicar no botão
+    const oBotao = document.querySelector(BOTAO_SELECTOR);
+    if (!oBotao) return null;
+
+    oBotao.click();
+
+    // Clica 3 vezes, com 1 segundo entre cada clique
+    for (let i = 0; i < 3; i++) {
+      await sleep(1000);
+      texto = getTexto();
+      if (texto) {
+        oBotao.click();
+        return texto;
+      }
+    }
+
+    // Se depois de tudo ainda não encontrou
+    return texto || null;
+  }
+
+  getNomeDUsuario();
 })();

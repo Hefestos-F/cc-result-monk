@@ -296,11 +296,25 @@
     const container = document.querySelector(
       '[data-test-id="toolbar-profile-menu-button"]',
     );
-    if (!container) return null;
+
+    const iconDois = document.querySelector(
+      '[data-garden-id="avatars.status_indicator"]',
+    );
+
+    if (!container || !iconDois) return null;
 
     const elComAlt = container.querySelector("[alt]");
-    return elComAlt ? elComAlt.getAttribute("alt") : null;
+
+    if (elComAlt) return elComAlt.getAttribute("alt");
+
+    const opai = iconDois.parentElement;
+
+    const outroNome = opai.querySelector("[aria-label]");
+
+    return outroNome ? outroNome.getAttribute("aria-label") : null;
   }
+
+  getAltFromToolbarProfile();
 
   function getTypographySpanByProfileAlt() {
     const alt = getAltFromToolbarProfile();
