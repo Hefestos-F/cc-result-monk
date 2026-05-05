@@ -2241,7 +2241,7 @@
 
       const [hor, min] =
         !dadosLogueManu || !dadosLogueManu.hora
-          ? 0
+          ? [0, 0]
           : dadosLogueManu.hora.split(":").map(Number);
       // Inputs de hora e minuto
       const horaInputlogueManual = entradatempo(

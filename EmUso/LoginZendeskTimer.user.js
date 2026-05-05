@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.8.2
+// @version      1.3.8.3
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -2241,7 +2241,7 @@
 
       const [hor, min] =
         !dadosLogueManu || !dadosLogueManu.hora
-          ? 0
+          ? [0, 0]
           : dadosLogueManu.hora.split(":").map(Number);
       // Inputs de hora e minuto
       const horaInputlogueManual = entradatempo(
