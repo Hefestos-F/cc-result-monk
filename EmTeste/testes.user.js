@@ -350,7 +350,6 @@
       }
     });
 
-
     const nomeCompleto = normalizeNome(onomecer);
 
     return {
@@ -359,5 +358,19 @@
     };
   }
 
-  getNomeAntesDoTicket(24769962)
+  function getAtendiHoje() {
+    const a = document.querySelectorAll('[class="cus-submenu__title"]');
+
+    let c = "Nada encontrado";
+    if (a.length > 0) {
+      forEach((b) => {
+        if (a.textContent.includes("CONCLUÍDO ")) c = a;
+      });
+    }else{
+      c= "";
+    }
+
+    return c;
+  }
+  getAtendiHoje();
 })();

@@ -478,7 +478,7 @@
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = "-?-";
       dadosdePausas = [];
-      dadosLogueManu = agora;
+      dadosLogueManu = as;
       for (const chave in TempoPausas) {
         TempoPausas[chave] = 0;
       }
