@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.3
+// @version      0.0.0.4
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -71,12 +71,13 @@
     andament: 1,
     ocultarValor: 0,
     Estouro: 0,
+    Estour1: 0,
+    EstouroAnt: 0,
     AbaPausas: 0,
     AbaConfig: 0,
     AbaOutros: 0,
     tempoCumprido: 0,
     temHorasExtras: 0,
-    Estour1: 0,
     BeepRet: 0,
     Encontrado: 0,
     LadoBot: 0,
@@ -228,7 +229,6 @@
       Herror("Erro ao recuperar dadosPrimLogueOnt:", e);
     }
     await SalvandoVariConfig(0);
-    await verifLogueManual();
     CriarBotInicial();
   }
 
@@ -398,6 +398,7 @@
         config.pausalimitada = 0;
         stt.Estouro = 0;
         stt.Estour1 = 0;
+
         atualizarComoff(0, Ccor.Erro, "cTMA");
         SalvandoVariConfig(1);
         // Calcula duração real (string HH:MM:SS)
@@ -439,24 +440,6 @@
     stt.andament = 1;
   });
 
-  async function verifLogueManual() {
-    const hoje = new Date();
-    const hojeFormatado = hoje.toISOString().split("T")[0];
-    const ontem = new Date(hoje);
-    ontem.setDate(hoje.getDate() - 1);
-    const ontemFormatado = ontem.toISOString().split("T")[0];
-    const agora = gerarDataHora();
-
-    if (
-      !dadosLogueManu ||
-      (dadosLogueManu.data !== hojeFormatado &&
-        dadosLogueManu.data !== ontemFormatado)
-    ) {
-      dadosLogueManu = agora;
-      AddOuAtuIindexdb(ChavelogueManu, dadosLogueManu);
-    }
-  }
-
   async function verifiDataLogue(x = 0, z = 0) {
     const a = gerarDataHora();
     const e = exibirHora(a, 0, "23:59:59");
@@ -482,6 +465,7 @@
       dadosPrimLogue = z || a;
       dadosdePausas = [];
       DDPausa.numero = 0;
+      config.LogueManual = 0;
       ApagarChaveIndexDB(ChavePausas);
       SalvandoVariConfig(1);
     }
@@ -632,7 +616,7 @@
       indisponivelTxt: converterParaTempo?.(totalIndisponivelSeg) ?? "00:00:00",
       onlineTxt: converterParaTempo?.(onlineSeg) ?? "00:00:00",
     };
-
+    /*
     const obdeat = [
       ...document.querySelectorAll(".cus-submenu__title span"),
     ].find((s) => s.textContent.includes("CONCLUÍDO"));
@@ -646,6 +630,8 @@
     if (omais) atendNum += Number(omais.textContent.replace(/^\+/, ""));
 
     TempoPausas.Atendidas = Number.isFinite(atendNum) ? atendNum : asatendidas;
+*/
+    TempoPausas.Atendidas = asatendidas;
 
     // Preenche objeto global se existir
     if (typeof TempoPausas === "object" && TempoPausas !== null) {
@@ -914,16 +900,6 @@
     div.addEventListener("mouseover", () => contr(1));
     div.addEventListener("mouseout", () => contr(0));
 
-    function contr(a) {
-      div.style.backgroundColor = stt.Estouro
-        ? Ccor.Erro
-        : a
-          ? Ccor.AreaAr
-          : "white";
-      div.style.color = stt.Estouro || a ? "white" : Ccor.AreaAr;
-      div.style.borderColor = stt.Estouro || a ? "" : Ccor.AreaAr;
-    }
-
     div.addEventListener("click", () => {
       const FlutOB = document.getElementById("FlutOB");
       if (FlutOB) {
@@ -940,6 +916,17 @@
       }
     });
     document.body.appendChild(div);
+  }
+
+  function contr(a = 0) {
+    const div = document.getElementById("BotInicial");
+    div.style.backgroundColor = stt.Estouro
+      ? Ccor.Erro
+      : a
+        ? Ccor.AreaAr
+        : "white";
+    div.style.color = stt.Estouro || a ? "white" : Ccor.AreaAr;
+    div.style.borderColor = stt.Estouro || a ? "" : Ccor.AreaAr;
   }
 
   function criarObjetoFlutuante(options = {}) {
@@ -1498,9 +1485,9 @@
 
       const ozero = document.querySelector(".phone-active__queue");
 
-      const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[1] : "";
+      const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
 
-      const terc = `${el.Status} ${segunda}`;
+      const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
 
       if (BotInicial)
         BotInicial.textContent = stt.Encontrado
@@ -1704,10 +1691,20 @@
       ? "Cumprido"
       : tempoEncurtado(TempoPausas.Falta);
 
+    function atcorest() {
+      if (BotInicial && stt.Estouro !== stt.EstouroAnt) {
+        contr();
+        stt.EstouroAnt = stt.Estouro;
+      }
+    }
+
+    atcorest();
+
     if (config.pausalimitada && config.notiEstouro) {
       stt.Estouro = TempoPausas.Estouro
         ? compararDatas(agora, TempoPausas.Estouro)
         : 0;
+      if (stt.Estouro) contr();
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
@@ -3229,10 +3226,6 @@
       Ccor.AreaAr = escurecer(Ccor.Principal);
     }
 
-    if (BotInicial && stt.Estouro) {
-      BotInicial.style.backgroundColor = Ccor.Erro;
-      BotInicial.style.color = "white";
-    }
     if (qq === "cor9") Ccor.MetaTMA = Ccor.Varian;
     if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (minhaCaixa) minhaCaixa.style.backgroundColor = Ccor.Principal;
