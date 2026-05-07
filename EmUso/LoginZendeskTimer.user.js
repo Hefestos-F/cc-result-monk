@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.8.5
+// @version      1.3.8.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -67,6 +67,7 @@
     seFalhar: 0,
     GetInicial: 0,
     eMeuIg: 0,
+    PrimeiroEnc: 0,
   };
 
   const TempoPausas = {
@@ -254,6 +255,7 @@
     }
     await SalvandoVariConfig(0);
     await verifiDataLogue();
+    await verifLogueManual();
     criarObjetoFlutuante();
   }
 
@@ -496,7 +498,6 @@
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = "-?-";
       dadosdePausas = [];
-      dadosLogueManu = as;
       for (const chave in TempoPausas) {
         TempoPausas[chave] = 0;
       }
@@ -515,6 +516,27 @@
       `);
 
     if (x) await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
+  }
+
+  async function verifLogueManual() {
+    const hoje = new Date();
+    const hojeFormatado = hoje.toISOString().split("T")[0];
+    const ontem = new Date(hoje);
+    ontem.setDate(hoje.getDate() - 1);
+    const ontemFormatado = ontem.toISOString().split("T")[0];
+    const agora = gerarDataHora();
+
+    if (
+      !dadosLogueManu ||
+      (dadosLogueManu.data !== hojeFormatado &&
+        dadosLogueManu.data !== ontemFormatado)
+    ) {
+      dadosLogueManu = agora;
+      AddOuAtuIindexdb(ChavelogueManu, dadosLogueManu);
+      config.LogueManual = 0;
+      SalvandoVariConfig(1);
+      Hlog(`config.LogueManual 0`);
+    }
   }
 
   function converterParaSegundos(tempo) {
