@@ -1081,7 +1081,7 @@
     });
 
     titulo.textContent = stt.Encontrado
-      ? dadosPrimLogue === "-?-"
+      ? dadosPrimLogue === "-?-" && !config.LogueManual
         ? "Sem login"
         : DDPausa.NdeIdAtivo === 0 && DDPausa.statusAtual === "Online"
           ? "Disponivel"
@@ -1161,7 +1161,7 @@
 
     time.textContent = !stt.Encontrado
       ? "Encontrado"
-      : dadosPrimLogue === "-?-"
+      : dadosPrimLogue === "-?-" && !config.LogueManual
         ? "Inicial"
         : arme
           ? tempoEncurtado(arme)
