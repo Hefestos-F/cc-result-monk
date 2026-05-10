@@ -450,8 +450,6 @@
 
   getNomeDUsuario();
 
-
-
   function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
     // --- Parsers de data/hora flexíveis ---
     function parseDateFlexible(dateStr) {
@@ -564,6 +562,35 @@
     const adjusted = new Date(base.getTime() + offsetSec * 1000);
     return formatObj(adjusted);
   }
-exibirHora({hora:"22:00:00", data:"2026-05-10"},1,"04:00:00")
+  exibirHora({ hora: "22:00:00", data: "2026-05-10" }, 1, "04:00:00");
 
+  function EncontrarAtribuido(id) {
+    /*const oAtribuido = ticketsSet.has(id).QuemAt;
+    const wppI = ticketsSet.has(id).wpp;
+    if (oAtribuido && wppI) return { Nome: oAtribuido, wpp: wppI };*/
+    // 1. Container do ticket
+    const ticket = document.querySelector(
+      `[data-test-id="ticket-${id}-standard-layout"]`,
+    );
+    if (!ticket) return null;
+
+    // 2. Campo de agente atribuído
+    const assigneeField = ticket.querySelector(
+      '[data-test-id="assignee-field-selected-agent-tag"]',
+    );
+    if (!assigneeField) return null;
+
+    // 3. Elementos que possuem atributo title
+    const elementosComTitle = assigneeField.querySelectorAll("[title]");
+    if (elementosComTitle.length < 2) return null;
+
+    let wpp = assigneeField.textContent.includes("WhatsApp") ? 1 : 0;
+
+    console.log(`wpp=${wpp} :${id}`);
+
+    // 4. Retorna o title do segundo item
+    return { Nome: elementosComTitle[1].getAttribute("title"), wpp: wpp };
+  }
+
+  EncontrarAtribuido(24878562);
 })();

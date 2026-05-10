@@ -3521,6 +3521,7 @@
           seqPrimeiroDatetime: null,
           status: null,
           QuemAt: null,
+          wpp: null,
         });
 
         observarTicket(id);
@@ -3590,6 +3591,7 @@
           seqPrimeiroDatetime: null,
           status: null,
           QuemAt: null,
+          wpp: null,
         });
 
         observarTicket(id);
@@ -3644,7 +3646,7 @@
           (v) =>
             `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(
               v.nome,
-            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime}, status: ${v.status}, QuemAt: ${v.QuemAt}`,
+            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime}, status: ${v.status}, QuemAt: ${v.QuemAt}, wpp: ${v.wpp}  `,
         )
         .join(", ") +
       "}";
@@ -3896,7 +3898,9 @@
   function handleTicketChange(id) {
     const info = EncontrarOUltimoTime(id);
     const ostatus = getStatusAntesDoTicket(id).status;
-    const QuemAt = EncontrarAtribuido(id);
+    const Oatrib = EncontrarAtribuido(id);
+    const QuemAt = Oatrib.Nome;
+    const Ewpp = Oatrib.wpp;
     const prev = ticketsSet.get(id) ?? {
       id,
       datatime: null,
@@ -3905,6 +3909,7 @@
       seqPrimeiroDatetime: null,
       status: null,
       QuemAt: null,
+      wpp: null,
     };
 
     if (!info) {
@@ -3950,6 +3955,7 @@
         seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
         status: ostatus,
         QuemAt: QuemAt,
+        wpp: Ewpp,
       });
 
       if (changedDate) {
@@ -3972,7 +3978,7 @@
       logTicketsSet();
       if (ostatus) {
         const alis = EstaResolvido(id);
-        if (alis.eMeu && !alis.Resol) addContagem(id);
+        if (alis.eMeu && !alis.Resol && ticketsSet.has(id).wpp) addContagem(id);
       }
     } else {
       Hlog(`(sem mudança) ticket ${id}`);
@@ -4148,8 +4154,6 @@
       '[data-test-id="omnitab-dirty-notification"]',
     );
 
-    const EnconAt = EncontrarAtribuido(numeroTicket);
-
     if (!statusEl) {
       return { resolvido: false, status: "EM ANDAMENTO" };
     }
@@ -4291,26 +4295,29 @@
   }
 
   function EncontrarAtribuido(id) {
-    let oAtribuido = ticketsSet.has(id).QuemAt;
-    if (oAtribuido) return oAtribuido;
+    const oAtribuido = ticketsSet.has(id).QuemAt;
+    const wppI = ticketsSet.has(id).wpp;
+    if (oAtribuido && wppI) return { Nome: oAtribuido, wpp: wppI };
     // 1. Container do ticket
     const ticket = document.querySelector(
       `[data-test-id="ticket-${id}-standard-layout"]`,
     );
-    if (!ticket) return null;
+    if (!ticket) return { Nome: null, wpp: null };
 
     // 2. Campo de agente atribuído
     const assigneeField = ticket.querySelector(
       '[data-test-id="assignee-field-selected-agent-tag"]',
     );
-    if (!assigneeField) return null;
+    if (!assigneeField) return { Nome: null, wpp: null };
 
     // 3. Elementos que possuem atributo title
     const elementosComTitle = assigneeField.querySelectorAll("[title]");
-    if (elementosComTitle.length < 2) return null;
+    if (elementosComTitle.length < 2) return { Nome: null, wpp: null };
+
+    let wpp = assigneeField.textContent.includes("WhatsApp") ? 1 : 0;
 
     // 4. Retorna o title do segundo item
-    return elementosComTitle[1].getAttribute("title");
+    return { Nome: elementosComTitle[1].getAttribute("title"), wpp: wpp };
   }
 
   //atualizar nome ===>>
@@ -4514,7 +4521,7 @@
     aMarcacaoObrig(f, erroSalv);
 
     const os = getStatusAntesDoTicket(id)?.status;
-    const enconAt = EncontrarAtribuido(id);
+    const enconAt = EncontrarAtribuido(id)?.Nome;
 
     // fallback seguro do cache
     if (!os || !enconAt) {
@@ -4552,7 +4559,7 @@
       const os = EstaResolvido(id);
 
       if (!el) {
-        if (os.eMeu && !os.Resol) addContagem(id); // cria contador se não existir
+        if (os.eMeu && !os.Resol && info.wpp) addContagem(id); // cria contador se não existir
 
         continue;
       }
