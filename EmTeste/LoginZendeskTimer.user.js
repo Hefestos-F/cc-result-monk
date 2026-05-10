@@ -2404,7 +2404,7 @@
         Herror(
           `valorTeste inválido "${config.valorTeste}"/"${m}. Esperado: [+|-]HH:MM`,
         );
-        config.valorTeste = "+03:00";
+        config.valorTeste = "-03:00";
         return;
       }
       const [, SinalT, HoraT, MinutosT] = m;
@@ -2440,6 +2440,8 @@
       }
       const ModoTesteAtivo = criarBotaoSlide2("TFuso", config.TesteHora, () => {
         config.TesteHora = !config.TesteHora;
+
+        if (!config.TesteHora) config.valorTeste = "-03:00";
 
         atualizarVisual();
       });
