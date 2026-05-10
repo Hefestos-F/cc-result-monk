@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.8.6
+// @version      1.3.8.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -147,6 +147,8 @@
     { id: "CaiDPa", chave: "AbaPausas" },
     { id: "CaiOutro", chave: "AbaOutros" },
   ];
+
+  const AsMud = {};
 
   // Chaves usadas no IndexedDB/local storage
   const ChavePausas = "DadosDePausas";
@@ -1219,14 +1221,22 @@
 
     TempoPausas.Saida = oshorarios.Saida.hora;
 
-    const oLogou = document.getElementById("oLogou");
-    const oSaida = document.getElementById("oSaida");
+    if (
+      TempoPausas.Logou !== AsMud.Logou ||
+      TempoPausas.Saida !== AsMud.Saida
+    ) {
+      const oLogou = document.getElementById("oLogou");
+      const oSaida = document.getElementById("oSaida");
 
-    oLogou.textContent = config.TesteHora ? oshorarios.Logou.data : "";
-    oSaida.textContent = config.TesteHora ? oshorarios.Saida.data : "";
+      oLogou.textContent = config.TesteHora ? oshorarios.Logou.data : "";
+      oSaida.textContent = config.TesteHora ? oshorarios.Saida.data : "";
 
-    vLogou.textContent = TempoPausas.Logou;
-    vSaida.textContent = TempoPausas.Saida;
+      vLogou.textContent = TempoPausas.Logou;
+      vSaida.textContent = TempoPausas.Saida;
+
+      AsMud.Logou = TempoPausas.Logou;
+      AsMud.Saida = TempoPausas.Saida;
+    }
 
     if (!config.LogueManual) {
       if (
@@ -2042,15 +2052,46 @@
     }
   }
 
+  function corTextoInversa(corFundo) {
+    // aceita rgb() ou hex
+    let r, g, b;
+
+    if (corFundo.startsWith("rgb")) {
+      [r, g, b] = corFundo.match(/\d+/g).map(Number);
+    } else {
+      const hex = corFundo.replace("#", "");
+      r = parseInt(hex.substring(0, 2), 16);
+      g = parseInt(hex.substring(2, 4), 16);
+      b = parseInt(hex.substring(4, 6), 16);
+    }
+
+    // luminância relativa (WCAG)
+    const luminancia = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    // fundo escuro → texto claro | fundo claro → texto escuro
+    return luminancia < 150 ? "#fff" : "#000";
+  }
+
   function criarC() {
-    const style = document.createElement("style");
-    style.textContent = `
+    const oPEmCstyle = document.getElementById("PEmCstyle");
+
+    if (!oPEmCstyle) {
+      const PEmCstyle = document.createElement("style");
+      PEmCstyle.id = "PEmCstyle";
+      atualizarplac(PEmCstyle);
+      document.head.appendChild(PEmCstyle);
+    } else {
+      atualizarplac(oPEmCstyle);
+    }
+    function atualizarplac(oItem) {
+      oItem.textContent = `
         .placeholderPerso::placeholder {
-        color: #242421;
+        color: ${corTextoInversa(Ccor.Config)};
         opacity: 1;
         font-size: 12px;
         }
     `;
+    }
 
     const caixa = document.createElement("div");
     caixa.id = "CaixaConfig";
@@ -2170,8 +2211,8 @@
       );
 
       function salvarHorario() {
-        const hora = parseInt(horaInputTE.value) || horasS;
-        const minuto = parseInt(minuInputTE.value) || minutosS;
+        const hora = parseInt(horaInputTE.value);
+        const minuto = parseInt(minuInputTE.value);
 
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
@@ -2181,6 +2222,9 @@
 
         // Salva na variável
         config.TempoEscaladoHoras = horarioFormatado;
+
+        Hlog("config.TempoEscaladoHoras Mudou");
+        SalvandoVariConfig(1);
 
         horaInputTE.value = "";
         minuInputTE.value = "";
@@ -2238,11 +2282,12 @@
       dataInputlogueManual.type = "date";
       dataInputlogueManual.value = new Date().toISOString().split("T")[0];
       dataInputlogueManual.addEventListener("change", salvarHorariologueManual);
-
+      dataInputlogueManual.id = "dataInputlogueManual";
       dataInputlogueManual.style.cssText = `
       background: #fffefe00;
       border: solid 1px white;
       border-radius: 8px;
+      color: ${corTextoInversa(Ccor.Config)};
       `;
 
       const [hor, min] =
