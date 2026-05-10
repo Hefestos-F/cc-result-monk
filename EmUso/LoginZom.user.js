@@ -1788,6 +1788,26 @@
     return c;
   }
 
+  function corTextoInversa(corFundo) {
+    // aceita rgb() ou hex
+    let r, g, b;
+
+    if (corFundo.startsWith("rgb")) {
+      [r, g, b] = corFundo.match(/\d+/g).map(Number);
+    } else {
+      const hex = corFundo.replace("#", "");
+      r = parseInt(hex.substring(0, 2), 16);
+      g = parseInt(hex.substring(2, 4), 16);
+      b = parseInt(hex.substring(4, 6), 16);
+    }
+
+    // luminância relativa (WCAG)
+    const luminancia = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    // fundo escuro → texto claro | fundo claro → texto escuro
+    return luminancia < 150 ? "#fff" : "#000";
+  }
+
   function buildDateTime(obj) {
     const [y, m, d] = String(obj?.data || "")
       .split("-")
@@ -2430,14 +2450,25 @@
   }
 
   function criarC() {
-    const style = document.createElement("style");
-    style.textContent = `
+    const oPEmCstyle = document.getElementById("PEmCstyle");
+
+    if (!oPEmCstyle) {
+      const PEmCstyle = document.createElement("style");
+      PEmCstyle.id = "PEmCstyle";
+      atualizarplac(PEmCstyle);
+      document.head.appendChild(PEmCstyle);
+    } else {
+      atualizarplac(oPEmCstyle);
+    }
+    function atualizarplac(oItem) {
+      oItem.textContent = `
         .placeholderPerso::placeholder {
-        color: #242421;
+        color: ${corTextoInversa(Ccor.Config)};
         opacity: 1;
         font-size: 12px;
         }
     `;
+    }
 
     const caixa = document.createElement("div");
     caixa.id = "CaixaConfig";
@@ -2617,8 +2648,8 @@
       );
 
       function salvarHorario() {
-        const hora = parseInt(horaInputTE.value) || horasS;
-        const minuto = parseInt(minuInputTE.value) || minutosS;
+        const hora = parseInt(horaInputTE.value);
+        const minuto = parseInt(minuInputTE.value);
 
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
@@ -2690,6 +2721,7 @@
       background: #fffefe00;
       border: solid 1px white;
       border-radius: 8px;
+      color: ${corTextoInversa(Ccor.Config)};
       `;
 
       const [hor, min] =
@@ -2826,8 +2858,8 @@
       selSign.value = SinalT;
 
       function salvarHorario() {
-        const hora = parseInt(horaInputTE.value) || HoraT;
-        const minuto = parseInt(minuInputTE.value) || MinutosT;
+        const hora = parseInt(horaInputTE.value);
+        const minuto = parseInt(minuInputTE.value);
 
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
