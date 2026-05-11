@@ -323,16 +323,32 @@
     } catch {}
   }
 
-  /**
-   * ===========================
-   *  encontrarNome(ticketNumber)
-   *  ===========================
-   * Retorna { ticket, nomeCompleto, primeiroNomeFmt, ... }
-   * Aplica no input1 conforme CONFIG.input1Mode, usando primeiroNomeFmt.
-   */
-  async function encontrarNome(ticketNumber) {
-    // Utilitário: formata "fulano" -> "Fulano"
-    const formatPrimeiroNome = (txt) => {
+  function getNomeAntesDoTicket(numeroTicket) {
+    if (!numeroTicket) return "-X";
+
+    // span do ticket
+    const ticketSpan = document.querySelectorAll(
+      '[data-test-id="tabs-section-nav-item-ticket"]',
+    );
+
+    if (ticketSpan.length === 0) {
+      return "X-X";
+    }
+    let onomecer = "XZX";
+
+    ticketSpan.forEach((s) => {
+      if (s.textContent.includes(`Ticket #${numeroTicket}`)) {
+        const gg = s.parentElement.querySelector(
+          '[data-test-id="tabs-nav-item-users"]',
+        );
+
+        if (gg) onomecer = gg.textContent;
+      }
+    });
+
+    const normalizeNome = (s) => (s || "").replace(/\s+/g, " ").trim();
+
+    const formatPrimeiroNomeDIF = (txt) => {
       const t = (txt || "").trim();
       if (!t) return "";
       // Extrai a primeira "palavra" (até espaço)
@@ -341,58 +357,11 @@
       return lower.charAt(0).toUpperCase() + lower.slice(1);
     };
 
-    const ticketStr = ticketNumber == null ? "" : String(ticketNumber).trim();
-    if (!ticketStr) {
-      applyToInput(document, CONFIG.input1Selector, CONFIG.input1Mode, "");
-      warn("Nenhum número de ticket fornecido a encontrarNome().");
-      return null;
-    }
-
-    const found = await waitForTicketInThisDoc(
-      document,
-      ticketStr,
-      CONFIG.waitTimeoutMs,
-    );
-    if (!found) {
-      applyToInput(document, CONFIG.input1Selector, CONFIG.input1Mode, "");
-      warn(
-        `Ticket #${ticketStr} não apareceu neste contexto em ${CONFIG.waitTimeoutMs}ms.`,
-      );
-      return null;
-    }
-
-    const { container, nameEl } = found;
-    if (!nameEl) {
-      applyToInput(document, CONFIG.input1Selector, CONFIG.input1Mode, "");
-      warn(`Nome anterior ao Ticket #${ticketStr} não encontrado.`);
-      return null;
-    }
-
-    const nomeCompleto = normalize(nameEl.textContent);
-    const primeiroNomeFmt = formatPrimeiroNome(nomeCompleto);
-
-    const res = applyToInput(
-      document,
-      CONFIG.input1Selector,
-      CONFIG.input1Mode,
-      primeiroNomeFmt,
-    );
-    highlightEls(container, nameEl);
-
-    log(
-      `Ticket #${ticketStr} | Nome completo: "${nomeCompleto}" | Primeiro nome: "${primeiroNomeFmt}" | Aplicado:`,
-      res.applied,
-      "| modo:",
-      res.used,
-    );
+    const nomeCompleto = normalizeNome(onomecer);
 
     return {
-      ticket: ticketStr,
-      nomeCompleto,
-      primeiroNomeFmt,
-      aplicado: res.applied,
-      modeUsed: res.used,
-      elements: { ticket: container, nome: nameEl },
+      primeiroNome: formatPrimeiroNomeDIF(nomeCompleto),
+      nomeCompleto: nomeCompleto,
     };
   }
 
@@ -570,8 +539,8 @@
 
     let contato = "";
     try {
-      const res = await encontrarNome(ticket);
-      contato = res && res.primeiroNomeFmt ? res.primeiroNomeFmt : "";
+      const res = await getNomeAntesDoTicket(ticket);
+      contato = res && res.primeiroNome ? res.primeiroNome : "";
     } catch (e) {
       warn("Falha ao obter contato via encontrarNome():", e);
     }
