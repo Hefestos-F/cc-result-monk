@@ -40,6 +40,8 @@
     TesteHora: 0,
     valorTeste: "-03:00",
     VoltarPad: 0,
+    logueSalvo: 1,
+    NomeAt: "",
   };
 
   const stt = {
@@ -68,6 +70,7 @@
     GetInicial: 0,
     eMeuIg: 0,
     PrimeiroEnc: 0,
+    BuscaAg: 0,
   };
 
   const TempoPausas = {
@@ -300,6 +303,45 @@
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   };
 
+  async function getNomeDUsuario() {
+    const SELECTOR_CONTAINER =
+      '[data-garden-id="navigation.profile-menu-item-group-content-detail"] div';
+
+    const BOTAO_SELECTOR = '[data-test-id="toolbar-profile-menu-button"]';
+
+    // Função auxiliar para aguardar
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    // Tenta buscar o texto
+    const getTexto = () => {
+      const container = document.querySelector(SELECTOR_CONTAINER);
+      return container?.textContent?.trim() || "";
+    };
+
+    // Primeira tentativa
+    let texto = getTexto();
+    if (texto) return texto;
+
+    // Se não encontrou texto, tenta clicar no botão
+    const oBotao = document.querySelector(BOTAO_SELECTOR);
+    if (!oBotao) return null;
+
+    oBotao.click();
+
+    // Clica 3 vezes, com 1 segundo entre cada clique
+    for (let i = 0; i < 3; i++) {
+      await sleep(1000);
+      texto = getTexto();
+      if (texto) {
+        oBotao.click();
+        return texto;
+      }
+    }
+
+    // Se depois de tudo ainda não encontrou
+    return texto || null;
+  }
+
   function getAltFromToolbarProfile() {
     const container = document.querySelector(
       '[data-test-id="toolbar-profile-menu-button"]',
@@ -322,10 +364,8 @@
     return outroNome ? outroNome.getAttribute("aria-label") : null;
   }
 
-  getAltFromToolbarProfile();
-
   function getTypographySpanByProfileAlt() {
-    const alt = getAltFromToolbarProfile();
+    const alt = config.NomeAt;
     if (!alt) return null;
 
     // Encontra elementos cujo texto seja exatamente igual ao alt
@@ -344,7 +384,9 @@
       if (noPai) ocorreto = noPai;
     });
 
-    return { nomeAg: alt, encStatus: ocorreto };
+    //Hlog(ocorreto);
+
+    return ocorreto;
   }
 
   observarItem(() => {
@@ -359,16 +401,22 @@
     if (!el) {
       Hlog("Alteração aconteceu, mas ainda sem status");
       DDPausa.statusAtual = "---";
-      return (stt.andament = 1);
+
+      return (async () => {
+        if (!config.NomeAt && stt.BuscaAg < 3) {
+          stt.BuscaAg++;
+          const a = await getNomeDUsuario();
+          if (a) {
+            config.NomeAt = a;
+            SalvandoVariConfig(1);
+          }
+          Hlog(a ? `Nome encontrado: ${a}` : `Nome não encontrado +3`);
+        }
+        return (stt.andament = 1);
+      })();
     }
 
-    if (!config.NomeAt && stt.tentativaNome < 3) {
-      config.NomeAt = el.nomeAg;
-      SalvandoVariConfig(1);
-      stt.tentativaNome = 0;
-    }
-
-    const dsaTT = formatPrimeiroNome(el.encStatus.textContent.trim());
+    const dsaTT = formatPrimeiroNome(el.textContent.trim());
 
     let oiteme = 0;
     statusPermit.forEach((s) => {
@@ -1065,6 +1113,7 @@
     }
 
     stt.Encontrado = DDPausa.statusAtual === "---" ? 0 : 1;
+
     let ContAtual = 0;
 
     [
@@ -2606,6 +2655,7 @@
         caixa.appendChild(
           ADDCaixaDAviso("Restaurar Config", () => {
             config.VoltarPad = 1;
+            stt.BuscaAg = 0;
             SalvandoVariConfig(1);
           }),
         );
@@ -3503,76 +3553,6 @@
     if (key === lastIdsKey) return;
     lastIdsKey = key;
 
-    const setAtual = new Set(atual);
-    const existentes = new Set(ticketsSet.keys());
-
-    // IDs novos (apareceram na aba)
-    const novos = atual.filter((id) => !existentes.has(id));
-
-    // IDs removidos (sumiram da aba)
-    const removidos = [...existentes].filter((id) => !setAtual.has(id));
-
-    // --- Adicionar novos ---
-    if (novos.length) {
-      novos.forEach((id) => {
-        ticketsSet.set(id, {
-          id,
-          datatime: null,
-          nome: null,
-          seqQtd: null,
-          seqPrimeiroDatetime: null,
-          status: null,
-          QuemAt: null,
-          wpp: null,
-        });
-
-        observarTicket(id);
-        Hlog(`Novo ID observado: ${id}`);
-      });
-    }
-
-    // --- Verificar/reconectar os já existentes (anteriores) ---
-    // Para todos os IDs que ainda estão na aba agora
-    atual.forEach((id) => {
-      const jaTemObserver = ticketObservers.has(id);
-      if (!jaTemObserver) {
-        // Não há observer para um ID que está visível → adicionar
-        observarTicket(id);
-        Hlog(`Observer faltando para ID existente; adicionado: ${id}`);
-        return;
-      }
-
-      // Há observer, mas o root pode ter sido recriado/desconectado
-      // Se não houver root ou não estiver conectado, reconecta
-      const root = getTicketRoot(id);
-      if (!root || !root.isConnected) {
-        try {
-          pararObservacaoTicket(id); // desconecta o antigo com segurança
-        } catch {
-          /* noop */
-        }
-        observarTicket(id);
-        Hlog(`Observer reconectado (root foi recriado) para: ${id}`);
-      }
-    });
-
-    // --- Remover os que saíram ---
-    if (removidos.length) {
-      removidos.forEach((id) => {
-        pararObservacaoTicket(id);
-        ticketsSet.delete(id);
-        Hlog(`ID removido e observador limpo: ${id}`);
-      });
-    }
-
-    // Exibe tudo (debug)
-    logTicketsSet();
-  }
-
-  function SincronizarTicketsObservadosAnt() {
-    Hlog("Sincronizando tickets observados...");
-
-    const atual = ObterEntityId().ids.map(String); // garante string
     const setAtual = new Set(atual);
     const existentes = new Set(ticketsSet.keys());
 
