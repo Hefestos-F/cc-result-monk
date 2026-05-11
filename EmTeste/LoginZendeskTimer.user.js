@@ -268,7 +268,19 @@
     const observer = new MutationObserver(() => {
       if (stt.andament) {
         stt.andament = 0;
-        aoMudar();
+
+        const BOTAO_SELECTOR = '[data-test-id="toolbar-profile-menu-button"]';
+        const OBtao = document.querySelector(BOTAO_SELECTOR);
+
+        if (OBtao) {
+          aoMudar();
+        } else {
+          (async () => {
+            Hlog(`Mais 3s`);
+            await sleep(3000);
+            stt.andament = 1;
+          })();
+        }
       }
       if (stt.observa === 0) observer.disconnect();
     });
@@ -303,14 +315,13 @@
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   };
 
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   async function getNomeDUsuario() {
     const SELECTOR_CONTAINER =
       '[data-garden-id="navigation.profile-menu-item-group-content-detail"] div';
 
     const BOTAO_SELECTOR = '[data-test-id="toolbar-profile-menu-button"]';
-
-    // Função auxiliar para aguardar
-    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     // Tenta buscar o texto
     const getTexto = () => {
@@ -390,12 +401,6 @@
   }
 
   observarItem(() => {
-    /*const el = document.querySelector('[data-garden-id="typography.font"]');
-     */
-    const el1 = document.querySelector(
-      '[data-test-id="toolbar-profile-menu-button-tooltip"] div',
-    );
-
     const el = getTypographySpanByProfileAlt();
 
     if (!el) {
@@ -403,14 +408,17 @@
       DDPausa.statusAtual = "---";
 
       return (async () => {
-        if (!config.NomeAt && stt.BuscaAg < 3) {
+        if (!config.NomeAt && stt.BuscaAg < 10) {
           stt.BuscaAg++;
           const a = await getNomeDUsuario();
           if (a) {
             config.NomeAt = a;
             SalvandoVariConfig(1);
           }
-          Hlog(a ? `Nome encontrado: ${a}` : `Nome não encontrado +3`);
+          Hlog(
+            a ? `Nome encontrado: ${a}` : `Nome não encontrado ${stt.BuscaAg}`,
+          );
+          await sleep(1000);
         }
         return (stt.andament = 1);
       })();
@@ -548,6 +556,7 @@
       ApagarChaveIndexDB(ChavePausas);
       dadosPrimLogue = "-?-";
       dadosdePausas = [];
+      config.NomeAt = "";
       for (const chave in TempoPausas) {
         TempoPausas[chave] = 0;
       }
