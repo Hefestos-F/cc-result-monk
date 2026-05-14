@@ -1300,7 +1300,7 @@
       if (
         !DDPausa.inicioUltimaP ||
         !DDPausa.inicioUltimaP.data ||
-        DDPausa.statusAtual.includes("Offline") ||
+        //DDPausa.statusAtual.includes("Offline") ||
         !stt.Encontrado
       ) {
         return;
