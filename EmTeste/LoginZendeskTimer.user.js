@@ -3534,10 +3534,22 @@
 
   // ========= COLETA DE IDS =========
   function ObterEntityId() {
-    const container = document.querySelector('[data-test-id="header-tablist"]');
-    const itens = container
-      ? [...container.querySelectorAll("[data-entity-id]")]
-      : [];
+    const container =
+      tablistRef || document.querySelector('[data-test-id="header-tablist"]');
+
+    // ✅ não existe ou já foi removido
+    if (!container || !container.isConnected) {
+      return { total: 0, elementos: [], ids: [] };
+    }
+
+    // ✅ DOM ainda em reconstrução (tabs não prontas)
+    if (
+      !container.querySelector('[data-test-id="header-tab"], [data-entity-id]')
+    ) {
+      return { total: 0, elementos: [], ids: [] };
+    }
+
+    const itens = [...container.querySelectorAll("[data-entity-id]")];
     return {
       total: itens.length,
       elementos: itens,
