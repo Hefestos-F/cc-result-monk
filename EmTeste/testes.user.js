@@ -601,14 +601,14 @@
     let NDL = 0;
 
     const b = document.getElementById("pane-overview");
-    const c = b.querySelectorAll("span");
+    const c = b.querySelectorAll(".open-engagement-list");
 
     if (c.length > 0) {
       console.log("C > 0");
       c.forEach((s) => {
         const x = s.getAttribute("title");
 
-        console.log(x.includes("Fila") ? "Sim" : "Não");
+        console.log(x);
       });
     } else {
       console.log("e Zero");
