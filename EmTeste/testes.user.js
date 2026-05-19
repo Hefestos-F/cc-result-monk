@@ -593,4 +593,49 @@
   }
 
   EncontrarAtribuido();
+
+  function QNF() {
+    const b = document.getElementById("pane-overview");
+    if (!b) return "B Nao encontrado";
+
+    let NDL = 0;
+
+    const b = document.getElementById("pane-overview");
+    const c = b.querySelectorAll("span");
+
+    if (c.length > 0) {
+      console.log("C > 0");
+      c.forEach((s) => {
+        const x = s.getAttribute("title");
+
+        console.log(x.includes("Fila") ? "Sim" : "Não");
+      });
+    } else {
+      console.log("e Zero");
+    }
+
+    const labels = [...b.querySelectorAll("[title]")].filter((el) =>
+      el.textContent.includes("Status :"),
+    );
+    //getAttribute("title")
+
+    console.log(labels);
+
+    labels.forEach((label) => {
+      const pai = label.closest("div");
+      if (!pai) return;
+
+      const valor = [...pai.children]
+        .filter((el) => !el.textContent.includes("Status"))
+        .map((el) => el.textContent.trim())
+        .find((texto) => texto.length > 0);
+
+      if (valor && valor.includes("Fila")) {
+        NDL++;
+      }
+    });
+
+    return NDL;
+  }
+  console.log(QNF());
 })();

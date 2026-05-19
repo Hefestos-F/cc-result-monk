@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.5
+// @version      0.0.0.6
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -2617,8 +2617,8 @@
       );
 
       function salvarHorario() {
-        const hora = parseInt(horaInputTE.value) || horasS;
-        const minuto = parseInt(minuInputTE.value) || minutosS;
+        const hora = parseInt(horaInputTE.value);
+        const minuto = parseInt(minuInputTE.value);
 
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
@@ -2694,7 +2694,7 @@
 
       const [hor, min] =
         !dadosLogueManu || !dadosLogueManu.hora
-          ? 0
+          ? [0, 0]
           : dadosLogueManu.hora.split(":").map(Number);
       // Inputs de hora e minuto
       const horaInputlogueManual = entradatempo(
