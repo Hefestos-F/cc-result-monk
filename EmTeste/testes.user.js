@@ -600,30 +600,15 @@
 
     let NDL = 0;
 
-    const b = document.getElementById("pane-overview");
-    const c = b.querySelectorAll(".open-engagement-list");
-
-    if (c.length > 0) {
-      console.log("C > 0");
-      c.forEach((s) => {
-        const x = s.getAttribute("title");
-
-        console.log(x);
-      });
-    } else {
-      console.log("e Zero");
-    }
-
-    const labels = [...b.querySelectorAll("[title]")].filter((el) =>
+    const c = [...b.querySelectorAll("span")].filter((el) =>
       el.textContent.includes("Status :"),
     );
-    //getAttribute("title")
 
-    console.log(labels);
 
-    labels.forEach((label) => {
-      const pai = label.closest("div");
+    c.forEach((s) => {
+      const pai = s.parentElement;
       if (!pai) return;
+      
 
       const valor = [...pai.children]
         .filter((el) => !el.textContent.includes("Status"))
