@@ -604,16 +604,15 @@
       el.textContent.includes("Status :"),
     );
 
-
     c.forEach((s) => {
       const pai = s.parentElement;
-      if (!pai) return;
-      
 
-      const valor = [...pai.children]
-        .filter((el) => !el.textContent.includes("Status"))
-        .map((el) => el.textContent.trim())
-        .find((texto) => texto.length > 0);
+      if (!pai) return console.log("pai off");
+      console.log("pai on");
+
+      const valor = [...pai.children].filter(
+        (el) => !el.textContent.includes("Status"),
+      );
 
       if (valor && valor.includes("Fila")) {
         NDL++;
@@ -622,5 +621,7 @@
 
     return NDL;
   }
-  console.log(QNF());
+  
+  QNF();
+
 })();
