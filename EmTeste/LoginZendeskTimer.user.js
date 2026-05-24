@@ -173,7 +173,7 @@
 
   // ========= LOG UTILS =========
 
-  const PreFixo = "HefestoLog:";
+  const PreFixo = "Zend Hefesto Log:";
 
   function Hlog(...args) {
     console.log(PreFixo, ...args);
@@ -1300,7 +1300,7 @@
       if (
         !DDPausa.inicioUltimaP ||
         !DDPausa.inicioUltimaP.data ||
-       //DDPausa.statusAtual.includes("Offline") ||
+        //DDPausa.statusAtual.includes("Offline") ||
         !stt.Encontrado
       ) {
         return;

@@ -169,7 +169,7 @@
 
   // ========= LOG UTILS =========
 
-  const PreFixo = "HefestoLog:";
+  const PreFixo = "Zom Hefesto Log:";
 
   function Hlog(...args) {
     console.log(PreFixo, ...args);
@@ -616,21 +616,7 @@
       indisponivelTxt: converterParaTempo?.(totalIndisponivelSeg) ?? "00:00:00",
       onlineTxt: converterParaTempo?.(onlineSeg) ?? "00:00:00",
     };
-    /*
-    const obdeat = [
-      ...document.querySelectorAll(".cus-submenu__title span"),
-    ].find((s) => s.textContent.includes("CONCLUÍDO"));
 
-    const asatend = obdeat && obdeat.textContent.match(/\((\d+)\)/)?.[1];
-
-    let atendNum = Number(asatend);
-
-    const omais = document.querySelector(".recent-closed__more");
-
-    if (omais) atendNum += Number(omais.textContent.replace(/^\+/, ""));
-
-    TempoPausas.Atendidas = Number.isFinite(atendNum) ? atendNum : asatendidas;
-*/
     TempoPausas.Atendidas = asatendidas;
 
     // Preenche objeto global se existir
@@ -2430,14 +2416,25 @@
   }
 
   function criarC() {
-    const style = document.createElement("style");
-    style.textContent = `
+    const oPEmCstyle = document.getElementById("PEmCstyle");
+
+    if (!oPEmCstyle) {
+      const PEmCstyle = document.createElement("style");
+      PEmCstyle.id = "PEmCstyle";
+      atualizarplac(PEmCstyle);
+      document.head.appendChild(PEmCstyle);
+    } else {
+      atualizarplac(oPEmCstyle);
+    }
+    function atualizarplac(oItem) {
+      oItem.textContent = `
         .placeholderPerso::placeholder {
-        color: #242421;
+        color: ${corTextoInversa(Ccor.Config)};
         opacity: 1;
         font-size: 12px;
         }
     `;
+    }
 
     const caixa = document.createElement("div");
     caixa.id = "CaixaConfig";
