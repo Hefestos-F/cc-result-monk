@@ -621,7 +621,53 @@
 
     return NDL;
   }
-  
+
   QNF();
 
+  const ConfigDFilto = {
+    numeroDpax: 2,
+    maximoDeMilhas: 120000,
+    IgnorarTeto: 1,
+    IgnorarCeDiam: 1,
+  };
+
+  const milhasIda = {
+    "Teto Milhas": 35000,
+    "Clube Smiles E Diamante": 60200,
+    "Milhas": 22400,
+    "Clube Smiles E Diamante Milhas & Money": 10840,
+    "Milhas & Money Op 1": 11200,
+    "Milhas & Money Op 2": 22400,
+    "Milhas & Money Op 3": 43400,
+  };
+  const milhasVolta = {
+    "Teto Milhas": 35000,
+    "Clube Smiles E Diamante": 60200,
+    "Milhas": 22400,
+    "Clube Smiles E Diamante Milhas & Money": 10970,
+    "Milhas & Money Op 1": 12000,
+    "Milhas & Money Op 2": 23900,
+    "Milhas & Money Op 3": 46400,
+  };
+
+  let aMenor = { soma: 0 };
+  Object.entries(milhasIda).forEach(([a, s]) => {
+    Object.entries(milhasVolta).forEach(([x, f]) => {
+      if (
+        ([a, x].includes("Teto Milhas") && ConfigDFilto.IgnorarTeto) ||
+        ([a, x].includes("Clube Smiles E Diamante") &&
+          ConfigDFilto.IgnorarCeDiam)
+      )
+        return;
+      const aSoma = (s + f) * ConfigDFilto.numeroDpax;
+      if (aSoma <= ConfigDFilto.maximoDeMilhas && aMenor.soma < aSoma)
+        aMenor = {
+          ida: [a, s],
+          volta: [x, f],
+          soma: aSoma,
+        };
+    });
+  });
+
+  aMenor;
 })();
