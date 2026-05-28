@@ -633,10 +633,8 @@
 
   const Ccor = { Principal: "#4998d4" };
 
-  let milhasIda = {
-  };
-  let milhasVolta = {
-  };
+  let milhasIda = {};
+  let milhasVolta = {};
 
   function aComparaDmi() {
     let aMenor = { soma: 0 };
@@ -1019,7 +1017,9 @@
 
     EscComp.addEventListener("click", () => {
       if (milhasVolta && milhasIda) {
-        console.log(`✅ A comparação deu :${JSON.stringify(aComparaDmi(), null, 2)}`);
+        console.log(
+          `✅ A comparação deu :${JSON.stringify(aComparaDmi(), null, 2)}`,
+        );
       } else {
         console.error(
           `❌ Erro ao comparar Ida:${JSON.stringify(milhasIda, null, 2)} 
