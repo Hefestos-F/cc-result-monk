@@ -634,22 +634,8 @@
   const Ccor = { Principal: "#4998d4" };
 
   let milhasIda = {
-    "Teto Milhas": 35000,
-    "Clube Smiles E Diamante": 60200,
-    Milhas: 22400,
-    "Clube Smiles E Diamante Milhas & Money": 10840,
-    "Milhas & Money Op 1": 11200,
-    "Milhas & Money Op 2": 22400,
-    "Milhas & Money Op 3": 43400,
   };
   let milhasVolta = {
-    "Teto Milhas": 35000,
-    "Clube Smiles E Diamante": 60200,
-    Milhas: 22400,
-    "Clube Smiles E Diamante Milhas & Money": 10970,
-    "Milhas & Money Op 1": 12000,
-    "Milhas & Money Op 2": 23900,
-    "Milhas & Money Op 3": 46400,
   };
 
   function aComparaDmi() {
