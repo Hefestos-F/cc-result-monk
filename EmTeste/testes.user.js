@@ -631,43 +631,430 @@
     IgnorarCeDiam: 1,
   };
 
-  const milhasIda = {
+  const Ccor = { Principal: "#4998d4" };
+
+  let milhasIda = {
     "Teto Milhas": 35000,
     "Clube Smiles E Diamante": 60200,
-    "Milhas": 22400,
+    Milhas: 22400,
     "Clube Smiles E Diamante Milhas & Money": 10840,
     "Milhas & Money Op 1": 11200,
     "Milhas & Money Op 2": 22400,
     "Milhas & Money Op 3": 43400,
   };
-  const milhasVolta = {
+  let milhasVolta = {
     "Teto Milhas": 35000,
     "Clube Smiles E Diamante": 60200,
-    "Milhas": 22400,
+    Milhas: 22400,
     "Clube Smiles E Diamante Milhas & Money": 10970,
     "Milhas & Money Op 1": 12000,
     "Milhas & Money Op 2": 23900,
     "Milhas & Money Op 3": 46400,
   };
 
-  let aMenor = { soma: 0 };
-  Object.entries(milhasIda).forEach(([a, s]) => {
-    Object.entries(milhasVolta).forEach(([x, f]) => {
-      if (
-        ([a, x].includes("Teto Milhas") && ConfigDFilto.IgnorarTeto) ||
-        ([a, x].includes("Clube Smiles E Diamante") &&
-          ConfigDFilto.IgnorarCeDiam)
-      )
-        return;
-      const aSoma = (s + f) * ConfigDFilto.numeroDpax;
-      if (aSoma <= ConfigDFilto.maximoDeMilhas && aMenor.soma < aSoma)
-        aMenor = {
-          ida: [a, s],
-          volta: [x, f],
-          soma: aSoma,
-        };
+  function aComparaDmi() {
+    let aMenor = { soma: 0 };
+    Object.entries(milhasIda).forEach(([a, s]) => {
+      Object.entries(milhasVolta).forEach(([x, f]) => {
+        if (
+          ([a, x].includes("ESPECIAL") && ConfigDFilto.IgnorarTeto) ||
+          ([a, x].includes("CLUBE SMILES E DIAMANTE") &&
+            ConfigDFilto.IgnorarCeDiam)
+        )
+          return;
+        const aSoma = (s + f) * ConfigDFilto.numeroDpax;
+        if (aSoma <= ConfigDFilto.maximoDeMilhas && aMenor.soma < aSoma)
+          aMenor = {
+            ida: [a, s],
+            volta: [x, f],
+            soma: aSoma,
+          };
+      });
     });
-  });
+    return aMenor;
+  }
 
-  aMenor;
+  function extrairMilhas(rowElement) {
+    const result = {};
+
+    if (!rowElement) return result;
+
+    // =========================
+    // helper: limpar número
+    // =========================
+    const parseMilhas = (text) => {
+      if (!text) return null;
+      const match = text.replace(/\./g, "").match(/\d+/);
+      return match ? parseInt(match[0], 10) : null;
+    };
+
+    // =========================
+    // 1. TARIFA ESPECIAL (OURO ou DIAMANTE)
+    // =========================
+    const tarifaEspecialElements = rowElement.querySelectorAll(
+      ".smiles-tier, .smiles-tier-gold",
+    );
+
+    tarifaEspecialElements.forEach((el) => {
+      const titulo = el.querySelector("span")?.innerText?.toUpperCase() || "";
+      const valor = parseMilhas(el.querySelector("label")?.innerText);
+
+      if (!valor) return;
+
+      if (titulo.includes("DIAMANTE")) {
+        result["TARIFA ESPECIAL DIAMANTE"] = valor;
+      } else if (titulo.includes("OURO")) {
+        result["TARIFA ESPECIAL OURO"] = valor; // mantém padrão antigo
+      }
+    });
+
+    // =========================
+    // 2. CLUBE SMILES
+    // =========================
+    const clube = rowElement.querySelector(".smiles-club label");
+    if (clube) {
+      result["CLUBE SMILES E DIAMANTE"] = parseMilhas(clube.innerText);
+    }
+
+    // =========================
+    // 3. MILHAS normal
+    // =========================
+    const milhasNormal = rowElement.querySelector(
+      ".fare-smiles-and-club .form-group:not(.smiles-tier):not(.smiles-tier-gold):not(.smiles-club) label",
+    );
+
+    if (milhasNormal) {
+      result["MILHAS"] = parseMilhas(milhasNormal.innerText);
+    }
+
+    // =========================
+    // 4. MILHAS + MONEY (CLUBE)
+    // =========================
+    const clubeMoney = rowElement.querySelector(".smiles-and-money-club label");
+    if (clubeMoney) {
+      result["CLUBE SMILES E DIAMANTE MILHAS E MONEY"] = parseMilhas(
+        clubeMoney.innerText,
+      );
+    }
+
+    // =========================
+    // 5. MILHAS + MONEY (OPÇÕES)
+    // =========================
+    const moneyOps = rowElement.querySelectorAll(
+      ".form-group .smiles-and-money",
+    );
+
+    let opCount = 1;
+
+    moneyOps.forEach((el) => {
+      if (el.closest(".smiles-and-money-club")) return;
+
+      const value = parseMilhas(el.innerText);
+      if (!value) return;
+
+      result[`MILHAS E MONEY OP${opCount}`] = value;
+      opCount++;
+    });
+
+    return result;
+  }
+
+  function criarBotao(vooRow) {
+    // evita duplicar botão
+
+    const existe = vooRow.querySelector(".btn-extrair");
+
+    //if (existe) return;
+
+    if (existe) {
+      existe.remove();
+      //return;
+    }
+
+    const botao = document.createElement("button");
+    botao.className = "btn-extrair";
+    botao.innerText = "Copiar Milhas";
+
+    botao.style.cssText = `
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        height: 28px;
+        border-radius: 15px;
+        border: 1px solid #333;
+        background: #fff;
+        cursor: pointer;
+    `;
+
+    // garantir posição relativa no container
+    vooRow.style.position = "relative";
+
+    // evento -> chama seu extrator
+    botao.addEventListener("click", () => {
+      const dados = extrairMilhas(vooRow); // usa sua função anterior
+      console.log("Dados extraídos:", dados);
+
+      // opcional
+      navigator.clipboard.writeText(JSON.stringify(dados, null, 2));
+      console.log("✅ Copiado para clipboard");
+    });
+
+    vooRow.appendChild(botao);
+    //vooRow.prepend(botao);
+  }
+
+  const voos = document.querySelectorAll("tr.tr-flight-item");
+
+  if (voos.length > 0) {
+    voos.forEach((voo) => {
+      criarBotao(voo);
+    });
+  }
+
+  function StyleSlide() {
+    if (!document.getElementById("estilo-slide")) {
+      const elementoEstilo = document.createElement("style");
+      elementoEstilo.id = "estilo-slide";
+      elementoEstilo.textContent = `
+
+          .slider-button27 {
+            position: relative;
+            width: 26px;
+            height: 14px;
+            background-color: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+          }
+
+          .slider-circle {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 12px;
+            height: 12px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+          }
+
+          .slider-button27.active {
+            background-color: red;
+          }
+
+          .slider-button27.active .slider-circle {
+            transform: translateX(12px);
+          }
+
+        
+
+          .toggle-container {
+            display: flex;
+            align-items: center;
+          }
+        `;
+      const elementoHead = document.getElementsByTagName("head")[0];
+      elementoHead.appendChild(elementoEstilo);
+    }
+  }
+
+  function criarBotaoSlide(IdBot, ligini, fun) {
+    StyleSlide();
+
+    const toggleContainer = document.createElement("div");
+    toggleContainer.className = "toggle-container";
+
+    const slider = document.createElement("div");
+    slider.className = "slider-button27";
+    slider.id = `Bot${IdBot}`;
+
+    const circle = document.createElement("div");
+    circle.className = "slider-circle";
+
+    slider.appendChild(circle);
+    toggleContainer.appendChild(slider);
+
+    slider.classList.toggle("active", ligini);
+
+    slider.addEventListener("click", () => {
+      const ativo = fun();
+      atualizarSlidePosi(slider.id, ativo);
+    });
+
+    return toggleContainer;
+  }
+
+  function atualizarSlidePosi(idBotao, estaAtivo) {
+    const elemento = document.getElementById(idBotao);
+    if (!elemento) return;
+
+    elemento.classList.toggle("active", estaAtivo);
+  }
+
+  function addbotcom() {
+    const seexi = document.getElementById("contini");
+    if (seexi) {
+      seexi.remove();
+      //return;
+    }
+
+    function criabot(id, text) {
+      const Bot = document.createElement("button");
+      Bot.id = id;
+      Bot.textContent = text;
+      Bot.style.cssText = `
+      border-radius: 15px;
+      border: 1px solid;
+      `;
+      return Bot;
+    }
+
+    const contini = document.createElement("div");
+
+    contini.id = "contini";
+    contini.style.cssText = `
+      position: fixed;
+      top: 10px;
+      left: 10px;
+    `;
+
+    const caixadecomparacao = document.createElement("div");
+    caixadecomparacao.id = "caixadecomparacao";
+    caixadecomparacao.style.cssText = `
+      background: #f6f6f6;
+      margin-top: 5px;
+      border: 1px solid;
+      border-radius: 15px;
+      padding: 5px;
+      display: grid;
+      gap: 5px;
+    `;
+
+    function criarCont() {
+      const con = document.createElement("div");
+      con.style.cssText = `
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    `;
+      return con;
+    }
+
+    function criartextCont(text) {
+      const Ctext = document.createElement("div");
+      Ctext.textContent = text;
+      return Ctext;
+    }
+
+    const ContNdP = criarCont();
+
+    function criarInputNumero() {
+      const input = document.createElement("input");
+
+      input.type = "number";
+      input.min = "1";
+      input.max = "9";
+      input.step = "1";
+      input.value = "1"; // valor inicial opcional
+
+      input.style.cssText = `
+        border-radius: 15px;
+        border: 1px solid;
+      `;
+
+      // validação extra (evita bug manual)
+      input.addEventListener("input", () => {
+        let val = parseInt(input.value, 10);
+
+        if (val < 1) input.value = 1;
+        if (val > 9) input.value = 9;
+
+        ConfigDFilto.numeroDpax = input.value;
+      });
+
+      return input;
+    }
+
+    ContNdP.append(criartextCont("Nº D Pax"), criarInputNumero());
+
+    caixadecomparacao.appendChild(ContNdP);
+
+    const conbotigt = criarCont();
+
+    conbotigt.append(
+      criartextCont("Ignorar Teto"),
+      criarBotaoSlide("botigt", ConfigDFilto.IgnorarTeto, () => {
+        ConfigDFilto.IgnorarTeto = !ConfigDFilto.IgnorarTeto;
+        return ConfigDFilto.IgnorarTeto;
+      }),
+    );
+
+    caixadecomparacao.appendChild(conbotigt);
+
+    const conbotigcl = criarCont();
+
+    conbotigcl.append(
+      criartextCont("Ig. Club e Di"),
+      criarBotaoSlide("botigcl", ConfigDFilto.IgnorarCeDiam, () => {
+        ConfigDFilto.IgnorarCeDiam = !ConfigDFilto.IgnorarCeDiam;
+        return ConfigDFilto.IgnorarCeDiam;
+      }),
+    );
+
+    caixadecomparacao.appendChild(conbotigcl);
+
+    const EscIda = criabot("EscIda", "Escolher Ida");
+    EscIda.addEventListener("click", async () => {
+      try {
+        milhasIda = await navigator.clipboard.readText();
+
+        console.log("✅ Conteúdo do clipboard:", milhasIda);
+      } catch (erro) {
+        console.error("❌ Erro ao acessar clipboard:", erro);
+      }
+    });
+
+    caixadecomparacao.appendChild(EscIda);
+
+    const EscVolta = criabot("EscVolta", "Escolher Volta");
+    EscVolta.addEventListener("click", async () => {
+      try {
+        milhasVolta = await navigator.clipboard.readText();
+
+        console.log("✅ Conteúdo do clipboard:", milhasVolta);
+      } catch (erro) {
+        console.error("❌ Erro ao acessar clipboard:", erro);
+      }
+    });
+
+    caixadecomparacao.appendChild(EscVolta);
+
+    const EscComp = criabot("EscComp", "Comparar");
+
+    EscComp.addEventListener("click", () => {
+      if (milhasVolta && milhasIda) {
+        console.log(`✅ A comparação deu :${JSON.stringify(aComparaDmi(), null, 2)}`);
+      } else {
+        console.error(
+          `❌ Erro ao comparar Ida:${JSON.stringify(milhasIda, null, 2)} 
+          / Volta:${JSON.stringify(milhasVolta, null, 2)}`,
+        );
+      }
+    });
+
+    caixadecomparacao.appendChild(EscComp);
+
+    const BotaoIni = criabot("BotaoIni", "Melhor Combinação");
+
+    BotaoIni.addEventListener("click", () => {
+      const acaixa = document.getElementById("caixadecomparacao");
+      if (acaixa) acaixa.remove();
+      else contini.appendChild(caixadecomparacao);
+    });
+
+    contini.appendChild(BotaoIni);
+    document.body.appendChild(contini);
+  }
+
+  addbotcom();
 })();
