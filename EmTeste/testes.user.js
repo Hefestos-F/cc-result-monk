@@ -624,30 +624,59 @@
 
   QNF();
 
+  //Melhor Combinação de milhas
+
   const ConfigDFilto = {
-    numeroDpax: 2,
-    maximoDeMilhas: 120000,
+    numeroDpax: 3,
+    maximoDeMilhas: 116875,
     IgnorarTeto: 1,
     IgnorarCeDiam: 1,
+    FixarTetoIda: 0,
+    FixarTetoVolta: 0,
   };
 
   const Ccor = { Principal: "#4998d4" };
 
-  let milhasIda = {};
-  let milhasVolta = {};
+  let milhasIda = {
+    "CLUBE SMILES E DIAMANTE": 24900,
+    MILHAS: 26200,
+    "CLUBE SMILES E DIAMANTE MILHAS E MONEY": 7470,
+    "MILHAS E MONEY OP1": 7900,
+    "MILHAS E MONEY OP2": 13100,
+    "MILHAS E MONEY OP3": 19700,
+  };
+
+  let milhasVolta = {
+    "TARIFA ESPECIAL DIAMANTE": 35000,
+    "CLUBE SMILES E DIAMANTE": 73800,
+    MILHAS: 76100,
+    "CLUBE SMILES E DIAMANTE MILHAS E MONEY": 13290,
+    "MILHAS E MONEY OP1": 13700,
+    "MILHAS E MONEY OP2": 27400,
+    "MILHAS E MONEY OP3": 53300,
+  };
 
   function aComparaDmi() {
     let aMenor = { soma: 0 };
+
     Object.entries(milhasIda).forEach(([a, s]) => {
       Object.entries(milhasVolta).forEach(([x, f]) => {
         if (
           ([a, x].includes("ESPECIAL") && ConfigDFilto.IgnorarTeto) ||
           ([a, x].includes("CLUBE SMILES E DIAMANTE") &&
-            ConfigDFilto.IgnorarCeDiam)
+            ConfigDFilto.IgnorarCeDiam) ||
+          (!a.includes("ESPECIAL") && ConfigDFilto.FixarTetoIda) ||
+          (!x.includes("ESPECIAL") && ConfigDFilto.FixarTetoVolta)
         )
           return;
         const aSoma = (s + f) * ConfigDFilto.numeroDpax;
-        if (aSoma <= ConfigDFilto.maximoDeMilhas && aMenor.soma < aSoma)
+        if (aSoma === ConfigDFilto.maximoDeMilhas) {
+          aMenor = {
+            ida: [a, s],
+            volta: [x, f],
+            soma: aSoma,
+          };
+        } else if (aSoma < ConfigDFilto.maximoDeMilhas && aMenor.soma < aSoma)
           aMenor = {
             ida: [a, s],
             volta: [x, f],
@@ -657,6 +686,8 @@
     });
     return aMenor;
   }
+
+  //console.log(JSON.stringify(aComparaDmi()));
 
   function extrairMilhas(rowElement) {
     const result = {};
@@ -740,21 +771,12 @@
       opCount++;
     });
 
+    result.NENHUMA = 0;
+
     return result;
   }
 
-  function criarBotao(vooRow) {
-    // evita duplicar botão
-
-    const existe = vooRow.querySelector(".btn-extrair");
-
-    //if (existe) return;
-
-    if (existe) {
-      existe.remove();
-      //return;
-    }
-
+  function criarBotao(vooRow, trecho, onclick) {
     const botao = document.createElement("button");
     botao.className = "btn-extrair";
     botao.innerText = "Copiar Milhas";
@@ -776,7 +798,19 @@
     // evento -> chama seu extrator
     botao.addEventListener("click", () => {
       const dados = extrairMilhas(vooRow); // usa sua função anterior
-      console.log("Dados extraídos:", dados);
+
+      trecho = !trecho;
+
+      if (trecho) milhasIda = dados;
+      else milhasVolta = dados;
+
+      console.log(
+        `Dados extraídos ${trecho ? "Ida" : "Volta"}:${JSON.stringify(dados)}`,
+      );
+
+      botao.textContent = "Escolhido";
+
+      onclick();
 
       // opcional
       navigator.clipboard.writeText(JSON.stringify(dados, null, 2));
@@ -787,12 +821,27 @@
     //vooRow.prepend(botao);
   }
 
-  const voos = document.querySelectorAll("tr.tr-flight-item");
+  function deletebotescv() {
+    const voos = document.querySelectorAll(".btn-extrair");
+    if (voos.length > 0) {
+      voos.forEach((voo) => {
+        voo.remove();
+      });
+    }
+  }
 
-  if (voos.length > 0) {
-    voos.forEach((voo) => {
-      criarBotao(voo);
-    });
+  function addbotTre(trecho = 0, onclick = () => {}) {
+    const el = document.querySelector(
+      `[departure="data.model.travel.flights[${trecho}].departure.value"]`,
+    );
+
+    const voos = document.querySelectorAll("tr.tr-flight-item");
+
+    if (voos.length > 0) {
+      voos.forEach((voo) => {
+        criarBotao(voo, trecho, onclick);
+      });
+    }
   }
 
   function StyleSlide() {
@@ -879,6 +928,7 @@
     const seexi = document.getElementById("contini");
     if (seexi) {
       seexi.remove();
+      deletebotescv();
       //return;
     }
 
@@ -929,6 +979,29 @@
       Ctext.textContent = text;
       return Ctext;
     }
+
+    const ContNMdm = criarCont();
+
+    const inputMaxMi = document.createElement("input");
+    inputMaxMi.type = "number";
+    inputMaxMi.placeholder = ConfigDFilto.maximoDeMilhas;
+    inputMaxMi.style.cssText = `
+        border-radius: 15px;
+        width: 74px;
+        border: solid 1px;
+        padding: 0px 5px;
+    `;
+
+    inputMaxMi.addEventListener("input", () => {
+      if (inputMaxMi.input < 1) inputMaxMi.input = 1;
+
+      ConfigDFilto.maximoDeMilhas = inputMaxMi.input;
+      inputMaxMi.placeholder = inputMaxMi.input;
+    });
+
+    ContNMdm.append(criartextCont("Max. MIlhas"), inputMaxMi);
+
+    caixadecomparacao.appendChild(ContNMdm);
 
     const ContNdP = criarCont();
 
@@ -989,46 +1062,86 @@
 
     const EscIda = criabot("EscIda", "Escolher Ida");
     EscIda.addEventListener("click", async () => {
-      try {
-        milhasIda = await navigator.clipboard.readText();
+      await deletebotescv();
+      let b = Object.keys(milhasIda).length ? 1 : 0;
 
-        console.log("✅ Conteúdo do clipboard:", milhasIda);
-      } catch (erro) {
-        console.error("❌ Erro ao acessar clipboard:", erro);
+      if (b) {
+        milhasIda = {};
+        EscIda.textContent = "Escolhendo...";
       }
+
+      addbotTre(0, () => {
+        EscIda.textContent = "Ida Escolhida";
+        deletebotescv();
+      });
     });
 
     caixadecomparacao.appendChild(EscIda);
 
     const EscVolta = criabot("EscVolta", "Escolher Volta");
     EscVolta.addEventListener("click", async () => {
-      try {
-        milhasVolta = await navigator.clipboard.readText();
+      await deletebotescv();
+      let b = Object.keys(milhasVolta).length ? 1 : 0;
 
-        console.log("✅ Conteúdo do clipboard:", milhasVolta);
-      } catch (erro) {
-        console.error("❌ Erro ao acessar clipboard:", erro);
+      if (b) {
+        milhasVolta = {};
+        EscVolta.textContent = "Escolhendo...";
       }
+
+      addbotTre(1, () => {
+        EscVolta.textContent = "Volta Escolhida";
+        deletebotescv();
+      });
     });
 
     caixadecomparacao.appendChild(EscVolta);
 
+    const ConResult = document.createElement("div");
+
+    ConResult.style.cssText = `
+      display: flex;
+      border: 1px solid;
+      border-radius: 15px;
+      padding: 5px;
+      flex-direction: column;
+      align-items: center;
+    `;
+    ConResult.innerHTML = "Resultado";
+
     const EscComp = criabot("EscComp", "Comparar");
 
     EscComp.addEventListener("click", () => {
-      if (milhasVolta && milhasIda) {
-        console.log(
-          `✅ A comparação deu :${JSON.stringify(aComparaDmi(), null, 2)}`,
-        );
+      let result = "";
+      if (Object.keys(milhasIda).length && Object.keys(milhasVolta).length) {
+        result = aComparaDmi();
+        console.log(`✅ A comparação deu :${JSON.stringify(result, null, 2)}`);
       } else {
         console.error(
           `❌ Erro ao comparar Ida:${JSON.stringify(milhasIda, null, 2)} 
           / Volta:${JSON.stringify(milhasVolta, null, 2)}`,
         );
       }
+      deletebotescv();
+      EscIda.textContent = "Escolher Ida";
+      EscVolta.textContent = "Escolher Volta";
+
+      ConResult.innerHTML = "";
+      [
+        `IDA: ${result.ida[1]}`,
+        `${result.ida[0]}`,
+        `VOLTA: ${result.volta[1]}`,
+        `${result.volta[0]}`,
+        `TOTAL: ${result.soma}`,
+      ].forEach((lin) => {
+        const adiv = document.createElement("div");
+        adiv.textContent = lin;
+        ConResult.appendChild(adiv);
+      });
     });
 
     caixadecomparacao.appendChild(EscComp);
+
+    caixadecomparacao.appendChild(ConResult);
 
     const BotaoIni = criabot("BotaoIni", "Melhor Combinação");
 
