@@ -637,24 +637,9 @@
 
   const Ccor = { Principal: "#4998d4" };
 
-  let milhasIda = {
-    "CLUBE SMILES E DIAMANTE": 24900,
-    MILHAS: 26200,
-    "CLUBE SMILES E DIAMANTE MILHAS E MONEY": 7470,
-    "MILHAS E MONEY OP1": 7900,
-    "MILHAS E MONEY OP2": 13100,
-    "MILHAS E MONEY OP3": 19700,
-  };
+  let milhasIda = {};
 
-  let milhasVolta = {
-    "TARIFA ESPECIAL DIAMANTE": 35000,
-    "CLUBE SMILES E DIAMANTE": 73800,
-    MILHAS: 76100,
-    "CLUBE SMILES E DIAMANTE MILHAS E MONEY": 13290,
-    "MILHAS E MONEY OP1": 13700,
-    "MILHAS E MONEY OP2": 27400,
-    "MILHAS E MONEY OP3": 53300,
-  };
+  let milhasVolta = {};
 
   function aComparaDmi() {
     let aMenor = { soma: 0 };
@@ -665,18 +650,15 @@
           ([a, x].includes("ESPECIAL") && ConfigDFilto.IgnorarTeto) ||
           ([a, x].includes("CLUBE SMILES E DIAMANTE") &&
             ConfigDFilto.IgnorarCeDiam) ||
-          (!a.includes("ESPECIAL") && ConfigDFilto.FixarTetoIda) ||
-          (!x.includes("ESPECIAL") && ConfigDFilto.FixarTetoVolta)
+          (![a, x].includes("ESPECIAL") &&
+            (ConfigDFilto.FixarTetoIda || ConfigDFilto.FixarTetoVolta))
         )
           return;
         const aSoma = (s + f) * ConfigDFilto.numeroDpax;
-        if (aSoma === ConfigDFilto.maximoDeMilhas) {
-          aMenor = {
-            ida: [a, s],
-            volta: [x, f],
-            soma: aSoma,
-          };
-        } else if (aSoma < ConfigDFilto.maximoDeMilhas && aMenor.soma < aSoma)
+        if (
+          aSoma === ConfigDFilto.maximoDeMilhas ||
+          (aSoma < ConfigDFilto.maximoDeMilhas && aMenor.soma < aSoma)
+        )
           aMenor = {
             ida: [a, s],
             volta: [x, f],
@@ -686,8 +668,6 @@
     });
     return aMenor;
   }
-
-  //console.log(JSON.stringify(aComparaDmi()));
 
   function extrairMilhas(rowElement) {
     const result = {};
@@ -782,7 +762,7 @@
     botao.innerText = "Copiar Milhas";
 
     botao.style.cssText = `
-        position: absolute;
+        position: relative;
         bottom: 10px;
         left: 10px;
         height: 28px;
@@ -793,7 +773,6 @@
     `;
 
     // garantir posição relativa no container
-    vooRow.style.position = "relative";
 
     // evento -> chama seu extrator
     botao.addEventListener("click", () => {
@@ -817,8 +796,7 @@
       console.log("✅ Copiado para clipboard");
     });
 
-    vooRow.appendChild(botao);
-    //vooRow.prepend(botao);
+    vooRow.children[0].appendChild(botao);
   }
 
   function deletebotescv() {
@@ -835,7 +813,7 @@
       `[departure="data.model.travel.flights[${trecho}].departure.value"]`,
     );
 
-    const voos = document.querySelectorAll("tr.tr-flight-item");
+    const voos = el.querySelectorAll("tr.tr-flight-item");
 
     if (voos.length > 0) {
       voos.forEach((voo) => {
@@ -1071,12 +1049,29 @@
       }
 
       addbotTre(0, () => {
-        EscIda.textContent = "Ida Escolhida";
+        EscIda.textContent = "Escolhido";
         deletebotescv();
       });
     });
 
     caixadecomparacao.appendChild(EscIda);
+
+    const conbotFixTI = criarCont();
+
+    conbotFixTI.append(
+      criartextCont("Fixa Teto Ida"),
+      criarBotaoSlide("botFixTI", ConfigDFilto.FixarTetoIda, () => {
+        ConfigDFilto.FixarTetoIda = !ConfigDFilto.FixarTetoIda;
+
+        const a = document.getElementById(`Botbotigt`);
+
+        if (a && ConfigDFilto.IgnorarTeto) a.click();
+
+        return ConfigDFilto.FixarTetoIda;
+      }),
+    );
+
+    caixadecomparacao.appendChild(conbotFixTI);
 
     const EscVolta = criabot("EscVolta", "Escolher Volta");
     EscVolta.addEventListener("click", async () => {
@@ -1089,12 +1084,28 @@
       }
 
       addbotTre(1, () => {
-        EscVolta.textContent = "Volta Escolhida";
+        EscVolta.textContent = "Escolhido";
         deletebotescv();
       });
     });
 
     caixadecomparacao.appendChild(EscVolta);
+
+    const conbotFixTV = criarCont();
+
+    conbotFixTV.append(
+      criartextCont("Fixa Teto Volta"),
+      criarBotaoSlide("botFixTV", ConfigDFilto.FixarTetoVolta, () => {
+        ConfigDFilto.FixarTetoVolta = !ConfigDFilto.FixarTetoVolta;
+        const a = document.getElementById(`Botbotigt`);
+
+        if (a && ConfigDFilto.IgnorarTeto) a.click();
+
+        return ConfigDFilto.FixarTetoVolta;
+      }),
+    );
+
+    caixadecomparacao.appendChild(conbotFixTV);
 
     const ConResult = document.createElement("div");
 
@@ -1156,4 +1167,5 @@
   }
 
   addbotcom();
+
 })();
