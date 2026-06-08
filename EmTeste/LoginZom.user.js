@@ -1471,7 +1471,15 @@
 
       const ozero = document.querySelector(".phone-active__queue");
 
-      const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
+      const onzero = ozero.textContent.trim().split(/\s+/);
+
+      const segunda = ozero
+        ? onzero[0].includes("Diamante")
+          ? onzero[0]
+          : onzero[1]
+        : "";
+
+      //const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
 
       const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
 
