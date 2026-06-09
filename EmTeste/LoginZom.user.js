@@ -1702,7 +1702,7 @@
     if (
       config.pausalimitada &&
       config.notiEstouro &&
-      DDPausa.StatusANT !== stt.Status
+      DDPausa.StatusANT === stt.Status
     ) {
       stt.Estouro = TempoPausas.Estouro
         ? compararDatas(agora, TempoPausas.Estouro)
