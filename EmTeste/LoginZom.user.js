@@ -333,7 +333,7 @@
     return null;
   };
 
-  async function fimdepausa() {
+  async function fimdepausa(agora) {
     const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
 
     const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
@@ -413,7 +413,7 @@
         stt.logueInicio = 0;
       }
 
-      await fimdepausa();
+      await fimdepausa(agora);
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
       DDPausa.numero += 1;
