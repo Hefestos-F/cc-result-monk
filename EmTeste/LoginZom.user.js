@@ -120,11 +120,13 @@
   /**
    * Ccor - Cores usadas na interface (valores em hex)
    */
+
   const Ccor = {
-    Offline: "#3a82cf",
-    Atualizando: "#c97123ff",
-    Erro: "#992e2e",
+    Alerta: "#992e2e",
+    Aviso: "#c97123ff",
+    Contagem: "darkcyan",
     MetaTMA: "#229b8d",
+    destaque: "#1b81ff",
     Principal: "#4c95bd",
     AreaAr: "#337091",
     Config: "#96a8bb",
@@ -399,7 +401,7 @@
         stt.Estouro = 0;
         stt.Estour1 = 0;
 
-        atualizarComoff(0, Ccor.Erro, "cTMA");
+        atualizarComoff(0, Ccor.Aviso, "cTMA");
         SalvandoVariConfig(1);
         // Calcula duração real (string HH:MM:SS)
         const duracaoReal = calcularDuracao(inicioObj, agora);
@@ -907,7 +909,7 @@
   function contr(a = 0) {
     const div = document.getElementById("BotInicial");
     div.style.backgroundColor = stt.Estouro
-      ? Ccor.Erro
+      ? Ccor.Aviso
       : a
         ? Ccor.AreaAr
         : "white";
@@ -1471,14 +1473,12 @@
 
       const ozero = document.querySelector(".phone-active__queue");
 
-      const onzero = ozero.textContent.trim().split(/\s+/);
+      let segunda = "";
 
-      const segunda = ozero
-        ? onzero[0].includes("Diamante")
-          ? onzero[0]
-          : onzero[1]
-        : "";
-
+      if (ozero) {
+        const onzero = ozero.textContent.trim().split(/\s+/);
+        segunda = onzero[0].includes("Diamante") ? onzero[0] : onzero[1];
+      }
       //const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
 
       const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
@@ -2560,7 +2560,7 @@
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            background-color: ${escurecer(Ccor.Config, 0.2)};
+            background-color: ${escurecer(Ccor.Config, 0.2)};  
             color: white;
             font-size: 12px;
             height: 22px;
@@ -2915,7 +2915,7 @@
         LinhaSelCor(7, "Principal", Ccor.Principal),
         //LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
         LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
-        //LinhaSelCor(10, "Erro", Ccor.Erro),
+        //LinhaSelCor(10, "Erro", Ccor.Aviso),
         //LinhaSelCor(11, "Offline", Ccor.Offline),
         LinhaSelCor(12, "Config", Ccor.Config),
       );
@@ -3013,7 +3013,7 @@
         config.notiEstouro = !config.notiEstouro;
         atualizarVisual();
 
-        if (!config.notiEstouro) atualizarComoff(0, Ccor.Erro, "cTMA");
+        if (!config.notiEstouro) atualizarComoff(0, Ccor.Aviso, "cTMA");
       },
     );
     const IgEstSom = criarLinhaTextoComBot2(
@@ -3045,7 +3045,7 @@
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            background-color: transparent;
+            background-color: ${escurecer(Ccor.Config, 0.1)};
             color: white;
             font-size: 12px;
             `;
