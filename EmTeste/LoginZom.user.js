@@ -326,6 +326,41 @@
     };
   }
 
+  // Helpers
+  const duracaoPrevistaPorStatus = (s) => {
+    if (s.includes("Lanche")) return "00:20:00";
+    if (s.includes("Descanso")) return "00:10:00";
+    return null;
+  };
+
+  async function fimdepausa() {
+    const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
+
+    const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
+
+    //Hlog(`fimObj: ${JSON.stringify(fimObj)}`);
+
+    Hlog(`id:${DDPausa.numero}, inicioObj: ${JSON.stringify(inicioObj)}`);
+    if (inicioObj && (!duracaoObj || duracaoObj === "---")) {
+      // Salva fim (objeto)
+      await atualizarCampos(DDPausa.numero, "fim", agora);
+
+      config.pausalimitada = 0;
+      stt.Estouro = 0;
+      stt.Estour1 = 0;
+
+      atualizarComoff(0, Ccor.Aviso, "cTMA");
+      SalvandoVariConfig(1);
+      // Calcula duração real (string HH:MM:SS)
+      const duracaoReal = calcularDuracao(inicioObj, agora);
+      await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
+
+      Hlog(`fim: ${JSON.stringify(agora)}`);
+
+      somarDuracoesGeral();
+    }
+  }
+
   observarItem(() => {
     //const el = obterEstadoAgenteComoObjeto();
 
@@ -357,14 +392,6 @@
     // ==========================================================
 
     Hlog(`Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`);
-    DDPausa.StatusANT = stt.Status;
-
-    // Helpers
-    const duracaoPrevistaPorStatus = (s) => {
-      if (s.includes("Lanche")) return "00:20:00";
-      if (s.includes("Descanso")) return "00:10:00";
-      return null;
-    };
 
     // Executa sem estourar "Uncaught (in promise)"
     (async () => {
@@ -386,37 +413,15 @@
         stt.logueInicio = 0;
       }
 
-      const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
-
-      const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
-
-      //Hlog(`fimObj: ${JSON.stringify(fimObj)}`);
-
-      Hlog(`id:${DDPausa.numero}, inicioObj: ${JSON.stringify(inicioObj)}`);
-      if (inicioObj && (!duracaoObj || duracaoObj === "---")) {
-        // Salva fim (objeto)
-        await atualizarCampos(DDPausa.numero, "fim", agora);
-
-        config.pausalimitada = 0;
-        stt.Estouro = 0;
-        stt.Estour1 = 0;
-
-        atualizarComoff(0, Ccor.Aviso, "cTMA");
-        SalvandoVariConfig(1);
-        // Calcula duração real (string HH:MM:SS)
-        const duracaoReal = calcularDuracao(inicioObj, agora);
-        await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
-
-        Hlog(`fim: ${JSON.stringify(agora)}`);
-
-        somarDuracoesGeral();
-      }
+      await fimdepausa();
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
       DDPausa.numero += 1;
 
       const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
       let fimPrevistoObj = null;
+
+      DDPausa.StatusANT = stt.Status;
 
       if (duracaoPrevista) {
         config.pausalimitada = 1;
@@ -1694,7 +1699,11 @@
 
     atcorest();
 
-    if (config.pausalimitada && config.notiEstouro) {
+    if (
+      config.pausalimitada &&
+      config.notiEstouro &&
+      DDPausa.StatusANT !== stt.Status
+    ) {
       stt.Estouro = TempoPausas.Estouro
         ? compararDatas(agora, TempoPausas.Estouro)
         : 0;
