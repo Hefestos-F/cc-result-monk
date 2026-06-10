@@ -2269,8 +2269,13 @@
       );
 
       function salvarHorario() {
+<<<<<<< HEAD
+        const hora = parseInt(horaInputTE.value) || 0;
+        const minuto = parseInt(minuInputTE.value) || 0;
+=======
         const hora = parseInt(horaInputTE.value);
         const minuto = parseInt(minuInputTE.value);
+>>>>>>> a901285cbd7044ccfa21958c77b687e4930b962a
 
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
