@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.8.9
+// @version      1.3.8.10
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -2269,8 +2269,8 @@
       );
 
       function salvarHorario() {
-        const hora = parseInt(horaInputTE.value) || 0;
-        const minuto = parseInt(minuInputTE.value) || 0;
+        const hora = parseInt(horaInputTE.value) || horaInputTE.placeholder;
+        const minuto = parseInt(minuInputTE.value) || minuInputTE.placeholder;
 
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
@@ -2301,12 +2301,12 @@
 
     function ContlogueManual() {
       function salvarHorariologueManual() {
-        const hora = parseInt(
-          horaInputlogueManual.value || horaInputlogueManual.placeholder,
-        );
-        const minuto = parseInt(
-          minuInputlogueManual.value || minuInputlogueManual.placeholder,
-        );
+        const hora =
+          parseInt(horaInputlogueManual.value) ||
+          horaInputlogueManual.placeholder;
+        const minuto =
+          parseInt(minuInputlogueManual.value) ||
+          minuInputlogueManual.placeholder;
 
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
