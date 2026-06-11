@@ -1,26 +1,7 @@
 // ================== CONEXÃO FIREBASE ==================
-import {
-  initializeApp,
-  getApps,
-  getApp,
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  query,
-  limit,
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyBZu2jtDe4W_nmrqpD4qg8qtv32CUqgLhc",
-  authDomain: "registro-atendimentos-abda5.firebaseapp.com",
-  projectId: "registro-atendimentos-abda5",
-  storageBucket: "registro-atendimentos-abda5.appspot.com",
-  messagingSenderId: "27427533937",
-  appId: "1:27427533937:web:d8d0bb562302a2be08d7d0",
-};
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+
+//esta em outro lugar
+
 
 // ---------- Normalização de campos (compatibilidade com dados antigos) ----------
 function normalizarRegistro(r) {
@@ -252,17 +233,22 @@ function mudarPagina(acao) {
   gerarTabela(registrosFiltrados);
 }
 
+document.getElementById("pagenext").onclick = () => mudarPagina(1);
+document.getElementById("pageprev").onclick = () => mudarPagina(-1);
+document.getElementById("linhasPagina").addEventListener("change", (e) => {
+  linhasPorPagina = parseInt(e.target.value);
+  paginaAtual = 1; // volta pra página 1
+  gerarTabela(registrosFiltrados);
+});
 
 // ================== TABELA ==================
 function gerarTabela(lista = []) {
   const tabela = document.getElementById("tabelaRelatorios");
-  const paginacaoDiv = document.getElementById("paginacao");
 
   tabela.innerHTML = "";
 
   if (lista.length === 0) {
     tabela.innerHTML = `<tr><td colspan="15" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
-    paginacaoDiv.innerHTML = "";
     return;
   }
 
@@ -297,11 +283,13 @@ function gerarTabela(lista = []) {
   // 🔹 paginação
   const totalPaginas = Math.ceil(lista.length / linhasPorPagina);
 
-  paginacaoDiv.innerHTML = `
-    <button onclick="mudarPagina(-1)" ${paginaAtual === 1 ? "disabled" : ""}>◀</button>
-    <span> Página ${paginaAtual} de ${totalPaginas} </span>
-    <button onclick="mudarPagina(1)" ${paginaAtual === totalPaginas ? "disabled" : ""}>▶</button>
-  `;
+  const numeroDpages = document.getElementById("numeroDpages");
+  const pageprev = document.getElementById("pageprev");
+  const pagenext = document.getElementById("pagenext");
+
+  numeroDpages.textContent = `Página ${paginaAtual} de ${totalPaginas}`;
+  pageprev.disabled = paginaAtual === 1;
+  pagenext.disabled = paginaAtual === totalPaginas;
 }
 
 // ================== EXPORTAR EXCEL ==================
