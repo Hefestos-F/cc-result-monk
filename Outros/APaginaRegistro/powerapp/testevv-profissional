@@ -1,0 +1,606 @@
+/*
+ * APPLICATION: Sistema de Gestão de Relatórios
+ * PURPOSE: Formulário de entrada de dados para registros de relatórios
+ * DATA SOURCE: Relatorios
+ * VERSION: 1.0.0
+ * LAST UPDATED: 2026-06-11
+ * 
+ * STRUCTURE:
+ * - Screen1: Tela principal com duas visualizações (Form1 e Form2)
+ * - Form1: Visualização simples em grid de 3 colunas
+ * - Form2: Visualização detalhada em grid de 3 colunas
+ * 
+ * DESIGN SYSTEM:
+ * Colors are centralized below for easy theming
+ * Font: Segoe UI throughout
+ * Layout: Responsive vertical stacking with consistent padding
+ */
+
+# ========== DESIGN TOKENS ==========
+# Color Palette
+$Color_White: =RGBA(255, 255, 255, 1)
+$Color_LightGray: =RGBA(245, 245, 245, 1)
+$Color_DarkGray: =RGBA(50, 49, 48, 1)
+$Color_MediumGray: =RGBA(161, 159, 157, 1)
+$Color_BackgroundGray: =RGBA(242, 242, 241, 0)
+$Color_Primary: =RGBA(0, 120, 212, 1)
+$Color_PrimaryHover: =RGBA(16, 110, 190, 1)
+$Color_Error: =RGBA(168, 0, 0, 1)
+$Color_Border: =RGBA(0, 0, 0, 0)
+
+# Typography
+$Font_Family: =Font.'Segoe UI'
+$FontWeight_Semibold: =FontWeight.Semibold
+$FontWeight_Regular: =FontWeight.Regular
+
+# Spacing
+$Padding_Standard: =8
+$Padding_Large: =16
+$Spacing_Small: =5
+$Spacing_Default: =10
+$BorderRadius_Default: =8
+
+# ========== MAIN APPLICATION ==========
+
+Screens:
+  Screen1:
+    Name: "Relatórios Management Screen"
+    Description: "Tela principal para gerenciamento de relatórios com múltiplas visualizações"
+    Properties:
+      Fill: =$Color_White
+      LoadingSpinnerColor: =$Color_Primary
+    Children:
+      # ===== FORM 1: GRID VIEW (3 COLUMNS) =====
+      - RelatóriosForm_GridView:
+          Control: Form@2.4.4
+          Variant: Classic
+          Layout: Vertical
+          Description: "Formulário com layout em grid para entrada rápida de dados"
+          Properties:
+            BorderColor: =$Color_LightGray
+            DataSource: =Relatorios
+            X: =40
+            Y: =40
+          Children:
+            # --- LINHA 1: TÍTULO, LOCALIZADOR, CONTATO ---
+            
+            - CardTítulo:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Description: "Campo para entrada do título do relatório"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="Title"
+                  Default: =ThisItem.Title
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,Title)
+                  MaxLength: =DataSourceInfo([@Relatorios], DataSourceInfo.MaxLength, Title)
+                  Required: =false
+                  Update: =CardTítulo_Input.Text
+                  Width: =266
+                  X: =0
+                  Y: =0
+                Children:
+                  - CardTítulo_Label:
+                      Control: Label@2.5.1
+                      MetadataKey: FieldName
+                      Properties:
+                        AutoHeight: =true
+                        BorderColor: =$Color_Border
+                        BorderStyle: =BorderStyle.None
+                        BorderThickness: =2
+                        Color: =$Color_DarkGray
+                        DisabledBorderColor: =$Color_Border
+                        DisabledColor: =$Color_MediumGray
+                        FocusedBorderThickness: =4
+                        Font: =$Font_Family
+                        FontWeight: =$FontWeight_Semibold
+                        Height: =34
+                        PaddingLeft: =0
+                        Text: =Parent.DisplayName
+                        Width: =Parent.Width - 60
+                        Wrap: =false
+                        X: =30
+                        Y: =$Spacing_Default
+                  - CardTítulo_Input:
+                      Control: Classic/TextInput@2.3.2
+                      MetadataKey: FieldValue
+                      Properties:
+                        BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                        Color: =$Color_DarkGray
+                        Default: =Parent.Default
+                        DelayOutput: =true
+                        DisabledBorderColor: =$Color_Border
+                        DisabledColor: =$Color_MediumGray
+                        DisabledFill: =$Color_BackgroundGray
+                        DisplayMode: =Parent.DisplayMode
+                        Font: =$Font_Family
+                        HoverBorderColor: =$Color_PrimaryHover
+                        HoverColor: =$Color_DarkGray
+                        HoverFill: =$Color_White
+                        MaxLength: =Parent.MaxLength
+                        PaddingLeft: =5
+                        PressedBorderColor: =$Color_Primary
+                        PressedColor: =$Color_DarkGray
+                        PressedFill: =$Color_White
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Tooltip: =Parent.DisplayName
+                        Width: =Parent.Width - 60
+                        X: =30
+                        Y: =CardTítulo_Label.Y + CardTítulo_Label.Height + $Spacing_Small
+                  - CardTítulo_ErrorMsg:
+                      Control: Label@2.5.1
+                      MetadataKey: ErrorMessage
+                      Properties:
+                        AutoHeight: =true
+                        BorderColor: =$Color_Border
+                        BorderStyle: =BorderStyle.None
+                        BorderThickness: =2
+                        Color: =$Color_Error
+                        DisabledBorderColor: =$Color_Border
+                        DisabledColor: =$Color_Error
+                        FocusedBorderThickness: =4
+                        Font: =$Font_Family
+                        FontWeight: =$FontWeight_Semibold
+                        Height: =10
+                        Live: =Live.Assertive
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: =Parent.Error
+                        Visible: =Parent.DisplayMode=DisplayMode.Edit
+                        Width: =Parent.Width - 60
+                        X: =30
+                        Y: =CardTítulo_Input.Y + CardTítulo_Input.Height
+                  - CardTítulo_RequiredIndicator:
+                      Control: Label@2.5.1
+                      MetadataKey: FieldRequired
+                      Properties:
+                        Align: =Align.Center
+                        BorderColor: =$Color_Border
+                        BorderStyle: =BorderStyle.None
+                        BorderThickness: =2
+                        Color: =$Color_DarkGray
+                        DisabledBorderColor: =$Color_Border
+                        DisabledColor: =$Color_MediumGray
+                        FocusedBorderThickness: =4
+                        Font: =$Font_Family
+                        FontWeight: =$FontWeight_Semibold
+                        Height: =CardTítulo_Label.Height
+                        PaddingLeft: =0
+                        Text: ="*"
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        Wrap: =false
+                        Y: =CardTítulo_Label.Y
+
+            - CardLocalizador:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Description: "Campo para localização/referência do relatório"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_1"
+                  Default: =ThisItem.localizador
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_1)
+                  MaxLength: =DataSourceInfo([@Relatorios], DataSourceInfo.MaxLength, field_1)
+                  Required: =false
+                  Update: =CardLocalizador_Input.Text
+                  Width: =266
+                  X: =1
+                  Y: =0
+                Children:
+                  - CardLocalizador_Label:
+                      Control: Label@2.5.1
+                      MetadataKey: FieldName
+                      Properties:
+                        AutoHeight: =true
+                        BorderColor: =$Color_Border
+                        BorderStyle: =BorderStyle.None
+                        BorderThickness: =2
+                        Color: =$Color_DarkGray
+                        DisabledBorderColor: =$Color_Border
+                        DisabledColor: =$Color_MediumGray
+                        FocusedBorderThickness: =4
+                        Font: =$Font_Family
+                        FontWeight: =$FontWeight_Semibold
+                        Height: =34
+                        PaddingLeft: =0
+                        Text: =Parent.DisplayName
+                        Width: =Parent.Width - 60
+                        Wrap: =false
+                        X: =30
+                        Y: =$Spacing_Default
+                  - CardLocalizador_Input:
+                      Control: Classic/TextInput@2.3.2
+                      MetadataKey: FieldValue
+                      Properties:
+                        BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                        Color: =$Color_DarkGray
+                        Default: =Parent.Default
+                        DelayOutput: =true
+                        DisabledBorderColor: =$Color_Border
+                        DisabledColor: =$Color_MediumGray
+                        DisabledFill: =$Color_BackgroundGray
+                        DisplayMode: =Parent.DisplayMode
+                        Font: =$Font_Family
+                        HoverBorderColor: =$Color_PrimaryHover
+                        HoverColor: =$Color_DarkGray
+                        HoverFill: =$Color_White
+                        MaxLength: =Parent.MaxLength
+                        PaddingLeft: =5
+                        PressedBorderColor: =$Color_Primary
+                        PressedColor: =$Color_DarkGray
+                        PressedFill: =$Color_White
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Tooltip: =Parent.DisplayName
+                        Width: =Parent.Width - 60
+                        X: =30
+                        Y: =CardLocalizador_Label.Y + CardLocalizador_Label.Height + $Spacing_Small
+                  - CardLocalizador_ErrorMsg:
+                      Control: Label@2.5.1
+                      MetadataKey: ErrorMessage
+                      Properties:
+                        AutoHeight: =true
+                        BorderColor: =$Color_Border
+                        BorderStyle: =BorderStyle.None
+                        BorderThickness: =2
+                        Color: =$Color_Error
+                        DisabledBorderColor: =$Color_Border
+                        DisabledColor: =$Color_Error
+                        FocusedBorderThickness: =4
+                        Font: =$Font_Family
+                        FontWeight: =$FontWeight_Semibold
+                        Height: =10
+                        Live: =Live.Assertive
+                        Text: =Parent.Error
+                        Visible: =Parent.DisplayMode=DisplayMode.Edit
+                        Width: =Parent.Width - 60
+                        X: =30
+                        Y: =CardLocalizador_Input.Y + CardLocalizador_Input.Height
+                  - CardLocalizador_RequiredIndicator:
+                      Control: Label@2.5.1
+                      MetadataKey: FieldRequired
+                      Properties:
+                        Align: =Align.Center
+                        BorderColor: =$Color_Border
+                        Color: =$Color_DarkGray
+                        Font: =$Font_Family
+                        FontWeight: =$FontWeight_Semibold
+                        Height: =CardLocalizador_Label.Height
+                        Text: ="*"
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        Y: =CardLocalizador_Label.Y
+
+            - CardContato:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Description: "Campo para informações de contato"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_2"
+                  Default: =ThisItem.contato
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_2)
+                  MaxLength: =DataSourceInfo([@Relatorios], DataSourceInfo.MaxLength, field_2)
+                  Required: =false
+                  Update: =CardContato_Input.Text
+                  Width: =266
+                  X: =2
+                  Y: =0
+                Children:
+                  - CardContato_Label:
+                      Control: Label@2.5.1
+                      MetadataKey: FieldName
+                      Properties:
+                        AutoHeight: =true
+                        BorderColor: =$Color_Border
+                        Color: =$Color_DarkGray
+                        Font: =$Font_Family
+                        FontWeight: =$FontWeight_Semibold
+                        Height: =34
+                        Text: =Parent.DisplayName
+                        Width: =Parent.Width - 60
+                        X: =30
+                        Y: =$Spacing_Default
+                  - CardContato_Input:
+                      Control: Classic/TextInput@2.3.2
+                      MetadataKey: FieldValue
+                      Properties:
+                        BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                        Color: =$Color_DarkGray
+                        Default: =Parent.Default
+                        Font: =$Font_Family
+                        Width: =Parent.Width - 60
+                        X: =30
+                        Y: =CardContato_Label.Y + CardContato_Label.Height + $Spacing_Small
+                  - CardContato_ErrorMsg:
+                      Control: Label@2.5.1
+                      MetadataKey: ErrorMessage
+                      Properties:
+                        Color: =$Color_Error
+                        Font: =$Font_Family
+                        Text: =Parent.Error
+                        Visible: =Parent.DisplayMode=DisplayMode.Edit
+                        Width: =Parent.Width - 60
+                        X: =30
+                        Y: =CardContato_Input.Y + CardContato_Input.Height
+                  - CardContato_RequiredIndicator:
+                      Control: Label@2.5.1
+                      MetadataKey: FieldRequired
+                      Properties:
+                        Text: ="*"
+                        Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                        Width: =30
+                        Y: =CardContato_Label.Y
+
+            # --- LINHA 2: MOTIVO, WAIVER, ISENTOU DU ---
+            
+            - CardMotivo:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Description: "Campo para motivo do relatório"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_4"
+                  Default: =ThisItem.motivo
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_4)
+                  MaxLength: =DataSourceInfo([@Relatorios], DataSourceInfo.MaxLength, field_4)
+                  Required: =false
+                  Update: =CardMotivo_Input.Text
+                  Width: =266
+                  X: =0
+                  Y: =1
+
+            - CardWaiver:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Description: "Campo para informações de waiver"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_3"
+                  Default: =ThisItem.waiver
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_3)
+                  MaxLength: =DataSourceInfo([@Relatorios], DataSourceInfo.MaxLength, field_3)
+                  Required: =false
+                  Update: =CardWaiver_Input.Text
+                  Width: =266
+                  X: =1
+                  Y: =1
+
+            - CardIsentouDU:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Description: "Campo indicando se foi isento de DU"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_5"
+                  Default: =ThisItem.isentouDU
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_5)
+                  MaxLength: =DataSourceInfo([@Relatorios], DataSourceInfo.MaxLength, field_5)
+                  Required: =false
+                  Update: =CardIsentouDU_Input.Text
+                  Width: =266
+                  X: =2
+                  Y: =1
+
+            # --- LINHA 3: MOTIVO DU, UTILIZOU INVOICE, EMPRESA INVOICE ---
+            
+            - CardMotivoDU:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Description: "Campo para motivo da isenção de DU"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_6"
+                  Default: =ThisItem.motivoDU
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_6)
+                  MaxLength: =DataSourceInfo([@Relatorios], DataSourceInfo.MaxLength, field_6)
+                  Required: =false
+                  Update: =CardMotivoDU_Input.Text
+                  Width: =266
+                  X: =0
+                  Y: =2
+
+            - CardUtilizouInvoice:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Description: "Campo indicando se utilizou invoice"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_7"
+                  Default: =ThisItem.utilizouInvoice
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_7)
+                  MaxLength: =DataSourceInfo([@Relatorios], DataSourceInfo.MaxLength, field_7)
+                  Required: =false
+                  Update: =CardUtilizouInvoice_Input.Text
+                  Width: =266
+                  X: =1
+                  Y: =2
+
+            - CardEmpresaInvoice:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicNumberEdit
+                IsLocked: true
+                Description: "Campo para código da empresa da invoice"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_8"
+                  Default: =ThisItem.empresaInvoice
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_8)
+                  Required: =false
+                  Update: =Value(CardEmpresaInvoice_Input.Text)
+                  Width: =266
+                  X: =2
+                  Y: =2
+
+            # --- LINHA 4: VALOR INVOICE ---
+            
+            - CardValorInvoice:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicNumberEdit
+                IsLocked: true
+                Description: "Campo para valor da invoice"
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_9"
+                  Default: =ThisItem.valorInvoice
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_9)
+                  Required: =false
+                  Update: =Value(CardValorInvoice_Input.Text)
+                  Width: =266
+                  X: =0
+                  Y: =3
+
+      # ===== FORM 2: DETAILED VIEW =====
+      - RelatóriosForm_DetailedView:
+          Control: Form@2.4.4
+          Variant: Classic
+          Layout: Vertical
+          Description: "Formulário com layout detalhado para visualização expandida"
+          Properties:
+            BorderColor: =$Color_LightGray
+            DataSource: =Relatorios
+            Height: =630
+            Width: =1280
+            X: =60
+            Y: =60
+          Children:
+            - DetailCardWaiver:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_3"
+                  Default: =ThisItem.waiver
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_3)
+                  Required: =false
+                  Update: =DetailCardWaiver_Input.Text
+                  Width: =426
+                  X: =0
+                  Y: =0
+
+            - DetailCardMotivo:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_4"
+                  Default: =ThisItem.motivo
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_4)
+                  Required: =false
+                  Update: =DetailCardMotivo_Input.Text
+                  Width: =426
+                  X: =1
+                  Y: =0
+
+            - DetailCardIsentouDU:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicTextualEdit
+                IsLocked: true
+                Properties:
+                  BorderColor: =$Color_LightGray
+                  DataField: ="field_5"
+                  Default: =ThisItem.isentouDU
+                  DisplayName: =DataSourceInfo([@Relatorios],DataSourceInfo.DisplayName,field_5)
+                  Required: =false
+                  Update: =DetailCardIsentouDU_Input.Text
+                  Width: =426
+                  X: =2
+                  Y: =0
+
+      # ===== HEADER CONTAINER =====
+      - ScreenContainer:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Description: "Container principal com layout automático"
+          Properties:
+            Fill: =$Color_LightGray
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =16
+            PaddingBottom: =$Padding_Large
+            PaddingLeft: =$Padding_Large
+            PaddingRight: =$Padding_Large
+            PaddingTop: =$Padding_Large
+            Width: =Parent.Width
+          Children:
+            - HeaderContainer:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Description: "Cabeçalho da aplicação"
+                Properties:
+                  Fill: =$Color_White
+                  FillPortions: =0
+                  Height: =75
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =16
+                  PaddingBottom: =$Padding_Standard
+                  PaddingLeft: =$Padding_Standard
+                  PaddingRight: =$Padding_Standard
+                  PaddingTop: =$Padding_Standard
+                  RadiusBottomLeft: =$BorderRadius_Default
+                  RadiusBottomRight: =$BorderRadius_Default
+                  RadiusTopLeft: =$BorderRadius_Default
+                  RadiusTopRight: =$BorderRadius_Default
+
+            - MainContainer:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Description: "Área principal de conteúdo"
+                Properties:
+                  Fill: =$Color_White
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =16
+                  PaddingBottom: =$Padding_Standard
+                  PaddingLeft: =$Padding_Standard
+                  PaddingRight: =$Padding_Standard
+                  PaddingTop: =$Padding_Standard
+                  RadiusBottomLeft: =$BorderRadius_Default
+                  RadiusBottomRight: =$BorderRadius_Default
+                  RadiusTopLeft: =$BorderRadius_Default
+                  RadiusTopRight: =$BorderRadius_Default
+
+            - FooterContainer:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Description: "Rodapé com ações principais"
+                Properties:
+                  Fill: =$Color_White
+                  FillPortions: =0
+                  Height: =75
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =16
+                  PaddingBottom: =$Padding_Standard
+                  PaddingLeft: =$Padding_Standard
+                  PaddingRight: =$Padding_Standard
+                  PaddingTop: =$Padding_Standard
+                  RadiusBottomLeft: =$BorderRadius_Default
+                  RadiusBottomRight: =$BorderRadius_Default
+                  RadiusTopLeft: =$BorderRadius_Default
+                  RadiusTopRight: =$BorderRadius_Default
+
+# ========== END OF APPLICATION ==========
