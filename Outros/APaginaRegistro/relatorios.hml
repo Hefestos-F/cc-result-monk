@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatórios do Sistema</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root { --gol-orange:#FF7900; --gol-orange-hover:#e56e00; --text:#222; --muted:#6b7280; --line:#e5e7eb; }
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 40px; background:#fff; color:var(--text); }
+    h2 { text-align:center; margin-bottom:24px; font-weight:700; }
+    #filtros.toolbar { display:grid; grid-template-columns: repeat(6, minmax(160px,1fr)); gap:12px 16px; align-items:end; margin-bottom:12px; }
+    @media (max-width: 1200px){ #filtros.toolbar { grid-template-columns: repeat(4, minmax(160px,1fr)); } }
+    @media (max-width: 900px) { #filtros.toolbar { grid-template-columns: repeat(2, minmax(160px,1fr)); } }
+    .filter-item { display:flex; flex-direction:column; gap:6px; }
+    .filter-item label { font-size:12px; color:var(--muted); }
+    .filter-item select, .filter-dates input[type=date]{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:14px; background:#fff; }
+    .filter-dates { display:contents; }
+    .btn-primary { background:var(--gol-orange); color:#fff; border:none; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer; height:38px; }
+    .btn-primary:hover { background:var(--gol-orange-hover); }
+    table { border-collapse: collapse; width:100%; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+    th, td { border:1px solid #eee; padding:10px; text-align:left; font-size:14px; }
+    th { background:var(--gol-orange); color:#fff; position:sticky; top:0; z-index:1; }
+    #exportarExcel { margin-top:16px; padding:10px 15px; background:var(--gol-orange); border:none; color:#fff; font-weight:bold; border-radius:10px; cursor:pointer; }
+    #exportarExcel:hover { background:var(--gol-orange-hover); }
+    #resumoFiltro { white-space:pre-line; font-weight:600; margin-bottom:10px; }
+  </style>
+</head>
+<body>
+
+  <h2>Relatórios - Acesso Administrador</h2>
+  <div id="filtros"></div>
+  <p id="resumoFiltro"></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Ticket</th>
+        <th>Localizador</th>
+        <th>Contato</th>
+        <th>Waiver</th>
+        <th>Motivo</th>
+        <th>Isentou DU</th>
+        <th>Motivo DU</th>
+        <th>Possui Infant</th>
+        <th>Emissor da Reserva</th>
+        <th>Invoice</th>
+        <th>Link de Pagamento</th>
+        <th>Erro no Link</th>
+        <th>Data/Hora</th>
+        <th>Assinatura</th>
+      </tr>
+    </thead>
+    <tbody id="tabelaRelatorios"></tbody>
+    <div style="margin:10px 0; display:flex; gap:10px; align-items:center;">
+  <label>Linhas:</label>
+  <select id="linhasPagina">
+    <option value="10">10</option>
+    <option value="30">30</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+
+  <div id="paginacao"></div>
+</div>
+
+  </table>
+
+  <button id="exportarExcel" onclick="exportarExcel()">Exportar Excel</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Cache-busting para evitar versão antiga em cache -->
+  <script type="module" src="relatorios.js?v=2026-02-11-02"></script>
+</body>
+</html>
