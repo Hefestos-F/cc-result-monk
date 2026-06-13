@@ -1,46 +1,149 @@
-// ================== CONEXÃO FIREBASE ==================
+// ================== CONFIGURAÇÃO MSAL ==================
+const msalConfig = {
+  auth: {
+    clientId: "SEU_CLIENT_ID", // Substituir com seu Client ID do Azure
+    authority: "https://login.microsoftonline.com/SEU_TENANT_ID", // Substituir com seu Tenant ID
+    redirectUri: window.location.origin,
+  },
+};
 
-//esta em outro lugar
+const msalInstance = new msal.PublicClientApplication(msalConfig);
 
+// ================== CONFIGURAÇÃO DATAVERSE ==================
+const DATAVERSE_ORG = "orgaf426786"; // Substituir com sua organização
+const DATAVERSE_API_URL = `https://${DATAVERSE_ORG}.crm.dynamics.com/api/data/v9.2`;
+const DATAVERSE_SCOPE = `https://${DATAVERSE_ORG}.crm.dynamics.com/.default`;
+const ENTITY_NAME = "cr1e5_registrodeatendimentos";
 
-// ---------- Normalização de campos (compatibilidade com dados antigos) ----------
+// ================== AUTENTICAÇÃO ==================
+async function loginUser() {
+  try {
+    const response = await msalInstance.loginPopup({
+      scopes: [DATAVERSE_SCOPE],
+    });
+    console.log("Login bem-sucedido:", response);
+    updateLoginStatus();
+    document.getElementById("mainContent").style.display = "block";
+    await carregarFiltros();
+  } catch (error) {
+    console.error("Erro no login:", error);
+    alert("Erro ao fazer login. Verifique o console.");
+  }
+}
+
+function logoutUser() {
+  msalInstance.logoutPopup({
+    postLogoutRedirectUri: window.location.origin,
+  });
+  updateLoginStatus();
+}
+
+function updateLoginStatus() {
+  const accounts = msalInstance.getAllAccounts();
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const userInfo = document.getElementById("userInfo");
+
+  if (accounts.length > 0) {
+    const account = accounts[0];
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "block";
+    userInfo.style.display = "block";
+    userInfo.textContent = `Logado como: ${account.name}`;
+  } else {
+    loginBtn.style.display = "block";
+    logoutBtn.style.display = "none";
+    userInfo.style.display = "none";
+    document.getElementById("mainContent").style.display = "none";
+  }
+}
+
+// ================== OBTER TOKEN ==================
+async function getAccessToken() {
+  try {
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length === 0) {
+      throw new Error("Nenhuma conta autenticada.");
+    }
+
+    const response = await msalInstance.acquireTokenSilent({
+      scopes: [DATAVERSE_SCOPE],
+      account: accounts[0],
+    });
+
+    return response.accessToken;
+  } catch (error) {
+    console.error("Erro ao obter token:", error);
+    // Tentar fazer login novamente
+    await loginUser();
+    return null;
+  }
+}
+
+// ================== CHAMADAS À API DATAVERSE ==================
+async function fetchDataverse(endpoint, options = {}) {
+  const token = await getAccessToken();
+  if (!token) {
+    throw new Error("Token não disponível");
+  }
+
+  const response = await fetch(`${DATAVERSE_API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "OData-MaxVersion": "4.0",
+      "OData-Version": "4.0",
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Erro na requisição Dataverse:", errorText);
+    throw new Error(`Erro ${response.status}: ${errorText}`);
+  }
+
+  return response.json();
+}
+
+// ================== BUSCAR REGISTROS DO DATAVERSE ==================
+async function buscarRegistrosDataverse() {
+  try {
+    // Ajuste a query conforme necessário (máximo 5000 registros por padrão)
+    const endpoint = `/${ENTITY_NAME}?$top=5000&$select=cr1e5_registrodeatendimentoid,cr1e5_ticket,cr1e5_localizador,cr1e5_contato,cr1e5_waiver,cr1e5_motivo,cr1e5_isentoudu,cr1e5_motivodu,cr1e5_utilizouinvoice,cr1e5_empresainvoice,cr1e5_valorinvoice,cr1e5_realizoupagamento,cr1e5_link,cr1e5_datahora,cr1e5_assinatura`;
+
+    const data = await fetchDataverse(endpoint);
+    return data.value || [];
+  } catch (error) {
+    console.error("Erro ao buscar registros:", error);
+    alert("Erro ao buscar registros do Dataverse.");
+    return [];
+  }
+}
+
+// ---------- Normalização de campos (compatibilidade com dados do Dataverse) ----------
 function normalizarRegistro(r) {
   const safe = (v, alt) =>
     v !== undefined && v !== null && String(v).trim() !== "" ? v : alt;
+  
+  // Mapeamento de campos Dataverse para o formato esperado
   return {
-    ticket: safe(r.ticket, ""),
-    localizador: safe(r.localizador, ""),
-    contato: safe(r.contato, ""),
-    waiver: safe(r.waiver, ""),
-    motivo: safe(r.motivo, ""),
-    isentouDU: safe(r.isentouDU, ""),
-    motivoDU: safe(r.motivoDU, ""),
-    // Possui Infant
-    utilizouInvoice: safe(
-      r.utilizouInvoice ?? r.possuiInfant ?? r.possui_infant ?? r.invoiceUsado,
-      "",
-    ),
-    // Emissor da Reserva
-    empresaInvoice: safe(
-      r.empresaInvoice ?? r.emissor ?? r.emissorReserva ?? r.emissor_da_reserva,
-      "",
-    ),
-    // Invoice
-    valorInvoice: safe(r.valorInvoice ?? r.invoice ?? r.invoice_txt, ""),
-    // Link de Pagamento (sim/nao)
-    realizouPagamento: safe(
-      r.realizouPagamento ??
-        r.linkPagamento ??
-        r.utilizou_link ??
-        r.utilizou_link_pagamento,
-      "",
-    ),
-    // Erro no Link (ou motivo do link)
-    link: safe(r.link ?? r.motivoPagamento ?? r.motivo_link ?? r.erroLink, ""),
-    // Data/Hora
-    dataHora: safe(r.dataHora ?? r.data ?? r.criado_em, ""),
-    // Assinatura
-    assinatura: safe(r.assinatura ?? r.agent ?? r.operador, ""),
+    ticket: safe(r.cr1e5_ticket, ""),
+    localizador: safe(r.cr1e5_localizador, ""),
+    contato: safe(r.cr1e5_contato, ""),
+    waiver: safe(r.cr1e5_waiver, ""),
+    motivo: safe(r.cr1e5_motivo, ""),
+    isentouDU: safe(r.cr1e5_isentoudu, ""),
+    motivoDU: safe(r.cr1e5_motivodu, ""),
+    utilizouInvoice: safe(r.cr1e5_utilizouinvoice, ""),
+    empresaInvoice: safe(r.cr1e5_empresainvoice, ""),
+    valorInvoice: safe(r.cr1e5_valorinvoice, ""),
+    realizouPagamento: safe(r.cr1e5_realizoupagamento, ""),
+    link: safe(r.cr1e5_link, ""),
+    dataHora: safe(r.cr1e5_datahora, ""),
+    assinatura: safe(r.cr1e5_assinatura, ""),
+    dataverseId: safe(r.cr1e5_registrodeatendimentoid, ""),
   };
 }
 
@@ -70,10 +173,8 @@ let linhasPorPagina = 10;
 // ================== CARREGAR FILTROS ==================
 async function carregarFiltros() {
   try {
-    const q = query(collection(db, "registros"), limit(200));
-
-    const snapshot = await getDocs(q);
-    const brutos = snapshot.docs.map((doc) => doc.data());
+    // Buscar registros do Dataverse
+    const brutos = await buscarRegistrosDataverse();
     registros = brutos.map(normalizarRegistro);
 
     const filtrosDiv = document.getElementById("filtros");
@@ -151,9 +252,12 @@ async function carregarFiltros() {
 
     datasWrap.appendChild(botao);
     filtrosDiv.appendChild(datasWrap);
+
+    // Carregar tabela com todos os registros inicialmente
+    gerarTabela(registros);
   } catch (error) {
     console.error("Erro ao carregar filtros:", error);
-    alert("Erro ao carregar filtros do Firestore.");
+    alert("Erro ao carregar filtros do Dataverse.");
   }
 }
 
@@ -343,11 +447,12 @@ function formatarData(iso) {
 window.onload = async function () {
   try {
     document.getElementById("resumoFiltro").textContent =
-      "Selecione os filtros desejados e clique em 'Filtrar' para buscar os registros.";
+      "Faça login para acessar os registros.";
+    updateLoginStatus();
   } catch (_) {}
-  await carregarFiltros();
-  gerarTabela([]);
 };
 
-// Expor
+// Expor funções globais
 window.exportarExcel = exportarExcel;
+window.loginUser = loginUser;
+window.logoutUser = logoutUser;

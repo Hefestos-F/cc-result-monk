@@ -117,8 +117,19 @@
     </style>
   </head>
   <body>
-    <h2>Relatórios - Acesso Administrador</h2>
-    <div id="filtros"></div>
+    <!-- Barra de Autenticação -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 8px;">
+      <h2 style="margin: 0;">Relatórios - Acesso Administrador</h2>
+      <div id="loginStatus" style="display: flex; gap: 10px; align-items: center;">
+        <span id="userInfo" style="display: none; color: var(--text);"></span>
+        <button id="loginBtn" class="btn-primary" onclick="loginUser()">Entrar com Microsoft</button>
+        <button id="logoutBtn" class="btn-primary" onclick="logoutUser()" style="display: none; background: #666;">Sair</button>
+      </div>
+    </div>
+
+    <!-- Conteúdo Principal (oculto até login) -->
+    <div id="mainContent" style="display: none;">
+      <div id="filtros"></div>
     <div
       style="
         display: flex;
@@ -171,9 +182,12 @@
         <button id="pagenext" disabled>▶</button>
       </div>
     </div>
+    </div>
 
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ms-msal-browser/2.38.1/msal-browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Cache-busting para evitar versão antiga em cache -->
-    <script type="module" src="relatorios.js?v=2026-02-11-02"></script>
+    <script type="module" src="relatorios.js?v=2026-02-11-03"></script>
   </body>
 </html>
