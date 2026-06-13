@@ -122,8 +122,8 @@
       <h2 style="margin: 0;">Relatórios - Acesso Administrador</h2>
       <div id="loginStatus" style="display: flex; gap: 10px; align-items: center;">
         <span id="userInfo" style="display: none; color: var(--text);"></span>
-        <button id="loginBtn" class="btn-primary" onclick="loginUser()">Entrar com Microsoft</button>
-        <button id="logoutBtn" class="btn-primary" onclick="logoutUser()" style="display: none; background: #666;">Sair</button>
+        <button id="loginBtn" class="btn-primary">Entrar com Microsoft</button>
+        <button id="logoutBtn" class="btn-primary" style="display: none; background: #666;">Sair</button>
       </div>
     </div>
 
@@ -185,9 +185,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ms-msal-browser/2.38.1/msal-browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Cache-busting para evitar versão antiga em cache -->
-    <script type="module" src="relatorios.js?v=2026-02-11-03"></script>
+    <script src="relatorios.js?v=2026-02-11-04"></script>
   </body>
 </html>

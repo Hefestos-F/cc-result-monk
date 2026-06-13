@@ -1,96 +1,26 @@
-// ================== CONFIGURAÇÃO MSAL ==================
-const msalConfig = {
-  auth: {
-    clientId: "SEU_CLIENT_ID", // Substituir com seu Client ID do Azure
-    authority: "https://login.microsoftonline.com/SEU_TENANT_ID", // Substituir com seu Tenant ID
-    redirectUri: window.location.origin,
-  },
-};
-
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+// ================== CONFIGURAÇÃO DE LOGIN DIRETO ==================
+const LOGIN_URL = "https://login.microsoftonline.com/";
 
 // ================== CONFIGURAÇÃO DATAVERSE ==================
 const DATAVERSE_ORG = "orgaf426786"; // Substituir com sua organização
 const DATAVERSE_API_URL = `https://${DATAVERSE_ORG}.crm.dynamics.com/api/data/v9.2`;
-const DATAVERSE_SCOPE = `https://${DATAVERSE_ORG}.crm.dynamics.com/.default`;
 const ENTITY_NAME = "cr1e5_registrodeatendimentos";
 
 // ================== AUTENTICAÇÃO ==================
-async function loginUser() {
-  try {
-    const response = await msalInstance.loginPopup({
-      scopes: [DATAVERSE_SCOPE],
-    });
-    console.log("Login bem-sucedido:", response);
-    updateLoginStatus();
-    document.getElementById("mainContent").style.display = "block";
-    await carregarFiltros();
-  } catch (error) {
-    console.error("Erro no login:", error);
-    alert("Erro ao fazer login. Verifique o console.");
-  }
+function loginUser() {
+  window.location.href = LOGIN_URL;
 }
 
 function logoutUser() {
-  msalInstance.logoutPopup({
-    postLogoutRedirectUri: window.location.origin,
-  });
-  updateLoginStatus();
-}
-
-function updateLoginStatus() {
-  const accounts = msalInstance.getAllAccounts();
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const userInfo = document.getElementById("userInfo");
-
-  if (accounts.length > 0) {
-    const account = accounts[0];
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "block";
-    userInfo.style.display = "block";
-    userInfo.textContent = `Logado como: ${account.name}`;
-  } else {
-    loginBtn.style.display = "block";
-    logoutBtn.style.display = "none";
-    userInfo.style.display = "none";
-    document.getElementById("mainContent").style.display = "none";
-  }
-}
-
-// ================== OBTER TOKEN ==================
-async function getAccessToken() {
-  try {
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts.length === 0) {
-      throw new Error("Nenhuma conta autenticada.");
-    }
-
-    const response = await msalInstance.acquireTokenSilent({
-      scopes: [DATAVERSE_SCOPE],
-      account: accounts[0],
-    });
-
-    return response.accessToken;
-  } catch (error) {
-    console.error("Erro ao obter token:", error);
-    // Tentar fazer login novamente
-    await loginUser();
-    return null;
-  }
+  window.location.href = "https://login.microsoftonline.com/common/oauth2/v2.0/logout";
 }
 
 // ================== CHAMADAS À API DATAVERSE ==================
 async function fetchDataverse(endpoint, options = {}) {
-  const token = await getAccessToken();
-  if (!token) {
-    throw new Error("Token não disponível");
-  }
-
   const response = await fetch(`${DATAVERSE_API_URL}${endpoint}`, {
+    credentials: "include",
     ...options,
     headers: {
-      Authorization: `Bearer ${token}`,
       "OData-MaxVersion": "4.0",
       "OData-Version": "4.0",
       "Content-Type": "application/json",
@@ -447,12 +377,21 @@ function formatarData(iso) {
 window.onload = async function () {
   try {
     document.getElementById("resumoFiltro").textContent =
-      "Faça login para acessar os registros.";
-    updateLoginStatus();
-  } catch (_) {}
+      "Clique em Entrar com Microsoft para ser redirecionado à página de login.";
+
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const exportBtn = document.getElementById("exportarExcel");
+
+    loginBtn.addEventListener("click", loginUser);
+    logoutBtn.addEventListener("click", logoutUser);
+    exportBtn.addEventListener("click", exportarExcel);
+
+    document.getElementById("mainContent").style.display = "none";
+  } catch (error) {
+    console.error("Erro na inicialização:", error);
+  }
 };
 
 // Expor funções globais
 window.exportarExcel = exportarExcel;
-window.loginUser = loginUser;
-window.logoutUser = logoutUser;
