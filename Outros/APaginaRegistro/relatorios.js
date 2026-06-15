@@ -1,79 +1,63 @@
-// ================== CONFIGURAÇÃO DE LOGIN DIRETO ==================
-const LOGIN_URL = "https://login.microsoftonline.com/";
+// ================== CONEXÃO FIREBASE ==================
+import {
+  initializeApp,
+  getApps,
+  getApp,
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
-// ================== CONFIGURAÇÃO DATAVERSE ==================
-const DATAVERSE_ORG = "orgaf426786"; // Substituir com sua organização
-const DATAVERSE_API_URL = `https://${DATAVERSE_ORG}.crm.dynamics.com/api/data/v9.2`;
-const ENTITY_NAME = "cr1e5_registrodeatendimentos";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  limit,
+  where,
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// ================== AUTENTICAÇÃO ==================
-function loginUser() {
-  window.location.href = LOGIN_URL;
-}
+// firebaseConfig ocultado
 
-function logoutUser() {
-  window.location.href = "https://login.microsoftonline.com/common/oauth2/v2.0/logout";
-}
 
-// ================== CHAMADAS À API DATAVERSE ==================
-async function fetchDataverse(endpoint, options = {}) {
-  const response = await fetch(`${DATAVERSE_API_URL}${endpoint}`, {
-    credentials: "include",
-    ...options,
-    headers: {
-      "OData-MaxVersion": "4.0",
-      "OData-Version": "4.0",
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Erro na requisição Dataverse:", errorText);
-    throw new Error(`Erro ${response.status}: ${errorText}`);
-  }
-
-  return response.json();
-}
-
-// ================== BUSCAR REGISTROS DO DATAVERSE ==================
-async function buscarRegistrosDataverse() {
-  try {
-    // Ajuste a query conforme necessário (máximo 5000 registros por padrão)
-    const endpoint = `/${ENTITY_NAME}?$top=5000&$select=cr1e5_registrodeatendimentoid,cr1e5_ticket,cr1e5_localizador,cr1e5_contato,cr1e5_waiver,cr1e5_motivo,cr1e5_isentoudu,cr1e5_motivodu,cr1e5_utilizouinvoice,cr1e5_empresainvoice,cr1e5_valorinvoice,cr1e5_realizoupagamento,cr1e5_link,cr1e5_datahora,cr1e5_assinatura`;
-
-    const data = await fetchDataverse(endpoint);
-    return data.value || [];
-  } catch (error) {
-    console.error("Erro ao buscar registros:", error);
-    alert("Erro ao buscar registros do Dataverse.");
-    return [];
-  }
-}
-
-// ---------- Normalização de campos (compatibilidade com dados do Dataverse) ----------
+// ---------- Normalização de campos (compatibilidade com dados antigos) ----------
 function normalizarRegistro(r) {
   const safe = (v, alt) =>
     v !== undefined && v !== null && String(v).trim() !== "" ? v : alt;
-  
-  // Mapeamento de campos Dataverse para o formato esperado
   return {
-    ticket: safe(r.cr1e5_ticket, ""),
-    localizador: safe(r.cr1e5_localizador, ""),
-    contato: safe(r.cr1e5_contato, ""),
-    waiver: safe(r.cr1e5_waiver, ""),
-    motivo: safe(r.cr1e5_motivo, ""),
-    isentouDU: safe(r.cr1e5_isentoudu, ""),
-    motivoDU: safe(r.cr1e5_motivodu, ""),
-    utilizouInvoice: safe(r.cr1e5_utilizouinvoice, ""),
-    empresaInvoice: safe(r.cr1e5_empresainvoice, ""),
-    valorInvoice: safe(r.cr1e5_valorinvoice, ""),
-    realizouPagamento: safe(r.cr1e5_realizoupagamento, ""),
-    link: safe(r.cr1e5_link, ""),
-    dataHora: safe(r.cr1e5_datahora, ""),
-    assinatura: safe(r.cr1e5_assinatura, ""),
-    dataverseId: safe(r.cr1e5_registrodeatendimentoid, ""),
+    ticket: safe(r.ticket, ""),
+    localizador: safe(r.localizador, ""),
+    contato: safe(r.contato, ""),
+    waiver: safe(r.waiver, ""),
+    motivo: safe(r.motivo, ""),
+    isentouDU: safe(r.isentouDU, ""),
+    motivoDU: safe(r.motivoDU, ""),
+    // Possui Infant
+    utilizouInvoice: safe(
+      r.utilizouInvoice ?? r.possuiInfant ?? r.possui_infant ?? r.invoiceUsado,
+      "",
+    ),
+    // Emissor da Reserva
+    empresaInvoice: safe(
+      r.empresaInvoice ?? r.emissor ?? r.emissorReserva ?? r.emissor_da_reserva,
+      "",
+    ),
+    // Invoice
+    valorInvoice: safe(r.valorInvoice ?? r.invoice ?? r.invoice_txt, ""),
+    // Link de Pagamento (sim/nao)
+    realizouPagamento: safe(
+      r.realizouPagamento ??
+        r.linkPagamento ??
+        r.utilizou_link ??
+        r.utilizou_link_pagamento,
+      "",
+    ),
+    // Erro no Link (ou motivo do link)
+    link: safe(r.link ?? r.motivoPagamento ?? r.motivo_link ?? r.erroLink, ""),
+    // Data/Hora
+    dataHora: safe(r.dataHora ?? r.data ?? r.criado_em, ""),
+    // Assinatura
+    assinatura: safe(r.assinatura ?? r.agent ?? r.operador, ""),
   };
 }
 
@@ -98,13 +82,79 @@ let registros = [];
 let registrosFiltrados = [];
 
 let paginaAtual = 1;
-let linhasPorPagina = 10;
+let limiteLinhas = 10;
+const limdbai = 10000;
+
+import { startAfter } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+async function carregarTodosRegistros() {
+  let todos = [];
+  let ultimaDoc = null;
+  const limite = 500;
+
+  while (true) {
+    let q;
+
+    if (ultimaDoc) {
+      q = query(
+        collection(db, "registros"),
+        startAfter(ultimaDoc),
+        limit(limite),
+      );
+    } else {
+      q = query(collection(db, "registros"), limit(limite));
+    }
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) break;
+
+    const dados = snapshot.docs.map((doc) => normalizarRegistro(doc.data()));
+
+    todos = [...todos, ...dados];
+
+    ultimaDoc = snapshot.docs[snapshot.docs.length - 1];
+
+    // ✅ evita loop infinito
+    if (snapshot.size < limite) break;
+  }
+
+  return todos;
+}
+
+function atualizarTabela() {
+  const dados = registrosFiltrados.length ? registrosFiltrados : registros;
+
+  const inicio = (paginaAtual - 1) * limiteLinhas;
+  const fim = inicio + limiteLinhas;
+
+  const paginaDados = dados.slice(inicio, fim);
+
+  gerarTabela(paginaDados);
+
+  const totalPaginas = Math.max(1, Math.ceil(dados.length / limiteLinhas));
+
+  // Atualiza texto
+  document.getElementById("numeroDpages").textContent =
+    `Página ${paginaAtual} de ${totalPaginas}`;
+
+  // Habilitar/desabilitar botões
+  document.getElementById("pageprev").disabled = paginaAtual === 1;
+  document.getElementById("pagenext").disabled = paginaAtual === totalPaginas;
+}
+``;
 
 // ================== CARREGAR FILTROS ==================
 async function carregarFiltros() {
+  console.log("Carregando Filtros...");
   try {
-    // Buscar registros do Dataverse
-    const brutos = await buscarRegistrosDataverse();
+    //const snapshot = await getDocs(collection(db, "registros"));
+
+    const snapshot = await getDocs(
+      query(collection(db, "registros"), limit(limdbai)),
+    );
+
+    const brutos = snapshot.docs.map((doc) => doc.data());
     registros = brutos.map(normalizarRegistro);
 
     const filtrosDiv = document.getElementById("filtros");
@@ -182,12 +232,9 @@ async function carregarFiltros() {
 
     datasWrap.appendChild(botao);
     filtrosDiv.appendChild(datasWrap);
-
-    // Carregar tabela com todos os registros inicialmente
-    gerarTabela(registros);
   } catch (error) {
-    console.error("Erro ao carregar filtros:", error);
-    alert("Erro ao carregar filtros do Dataverse.");
+    console.error("ERRO REAL:", error);
+    alert(error.message);
   }
 }
 
@@ -195,107 +242,82 @@ async function carregarFiltros() {
 async function filtrarRelatorio() {
   try {
     const tabela = document.getElementById("tabelaRelatorios");
-    tabela.innerHTML = `<tr><td colspan="15" style="text-align:center;">Carregando registros...</td></tr>`;
+    tabela.innerHTML = `<tr><td colspan="15">Carregando...</td></tr>`;
 
-    let filtrados = [...registros];
+    let constraints = [];
 
+    const dataInicio = document.getElementById("dataInicio")?.value || "";
+    const dataFim = document.getElementById("dataFim")?.value || "";
+
+    // ✅ montar filtros do Firestore
     CAMPOS_FILTRO.forEach((c) => {
       const el = document.getElementById(`filtro_${c.id}`);
       const valor = el ? el.value : "";
       if (valor) {
-        filtrados = filtrados.filter(
-          (r) => String(r[c.id] ?? "").toLowerCase() === valor.toLowerCase(),
-        );
+        constraints.push(where(c.id, "==", valor));
       }
     });
 
-    // Período
-    const dataInicio = document.getElementById("dataInicio")?.value || "";
-    const dataFim = document.getElementById("dataFim")?.value || "";
+    // ✅ RESET correto (agora considera data também)
+    if (constraints.length === 0 && !dataInicio && !dataFim) {
+      registrosFiltrados = [];
+      paginaAtual = 1;
+      atualizarTabela();
+      return;
+    }
+
+    // ✅ consulta ao Firestore
+    const q = query(
+      collection(db, "registros"),
+      ...constraints,
+      limit(limdbai),
+    );
+
+    const snapshot = await getDocs(q);
+
+    const dados = snapshot.docs.map((doc) => normalizarRegistro(doc.data()));
+
+    let filtrados = [...dados];
+
+    // ✅ FILTRO DE DATA (AGORA FUNCIONA)
     if (dataInicio || dataFim) {
       const inicio = dataInicio ? new Date(dataInicio + "T00:00:00") : null;
       const fim = dataFim ? new Date(dataFim + "T23:59:59") : null;
+
       filtrados = filtrados.filter((r) => {
-        if (!r.dataHora) return false;
         const d = converterData(r.dataHora);
         if (!d) return false;
+
         if (inicio && d < inicio) return false;
         if (fim && d > fim) return false;
+
         return true;
       });
     }
 
-    registrosFiltrados = [...filtrados];
+    // ✅ aplica resultado final
+    registrosFiltrados = filtrados;
     paginaAtual = 1;
-    gerarTabela(filtrados);
-
-    // Resumo
-    const resumo = document.getElementById("resumoFiltro");
-    const ativos = [];
-    CAMPOS_FILTRO.forEach((c) => {
-      const el = document.getElementById(`filtro_${c.id}`);
-      const valor = el ? el.value : "";
-      if (valor)
-        ativos.push(
-          `${c.label}: ${c.id === "empresaInvoice" ? formatEmpresa(valor) : valor}`,
-        );
-    });
-    if (dataInicio || dataFim) {
-      let periodo = "Período: ";
-      if (dataInicio) periodo += `de ${formatarData(dataInicio)} `;
-      if (dataFim) periodo += `até ${formatarData(dataFim)} `;
-      ativos.push(periodo.trim());
-    }
-    resumo.textContent = ativos.length
-      ? `Filtros aplicados: ${ativos.join(" \n ")} \n Total: ${filtrados.length}`
-      : `Nenhum filtro aplicado \n Total: ${filtrados.length}`;
+    atualizarTabela();
   } catch (error) {
-    console.error("Erro ao filtrar registros:", error);
-    alert("Erro ao filtrar registros.");
+    console.error("Erro ao filtrar:", error);
+    alert(error.message);
   }
 }
-
-// ================== MUDAR PAGINA ==================
-function mudarPagina(acao) {
-  const totalPaginas = Math.ceil(registrosFiltrados.length / linhasPorPagina);
-
-  paginaAtual += acao;
-
-  if (paginaAtual < 1) paginaAtual = 1;
-  if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
-
-  gerarTabela(registrosFiltrados);
-}
-
-document.getElementById("pagenext").onclick = () => mudarPagina(1);
-document.getElementById("pageprev").onclick = () => mudarPagina(-1);
-document.getElementById("linhasPagina").addEventListener("change", (e) => {
-  linhasPorPagina = parseInt(e.target.value);
-  paginaAtual = 1; // volta pra página 1
-  gerarTabela(registrosFiltrados);
-});
 
 // ================== TABELA ==================
 function gerarTabela(lista = []) {
   const tabela = document.getElementById("tabelaRelatorios");
-
   tabela.innerHTML = "";
-
   if (lista.length === 0) {
     tabela.innerHTML = `<tr><td colspan="15" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
     return;
   }
 
-  // 🔹 cálculo paginação
-  const inicio = (paginaAtual - 1) * linhasPorPagina;
-  const fim = inicio + linhasPorPagina;
-  const pagina = lista.slice(inicio, fim);
-
-  // 🔹 render tabela
-  pagina.forEach((r, i) => {
+  lista.forEach((r, i) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${inicio + i + 1}</td>
+      <td>${i + 1}</td>
       <td>${r.ticket}</td>
       <td>${r.localizador}</td>
       <td>${r.contato}</td>
@@ -313,26 +335,19 @@ function gerarTabela(lista = []) {
     `;
     tabela.appendChild(row);
   });
-
-  // 🔹 paginação
-  const totalPaginas = Math.ceil(lista.length / linhasPorPagina);
-
-  const numeroDpages = document.getElementById("numeroDpages");
-  const pageprev = document.getElementById("pageprev");
-  const pagenext = document.getElementById("pagenext");
-
-  numeroDpages.textContent = `Página ${paginaAtual} de ${totalPaginas}`;
-  pageprev.disabled = paginaAtual === 1;
-  pagenext.disabled = paginaAtual === totalPaginas;
 }
 
 // ================== EXPORTAR EXCEL ==================
 function exportarExcel() {
-  if (registrosFiltrados.length === 0) {
+  const dados = registrosFiltrados.length ? registrosFiltrados : registros;
+
+  if (dados.length === 0) {
     alert("Nenhum registro para exportar.");
     return;
   }
-  const dadosExport = registrosFiltrados.map((r) => ({ ...r }));
+
+  const dadosExport = dados.map((r) => ({ ...r }));
+
   const agora = new Date();
   const nomeArquivo = `relatorio_waivers_${agora.getFullYear()}-${(agora.getMonth() + 1).toString().padStart(2, "0")}-${agora.getDate().toString().padStart(2, "0")}_${agora.getHours().toString().padStart(2, "0")}h${agora.getMinutes().toString().padStart(2, "0")}.xlsx`;
   const ws = XLSX.utils.json_to_sheet(dadosExport);
@@ -352,19 +367,25 @@ function formatEmpresa(v) {
 
 function converterData(dataStr) {
   if (!dataStr) return null;
-  // Aceita dd/mm/aaaa HH:MM[:SS]
-  const match = dataStr.match(
-    /^(\d{2})\/(\d{2})\/(\d{4})[^\d]*(\d{2}):(\d{2})(?::(\d{2}))?$/,
+
+  // remove vírgula (resolve seu problema)
+  const limpa = dataStr.replace(",", "").trim();
+
+  const match = limpa.match(
+    /^(\d{2})\/(\d{2})\/(\d{4})\s(\d{2}):(\d{2})(?::(\d{2}))?$/,
   );
+
   if (!match) return null;
+
   const [, dia, mes, ano, hora, min, seg] = match;
+
   return new Date(
     Number(ano),
     Number(mes) - 1,
     Number(dia),
     Number(hora),
     Number(min),
-    Number(seg ?? 0),
+    Number(seg || 0),
   );
 }
 
@@ -377,21 +398,35 @@ function formatarData(iso) {
 window.onload = async function () {
   try {
     document.getElementById("resumoFiltro").textContent =
-      "Clique em Entrar com Microsoft para ser redirecionado à página de login.";
+      "Selecione os filtros desejados e clique em 'Filtrar' para buscar os registros.";
+  } catch (_) {}
 
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const exportBtn = document.getElementById("exportarExcel");
+  document.getElementById("linhasPagina").addEventListener("change", (e) => {
+    limiteLinhas = parseInt(e.target.value);
+    paginaAtual = 1;
+    atualizarTabela();
+  });
 
-    loginBtn.addEventListener("click", loginUser);
-    logoutBtn.addEventListener("click", logoutUser);
-    exportBtn.addEventListener("click", exportarExcel);
+  document.getElementById("pageprev").onclick = () => {
+    if (paginaAtual > 1) {
+      paginaAtual--;
+      atualizarTabela();
+    }
+  };
 
-    document.getElementById("mainContent").style.display = "none";
-  } catch (error) {
-    console.error("Erro na inicialização:", error);
-  }
+  document.getElementById("pagenext").onclick = () => {
+    const dados = registrosFiltrados.length ? registrosFiltrados : registros;
+
+    const totalPaginas = Math.max(1, Math.ceil(dados.length / limiteLinhas));
+
+    if (paginaAtual < totalPaginas) {
+      paginaAtual++;
+      atualizarTabela();
+    }
+  };
+  await carregarFiltros();
+  atualizarTabela();
 };
 
-// Expor funções globais
+// Expor
 window.exportarExcel = exportarExcel;
