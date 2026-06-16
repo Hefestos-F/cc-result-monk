@@ -19,8 +19,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 // firebaseConfig ocultado
 
-
-
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -221,7 +219,7 @@ async function carregarFiltros() {
     dataInicio.type = "date";
     dataInicio.id = "dataInicio";
     const labelAte = document.createElement("label");
-    
+
     labelAte.textContent = "Até";
     labelAte.setAttribute("for", "dataFim");
     const dataFim = document.createElement("input");
@@ -229,6 +227,7 @@ async function carregarFiltros() {
     dataFim.type = "date";
     dataFim.id = "dataFim";
     const botao = document.createElement("button");
+    botao.id = "botfilt";
     botao.textContent = "Filtrar";
     botao.className = "btn-primary";
     botao.onclick = filtrarRelatorio;
@@ -261,6 +260,12 @@ async function filtrarRelatorio() {
     tabela.innerHTML = `<tr><td colspan="15">Carregando...</td></tr>`;
 
     let constraints = [];
+
+    function contrbot(asb) {
+      const botfilt = document.getElementById(`botfilt`);
+      botfilt.disabled = asb;
+      botfilt.textContent = asb ? "Buscando..." : "Fitrar";
+    }
 
     CAMPOS_FILTRO.forEach((c) => {
       const el = document.getElementById(`filtro_${c.id}`);
