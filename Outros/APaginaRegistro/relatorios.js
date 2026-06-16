@@ -12,9 +12,13 @@ import {
   query,
   limit,
   where,
+  orderBy,
+  startAfter,
+  doc,
+  writeBatch,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
 // firebaseConfig ocultado
+
 
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -85,12 +89,10 @@ let paginaAtual = 1;
 let limiteLinhas = 10;
 const limdbai = 10000;
 
-import { startAfter } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-async function carregarTodosRegistros() {
+async function buscarTodosDados(constraints = []) {
   let todos = [];
   let ultimaDoc = null;
-  const limite = 500;
+  const limite = 5000;
 
   while (true) {
     let q;
@@ -98,14 +100,23 @@ async function carregarTodosRegistros() {
     if (ultimaDoc) {
       q = query(
         collection(db, "registros"),
+        orderBy("dataHora"),
+        ...constraints,
         startAfter(ultimaDoc),
         limit(limite),
       );
     } else {
-      q = query(collection(db, "registros"), limit(limite));
+      q = query(
+        collection(db, "registros"),
+        orderBy("dataHora"),
+        ...constraints,
+        limit(limite),
+      );
     }
 
     const snapshot = await getDocs(q);
+
+    console.log("Bloco:", snapshot.size);
 
     if (snapshot.empty) break;
 
@@ -113,11 +124,14 @@ async function carregarTodosRegistros() {
 
     todos = [...todos, ...dados];
 
+    console.log("Total acumulado:", todos.length);
+
     ultimaDoc = snapshot.docs[snapshot.docs.length - 1];
 
-    // ✅ evita loop infinito
     if (snapshot.size < limite) break;
   }
+
+  console.log("TOTAL FINAL:", todos.length);
 
   return todos;
 }
@@ -148,10 +162,8 @@ function atualizarTabela() {
 async function carregarFiltros() {
   console.log("Carregando Filtros...");
   try {
-    //const snapshot = await getDocs(collection(db, "registros"));
-
     const snapshot = await getDocs(
-      query(collection(db, "registros"), limit(limdbai)),
+      query(collection(db, "registros"), limit(500)),
     );
 
     const brutos = snapshot.docs.map((doc) => doc.data());
@@ -205,12 +217,15 @@ async function carregarFiltros() {
     labelDe.textContent = "De";
     labelDe.setAttribute("for", "dataInicio");
     const dataInicio = document.createElement("input");
+    dataInicio.disabled = 1;
     dataInicio.type = "date";
     dataInicio.id = "dataInicio";
     const labelAte = document.createElement("label");
+    
     labelAte.textContent = "Até";
     labelAte.setAttribute("for", "dataFim");
     const dataFim = document.createElement("input");
+    dataFim.disabled = 1;
     dataFim.type = "date";
     dataFim.id = "dataFim";
     const botao = document.createElement("button");
@@ -232,6 +247,7 @@ async function carregarFiltros() {
 
     datasWrap.appendChild(botao);
     filtrosDiv.appendChild(datasWrap);
+    console.log("Filtros Ok");
   } catch (error) {
     console.error("ERRO REAL:", error);
     alert(error.message);
@@ -246,57 +262,63 @@ async function filtrarRelatorio() {
 
     let constraints = [];
 
-    const dataInicio = document.getElementById("dataInicio")?.value || "";
-    const dataFim = document.getElementById("dataFim")?.value || "";
-
-    // ✅ montar filtros do Firestore
     CAMPOS_FILTRO.forEach((c) => {
       const el = document.getElementById(`filtro_${c.id}`);
       const valor = el ? el.value : "";
+
       if (valor) {
         constraints.push(where(c.id, "==", valor));
       }
     });
 
-    // ✅ RESET correto (agora considera data também)
-    if (constraints.length === 0 && !dataInicio && !dataFim) {
-      registrosFiltrados = [];
-      paginaAtual = 1;
-      atualizarTabela();
-      return;
+    if (constraints.length === 0) {
+      alert("Buscando tudo, vai demorar.");
+      //return;
     }
 
-    // ✅ consulta ao Firestore
-    const q = query(
-      collection(db, "registros"),
-      ...constraints,
-      limit(limdbai),
-    );
+    let todos = [];
+    let ultimoDoc = null;
+    const LIMITE = 5000;
 
-    const snapshot = await getDocs(q);
+    while (true) {
+      let q;
 
-    const dados = snapshot.docs.map((doc) => normalizarRegistro(doc.data()));
+      if (ultimoDoc) {
+        q = query(
+          collection(db, "registros"),
+          ...constraints,
+          orderBy("__name__"),
+          startAfter(ultimoDoc),
+          limit(LIMITE),
+        );
+      } else {
+        q = query(
+          collection(db, "registros"),
+          ...constraints,
+          orderBy("__name__"),
+          limit(LIMITE),
+        );
+      }
 
-    let filtrados = [...dados];
+      const snapshot = await getDocs(q);
 
-    // ✅ FILTRO DE DATA (AGORA FUNCIONA)
-    if (dataInicio || dataFim) {
-      const inicio = dataInicio ? new Date(dataInicio + "T00:00:00") : null;
-      const fim = dataFim ? new Date(dataFim + "T23:59:59") : null;
+      console.log("Bloco recebido:", todos.length);
 
-      filtrados = filtrados.filter((r) => {
-        const d = converterData(r.dataHora);
-        if (!d) return false;
+      if (snapshot.empty) break;
 
-        if (inicio && d < inicio) return false;
-        if (fim && d > fim) return false;
+      const dados = snapshot.docs.map((doc) => normalizarRegistro(doc.data()));
 
-        return true;
-      });
+      todos = [...todos, ...dados];
+
+      ultimoDoc = snapshot.docs[snapshot.docs.length - 1];
+
+      // ✅ condição de parada correta
+      if (snapshot.size < LIMITE) break;
     }
 
-    // ✅ aplica resultado final
-    registrosFiltrados = filtrados;
+    console.log("Total final:", todos.length);
+
+    registrosFiltrados = todos;
     paginaAtual = 1;
     atualizarTabela();
   } catch (error) {
@@ -357,18 +379,10 @@ function exportarExcel() {
 }
 
 // ================== UTILITÁRIOS ==================
-function formatEmpresa(v) {
-  if (!v) return "";
-  const s = String(v).toLowerCase();
-  if (s === "gol") return "Gol";
-  if (s === "smiles") return "Smiles";
-  return v;
-}
 
 function converterData(dataStr) {
   if (!dataStr) return null;
 
-  // remove vírgula (resolve seu problema)
   const limpa = dataStr.replace(",", "").trim();
 
   const match = limpa.match(
@@ -389,10 +403,87 @@ function converterData(dataStr) {
   );
 }
 
+function formatEmpresa(v) {
+  if (!v) return "";
+  const s = String(v).toLowerCase();
+  if (s === "gol") return "Gol";
+  if (s === "smiles") return "Smiles";
+  return v;
+}
+
 function formatarData(iso) {
   const [a, m, d] = iso.split("-");
   return `${d}/${m}/${a}`;
 }
+
+function gerarDataISO(dataStr) {
+  if (!dataStr) return null;
+
+  const limpa = dataStr.replace(",", "").trim();
+
+  const match = limpa.match(
+    /^(\d{2})\/(\d{2})\/(\d{4})\s(\d{2}):(\d{2})(?::(\d{2}))?$/,
+  );
+
+  if (!match) return null;
+
+  const [, dia, mes, ano, hora, min, seg] = match;
+
+  return `${ano}-${mes}-${dia}T${hora}:${min}:${seg || "00"}`;
+}
+// ================== MIGRAÇÃO DE DATA ==================
+
+async function migrarDatas() {
+  try {
+    const snapshot = await getDocs(collection(db, "registros"));
+
+    console.log("Total de registros:", snapshot.size);
+
+    const batchSize = 500; // 🔥 diminui (melhor)
+    let batch = writeBatch(db);
+    let count = 0;
+    let totalAtualizados = 0;
+
+    for (const d of snapshot.docs) {
+      const dados = d.data();
+
+      if (dados.dataISO) continue;
+
+      const dataISO = gerarDataISO(dados.dataHora);
+      if (!dataISO) continue;
+
+      batch.update(doc(db, "registros", d.id), {
+        dataISO: dataISO,
+      });
+
+      count++;
+      totalAtualizados++;
+
+      if (count === batchSize) {
+        await batch.commit();
+
+        console.log("✅ Batch enviado:", totalAtualizados);
+
+        // 🔥 pausa para não sobrecarregar
+        await delay(1000);
+
+        batch = writeBatch(db);
+        count = 0;
+      }
+    }
+
+    if (count > 0) {
+      await batch.commit();
+    }
+
+    console.log("✅ Migração concluída!");
+    console.log("Total atualizados:", totalAtualizados);
+  } catch (error) {
+    console.error("Erro na migração:", error);
+  }
+}
+
+window.migrarDatas = migrarDatas;
 
 // ================== INIT ==================
 window.onload = async function () {
