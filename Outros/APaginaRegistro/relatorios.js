@@ -19,6 +19,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 // firebaseConfig ocultado
 
+
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -87,6 +88,10 @@ let paginaAtual = 1;
 let limiteLinhas = 10;
 const limdbai = 10000;
 
+const vcont = {
+  Filtroando: 0,
+};
+
 async function buscarTodosDados(constraints = []) {
   let todos = [];
   let ultimaDoc = null;
@@ -153,15 +158,16 @@ function atualizarTabela() {
   // Habilitar/desabilitar botões
   document.getElementById("pageprev").disabled = paginaAtual === 1;
   document.getElementById("pagenext").disabled = paginaAtual === totalPaginas;
-}
-``;
 
+  document.getElementById("totalEnc").textContent =
+    dados.length + " encontrdos.";
+}
 // ================== CARREGAR FILTROS ==================
 async function carregarFiltros() {
   console.log("Carregando Filtros...");
   try {
     const snapshot = await getDocs(
-      query(collection(db, "registros"), limit(500)),
+      query(collection(db, "registros"), limit(1000)),
     );
 
     const brutos = snapshot.docs.map((doc) => doc.data());
@@ -255,16 +261,22 @@ async function carregarFiltros() {
 
 // ================== FILTRAR ==================
 async function filtrarRelatorio() {
+  if (vcont.Filtroando) {
+    vcont.Filtroando = 0;
+    return;
+  }
+  const totalEnc = document.getElementById("totalEnc");
   try {
     const tabela = document.getElementById("tabelaRelatorios");
     tabela.innerHTML = `<tr><td colspan="15">Carregando...</td></tr>`;
+    totalEnc.textContent = "";
 
     let constraints = [];
 
-    function contrbot(asb) {
+    function contrbot(asb, text) {
       const botfilt = document.getElementById(`botfilt`);
-      botfilt.disabled = asb;
-      botfilt.textContent = asb ? "Buscando..." : "Fitrar";
+      //botfilt.disabled = asb;
+      botfilt.textContent = text;
     }
 
     CAMPOS_FILTRO.forEach((c) => {
@@ -276,14 +288,12 @@ async function filtrarRelatorio() {
       }
     });
 
-    if (constraints.length === 0) {
-      alert("Buscando tudo, vai demorar.");
-      //return;
-    }
-
     let todos = [];
     let ultimoDoc = null;
     const LIMITE = 5000;
+    vcont.Filtroando = 1;
+
+    contrbot(1, "Filtrando.../ Parar");
 
     while (true) {
       let q;
@@ -309,6 +319,8 @@ async function filtrarRelatorio() {
 
       console.log("Bloco recebido:", todos.length);
 
+      tabela.innerHTML = `<tr><td colspan="15">Carregando... ${todos.length}</td></tr>`;
+
       if (snapshot.empty) break;
 
       const dados = snapshot.docs.map((doc) => normalizarRegistro(doc.data()));
@@ -318,10 +330,14 @@ async function filtrarRelatorio() {
       ultimoDoc = snapshot.docs[snapshot.docs.length - 1];
 
       // ✅ condição de parada correta
-      if (snapshot.size < LIMITE) break;
+      if (snapshot.size < LIMITE || !vcont.Filtroando) break;
     }
 
-    console.log("Total final:", todos.length);
+    totalEnc.textContent = todos.length + " encontrdos.";
+
+    contrbot(0, "Filtrar");
+
+    console.log("Total final: ", todos.length);
 
     registrosFiltrados = todos;
     paginaAtual = 1;
@@ -491,38 +507,120 @@ async function migrarDatas() {
 window.migrarDatas = migrarDatas;
 
 // ================== INIT ==================
-window.onload = async function () {
-  try {
-    document.getElementById("resumoFiltro").textContent =
-      "Selecione os filtros desejados e clique em 'Filtrar' para buscar os registros.";
-  } catch (_) {}
 
-  document.getElementById("linhasPagina").addEventListener("change", (e) => {
-    limiteLinhas = parseInt(e.target.value);
-    paginaAtual = 1;
+async function verificar() {
+  const senha = document.getElementById("senha").value;
+
+  if (senha === "Aug$2025") {
+    document.body.innerHTML = `
+        <h2>Relatórios - Acesso Administrador</h2>
+        <div id="filtros"></div>
+        <div
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0px;
+          "
+        >
+          <p id="resumoFiltro"></p>
+
+          <div id="totalEnc"></div>
+          <button id="exportarExcel" onclick="exportarExcel()">
+            Exportar Excel
+          </button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Ticket</th>
+              <th>Localizador</th>
+              <th>Contato</th>
+              <th>Waiver</th>
+              <th>Motivo</th>
+              <th>Isentou DU</th>
+              <th>Motivo DU</th>
+              <th>Possui Infant</th>
+              <th>Emissor da Reserva</th>
+              <th>Invoice</th>
+              <th>Link de Pagamento</th>
+              <th>Erro no Link</th>
+              <th>Data/Hora</th>
+              <th>Assinatura</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaRelatorios"></tbody>
+        </table>
+
+        <div style="margin: 10px 0; display: flex; gap: 10px; align-items: center">
+          <label>Linhas:</label>
+          <select id="linhasPagina">
+            <option value="10">10</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+
+          <div>
+            <button id="pageprev" disabled>◀</button>
+            <span id="numeroDpages"></span>
+            <button id="pagenext" disabled>▶</button>
+          </div>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        <!-- Cache-busting para evitar versão antiga em cache -->
+        <script type="module" src="relatorios.js?v=2026-02-11-02"></script>
+
+    `;
+    document.body.style.cssText = `
+       font-family: Segoe UI, Arial, sans-serif; 
+       margin: 40px; 
+       background:#fff; 
+       color:var(--text);
+       `;
+
+    const resumoFiltro = document.getElementById("resumoFiltro");
+
+    if (!resumoFiltro) {
+      console.log("resumoFiltro Falso");
+      return;
+    }
+
+    resumoFiltro.textContent = `Selecione os filtros desejados e clique em 'Filtrar' para buscar os registros.`;
+
+    document.getElementById("linhasPagina").addEventListener("change", (e) => {
+      limiteLinhas = parseInt(e.target.value);
+      paginaAtual = 1;
+      atualizarTabela();
+    });
+
+    document.getElementById("pageprev").onclick = () => {
+      if (paginaAtual > 1) {
+        paginaAtual--;
+        atualizarTabela();
+      }
+    };
+
+    document.getElementById("pagenext").onclick = () => {
+      const dados = registrosFiltrados.length ? registrosFiltrados : registros;
+
+      const totalPaginas = Math.max(1, Math.ceil(dados.length / limiteLinhas));
+
+      if (paginaAtual < totalPaginas) {
+        paginaAtual++;
+        atualizarTabela();
+      }
+    };
+
+    await carregarFiltros();
     atualizarTabela();
-  });
+  } else {
+    document.getElementById("erro").innerText = "Senha incorreta!";
+  }
+}
 
-  document.getElementById("pageprev").onclick = () => {
-    if (paginaAtual > 1) {
-      paginaAtual--;
-      atualizarTabela();
-    }
-  };
-
-  document.getElementById("pagenext").onclick = () => {
-    const dados = registrosFiltrados.length ? registrosFiltrados : registros;
-
-    const totalPaginas = Math.max(1, Math.ceil(dados.length / limiteLinhas));
-
-    if (paginaAtual < totalPaginas) {
-      paginaAtual++;
-      atualizarTabela();
-    }
-  };
-  await carregarFiltros();
-  atualizarTabela();
-};
-
-// Expor
-window.exportarExcel = exportarExcel;
+document.getElementById("bEntr").addEventListener("click", () => verificar());

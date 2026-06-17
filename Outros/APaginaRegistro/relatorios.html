@@ -21,6 +21,52 @@
         background: #fff;
         color: var(--text);
       }
+
+      .login-box {
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        width: 300px;
+        margin: auto;
+        border: 3px solid var(--gol-orange);
+      }
+
+      .login-box h2 {
+        margin-bottom: 20px;
+      }
+
+      .login-box input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      .login-box button {
+        width: 100%;
+        padding: 10px;
+        background: var(--gol-orange);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .login-box button:hover {
+        background: #ff7a20;
+      }
+
+      #erro {
+        color: red;
+        font-size: 14px;
+      }
+
+      .conteudo {
+        display: none;
+        color: white;
+        text-align: center;
+      }
       h2 {
         text-align: center;
         margin-bottom: 24px;
@@ -97,7 +143,6 @@
         z-index: 1;
       }
       #exportarExcel {
-        margin-top: 16px;
         padding: 10px 15px;
         background: var(--gol-orange);
         border: none;
@@ -114,68 +159,24 @@
         font-weight: 600;
         margin-bottom: 10px;
       }
+
+      #totalEnc {
+        margin: 0px 5px 0px auto;
+      }
     </style>
   </head>
+
   <body>
-    <h2>Relatórios - Acesso Administrador</h2>
-    <div id="filtros"></div>
-    <div
-      style="
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px 0px;
-      "
-    >
-      <p id="resumoFiltro"></p>
+    <div class="login-box">
+      <h2>Acesso Restrito</h2>
 
-      <button id="exportarExcel" onclick="exportarExcel()">
-        Exportar Excel
-      </button>
+      <input type="password" id="senha" placeholder="Digite a senha" />
+      <button id="bEntr">Entrar</button>
+
+      <p id="erro"></p>
     </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Ticket</th>
-          <th>Localizador</th>
-          <th>Contato</th>
-          <th>Waiver</th>
-          <th>Motivo</th>
-          <th>Isentou DU</th>
-          <th>Motivo DU</th>
-          <th>Possui Infant</th>
-          <th>Emissor da Reserva</th>
-          <th>Invoice</th>
-          <th>Link de Pagamento</th>
-          <th>Erro no Link</th>
-          <th>Data/Hora</th>
-          <th>Assinatura</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaRelatorios"></tbody>
-    </table>
-
-    <div style="margin: 10px 0; display: flex; gap: 10px; align-items: center">
-      <label>Linhas:</label>
-      <select id="linhasPagina">
-        <option value="10">10</option>
-        <option value="30">30</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
-
-      <div>
-        <button id="pageprev" disabled>◀</button>
-        <span id="numeroDpages"></span>
-        <button id="pagenext" disabled>▶</button>
-      </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Cache-busting para evitar versão antiga em cache -->
-    <script type="module" src="relatorios.js?v=2026-02-11-02"></script>
   </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Cache-busting para evitar versão antiga em cache -->
+  <script type="module" src="relatorios.js?v=2026-02-11-02"></script>
 </html>
