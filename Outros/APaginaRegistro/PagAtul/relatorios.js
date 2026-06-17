@@ -122,8 +122,10 @@ async function buscarTodosDados(constraints = []) {
 
     if (snapshot.empty) break;
 
-    const dados = snapshot.docs.map((doc) => normalizarRegistro(doc.data()));
-
+    const dados = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...normalizarRegistro(doc.data()),
+    }));
     todos = [...todos, ...dados];
 
     console.log("Total acumulado:", todos.length);
@@ -322,8 +324,10 @@ async function filtrarRelatorio() {
 
       if (snapshot.empty) break;
 
-      const dados = snapshot.docs.map((doc) => normalizarRegistro(doc.data()));
-
+      const dados = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...normalizarRegistro(doc.data()),
+      }));
       todos = [...todos, ...dados];
 
       ultimoDoc = snapshot.docs[snapshot.docs.length - 1];
@@ -402,24 +406,19 @@ function exportarExcel() {
 
 function converterData(dataStr) {
   if (!dataStr) return null;
-
-  const limpa = dataStr.replace(",", "").trim();
-
-  const match = limpa.match(
-    /^(\d{2})\/(\d{2})\/(\d{4})\s(\d{2}):(\d{2})(?::(\d{2}))?$/,
+  // Aceita dd/mm/aaaa HH:MM[:SS]
+  const match = dataStr.match(
+    /^(\d{2})\/(\d{2})\/(\d{4})[^\d]*(\d{2}):(\d{2})(?::(\d{2}))?$/,
   );
-
   if (!match) return null;
-
   const [, dia, mes, ano, hora, min, seg] = match;
-
   return new Date(
     Number(ano),
     Number(mes) - 1,
     Number(dia),
     Number(hora),
     Number(min),
-    Number(seg || 0),
+    Number(seg ?? 0),
   );
 }
 
@@ -453,26 +452,29 @@ function gerarDataISO(dataStr) {
 }
 // ================== MIGRAÇÃO DE DATA ==================
 
-async function migrarDatas() {
+async function migrarDatasFiltrados() {
   try {
-    const snapshot = await getDocs(collection(db, "registros"));
+    if (!registrosFiltrados.length) {
+      alert("Nenhum registro filtrado para migrar.");
+      return;
+    }
 
-    console.log("Total de registros:", snapshot.size);
+    console.log("Iniciando migração filtrada...");
+    console.log("Total a processar:", registrosFiltrados.length);
 
-    const batchSize = 500; // 🔥 diminui (melhor)
+    const batchSize = 500;
     let batch = writeBatch(db);
     let count = 0;
     let totalAtualizados = 0;
 
-    for (const d of snapshot.docs) {
-      const dados = d.data();
+    for (const r of registrosFiltrados) {
+      // já tem dataISO? pula
+      if (r.dataISO) continue;
 
-      if (dados.dataISO) continue;
-
-      const dataISO = gerarDataISO(dados.dataHora);
+      const dataISO = gerarDataISO(r.dataHora);
       if (!dataISO) continue;
 
-      batch.update(doc(db, "registros", d.id), {
+      batch.update(doc(db, "registros", r.id), {
         dataISO: dataISO,
       });
 
@@ -484,8 +486,7 @@ async function migrarDatas() {
 
         console.log("✅ Batch enviado:", totalAtualizados);
 
-        // 🔥 pausa para não sobrecarregar
-        await delay(1000);
+        await delay(500); // leve pausa
 
         batch = writeBatch(db);
         count = 0;
@@ -496,14 +497,17 @@ async function migrarDatas() {
       await batch.commit();
     }
 
-    console.log("✅ Migração concluída!");
+    console.log("✅ Migração filtrada concluída!");
     console.log("Total atualizados:", totalAtualizados);
+
+    alert(`Migração concluída: ${totalAtualizados} registros atualizados`);
   } catch (error) {
-    console.error("Erro na migração:", error);
+    console.error("Erro na migração filtrada:", error);
+    alert(error.message);
   }
 }
 
-window.migrarDatas = migrarDatas;
+window.migrarDatasFiltrados = migrarDatasFiltrados;
 
 // ================== INIT ==================
 
