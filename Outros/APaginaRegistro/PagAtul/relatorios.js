@@ -16,8 +16,10 @@ import {
   startAfter,
   doc,
   writeBatch,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 // firebaseConfig ocultado
+
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -91,55 +93,6 @@ const vcont = {
   Filtroando: 0,
 };
 
-async function buscarTodosDados(constraints = []) {
-  let todos = [];
-  let ultimaDoc = null;
-  const limite = 5000;
-
-  while (true) {
-    let q;
-
-    if (ultimaDoc) {
-      q = query(
-        collection(db, "registros"),
-        orderBy("dataHora"),
-        ...constraints,
-        startAfter(ultimaDoc),
-        limit(limite),
-      );
-    } else {
-      q = query(
-        collection(db, "registros"),
-        orderBy("dataHora"),
-        ...constraints,
-        limit(limite),
-      );
-    }
-
-    const snapshot = await getDocs(q);
-
-    console.log("Bloco:", snapshot.size);
-
-    if (snapshot.empty) break;
-
-    const dados = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...normalizarRegistro(doc.data()),
-    }));
-    todos = [...todos, ...dados];
-
-    console.log("Total acumulado:", todos.length);
-
-    ultimaDoc = snapshot.docs[snapshot.docs.length - 1];
-
-    if (snapshot.size < limite) break;
-  }
-
-  console.log("TOTAL FINAL:", todos.length);
-
-  return todos;
-}
-
 function atualizarTabela() {
   const dados = registrosFiltrados.length ? registrosFiltrados : registros;
 
@@ -167,18 +120,12 @@ function atualizarTabela() {
 async function carregarFiltros() {
   console.log("Carregando Filtros...");
   try {
-    const snapshot = await getDocs(
-      query(collection(db, "registros"), limit(1000)),
-    );
-
-    const brutos = snapshot.docs.map((doc) => doc.data());
-    registros = brutos.map(normalizarRegistro);
-
     const filtrosDiv = document.getElementById("filtros");
     filtrosDiv.innerHTML = "";
     filtrosDiv.classList.add("toolbar");
 
     CAMPOS_FILTRO.forEach((campo) => {
+      if (["dataHora", "link"].includes(campo.id)) return;
       const valoresUnicos = [
         ...new Set(
           registros
@@ -262,92 +209,63 @@ async function carregarFiltros() {
 
 // ================== FILTRAR ==================
 async function filtrarRelatorio() {
-  if (vcont.Filtroando) {
-    vcont.Filtroando = 0;
-    return;
-  }
-  const totalEnc = document.getElementById("totalEnc");
   try {
     const tabela = document.getElementById("tabelaRelatorios");
-    tabela.innerHTML = `<tr><td colspan="15">Carregando...</td></tr>`;
-    totalEnc.textContent = "";
+    tabela.innerHTML = `<tr><td colspan="15" style="text-align:center;">Carregando registros...</td></tr>`;
 
-    let constraints = [];
-
-    function contrbot(asb, text) {
-      const botfilt = document.getElementById(`botfilt`);
-      //botfilt.disabled = asb;
-      botfilt.textContent = text;
-    }
+    let filtrados = [...registros];
 
     CAMPOS_FILTRO.forEach((c) => {
       const el = document.getElementById(`filtro_${c.id}`);
       const valor = el ? el.value : "";
-
       if (valor) {
-        constraints.push(where(c.id, "==", valor));
+        filtrados = filtrados.filter(
+          (r) => String(r[c.id] ?? "").toLowerCase() === valor.toLowerCase(),
+        );
       }
     });
 
-    let todos = [];
-    let ultimoDoc = null;
-    const LIMITE = 5000;
-    vcont.Filtroando = 1;
-
-    contrbot(1, "Filtrando.../ Parar");
-
-    while (true) {
-      let q;
-
-      if (ultimoDoc) {
-        q = query(
-          collection(db, "registros"),
-          ...constraints,
-          orderBy("__name__"),
-          startAfter(ultimoDoc),
-          limit(LIMITE),
-        );
-      } else {
-        q = query(
-          collection(db, "registros"),
-          ...constraints,
-          orderBy("__name__"),
-          limit(LIMITE),
-        );
-      }
-
-      const snapshot = await getDocs(q);
-
-      console.log("Bloco recebido:", todos.length);
-
-      tabela.innerHTML = `<tr><td colspan="15">Carregando... ${todos.length}</td></tr>`;
-
-      if (snapshot.empty) break;
-
-      const dados = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...normalizarRegistro(doc.data()),
-      }));
-      todos = [...todos, ...dados];
-
-      ultimoDoc = snapshot.docs[snapshot.docs.length - 1];
-
-      // ✅ condição de parada correta
-      if (snapshot.size < LIMITE || !vcont.Filtroando) break;
+    // Período
+    const dataInicio = document.getElementById("dataInicio")?.value || "";
+    const dataFim = document.getElementById("dataFim")?.value || "";
+    if (dataInicio || dataFim) {
+      const inicio = dataInicio ? new Date(dataInicio + "T00:00:00") : null;
+      const fim = dataFim ? new Date(dataFim + "T23:59:59") : null;
+      filtrados = filtrados.filter((r) => {
+        const d = converterData(r.dataHora);
+        if (!d) return false;
+        if (inicio && d < inicio) return false;
+        if (fim && d > fim) return false;
+        return true;
+      });
     }
 
-    totalEnc.textContent = todos.length + " encontrdos.";
+    registrosFiltrados = [...filtrados];
+    gerarTabela(filtrados);
 
-    contrbot(0, "Filtrar");
-
-    console.log("Total final: ", todos.length);
-
-    registrosFiltrados = todos;
-    paginaAtual = 1;
-    atualizarTabela();
+    // Resumo
+    const resumo = document.getElementById("resumoFiltro");
+    const ativos = [];
+    CAMPOS_FILTRO.forEach((c) => {
+      const el = document.getElementById(`filtro_${c.id}`);
+      const valor = el ? el.value : "";
+      if (valor)
+        ativos.push(
+          `${c.label}: ${c.id === "empresaInvoice" ? formatEmpresa(valor) : valor}`,
+        );
+    });
+    if (dataInicio || dataFim) {
+      let periodo = "Período: ";
+      if (dataInicio) periodo += `de ${formatarData(dataInicio)} `;
+      if (dataFim) periodo += `até ${formatarData(dataFim)} `;
+      ativos.push(periodo.trim());
+    }
+    resumo.textContent = ativos.length
+      ? `Filtros aplicados: ${ativos.join(" \n ")} \n Total: ${filtrados.length}`
+      : `Nenhum filtro aplicado \n Total: ${filtrados.length}`;
   } catch (error) {
-    console.error("Erro ao filtrar:", error);
-    alert(error.message);
+    console.error("Erro ao filtrar registros:", error);
+    alert("Erro ao filtrar registros.");
   }
 }
 
@@ -450,71 +368,112 @@ function gerarDataISO(dataStr) {
 
   return `${ano}-${mes}-${dia}T${hora}:${min}:${seg || "00"}`;
 }
-// ================== MIGRAÇÃO DE DATA ==================
 
-async function migrarDatasFiltrados() {
-  try {
-    if (!registrosFiltrados.length) {
-      alert("Nenhum registro filtrado para migrar.");
-      return;
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// ================== MIGRAÇÃO DE DATA ==================
+async function baixarDD(
+  constraints = [
+    //where("ticket", "==", "24198527")
+    //where("dataISO", "==", null),
+    //where("dataISO", "==", ""),
+    //where("migradoISO", "!=", true),
+    //orderBy("migradoISO"), // 🔥 obrigatório
+    //orderBy("__name__"), // opcional depois
+  ],
+  atualiz = 0,
+  Climiti_b = 1,
+) {
+  let ultimoDoc = null;
+  const LIMITE = 500;
+  const limiti_b = 1000;
+
+  while (true) {
+    let q;
+
+    if (ultimoDoc) {
+      q = query(
+        collection(db, "registros"),
+        ...constraints,
+        startAfter(ultimoDoc),
+        limit(LIMITE),
+      );
+    } else {
+      q = query(collection(db, "registros"), ...constraints, limit(LIMITE));
     }
 
-    console.log("Iniciando migração filtrada...");
-    console.log("Total a processar:", registrosFiltrados.length);
+    const snapshot = await getDocs(q);
 
-    const batchSize = 500;
-    let batch = writeBatch(db);
-    let count = 0;
-    let totalAtualizados = 0;
+    if (snapshot.empty) break;
 
-    for (const r of registrosFiltrados) {
-      // já tem dataISO? pula
-      if (r.dataISO) continue;
+    const dados = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...normalizarRegistro(doc.data()),
+    }));
 
+    console.log(`Total recebido: ${registros.length} + ${dados.length}`);
+
+    registros = [...registros, ...dados];
+
+    ultimoDoc = snapshot.docs[snapshot.docs.length - 1];
+
+    if (snapshot.size < LIMITE || (Climiti_b && registros.length >= limiti_b))
+      break;
+  }
+
+  console.log("Total Baixado: ", registros.length);
+  console.log("registros[0]: ", registros[0]);
+
+  let totalAtualizados = 0;
+
+  if (atualiz) {
+    // 🔥 pausa antes de escrever
+    await delay(3000);
+
+    for (const r of registros) {
       const dataISO = gerarDataISO(r.dataHora);
-      if (!dataISO) continue;
 
-      batch.update(doc(db, "registros", r.id), {
-        dataISO: dataISO,
-      });
+      if (!dataISO) {
+        console.log("⚠ Data inválida:", r.dataHora);
+        continue;
+      }
+      if (r.dataISO) {
+        console.log(" dataISO existente.");
+        continue;
+      }
 
-      count++;
-      totalAtualizados++;
+      try {
+        await updateDoc(doc(db, "registros", r.id), {
+          dataISO,
+          migradoISO: true,
+        });
 
-      if (count === batchSize) {
-        await batch.commit();
+        totalAtualizados++;
 
-        console.log("✅ Batch enviado:", totalAtualizados);
+        console.log("✅ Atualizado:", totalAtualizados);
 
-        await delay(500); // leve pausa
-
-        batch = writeBatch(db);
-        count = 0;
+        await delay(1000); // 🔥 controle de quota
+      } catch (e) {
+        console.warn("⚠ erro:", e);
+        await delay(5000);
       }
     }
 
-    if (count > 0) {
-      await batch.commit();
-    }
-
-    console.log("✅ Migração filtrada concluída!");
-    console.log("Total atualizados:", totalAtualizados);
-
-    alert(`Migração concluída: ${totalAtualizados} registros atualizados`);
-  } catch (error) {
-    console.error("Erro na migração filtrada:", error);
-    alert(error.message);
+    console.log("Total Atualizado:", totalAtualizados);
   }
 }
 
-window.migrarDatasFiltrados = migrarDatasFiltrados;
+window.baixarDD = baixarDD;
 
 // ================== INIT ==================
 
 async function verificar() {
   const senha = document.getElementById("senha").value;
 
-  if (senha === "Aug$2025") {
+  //Aug$2025
+  if (senha === "") {
     document.body.innerHTML = `
         <h2>Relatórios - Acesso Administrador</h2>
         <div id="filtros"></div>
