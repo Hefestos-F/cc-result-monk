@@ -1,0 +1,73 @@
+<h2>Relatórios - Acesso Administrador</h2>
+<div
+  style="
+    display: flex;
+    width: 100%;
+    gap: 10px;
+    margin: 10px 0px;
+    align-items: center;
+    justify-content: flex-end;
+  "
+>
+  <div id="ItenNuvem"></div>
+  <div id="ItenBaixados"></div>
+  <button id="BotBaix" class="btn-primary">Trazer da Nuvem</button>
+</div>
+<div id="filtros"></div>
+<div
+  style="
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0px;
+  "
+>
+  <p id="resumoFiltro"></p>
+
+  <div id="totalEnc"></div>
+  <button id="exportarExcel" onclick="exportarExcel()">Exportar Excel</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Ticket</th>
+      <th>Localizador</th>
+      <th>Contato</th>
+      <th>Waiver</th>
+      <th>Motivo</th>
+      <th>Isentou DU</th>
+      <th>Motivo DU</th>
+      <th>Possui Infant</th>
+      <th>Emissor da Reserva</th>
+      <th>Invoice</th>
+      <th>Link de Pagamento</th>
+      <th>Erro no Link</th>
+      <th>Data/Hora</th>
+      <th>Assinatura</th>
+    </tr>
+  </thead>
+  <tbody id="tabelaRelatorios"></tbody>
+</table>
+
+<div style="margin: 10px 0; display: flex; gap: 10px; align-items: center">
+  <label>Linhas:</label>
+  <select id="linhasPagina">
+    <option value="10">10</option>
+    <option value="30">30</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+
+  <div>
+    <button id="pageprev" disabled>◀</button>
+    <span id="numeroDpages"></span>
+    <button id="pagenext" disabled>▶</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Cache-busting para evitar versão antiga em cache -->
+<script type="module" src="relatorios.js?v=2026-02-11-02"></script>

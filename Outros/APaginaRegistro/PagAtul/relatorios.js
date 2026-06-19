@@ -8,7 +8,9 @@ import {
 import {
   getFirestore,
   collection,
+  getCountFromServer,
   getDocs,
+  getDoc,
   query,
   limit,
   where,
@@ -19,6 +21,7 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 // firebaseConfig ocultado
+
 
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -90,7 +93,7 @@ let limiteLinhas = 10;
 const limdbai = 10000;
 
 const vcont = {
-  Filtroando: 0,
+  Baixando: 0,
 };
 
 function atualizarTabela() {
@@ -112,9 +115,6 @@ function atualizarTabela() {
   // Habilitar/desabilitar botões
   document.getElementById("pageprev").disabled = paginaAtual === 1;
   document.getElementById("pagenext").disabled = paginaAtual === totalPaginas;
-
-  document.getElementById("totalEnc").textContent =
-    dados.length + " encontrdos.";
 }
 // ================== CARREGAR FILTROS ==================
 async function carregarFiltros() {
@@ -169,7 +169,7 @@ async function carregarFiltros() {
     labelDe.textContent = "De";
     labelDe.setAttribute("for", "dataInicio");
     const dataInicio = document.createElement("input");
-    dataInicio.disabled = 1;
+    //dataInicio.disabled = 1;
     dataInicio.type = "date";
     dataInicio.id = "dataInicio";
     const labelAte = document.createElement("label");
@@ -177,7 +177,7 @@ async function carregarFiltros() {
     labelAte.textContent = "Até";
     labelAte.setAttribute("for", "dataFim");
     const dataFim = document.createElement("input");
-    dataFim.disabled = 1;
+    //dataFim.disabled = 1;
     dataFim.type = "date";
     dataFim.id = "dataFim";
     const botao = document.createElement("button");
@@ -241,7 +241,7 @@ async function filtrarRelatorio() {
     }
 
     registrosFiltrados = [...filtrados];
-    gerarTabela(filtrados);
+    atualizarTabela(filtrados);
 
     // Resumo
     const resumo = document.getElementById("resumoFiltro");
@@ -373,22 +373,65 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function contarPorMes(lista) {
+  const meses = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez",
+  ];
+
+  const contagem = {};
+
+  lista.forEach((r) => {
+    if (!r.dataHora) return;
+
+    const data = converterData(r.dataHora);
+    if (!data) return;
+
+    const nomeMes = meses[data.getMonth()];
+
+    if (!contagem[nomeMes]) {
+      contagem[nomeMes] = 0;
+    }
+
+    contagem[nomeMes]++;
+  });
+
+  let texto = "";
+
+  for (const mes in contagem) {
+    texto += `${mes}: ${contagem[mes]} / `;
+  }
+
+  return texto;
+}
+
 // ================== MIGRAÇÃO DE DATA ==================
-async function baixarDD(
-  constraints = [
-    //where("ticket", "==", "24198527")
+async function baixarDD() {
+  const constraints = [
+    //where("ticket", "==", "23147931"),
     //where("dataISO", "==", null),
     //where("dataISO", "==", ""),
     //where("migradoISO", "!=", true),
     //orderBy("migradoISO"), // 🔥 obrigatório
     //orderBy("__name__"), // opcional depois
-  ],
-  atualiz = 0,
-  Climiti_b = 1,
-) {
+  ];
+
+  const atualiz = 0;
+  const Climiti_b = 0;
   let ultimoDoc = null;
-  const LIMITE = 500;
-  const limiti_b = 1000;
+  const LIMITE = 2000;
+  const limiti_b = 10000;
+  vcont.Baixando = 1;
 
   while (true) {
     let q;
@@ -413,24 +456,53 @@ async function baixarDD(
       ...normalizarRegistro(doc.data()),
     }));
 
-    console.log(`Total recebido: ${registros.length} + ${dados.length}`);
+    //console.log(`Total recebido: ${registros.length} + ${dados.length}`);
 
     registros = [...registros, ...dados];
 
+    const osMeses = contarPorMes(registros);
+
+    document.getElementById("OsPorMes").textContent = osMeses;
+
+    //console.log(`Total osMeses: ${osMeses}`);
+
     ultimoDoc = snapshot.docs[snapshot.docs.length - 1];
 
-    if (snapshot.size < LIMITE || (Climiti_b && registros.length >= limiti_b))
+    document.getElementById("ItenBaixados").textContent =
+      registros.length + " Disponiveis.";
+
+    if (
+      snapshot.size < LIMITE ||
+      (Climiti_b && registros.length >= limiti_b) ||
+      !vcont.Baixando
+    )
       break;
   }
 
-  console.log("Total Baixado: ", registros.length);
-  console.log("registros[0]: ", registros[0]);
+  registros = registros.sort((a, b) => {
+    const da = converterData(a.dataHora);
+    const db = converterData(b.dataHora);
 
-  let totalAtualizados = 0;
+    return db - da; // 🔥 mais recente primeiro
+  });
+
+  console.log("Total Baixado: ", registros.length);
+
+  //console.log("registros[0]: ", registros[0]);
+
+  //const check = await getDoc(doc(db, "registros", registros[0].id));
+
+  //console.log("✅ CONFIRMADO:", check.data());
 
   if (atualiz) {
-    // 🔥 pausa antes de escrever
+    let totalAtualizados = 0;
+    const BATCH_SIZE = 100;
+
+    let batch = writeBatch(db);
+    let count = 0;
+
     await delay(3000);
+    let cont2 = 0;
 
     for (const r of registros) {
       const dataISO = gerarDataISO(r.dataHora);
@@ -439,30 +511,47 @@ async function baixarDD(
         console.log("⚠ Data inválida:", r.dataHora);
         continue;
       }
-      if (r.dataISO) {
-        console.log(" dataISO existente.");
+
+      if (r.migradoISO) {
+        if (cont2 < 5) {
+          console.log("Atualizado Encontrado:", r);
+          cont2++;
+        }
         continue;
       }
 
-      try {
-        await updateDoc(doc(db, "registros", r.id), {
-          dataISO,
-          migradoISO: true,
-        });
+      await updateDoc(doc(db, "registros", r.id), {
+        dataISO,
+        migradoISO: true,
+      });
 
-        totalAtualizados++;
+      count++;
+      totalAtualizados++;
 
-        console.log("✅ Atualizado:", totalAtualizados);
+      // ✅ quando atingir o tamanho do batch
+      if (count === BATCH_SIZE) {
+        await batch.commit();
 
-        await delay(1000); // 🔥 controle de quota
-      } catch (e) {
-        console.warn("⚠ erro:", e);
-        await delay(5000);
+        console.log("✅ Batch enviado:", totalAtualizados);
+
+        await delay(3000); // 🔥 ESSENCIAL
+
+        batch = writeBatch(db);
+        count = 0;
       }
+    }
+
+    // ✅ último batch
+    if (count > 0) {
+      await batch.commit();
+      console.log("✅ Último batch enviado");
     }
 
     console.log("Total Atualizado:", totalAtualizados);
   }
+
+  await carregarFiltros();
+  atualizarTabela();
 }
 
 window.baixarDD = baixarDD;
@@ -475,67 +564,80 @@ async function verificar() {
   //Aug$2025
   if (senha === "") {
     document.body.innerHTML = `
-        <h2>Relatórios - Acesso Administrador</h2>
-        <div id="filtros"></div>
-        <div
-          style="
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0px;
-          "
-        >
-          <p id="resumoFiltro"></p>
+    <h2>Relatórios - Acesso Administrador</h2>
+<div
+  style="
+    display: flex;
+    width: 100%;
+    gap: 10px;
+    margin: 10px 0px;
+    align-items: center;
+    justify-content: flex-end;
+  "
+>
+  <div id="OsPorMes"></div>
+  <div id="ItenNuvem"></div>
+  <div id="ItenBaixados"></div>
+  <button id="BotBaix" class="btn-primary">Trazer da Nuvem</button>
+</div>
+<div id="filtros"></div>
+<div
+  style="
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0px;
+  "
+>
+  <p id="resumoFiltro"></p>
 
-          <div id="totalEnc"></div>
-          <button id="exportarExcel" onclick="exportarExcel()">
-            Exportar Excel
-          </button>
-        </div>
+  <div id="totalEnc"></div>
+  <button id="exportarExcel">Exportar Excel</button>
+</div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Ticket</th>
-              <th>Localizador</th>
-              <th>Contato</th>
-              <th>Waiver</th>
-              <th>Motivo</th>
-              <th>Isentou DU</th>
-              <th>Motivo DU</th>
-              <th>Possui Infant</th>
-              <th>Emissor da Reserva</th>
-              <th>Invoice</th>
-              <th>Link de Pagamento</th>
-              <th>Erro no Link</th>
-              <th>Data/Hora</th>
-              <th>Assinatura</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaRelatorios"></tbody>
-        </table>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Ticket</th>
+      <th>Localizador</th>
+      <th>Contato</th>
+      <th>Waiver</th>
+      <th>Motivo</th>
+      <th>Isentou DU</th>
+      <th>Motivo DU</th>
+      <th>Possui Infant</th>
+      <th>Emissor da Reserva</th>
+      <th>Invoice</th>
+      <th>Link de Pagamento</th>
+      <th>Erro no Link</th>
+      <th>Data/Hora</th>
+      <th>Assinatura</th>
+    </tr>
+  </thead>
+  <tbody id="tabelaRelatorios"></tbody>
+</table>
 
-        <div style="margin: 10px 0; display: flex; gap: 10px; align-items: center">
-          <label>Linhas:</label>
-          <select id="linhasPagina">
-            <option value="10">10</option>
-            <option value="30">30</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
+<div style="margin: 10px 0; display: flex; gap: 10px; align-items: center">
+  <label>Linhas:</label>
+  <select id="linhasPagina">
+    <option value="10">10</option>
+    <option value="30">30</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
 
-          <div>
-            <button id="pageprev" disabled>◀</button>
-            <span id="numeroDpages"></span>
-            <button id="pagenext" disabled>▶</button>
-          </div>
-        </div>
+  <div>
+    <button id="pageprev" disabled>◀</button>
+    <span id="numeroDpages"></span>
+    <button id="pagenext" disabled>▶</button>
+  </div>
+</div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-        <!-- Cache-busting para evitar versão antiga em cache -->
-        <script type="module" src="relatorios.js?v=2026-02-11-02"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Cache-busting para evitar versão antiga em cache -->
+<script type="module" src="relatorios.js?v=2026-02-11-02"></script>
 
     `;
     document.body.style.cssText = `
@@ -560,6 +662,9 @@ async function verificar() {
       atualizarTabela();
     });
 
+    exportarExcel;
+    document.getElementById("exportarExcel").onclick = () => exportarExcel();
+
     document.getElementById("pageprev").onclick = () => {
       if (paginaAtual > 1) {
         paginaAtual--;
@@ -578,11 +683,34 @@ async function verificar() {
       }
     };
 
-    await carregarFiltros();
-    atualizarTabela();
+    contarRegistros();
+
+    const BotBaix = document.getElementById("BotBaix");
+
+    BotBaix.onclick = async () => {
+      if (vcont.Baixando) {
+        vcont.Baixando = 0;
+        BotBaix.textContent = "Trazer da Nuvem";
+      } else {
+        BotBaix.textContent = "Parar";
+        baixarDD();
+      }
+    };
   } else {
     document.getElementById("erro").innerText = "Senha incorreta!";
   }
+}
+
+async function contarRegistros() {
+  const coll = collection(db, "registros");
+
+  const snapshot = await getCountFromServer(coll);
+
+  const a = snapshot.data().count;
+
+  document.getElementById("ItenNuvem").textContent = a + " Itens Em Nuvem.";
+
+  console.log("Total registros:", a);
 }
 
 document.getElementById("bEntr").addEventListener("click", () => verificar());
