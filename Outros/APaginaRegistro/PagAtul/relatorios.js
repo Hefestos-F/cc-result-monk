@@ -743,7 +743,7 @@ async function contarRegistros() {
 
     const el = document.getElementById("ItenNuvem");
     if (el) {
-      el.textContent = total + " Itens Em Nuvem | ";
+      el.textContent = total + " Itens Em Nuvem.";
     }
 
     console.log("Total registros:", total);
