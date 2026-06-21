@@ -3271,6 +3271,7 @@
     atualizarSlidePosi("BotLogManu", config.LogueManual);
     atualizarSlidePosi("BotTFuso", config.TesteHora);
     atualizarSlidePosi("BotNotEst", config.notiEstouro);
+    atualizarSlidePosi("BotSomEst", config.SomEstouro);
     atualizarSlidePosi("BotAtivaMeta", config.MetaTMA);
     atualizarSlidePosi("BotFaixaVert", config.FaixaVerti);
     atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);

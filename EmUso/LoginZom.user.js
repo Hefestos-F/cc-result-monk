@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.6
+// @version      0.0.0.7
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -120,11 +120,13 @@
   /**
    * Ccor - Cores usadas na interface (valores em hex)
    */
+
   const Ccor = {
-    Offline: "#3a82cf",
-    Atualizando: "#c97123ff",
-    Erro: "#992e2e",
+    Alerta: "#992e2e",
+    Aviso: "#c97123ff",
+    Contagem: "darkcyan",
     MetaTMA: "#229b8d",
+    destaque: "#1b81ff",
     Principal: "#4c95bd",
     AreaAr: "#337091",
     Config: "#96a8bb",
@@ -324,6 +326,41 @@
     };
   }
 
+  // Helpers
+  const duracaoPrevistaPorStatus = (s) => {
+    if (s.includes("Lanche")) return "00:20:00";
+    if (s.includes("Descanso")) return "00:10:00";
+    return null;
+  };
+
+  async function fimdepausa(agora) {
+    const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
+
+    const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
+
+    //Hlog(`fimObj: ${JSON.stringify(fimObj)}`);
+
+    Hlog(`id:${DDPausa.numero}, inicioObj: ${JSON.stringify(inicioObj)}`);
+    if (inicioObj && (!duracaoObj || duracaoObj === "---")) {
+      // Salva fim (objeto)
+      await atualizarCampos(DDPausa.numero, "fim", agora);
+
+      config.pausalimitada = 0;
+      stt.Estouro = 0;
+      stt.Estour1 = 0;
+
+      atualizarComoff(0, Ccor.Aviso, "cTMA");
+      SalvandoVariConfig(1);
+      // Calcula duração real (string HH:MM:SS)
+      const duracaoReal = calcularDuracao(inicioObj, agora);
+      await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
+
+      Hlog(`fim: ${JSON.stringify(agora)}`);
+
+      somarDuracoesGeral();
+    }
+  }
+
   observarItem(() => {
     //const el = obterEstadoAgenteComoObjeto();
 
@@ -355,14 +392,6 @@
     // ==========================================================
 
     Hlog(`Troca de Status: ${stt.Status} / ant: ${DDPausa.StatusANT}`);
-    DDPausa.StatusANT = stt.Status;
-
-    // Helpers
-    const duracaoPrevistaPorStatus = (s) => {
-      if (s.includes("Lanche")) return "00:20:00";
-      if (s.includes("Descanso")) return "00:10:00";
-      return null;
-    };
 
     // Executa sem estourar "Uncaught (in promise)"
     (async () => {
@@ -384,37 +413,15 @@
         stt.logueInicio = 0;
       }
 
-      const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
-
-      const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
-
-      //Hlog(`fimObj: ${JSON.stringify(fimObj)}`);
-
-      Hlog(`id:${DDPausa.numero}, inicioObj: ${JSON.stringify(inicioObj)}`);
-      if (inicioObj && (!duracaoObj || duracaoObj === "---")) {
-        // Salva fim (objeto)
-        await atualizarCampos(DDPausa.numero, "fim", agora);
-
-        config.pausalimitada = 0;
-        stt.Estouro = 0;
-        stt.Estour1 = 0;
-
-        atualizarComoff(0, Ccor.Erro, "cTMA");
-        SalvandoVariConfig(1);
-        // Calcula duração real (string HH:MM:SS)
-        const duracaoReal = calcularDuracao(inicioObj, agora);
-        await atualizarCampos(DDPausa.numero, "duracao", duracaoReal);
-
-        Hlog(`fim: ${JSON.stringify(agora)}`);
-
-        somarDuracoesGeral();
-      }
+      await fimdepausa(agora);
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
       DDPausa.numero += 1;
 
       const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
       let fimPrevistoObj = null;
+
+      DDPausa.StatusANT = stt.Status;
 
       if (duracaoPrevista) {
         config.pausalimitada = 1;
@@ -907,7 +914,7 @@
   function contr(a = 0) {
     const div = document.getElementById("BotInicial");
     div.style.backgroundColor = stt.Estouro
-      ? Ccor.Erro
+      ? Ccor.Aviso
       : a
         ? Ccor.AreaAr
         : "white";
@@ -1471,7 +1478,13 @@
 
       const ozero = document.querySelector(".phone-active__queue");
 
-      const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
+      let segunda = "";
+
+      if (ozero) {
+        const onzero = ozero.textContent.trim().split(/\s+/);
+        segunda = onzero[0].includes("Diamante") ? onzero[0] : onzero[1];
+      }
+      //const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
 
       const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
 
@@ -1686,7 +1699,11 @@
 
     atcorest();
 
-    if (config.pausalimitada && config.notiEstouro) {
+    if (
+      config.pausalimitada &&
+      config.notiEstouro &&
+      DDPausa.StatusANT === stt.Status
+    ) {
       stt.Estouro = TempoPausas.Estouro
         ? compararDatas(agora, TempoPausas.Estouro)
         : 0;
@@ -2552,7 +2569,7 @@
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            background-color: ${escurecer(Ccor.Config, 0.2)};
+            background-color: ${escurecer(Ccor.Config, 0.2)};  
             color: white;
             font-size: 12px;
             height: 22px;
@@ -2907,7 +2924,7 @@
         LinhaSelCor(7, "Principal", Ccor.Principal),
         //LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
         LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
-        //LinhaSelCor(10, "Erro", Ccor.Erro),
+        //LinhaSelCor(10, "Erro", Ccor.Aviso),
         //LinhaSelCor(11, "Offline", Ccor.Offline),
         LinhaSelCor(12, "Config", Ccor.Config),
       );
@@ -3005,7 +3022,7 @@
         config.notiEstouro = !config.notiEstouro;
         atualizarVisual();
 
-        if (!config.notiEstouro) atualizarComoff(0, Ccor.Erro, "cTMA");
+        if (!config.notiEstouro) atualizarComoff(0, Ccor.Aviso, "cTMA");
       },
     );
     const IgEstSom = criarLinhaTextoComBot2(
@@ -3037,7 +3054,7 @@
             border-radius: 8px;
             border: 1px solid;
             cursor: pointer;
-            background-color: transparent;
+            background-color: ${escurecer(Ccor.Config, 0.1)};
             color: white;
             font-size: 12px;
             `;
@@ -3254,6 +3271,7 @@
     atualizarSlidePosi("BotLogManu", config.LogueManual);
     atualizarSlidePosi("BotTFuso", config.TesteHora);
     atualizarSlidePosi("BotNotEst", config.notiEstouro);
+    atualizarSlidePosi("BotSomEst", config.SomEstouro);
     atualizarSlidePosi("BotAtivaMeta", config.MetaTMA);
     atualizarSlidePosi("BotFaixaVert", config.FaixaVerti);
     atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);
