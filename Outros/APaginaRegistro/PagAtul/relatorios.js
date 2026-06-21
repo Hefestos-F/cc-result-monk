@@ -21,7 +21,7 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 // firebaseConfig ocultado
-
+const firebaseConfig = {};
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -133,7 +133,7 @@ async function carregarFiltros() {
         const original = r[campo.id].toString().trim();
         if (!original) return;
 
-        const normalizado = normalizarTexto(original);
+        const normalizado = normalizarTextoAvancado(original);
 
         if (!mapa.has(normalizado)) {
           mapa.set(normalizado, original);
@@ -149,7 +149,7 @@ async function carregarFiltros() {
 
       const label = document.createElement("label");
       label.setAttribute("for", `filtro_${campo.id}`);
-      label.textContent = `${campo.label}`;
+      label.textContent = campo.label;
 
       const select = document.createElement("select");
       select.id = `filtro_${campo.id}`;
@@ -172,49 +172,44 @@ async function carregarFiltros() {
       filtrosDiv.appendChild(wrap);
     });
 
-    // Período (mantido)
+    // Período
     const datasWrap = document.createElement("div");
     datasWrap.className = "filter-dates";
-    const labelDe = document.createElement("label");
-    labelDe.textContent = "De";
-    labelDe.setAttribute("for", "dataInicio");
-    const dataInicio = document.createElement("input");
-    //dataInicio.disabled = 1;
-    dataInicio.type = "date";
-    dataInicio.id = "dataInicio";
-    const labelAte = document.createElement("label");
 
-    labelAte.textContent = "Até";
-    labelAte.setAttribute("for", "dataFim");
-    const dataFim = document.createElement("input");
-    //dataFim.disabled = 1;
-    dataFim.type = "date";
-    dataFim.id = "dataFim";
+    function criarItem(labelTxt, inputId) {
+      const div = document.createElement("div");
+      div.className = "filter-item";
+
+      const label = document.createElement("label");
+      label.textContent = labelTxt;
+      label.setAttribute("for", inputId);
+
+      const input = document.createElement("input");
+      input.type = "date";
+      input.id = inputId;
+
+      div.appendChild(label);
+      div.appendChild(input);
+
+      return div;
+    }
+
+    datasWrap.appendChild(criarItem("De", "dataInicio"));
+    datasWrap.appendChild(criarItem("Até", "dataFim"));
+
     const botao = document.createElement("button");
     botao.id = "botfilt";
     botao.textContent = "Filtrar";
     botao.className = "btn-primary";
     botao.onclick = filtrarRelatorio;
 
-    function claDdata(x) {
-      const divFde = document.createElement("div");
-      divFde.className = "filter-item";
-      x.forEach((a) => {
-        divFde.appendChild(a);
-      });
-      return divFde;
-    }
-
-    datasWrap.appendChild(claDdata([labelDe, dataInicio]));
-    datasWrap.appendChild(claDdata([labelAte, dataFim]));
-
     datasWrap.appendChild(botao);
     filtrosDiv.appendChild(datasWrap);
-    console.log("Filtros Ok");
+
+    console.log("Filtros OK");
   } catch (error) {
-    filtrosDiv.innerHTML = "Erro Filtros.";
     console.error("ERRO FILTROS:", error);
-    alert(error.message);
+    document.getElementById("filtros").innerHTML = "Erro Filtros.";
   }
 }
 
@@ -333,21 +328,18 @@ function exportarExcel() {
 
 // ================== UTILITÁRIOS ==================
 
-function normalizarTexto(texto) {
-  return (
-    texto
-      .toLowerCase()
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      // separa letras e números
-      .replace(/([a-zA-Z])(\d)/g, "$1 $2")
-      .replace(/(\d)([a-zA-Z])/g, "$1 $2")
-      // remove símbolos
-      .replace(/[^\p{L}\p{N}\s]/gu, "")
-      // remove espaços duplicados
-      .replace(/\s+/g, " ")
-  );
+function normalizarTextoAvancado(texto) {
+  return texto
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/([a-zA-Z])(\d)/g, "$1 $2") // separa letras/números
+    .replace(/(\d)([a-zA-Z])/g, "$1 $2")
+    .replace(/[^\p{L}\p{N}\s]/gu, "") // remove símbolos/emojis
+    .replace(/\s+/g, " ") // normaliza espaços
+    .replace(/\s/g, ""); // remove TODOS espaços (🔥 importante)
 }
 
 function converterData(dataStr) {
@@ -401,7 +393,7 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function contarPorMes(lista) {
+function contarPorMes(lista, OsPorMes) {
   const meses = [
     "Jan",
     "Fev",
@@ -425,30 +417,23 @@ function contarPorMes(lista) {
     const data = converterData(r.dataHora);
     if (!data) return;
 
-    const ano = data.getFullYear();
-    const mesIndex = data.getMonth();
-    const chave = `${ano}-${String(mesIndex + 1).padStart(2, "0")}`;
+    const chave = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}`;
 
-    if (!contagem[chave]) {
-      contagem[chave] = 0;
-    }
-
-    contagem[chave]++;
+    contagem[chave] = (contagem[chave] || 0) + 1;
   });
 
-  // Ordenar cronologicamente
   const ordenado = Object.keys(contagem).sort();
-
-  let texto = "";
 
   ordenado.forEach((chave) => {
     const [ano, mes] = chave.split("-");
     const nomeMes = meses[parseInt(mes) - 1];
 
-    texto += `${nomeMes}/${ano}: ${contagem[chave]} | `;
-  });
+    const item = document.createElement("div");
+    item.className = "item-mes";
+    item.textContent = `${nomeMes}/${ano}: ${contagem[chave]}`;
 
-  return texto;
+    OsPorMes.appendChild(item);
+  });
 }
 
 // ================== MIGRAÇÃO DE DATA ==================
@@ -497,16 +482,19 @@ async function baixarDD() {
 
     registros = [...registros, ...dados];
 
-    const osMeses = contarPorMes(registros);
+    const OsPorMes = document.getElementById("OsPorMes");
 
-    document.getElementById("OsPorMes").textContent = osMeses;
+    OsPorMes.innerHTML = "";
+    const ItenBaixados = document.createElement("div");
+    OsPorMes.appendChild(ItenBaixados);
+
+    contarPorMes(registros, OsPorMes);
 
     //console.log(`Total osMeses: ${osMeses}`);
 
     ultimoDoc = snapshot.docs[snapshot.docs.length - 1];
 
-    document.getElementById("ItenBaixados").textContent =
-      registros.length + " Disponiveis.";
+    ItenBaixados.textContent = registros.length + " Disponiveis.";
 
     if (
       snapshot.size < LIMITE ||
@@ -587,8 +575,6 @@ async function baixarDD() {
     console.log("Total Atualizado:", totalAtualizados);
   }
 
-  const resumoFiltro = document.getElementById("resumoFiltro");
-  resumoFiltro.textContent = "Carregando Filtros...";
   await carregarFiltros();
   resumoFiltro.textContent = `Selecione os filtros desejados e clique em 'Filtrar' para buscar os registros.`;
   atualizarTabela();
@@ -615,12 +601,16 @@ async function verificar() {
     justify-content: flex-end;
   "
 >
-  <div id="ItenNuvem"></div>
-  <div id="OsPorMes"></div>
-  <div id="ItenBaixados"></div>
-  <button id="BotBaix" class="btn-primary">Trazer da Nuvem</button>
+  <div id="CaixaBotBaix">
+    <div id="ItenNuvem"></div>
+    <button id="BotBaix" class="btn-primary">Trazer da Nuvem</button>
+  </div>
 </div>
-<div id="filtros"></div>
+
+<div style="display: flex">
+  <div id="OsPorMes" style="min-width: 180px"></div>
+  <div id="filtros"></div>
+</div>
 <div
   style="
     display: flex;
@@ -729,6 +719,7 @@ async function verificar() {
       if (vcont.Baixando) {
         vcont.Baixando = 0;
         BotBaix.textContent = "Trazer da Nuvem";
+        resumoFiltro.textContent = "Carregando Filtros...";
       } else {
         BotBaix.textContent = "Parar";
         baixarDD();
@@ -738,17 +729,28 @@ async function verificar() {
     document.getElementById("erro").innerText = "Senha incorreta!";
   }
 }
+let contando = false;
 
 async function contarRegistros() {
-  const coll = collection(db, "registros");
+  if (contando) return;
+  contando = true;
 
-  const snapshot = await getCountFromServer(coll);
+  try {
+    const coll = collection(db, "registros");
+    const snapshot = await getCountFromServer(coll);
 
-  const a = snapshot.data().count;
+    const total = snapshot.data().count;
 
-  document.getElementById("ItenNuvem").textContent = a + " Itens Em Nuvem | ";
+    const el = document.getElementById("ItenNuvem");
+    if (el) {
+      el.textContent = total + " Itens Em Nuvem | ";
+    }
 
-  console.log("Total registros:", a);
+    console.log("Total registros:", total);
+  } catch (error) {
+    console.error("Erro contar:", error);
+  }
+
+  contando = false;
 }
-
 document.getElementById("bEntr").addEventListener("click", () => verificar());

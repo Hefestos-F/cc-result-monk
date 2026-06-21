@@ -9,11 +9,16 @@
     justify-content: flex-end;
   "
 >
-  <div id="ItenNuvem"></div>
-  <div id="ItenBaixados"></div>
-  <button id="BotBaix" class="btn-primary">Trazer da Nuvem</button>
+  <div id="CaixaBotBaix">
+    <div id="ItenNuvem"></div>
+    <button id="BotBaix" class="btn-primary">Trazer da Nuvem</button>
+  </div>
 </div>
-<div id="filtros"></div>
+
+<div style="display: flex">
+  <div id="OsPorMes" style="min-width: 180px"></div>
+  <div id="filtros"></div>
+</div>
 <div
   style="
     display: flex;
@@ -26,7 +31,7 @@
   <p id="resumoFiltro"></p>
 
   <div id="totalEnc"></div>
-  <button id="exportarExcel" onclick="exportarExcel()">Exportar Excel</button>
+  <button id="exportarExcel">Exportar Excel</button>
 </div>
 
 <table>

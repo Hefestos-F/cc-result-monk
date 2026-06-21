@@ -5,26 +5,26 @@ const TOKEN = "Aug$2025";
 
 (async () => {
   try {
-    const { initializeApp } =
+    const { initializeApp, getApps, getApp } =
       await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js");
-    const { getFirestore, collection, addDoc } =
+
+    const { getFirestore, doc, setDoc } =
       await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
 
-    //firebaseConfig
+    const firebaseConfig = {
+    };
 
-   
-  
+    let app;
 
-    const app = initializeApp(firebaseConfig);
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApp();
+    }
+
     db = getFirestore(app);
-    // Expor util Firestore no window para uso interno
-    window.__addDoc = addDoc;
-    window.__collection = collection;
   } catch (e) {
-    console.warn(
-      "[Aviso] Firebase não carregou. O registro será apenas local. Erro:",
-      e,
-    );
+    console.warn("[Aviso] Firebase não carregou:", e);
   }
 })();
 
@@ -251,7 +251,7 @@ function preencherValorInvoice() {
 
 // ====== Gerar Resumo ======
 async function gerarResumo() {
-  const ticket = document.getElementById("ticket").value.trim();
+  const ticket = document.getElementById("ticket").value.trim().toUpperCase();
   const contato = document.getElementById("contato").value.trim();
   const localizador = document.getElementById("localizador")
     ? document.getElementById("localizador").value.trim()
@@ -346,13 +346,25 @@ async function gerarResumo() {
   };
 
   try {
-    if (db && window.__addDoc && window.__collection) {
-      await window.__addDoc(window.__collection(db, "registros"), novoRegistro);
-    } else {
-      console.info("[Sem Firebase] Registro apenas local:", novoRegistro);
+    if (!db) {
+      console.warn("Firestore ainda não carregou");
+      return;
     }
+
+    const ref = doc(db, "registros", ticket);
+
+    await setDoc(
+      ref,
+      {
+        ...novoRegistro,
+        atualizadoEm: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+
+    console.log("Upsert direto:", ticket);
   } catch (err) {
-    console.error("Erro ao enviar Firestore:", err);
+    console.error("Erro Firestore:", err);
   }
 }
 
