@@ -23,7 +23,6 @@ import {
 // firebaseConfig ocultado
 
 
-
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -118,7 +117,6 @@ function atualizarTabela() {
 }
 // ================== CARREGAR FILTROS ==================
 async function carregarFiltros() {
-  console.log("Carregando Filtros...");
   try {
     const filtrosDiv = document.getElementById("filtros");
     filtrosDiv.innerHTML = "";
@@ -126,13 +124,25 @@ async function carregarFiltros() {
 
     CAMPOS_FILTRO.forEach((campo) => {
       if (["dataHora", "link"].includes(campo.id)) return;
-      const valoresUnicos = [
-        ...new Set(
-          registros
-            .map((r) => (r[campo.id] ? r[campo.id].toString().trim() : ""))
-            .filter((v) => v !== ""),
-        ),
-      ].sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+      const mapa = new Map();
+
+      registros.forEach((r) => {
+        if (!r[campo.id]) return;
+
+        const original = r[campo.id].toString().trim();
+        if (!original) return;
+
+        const normalizado = normalizarTexto(original);
+
+        if (!mapa.has(normalizado)) {
+          mapa.set(normalizado, original);
+        }
+      });
+
+      const valoresUnicos = Array.from(mapa.values()).sort((a, b) =>
+        a.localeCompare(b, "pt-BR"),
+      );
 
       const wrap = document.createElement("div");
       wrap.className = "filter-item";
@@ -202,7 +212,8 @@ async function carregarFiltros() {
     filtrosDiv.appendChild(datasWrap);
     console.log("Filtros Ok");
   } catch (error) {
-    console.error("ERRO REAL:", error);
+    filtrosDiv.innerHTML = "Erro Filtros.";
+    console.error("ERRO FILTROS:", error);
     alert(error.message);
   }
 }
@@ -322,6 +333,23 @@ function exportarExcel() {
 
 // ================== UTILITÁRIOS ==================
 
+function normalizarTexto(texto) {
+  return (
+    texto
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      // separa letras e números
+      .replace(/([a-zA-Z])(\d)/g, "$1 $2")
+      .replace(/(\d)([a-zA-Z])/g, "$1 $2")
+      // remove símbolos
+      .replace(/[^\p{L}\p{N}\s]/gu, "")
+      // remove espaços duplicados
+      .replace(/\s+/g, " ")
+  );
+}
+
 function converterData(dataStr) {
   if (!dataStr) return null;
   // Aceita dd/mm/aaaa HH:MM[:SS]
@@ -397,20 +425,28 @@ function contarPorMes(lista) {
     const data = converterData(r.dataHora);
     if (!data) return;
 
-    const nomeMes = meses[data.getMonth()];
+    const ano = data.getFullYear();
+    const mesIndex = data.getMonth();
+    const chave = `${ano}-${String(mesIndex + 1).padStart(2, "0")}`;
 
-    if (!contagem[nomeMes]) {
-      contagem[nomeMes] = 0;
+    if (!contagem[chave]) {
+      contagem[chave] = 0;
     }
 
-    contagem[nomeMes]++;
+    contagem[chave]++;
   });
+
+  // Ordenar cronologicamente
+  const ordenado = Object.keys(contagem).sort();
 
   let texto = "";
 
-  for (const mes in contagem) {
-    texto += `${mes}: ${contagem[mes]} / `;
-  }
+  ordenado.forEach((chave) => {
+    const [ano, mes] = chave.split("-");
+    const nomeMes = meses[parseInt(mes) - 1];
+
+    texto += `${nomeMes}/${ano}: ${contagem[chave]} | `;
+  });
 
   return texto;
 }
@@ -432,6 +468,7 @@ async function baixarDD() {
   const LIMITE = 2000;
   const limiti_b = 10000;
   vcont.Baixando = 1;
+  registros = [];
 
   while (true) {
     let q;
@@ -550,7 +587,10 @@ async function baixarDD() {
     console.log("Total Atualizado:", totalAtualizados);
   }
 
+  const resumoFiltro = document.getElementById("resumoFiltro");
+  resumoFiltro.textContent = "Carregando Filtros...";
   await carregarFiltros();
+  resumoFiltro.textContent = `Selecione os filtros desejados e clique em 'Filtrar' para buscar os registros.`;
   atualizarTabela();
 }
 
@@ -562,7 +602,7 @@ async function verificar() {
   const senha = document.getElementById("senha").value;
 
   //Aug$2025
-  if (senha === "") {
+  if (senha === "Aug$2025") {
     document.body.innerHTML = `
     <h2>Relatórios - Acesso Administrador</h2>
 <div
@@ -575,8 +615,8 @@ async function verificar() {
     justify-content: flex-end;
   "
 >
-  <div id="OsPorMes"></div>
   <div id="ItenNuvem"></div>
+  <div id="OsPorMes"></div>
   <div id="ItenBaixados"></div>
   <button id="BotBaix" class="btn-primary">Trazer da Nuvem</button>
 </div>
@@ -654,8 +694,6 @@ async function verificar() {
       return;
     }
 
-    resumoFiltro.textContent = `Selecione os filtros desejados e clique em 'Filtrar' para buscar os registros.`;
-
     document.getElementById("linhasPagina").addEventListener("change", (e) => {
       limiteLinhas = parseInt(e.target.value);
       paginaAtual = 1;
@@ -708,7 +746,7 @@ async function contarRegistros() {
 
   const a = snapshot.data().count;
 
-  document.getElementById("ItenNuvem").textContent = a + " Itens Em Nuvem.";
+  document.getElementById("ItenNuvem").textContent = a + " Itens Em Nuvem | ";
 
   console.log("Total registros:", a);
 }
