@@ -386,7 +386,13 @@ function gerarDataISO(dataStr) {
 
   const [, dia, mes, ano, hora, min, seg] = match;
 
-  return `${ano}-${mes}-${dia}T${hora}:${min}:${seg || "00"}`;
+  //  cria data considerando -03:00
+  const dataLocal = new Date(
+    `${ano}-${mes}-${dia}T${hora}:${min}:${seg || "00"}-03:00`,
+  );
+
+  //  converte para ISO UTC correta
+  return dataLocal.toISOString();
 }
 
 function delay(ms) {
