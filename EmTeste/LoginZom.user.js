@@ -3229,7 +3229,7 @@
    * @param {boolean} estaAtivo - se botão deve estar ativo/não ativo
    */
   function atualizarSlidePosi(idBotao, estaAtivo) {
-    const elemento = document.getElementById(idBotao);
+    const elemento = document.getElementById(`Bot${idBotao}`);
     if (!elemento) {
       return;
     }
@@ -3267,17 +3267,21 @@
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
     if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
 
-    atualizarSlidePosi("BotTimerCh", config.OBS_ATIVO);
-    atualizarSlidePosi("BotLogManu", config.LogueManual);
-    atualizarSlidePosi("BotTFuso", config.TesteHora);
-    atualizarSlidePosi("BotNotEst", config.notiEstouro);
-    atualizarSlidePosi("BotSomEst", config.SomEstouro);
-    atualizarSlidePosi("BotAtivaMeta", config.MetaTMA);
-    atualizarSlidePosi("BotFaixaVert", config.FaixaVerti);
-    atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);
-    atualizarSlidePosi("BotRecalc", !config.logueSalvo);
-    atualizarSlidePosi("BotIodebb", config.dBUG);
-    atualizarSlidePosi("BotHistoDpa", config.HistComp);
+    [
+      ["TimerCh", config.OBS_ATIVO],
+      ["LogManu", config.LogueManual],
+      ["TFuso", config.TesteHora],
+      ["NotEst", config.notiEstouro],
+      ["SomEst", config.SomEstouro],
+      ["AtivaMeta", config.MetaTMA],
+      ["FaixaVert", config.FaixaVerti],
+      ["logueSalvo", config.logueSalvo],
+    ].forEach(([g, t]) => {
+      atualizarSlidePosi(g, t);
+    });
+
+    atualizarSlidePosi("Iodebb", config.dBUG);
+    atualizarSlidePosi("HistoDpa", config.HistComp);
   }
 
   /**
