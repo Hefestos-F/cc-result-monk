@@ -543,7 +543,7 @@ async function baixarDD() {
         continue;
       }
 
-      if (r.migradoISO) {
+      if (r.migradoISO && r.dataISO === dataISO) {
         if (cont2 < 5) {
           console.log("Atualizado Encontrado:", r);
           cont2++;
