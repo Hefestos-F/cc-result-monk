@@ -3276,12 +3276,11 @@
       ["AtivaMeta", config.MetaTMA],
       ["FaixaVert", config.FaixaVerti],
       ["logueSalvo", config.logueSalvo],
+      ["Iodebb", config.dBUG],
+      ["HistoDpa", config.HistComp],
     ].forEach(([g, t]) => {
       atualizarSlidePosi(g, t);
     });
-
-    atualizarSlidePosi("Iodebb", config.dBUG);
-    atualizarSlidePosi("HistoDpa", config.HistComp);
   }
 
   /**
@@ -3559,14 +3558,17 @@
       return cell;
     }
 
-    container.append(
-      LinhO(`Registro Observados`),
-      LinhO(`Trabalhado : ${TempoPausas.Trabalhando}`),
-      LinhO(`Disponivel : ${TempoPausas.Disponivel}`),
-      LinhO(`Indisponivel : ${TempoPausas.Indisponivel}`),
-      LinhO(`Total Logado : ${TempoPausas.Online}`),
-      LinhO(`Atendidas : ${TempoPausas.Atendidas}`),
-    );
+   
+    [
+      `Registro Observados`,
+      `Trabalhado : ${TempoPausas.Trabalhando}`,
+      `Disponivel : ${TempoPausas.Disponivel}`,
+      `Indisponivel : ${TempoPausas.Indisponivel}`,
+      `Total Logado : ${TempoPausas.Online}`,
+      `Atendidas : ${TempoPausas.Atendidas}`,
+    ].forEach((s) => {
+      container.append(LinhO(s));
+    });
 
     return container;
   }
