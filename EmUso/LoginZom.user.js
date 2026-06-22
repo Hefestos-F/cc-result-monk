@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.7
+// @version      0.0.0.9
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -634,13 +634,12 @@
       TempoPausas.Online = result.onlineTxt;
     }
 
-    Hlog(`TempoPausas: 
+    /*Hlog(`TempoPausas: 
       Trabalhando = ${TempoPausas.Trabalhando}/
       Disponivel = ${TempoPausas.Disponivel}/
       Indisponivel = ${TempoPausas.Indisponivel}/
       Online = ${TempoPausas.Online}
-      
-      `);
+      `);*/
 
     return result;
   }
@@ -1133,6 +1132,7 @@
   function AdicionarCaixaAtualizada() {
     // Função para criar a classe dinamicamente
     function criarClasse() {
+      if (document.getElementById("MeuEstiloLogin")) return;
       const style = document.createElement("style");
       style.type = "text/css";
       style.id = "MeuEstiloLogin";
@@ -1188,26 +1188,24 @@
         visibility: visible;
         overflow: hidden;
         border: 1px solid white;
+        flex-direction: ${config.FaixaVerti ? "column" : ""};
+        width: ${config.FaixaVerti ? "60px" : "280px"};
         `;
 
     // Adiciona as caixas e separadores ao contêiner
-    container.appendChild(logou);
-    container.appendChild(criarSeparadorCV(1));
-    container.appendChild(saida);
-    container.appendChild(criarSeparadorCV(2));
-    container.appendChild(tma);
-    container.appendChild(criarSeparadorCV(3));
-    container.appendChild(logado);
-    container.appendChild(criarSeparadorCV(4));
-    container.appendChild(falta);
-    container.appendChild(criarSeparadorCV(5));
-    container.appendChild(data);
+    let sepC = 1;
+    [logou, saida, tma, logado, falta, data].forEach((d) => {
+      container.appendChild(d);
+      if (sepC <= 5) {
+        container.appendChild(criarSeparadorCV(sepC));
+        sepC++;
+      }
+    });
 
     // Cria um contêiner principal para agrupar tudo
     const minhaCaixa = document.createElement("div");
     minhaCaixa.setAttribute("id", "minhaCaixa");
     minhaCaixa.style.cssText = `
-        
         display: flex;
         background-color: ${Ccor.Principal};
         padding: 3px;
@@ -1220,17 +1218,17 @@
 
     // Adiciona o evento de mouseover ao botão
     minhaCaixa.addEventListener("mouseover", function () {
-      BotPacontrole(1, "ContPaCo");
+      BotPacontrole(1);
     });
 
     // Adiciona o evento de mouseout ao botão
     minhaCaixa.addEventListener("mouseout", function () {
-      BotPacontrole(0, "ContPaCo");
+      BotPacontrole(0);
     });
-    function BotPacontrole(b, z) {
+    function BotPacontrole(b) {
       const x = stt.AbaPausas || stt.AbaConfig || stt.AbaOutros ? 1 : b;
 
-      const a = document.getElementById(z);
+      const a = document.getElementById("ContPaCo");
 
       if (config.LadoBotAnterior !== config.LadoBot) {
         BotoesLateral();
@@ -1268,21 +1266,39 @@
     const Divbot = document.createElement("div");
     Divbot.id = "ContPaCo";
     Divbot.style.cssText = `
-      margin-left: -20px;
+      margin-top: ${config.FaixaVerti ? "" : "-20px"};
+      margin-left: ${
+        config.FaixaVerti
+          ? config.LadoBot
+            ? "-20px"
+            : ""
+          : config.LadoBot
+            ? ""
+            : "auto"
+      };
+      margin-right: ${
+        config.FaixaVerti
+          ? config.LadoBot
+            ? ""
+            : "-20px"
+          : config.LadoBot
+            ? "auto"
+            : ""
+      };
       opacity: 0;
       visibility: hidden;
       transition: 0.5s;
       display: flex;
       gap: 5px;
-      
     `;
 
-    Divbot.appendChild(ADDBotConfig());
-    Divbot.appendChild(ADDBotPa());
-    Divbot.appendChild(ADDBotOutr());
+    [ADDBotConfig(), ADDBotPa(), ADDBotOutr()].forEach((r) => {
+      Divbot.appendChild(r);
+    });
 
-    minhaCaixa.appendChild(container);
-    minhaCaixa.appendChild(Divbot);
+    [container, Divbot].forEach((r) => {
+      minhaCaixa.appendChild(r);
+    });
 
     return minhaCaixa;
   }
@@ -1294,7 +1310,7 @@
 
     const ContPaCo = document.getElementById("ContPaCo");
     if (ContPaCo) {
-      ContPaCo.style.marginTop = !config.FaixaVerti ? "-20px" : "";
+      ContPaCo.style.marginTop = config.FaixaVerti ? "" : "-20px";
       ContPaCo.style.flexDirection = config.FaixaVerti ? "column" : "";
       ContPaCo.style.justifyContent = config.FaixaVerti ? "center" : "";
     }
@@ -1327,14 +1343,31 @@
           : "280px"
         : "";
     }
-    if (config.FaixaVerti) {
-      if (contValores && ContPaCo)
-        a.insertBefore(
-          config.LadoBot ? contValores : ContPaCo,
-          config.LadoBot ? ContPaCo : contValores,
-        );
-    } else {
-      if (contValores && ContPaCo) a.insertBefore(contValores, ContPaCo);
+
+    if (contValores && ContPaCo) {
+      if (config.FaixaVerti) {
+        const apr = config.LadoBot ? contValores : ContPaCo;
+        const ase = config.LadoBot ? ContPaCo : contValores;
+        a.insertBefore(apr, ase);
+
+        let tui;
+
+        if (stt.AbaPausas || stt.AbaConfig || stt.AbaOutros) {
+          ["CaiDPa", "CaixaConfig", "CaiOutr"].forEach((th) => {
+            const jj = document.getElementById(th);
+            if (jj) {
+              tui = jj;
+              jj.style.marginLeft = config.LadoBot ? "5px" : "";
+              jj.style.marginRight = config.LadoBot ? "" : "5px";
+            }
+          });
+        }
+        if (tui) {
+          a.insertBefore(tui, ase);
+        }
+      } else {
+        a.insertBefore(contValores, ContPaCo);
+      }
     }
   }
 
@@ -2487,8 +2520,8 @@
         overflow: auto;
         width: max-content;
         border: 1px solid white;
-        margin-top: ${!config.FaixaVerti ? "5px" : ""};
-        margin-${config.LadoBot ? "left" : "right"}: 5px;
+        margin-${config.LadoBot ? "left" : "right"}: ${config.FaixaVerti ? "5px" : ""};
+        margin-top: ${config.FaixaVerti ? "" : "5px"};
         max-height: 200px;
     `;
 
@@ -3229,7 +3262,7 @@
    * @param {boolean} estaAtivo - se botão deve estar ativo/não ativo
    */
   function atualizarSlidePosi(idBotao, estaAtivo) {
-    const elemento = document.getElementById(idBotao);
+    const elemento = document.getElementById(`Bot${idBotao}`);
     if (!elemento) {
       return;
     }
@@ -3267,17 +3300,21 @@
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
     if (CaiDPa) CaiDPa.style.backgroundColor = Ccor.Config;
 
-    atualizarSlidePosi("BotTimerCh", config.OBS_ATIVO);
-    atualizarSlidePosi("BotLogManu", config.LogueManual);
-    atualizarSlidePosi("BotTFuso", config.TesteHora);
-    atualizarSlidePosi("BotNotEst", config.notiEstouro);
-    atualizarSlidePosi("BotSomEst", config.SomEstouro);
-    atualizarSlidePosi("BotAtivaMeta", config.MetaTMA);
-    atualizarSlidePosi("BotFaixaVert", config.FaixaVerti);
-    atualizarSlidePosi("BotlogueSalvo", config.logueSalvo);
-    atualizarSlidePosi("BotRecalc", !config.logueSalvo);
-    atualizarSlidePosi("BotIodebb", config.dBUG);
-    atualizarSlidePosi("BotHistoDpa", config.HistComp);
+    [
+      ["TimerCh", config.OBS_ATIVO],
+      ["LogManu", config.LogueManual],
+      ["TFuso", config.TesteHora],
+      ["NotEst", config.notiEstouro],
+      ["SomEst", config.SomEstouro],
+      ["AtivaMeta", config.MetaTMA],
+      ["FaixaVert", config.FaixaVerti],
+      ["logueSalvo", config.logueSalvo],
+      ["Iodebb", config.dBUG],
+      ["HistoDpa", config.HistComp],
+      ["Recalc", !config.logueSalvo],
+    ].forEach(([g, t]) => {
+      atualizarSlidePosi(g, t);
+    });
   }
 
   /**
@@ -3371,8 +3408,8 @@
     container.id = "CaiDPa";
     container.style.cssText = `
     background: ${Ccor.Config};
-    margin-${config.LadoBot ? "left" : "right"}: 5px;
-    margin-top: ${!config.FaixaVerti ? "5px" : ""};
+    margin-${config.LadoBot ? "left" : "right"}: ${config.FaixaVerti ? "5px" : ""};
+    margin-top: ${config.FaixaVerti ? "" : "5px"};
     border-radius: 8px;
     padding: 5px;
     max-height: 178px;
@@ -3426,26 +3463,24 @@
 
       return cell;
     }
+    const n = (s) => `-${s}-`;
 
     function itemdetab(id, pausa, inicio, fim, duracao) {
-      container.append(
-        criarItemTabela(id, "pausa", pausa),
-        criarItemTabela(
-          id,
-          "duracao",
-          duracao === "---" ? duracao : tempoEncurtado(duracao),
-        ),
-        criarItemTabela(id, "inicio", inicio),
-        criarItemTabela(id, "fim", fim),
-      );
+      const t = duracao === "---" ? duracao : tempoEncurtado(duracao);
+
+      [
+        ["pausa", pausa],
+        ["duracao", id === 0 ? n(t) : t],
+        ["inicio", inicio],
+        ["fim", fim],
+      ].forEach(([t, i]) => {
+        container.append(criarItemTabela(id, t, i));
+      });
     }
 
-    container.append(
-      AddTituloCp("Pausa"),
-      AddTituloCp("Duração"),
-      AddTituloCp("Início"),
-      AddTituloCp("Fim"),
-    );
+    ["Pausa", "Duração", "Início", "Fim"].forEach((w) => {
+      container.append(AddTituloCp(w));
+    });
 
     if (!Array.isArray(dadosdePausas) || dadosdePausas.length === 0) {
       Hwarn("ADDCaiPausas: dadosdePausas vazio ou inválido");
@@ -3469,12 +3504,12 @@
         const duracao = item?.duracao ?? "---";
 
         if (item.id !== 0 && Ignorados.includes(pausaNorm)) {
-          Hlog(`Ignorado: ${pausa}`);
+          //Hlog(`Ignorado: ${pausa}`);
           return;
         }
 
         if (item.id === 0) {
-          itemdetab(item.id, pausa, inicioHora, fimHora, duracao);
+          itemdetab(item.id, n(pausa), n(inicioHora), n(fimHora), duracao);
           AntFim.inicio = TempoPausas.LogouA;
           AntFim.duracao = duracao;
           AntFim.pausa = pausa;
@@ -3488,11 +3523,11 @@
         ) {
           const duracaoReal = calcularDuracao(AntFim.inicio, item.inicio);
 
-          Hlog("Bloco Trabalhado", {
+          /*Hlog("Bloco Trabalhado", {
             inicio: AntFim.inicio,
             fim: item.inicio,
             duracaoReal,
-          });
+          });*/
 
           itemdetab(
             `${item.id}T`,
@@ -3538,8 +3573,8 @@
         padding: 6px;
         overflow: auto;
         border: 1px solid white;
-        margin-top: ${!config.FaixaVerti ? "5px" : ""};
-        margin-${config.LadoBot ? "left" : "right"}: 5px;
+        margin-${config.LadoBot ? "left" : "right"}: ${config.FaixaVerti ? "5px" : ""};
+    margin-top: ${config.FaixaVerti ? "" : "5px"};
     `;
 
     function LinhO(texto) {
@@ -3555,14 +3590,16 @@
       return cell;
     }
 
-    container.append(
-      LinhO(`Registro Observados`),
-      LinhO(`Trabalhado : ${TempoPausas.Trabalhando}`),
-      LinhO(`Disponivel : ${TempoPausas.Disponivel}`),
-      LinhO(`Indisponivel : ${TempoPausas.Indisponivel}`),
-      LinhO(`Total Logado : ${TempoPausas.Online}`),
-      LinhO(`Atendidas : ${TempoPausas.Atendidas}`),
-    );
+    [
+      `Registro Observados`,
+      `Trabalhado : ${TempoPausas.Trabalhando}`,
+      `Disponivel : ${TempoPausas.Disponivel}`,
+      `Indisponivel : ${TempoPausas.Indisponivel}`,
+      `Total Logado : ${TempoPausas.Online}`,
+      `Atendidas : ${TempoPausas.Atendidas}`,
+    ].forEach((s) => {
+      container.append(LinhO(s));
+    });
 
     return container;
   }
@@ -3851,12 +3888,8 @@
         botao.style.color = "";
       });
       botao.addEventListener("click", function () {
-        if (texto === "Sim") {
-          funcao();
-          caixa.remove();
-        } else {
-          caixa.remove();
-        }
+        if (texto === "Sim") funcao();
+        caixa.remove();
       });
       return botao;
     }
