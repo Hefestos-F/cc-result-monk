@@ -11,7 +11,7 @@ const TOKEN = "Aug$2025";
     const { getFirestore, doc, setDoc } =
       await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
 
-    const firebaseConfig = {};
+      //oculto firebaseConfig
 
     let app;
 
@@ -22,6 +22,10 @@ const TOKEN = "Aug$2025";
     }
 
     db = getFirestore(app);
+
+    // ✅ EXPOR AQUI
+    window.__doc = doc;
+    window.__setDoc = setDoc;
   } catch (e) {
     console.warn("[Aviso] Firebase não carregou:", e);
   }
@@ -251,6 +255,7 @@ function preencherValorInvoice() {
 // ====== Gerar Resumo ======
 async function gerarResumo() {
   const ticket = document.getElementById("ticket").value.trim().toUpperCase();
+
   const contato = document.getElementById("contato").value.trim();
   const localizador = document.getElementById("localizador")
     ? document.getElementById("localizador").value.trim()
@@ -344,15 +349,22 @@ async function gerarResumo() {
     token: TOKEN,
   };
 
+  const mudou = await AddouAtualizarPausas(ticket, novoRegistro);
+
   try {
     if (!db) {
       console.warn("Firestore ainda não carregou");
       return;
     }
 
-    const ref = doc(db, "registros", ticket);
+    if (!mudou) {
+      console.log("Nada mudou, não salvou:", ticket);
+      return;
+    }
 
-    await setDoc(
+    const ref = window.__doc(db, "registros", ticket);
+
+    await window.__setDoc(
       ref,
       {
         ...novoRegistro,
@@ -365,6 +377,218 @@ async function gerarResumo() {
   } catch (err) {
     console.error("Erro Firestore:", err);
   }
+}
+
+// Configuração do IndexedDB
+const nomeBD = "RegistAtt";
+//const nomeBD = "HefestosTeste";
+const StoreBD = "OsRegistAtt";
+
+const Chave0 = "RegistreDeAtt";
+
+let Salvar0;
+
+const PreFixo = "regatt:";
+
+function Hlog(...args) {
+  console.log(PreFixo, ...args);
+}
+function Hwarn(...args) {
+  console.warn(PreFixo, ...args);
+}
+function Herror(...args) {
+  console.error(PreFixo, ...args);
+}
+function Hdebug(...args) {
+  console.debug(PreFixo, ...args);
+}
+function Hinfo(...args) {
+  console.info(PreFixo, ...args);
+}
+
+async function RecuperarTVariaveis() {
+  try {
+    Salvar0 = await RecDadosindexdb(Chave0);
+
+    const hoje = new Date().toLocaleDateString("pt-BR");
+
+    // ✅ garante array válido
+    if (!Array.isArray(Salvar0) || Salvar0.length === 0) {
+      Salvar0 = [{ data: hoje }];
+      await AddOuAtuIindexdb(Chave0, Salvar0);
+      return;
+    }
+
+    // ✅ valida acesso seguro
+    if (Salvar0[0]?.data !== hoje) {
+      Salvar0 = [{ data: hoje }];
+
+      await AddOuAtuIindexdb(Chave0, Salvar0);
+    }
+
+    Hdebug("Encontrados em Salvar0:", Salvar0);
+  } catch (e) {
+    Herror("Erro ao recuperar Salvar0:", e);
+  }
+}
+
+RecuperarTVariaveis();
+
+/**
+ * abrirDB - abre ou cria IndexedDB para persistência de dados
+ * @param {Function} callback - função a executar com banco de dados aberto
+ */
+function abrirDB(callback) {
+  const requisicao_bd = indexedDB.open(nomeBD, 1);
+
+  requisicao_bd.onupgradeneeded = function (event) {
+    const banco_dados = event.target.result;
+    if (!banco_dados.objectStoreNames.contains(StoreBD)) {
+      banco_dados.createObjectStore(StoreBD);
+    }
+  };
+
+  requisicao_bd.onsuccess = function (event) {
+    const banco_dados = event.target.result;
+    callback(banco_dados);
+  };
+
+  requisicao_bd.onerror = function (event) {
+    Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
+  };
+}
+
+/**
+ * AddOuAtuIindexdb - salva ou atualiza dados no IndexedDB
+ * @param {string} nomechave - chave de armazenamento
+ * @param {*} dados - dados a salvar (qualquer tipo)
+ * @returns {Promise<boolean>} true se salvo com sucesso
+ */
+function AddOuAtuIindexdb(nomechave, dados) {
+  return new Promise((resolve, reject) => {
+    try {
+      abrirDB(function (db) {
+        const transacao = db.transaction([StoreBD], "readwrite");
+        const store = transacao.objectStore(StoreBD);
+        const request = store.put(dados, nomechave);
+
+        request.onsuccess = function () {
+          Hdebug(`Dados salvos com sucesso na chave "${nomechave}"`);
+          resolve(true);
+        };
+
+        request.onerror = function (event) {
+          Herror("Erro ao salvar os dados:", event.target?.errorCode || event);
+          reject(event);
+        };
+      });
+    } catch (err) {
+      Herror("AddOuAtuIindexdb erro:", err);
+      reject(err);
+    }
+  });
+}
+
+/**
+ * RecDadosindexdb - recupera dados do IndexedDB por chave
+ * @param {string} nomechave - chave de armazenamento
+ * @returns {Promise<*>} dados armazenados ou false se não encontrado
+ */
+function RecDadosindexdb(nomechave) {
+  return new Promise((resolve, reject) => {
+    abrirDB(function (db) {
+      const transacao = db.transaction([StoreBD], "readonly");
+      const store = transacao.objectStore(StoreBD);
+      const request = store.get(nomechave);
+
+      request.onsuccess = function (event) {
+        const resultado = event.target.result;
+        resolve(resultado !== undefined ? resultado : false);
+      };
+
+      request.onerror = function (event) {
+        reject(event.target.errorCode);
+      };
+    });
+  });
+}
+
+/**
+ * ApagarChaveIndexDB - deleta uma chave do IndexedDB
+ * @param {string} nomechave - chave a deletar
+ */
+function ApagarChaveIndexDB(nomechave) {
+  abrirDB(function (db) {
+    const transacao = db.transaction([StoreBD], "readwrite");
+    const store = transacao.objectStore(StoreBD);
+    const request = store.delete(nomechave);
+
+    request.onsuccess = function () {
+      Hlog(`Chave "${nomechave}" apagada com sucesso.`);
+    };
+
+    request.onerror = function (event) {
+      Herror("Erro ao apagar a chave:", event.target.errorCode);
+    };
+  });
+}
+
+async function AddouAtualizarPausas(id, novoItem) {
+  if (!Array.isArray(Salvar0)) Salvar0 = [];
+
+  const index = Salvar0.findIndex(
+    (item) => String(item?.ticket) === String(id),
+  );
+
+  let mudou = true;
+
+  if (index !== -1) {
+    const antigo = Salvar0[index];
+
+    mudou = registroMudou(antigo, novoItem);
+
+    if (mudou) {
+      Salvar0[index] = { ...antigo, ...novoItem };
+    }
+  } else {
+    Salvar0.push(novoItem);
+  }
+
+  if (mudou) await AddOuAtuIindexdb(Chave0, Salvar0);
+
+  return mudou;
+}
+
+function registroMudou(antigo, novo) {
+  if (!antigo) return true;
+
+  const limpar = (obj) => {
+    const copia = { ...obj };
+
+    delete copia.dataHora;
+    delete copia.dataISO;
+    delete copia.atualizadoEm;
+
+    return copia;
+  };
+
+  return JSON.stringify(limpar(antigo)) !== JSON.stringify(limpar(novo));
+}
+
+function formatarNome(nome) {
+  const minusculas = ["da", "de", "do", "das", "dos", "e"];
+
+  return nome
+    .toLowerCase()
+    .trim()
+    .split(" ")
+    .map((palavra, index) => {
+      if (index > 0 && minusculas.includes(palavra)) {
+        return palavra; // mantém minúsculo
+      }
+      return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+    })
+    .join(" ");
 }
 
 // ====== Limpar Tela ======
@@ -414,4 +638,24 @@ window.addEventListener("DOMContentLoaded", () => {
   if (inv) toggleInvoice();
   const pg = document.getElementById("realizouPagamento");
   if (pg) togglePagamentoInput();
+
+  document.getElementById("ticket").addEventListener("input", function () {
+    this.value = this.value.replace(/\D/g, "");
+  });
+
+  document.getElementById("contato").addEventListener("input", function (e) {
+    let valor = e.target.value;
+
+    // ✅ mantém letras + espaço + acentos
+    valor = valor.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
+
+    // ✅ NÃO FORMATA se terminar com espaço (isso resolve o bug)
+    if (valor.endsWith(" ")) {
+      e.target.value = valor;
+      return;
+    }
+
+    // ✅ formata nome corretamente
+    e.target.value = formatarNome(valor);
+  });
 });

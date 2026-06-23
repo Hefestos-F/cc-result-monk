@@ -3,11 +3,11 @@ const nomeBD = "RegistAtt";
 //const nomeBD = "HefestosTeste";
 const StoreBD = "OsRegistAtt";
 
-const ChavePausas = "Pausas";
+const Chave0 = "Pausas";
 
-let dadosdePausas;
+let Salvar0;
 
-const PreFixo = "Zom Hefesto Log:";
+const PreFixo = "regatt:";
 
 function Hlog(...args) {
   console.log(PreFixo, ...args);
@@ -25,12 +25,12 @@ function Hinfo(...args) {
   console.info(PreFixo, ...args);
 }
 
-async function RecuperarTVariaveis() {
+async function RecuperarVariaveis() {
   try {
-    dadosdePausas = await RecDadosindexdb(ChavePausas);
-    Hdebug("Encontrados em dadosdePausas:", dadosdePausas);
+    Salvar0 = await RecDadosindexdb(Chave0);
+    Hdebug("Encontrados em Salvar0:", Salvar0);
   } catch (e) {
-    Herror("Erro ao recuperar dadosdePausas:", e);
+    Herror("Erro ao recuperar Salvar0:", e);
   }
 }
 
@@ -135,20 +135,18 @@ function ApagarChaveIndexDB(nomechave) {
   });
 }
 
-async function AddouAtualizarPausas(id, pausa, inicio, fim, duracao) {
-  const novoItem = { id, pausa, inicio, fim, duracao };
+async function AddouAtualizarPausas(id, novoItem) {
+  //const novoItem = { id, pausa, inicio, fim, duracao };
 
-  if (!Array.isArray(dadosdePausas)) dadosdePausas = [];
+  if (!Array.isArray(Salvar0)) Salvar0 = [];
 
-  const index = dadosdePausas.findIndex(
-    (item) => String(item?.id) === String(id),
-  );
+  const index = Salvar0.findIndex((item) => String(item?.id) === String(id));
 
   if (index !== -1) {
-    dadosdePausas[index] = { ...dadosdePausas[index], ...novoItem };
+    Salvar0[index] = { ...Salvar0[index], ...novoItem };
   } else {
-    dadosdePausas.push(novoItem);
+    Salvar0.push(novoItem);
   }
 
-  await AddOuAtuIindexdb(ChavePausas, dadosdePausas);
+  await AddOuAtuIindexdb(Chave0, Salvar0);
 }
