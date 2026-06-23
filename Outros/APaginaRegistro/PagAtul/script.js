@@ -11,8 +11,7 @@ const TOKEN = "Aug$2025";
     const { getFirestore, doc, setDoc } =
       await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
 
-    const firebaseConfig = {
-    };
+    const firebaseConfig = {};
 
     let app;
 

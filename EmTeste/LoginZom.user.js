@@ -1892,30 +1892,6 @@
   }
 
   /**
-   * abrirDB - abre ou cria IndexedDB para persistência de dados
-   * @param {Function} callback - função a executar com banco de dados aberto
-   */
-  function abrirDB(callback) {
-    const requisicao_bd = indexedDB.open(nomeBD, 1);
-
-    requisicao_bd.onupgradeneeded = function (event) {
-      const banco_dados = event.target.result;
-      if (!banco_dados.objectStoreNames.contains(StoreBD)) {
-        banco_dados.createObjectStore(StoreBD);
-      }
-    };
-
-    requisicao_bd.onsuccess = function (event) {
-      const banco_dados = event.target.result;
-      callback(banco_dados);
-    };
-
-    requisicao_bd.onerror = function (event) {
-      Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
-    };
-  }
-
-  /**
    * listarChavesEConteudos - lista todas as chaves e conteúdos do IndexedDB
    * Exibe painel interativo com visualização e exclusão de registros
    */
@@ -2007,6 +1983,30 @@
         Herror("Erro ao listar as chaves:", event.target.errorCode);
       };
     });
+  }
+
+  /**
+   * abrirDB - abre ou cria IndexedDB para persistência de dados
+   * @param {Function} callback - função a executar com banco de dados aberto
+   */
+  function abrirDB(callback) {
+    const requisicao_bd = indexedDB.open(nomeBD, 1);
+
+    requisicao_bd.onupgradeneeded = function (event) {
+      const banco_dados = event.target.result;
+      if (!banco_dados.objectStoreNames.contains(StoreBD)) {
+        banco_dados.createObjectStore(StoreBD);
+      }
+    };
+
+    requisicao_bd.onsuccess = function (event) {
+      const banco_dados = event.target.result;
+      callback(banco_dados);
+    };
+
+    requisicao_bd.onerror = function (event) {
+      Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
+    };
   }
 
   /**
