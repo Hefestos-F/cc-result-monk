@@ -407,14 +407,6 @@
       });
     }
 
-    const localizador = document.getElementById("localizador");
-
-    if (localizador) {
-      localizador.addEventListener("input", () => {
-        localizador.value = localizador.value.toUpperCase();
-      });
-    }
-
     return contentBox;
   }
 
