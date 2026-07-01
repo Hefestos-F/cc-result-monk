@@ -21,7 +21,7 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 // firebaseConfig ocultado
-const firebaseConfig = {};
+
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -307,8 +307,57 @@ function gerarTabela(lista = []) {
   });
 }
 
-// ================== EXPORTAR EXCEL ==================
+function OOutformatarData(data) {
+  if (!data) return "";
+
+  const [dataParte, horaParte] = data.split(", ");
+  const [hora, minuto] = horaParte.split(":");
+
+  return `${dataParte} ${hora}:${minuto}`;
+}
+
 function exportarExcel() {
+  const dados = registrosFiltrados.length ? registrosFiltrados : registros;
+
+  if (dados.length === 0) {
+    alert("Nenhum registro para exportar.");
+    return;
+  }
+
+  const dadosExport = dados.map((r) => ({
+    Ticket: r.ticket || "",
+    Contato: r.contato || "",
+    PNR: r.localizador || "",
+    "Usou Waiver": r.waiver || "",
+    "Motivo do uso de waiver": r.motivo || "",
+    "Isentou DU": r.isentouDU || "",
+    "Motivo da isenção de DU": r.motivoDU || "",
+    "Incluiu INF": r.utilizouInvoice || "",
+    "Empresa emissora do PNR com INF": r.empresaInvoice || "",
+    "Usou link pag": r.realizouPagamento || "",
+    "Motivo não usar link de pag.": r.motivoLinkPagamento || "",
+    Assinatura: r.assinatura || "",
+    Usuario: r.usuario || "",
+    "Data e Hora": OOutformatarData(r.dataHora),
+    "Modificado Por": r.modificadoPor || "",
+    "Data e Hora da Modificação": OOutformatarData(r.dataHoraModificacao),
+    id: r.id || "",
+  }));
+
+  const agora = new Date();
+
+  const nomeArquivo = `relatorio_waivers_${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}_${String(agora.getHours()).padStart(2, "0")}h${String(agora.getMinutes()).padStart(2, "0")}.xlsx`;
+
+  const ws = XLSX.utils.json_to_sheet(dadosExport);
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
+
+  XLSX.writeFile(wb, nomeArquivo);
+}
+
+// ================== EXPORTAR EXCEL ==================
+function exportarExcelff() {
   const dados = registrosFiltrados.length ? registrosFiltrados : registros;
 
   if (dados.length === 0) {
@@ -456,7 +505,7 @@ async function baixarDD() {
   const atualiz = 0;
   const Climiti_b = 0;
   let ultimoDoc = null;
-  const LIMITE = 2000;
+  const LIMITE = 4000;
   const limiti_b = 10000;
   vcont.Baixando = 1;
   registros = [];

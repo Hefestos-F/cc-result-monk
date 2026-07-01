@@ -35,30 +35,33 @@ Set(
 );;
 
 // CASO CONTRÁRIO (se estiver preenchido), executa todo o resto do código abaixo:
-    UpdateContext({ vRegistroExistente: LookUp('Registro de Atendimento'; cr683_numerodoticket = InputTicket.Text) });;
+    UpdateContext({ vRegistroExistente: LookUp('Registro de Atendimento'; Ticket = InputTicket.Text) });;
 
     Patch(
         'Registro de Atendimento';
         If(IsBlank(vRegistroExistente); Defaults('Registro de Atendimento'); vRegistroExistente);
         {
-            cr683_numerodoticket: InputTicket.Text;
-            cr683_contatodocliente: InputContato.Text;
-            cr683_codigopnr: InputPNR.Text;
-            cr683_usodewaiver: ToggleWaiver.Value;
-            cr683_motivodousodewaiver: If(ToggleWaiver.Value;DropdownMotivoWaiver.Selected.waiver & " > " & DropdownMotivoWaiver.Selected.motivo;vRegistroExistente.cr683_motivodousodewaiver);
-            cr683_isencaodedu: ToggleDU.Value;
-            cr683_motivodaisencaodedu: If(ToggleDU.Value;DropdownMotivoDU.Selected.Value;vRegistroExistente.cr683_motivodaisencaodedu);
-            cr683_inclusaodeinf: ToggleINF.Value;
-            cr683_organizacaodainclusaoinf: If(ToggleINF.Value;DropdownINFOrg.Selected.motivo & " > " & DropdownINFOrg.Selected.cod;vRegistroExistente.cr683_organizacaodainclusaoinf);
-            cr683_usodolinkdepagamento: DropdownLink.Selected.value;
-            cr683_motivoparanaousodolinkdepagamento: If(DropdownLink.Selected.n = "b";InputMotivoLink.Text;vRegistroExistente.cr683_motivoparanaousodolinkdepagamento);
-            cr683_assinatura: InputAssinat.Text;
+            Ticket: InputTicket.Text;
+            Contato: InputContato.Text;
+            PNR: InputPNR.Text;
+            'Usou Waiver': ToggleWaiver.Value;
+            'Motivo do uso de waiver': If(ToggleWaiver.Value;DropdownMotivoWaiver.Selected.waiver & " > " & DropdownMotivoWaiver.Selected.motivo;vRegistroExistente.'Motivo do uso de waiver');
+            'Isentou DU': ToggleDU.Value;
+            'Motivo da isenção de DU': If(ToggleDU.Value;DropdownMotivoDU.Selected.Value;vRegistroExistente.'Motivo da isenção de DU');
+            'Incluiu INF': ToggleINF.Value;
+            'Empresa emissora do PNR com INF': If(ToggleINF.Value;DropdownINFOrg.Selected.motivo & " > " & DropdownINFOrg.Selected.cod;vRegistroExistente.'Empresa emissora do PNR com INF');
+            'Usou link pag': DropdownLink.Selected.value;
+            'Motivo não usar link de pag.': If(DropdownLink.Selected.n = "b";InputMotivoLink.Text;vRegistroExistente.'Motivo não usar link de pag.');
+            Assinatura: InputAssinat.Text;
+            Usuario: If(IsBlank(vRegistroExistente);First(Split( User().Email;"@")).Value;vRegistroExistente.Usuario);
+            'Modificado Por': First(Split( User().Email;"@")).Value;
+        
             
             // Se for novo, grava o Now(). Se já existir, mantém a data de criação original.
-            cr683_dataehoradoregistro: If(IsBlank(vRegistroExistente); Now(); vRegistroExistente.cr683_dataehoradoregistro);
+            'Data e Hora': If(IsBlank(vRegistroExistente); Now(); vRegistroExistente.'Data e Hora');
             
             // Grava sempre a data/hora atual da ação (seja criação ou modificação)
-            cr683_dataehoradamodificacao: Now()
+            'Data e Hora da Modificação': Now()
         }
     );;
 
@@ -68,4 +71,3 @@ Set(
     )
 
 )
-
