@@ -84,6 +84,7 @@
     LadoBotAnterior: 0,
     verificarDurac: 0,
     ContAnt: 0,
+    UltDisp: 0,
   };
 
   let TempoPausas = {
@@ -1694,6 +1695,26 @@
       duracaoContAtr.textContent = tempoEncurtado(
         calcularDuracao(AntFim.inicio, agora),
       );
+
+    /*
+    const contDispo = document.getElementById("duracao0");
+    const inicio0 = document.getElementById("inicio0");
+    const fim0 = document.getElementById("fim0");
+    if (contDispo && inicio0 && fim0 && stt.Status === "Disponivel") {
+      const gf = converterParaSegundos(TempoPausas.ContAtual);
+      const bb = converterParaSegundos(stt.UltDisp);
+
+      contDispo.textContent = `-${tempoEncurtado(
+        gf > bb ? TempoPausas.ContAtual : stt.UltDisp,
+      )}-`;
+
+      if (stt.vudip && gf > bb) {
+        stt.vudip = 0;
+        inicio0.textContent = `-${exibirHora(agora, 0, converterParaTempo(gf)).hora}-`;
+        fim0.textContent = "---";
+      }
+    }
+      */
 
     Hodeb("Online : ", TempoPausas.Online);
     Hodeb("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
@@ -3404,19 +3425,23 @@
     AntFim.duracao = "---";
     AntFim.pausa = "";
 
-    const container = document.createElement("div");
-    container.id = "CaiDPa";
-    container.style.cssText = `
+    const ContCaidp = document.createElement("div");
+    ContCaidp.id = "CaiDPa";
+    ContCaidp.style.cssText = `
     background: ${Ccor.Config};
     margin-${config.LadoBot ? "left" : "right"}: ${config.FaixaVerti ? "5px" : ""};
     margin-top: ${config.FaixaVerti ? "" : "5px"};
     border-radius: 8px;
-    padding: 5px;
+    border: 1px solid white;
+    overflow: auto;
     max-height: 178px;
     height: max-content;
-    border: 1px solid white;
     transition: 0.5s;
-    overflow: auto;
+    `;
+
+    const container = document.createElement("div");
+    container.style.cssText = `
+    padding: 5px;
     display: grid;
     grid-template-columns: repeat(4, auto);
     grid-auto-flow: row;
@@ -3513,6 +3538,8 @@
           AntFim.inicio = TempoPausas.LogouA;
           AntFim.duracao = duracao;
           AntFim.pausa = pausa;
+          stt.UltDisp = duracao;
+          stt.vudip = 1;
           return;
         }
 
@@ -3556,7 +3583,8 @@
       );
     }
 
-    return container;
+    ContCaidp.appendChild(container);
+    return ContCaidp;
   }
 
   function ADDCaiOutr() {

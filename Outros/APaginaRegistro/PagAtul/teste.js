@@ -1,4 +1,6 @@
 
+/*
+
 If(
     IsBlank(InputTicket.Text)||
     IsBlank(InputContato.Text)||
@@ -71,3 +73,5 @@ Set(
     )
 
 )
+
+*/
