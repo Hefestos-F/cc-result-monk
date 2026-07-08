@@ -428,7 +428,7 @@
         config.pausalimitada = 1;
         // exibirHora soma duracaoPrevista ao "agora"
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
-        TempoPausas.Estouro = fimPrevistoObj;
+        TempoPausas.Estouro = exibirAHora(fimPrevistoObj, 0, "00:00:20");
       }
 
       DDPausa.inicioUltimaP = agora;
@@ -1730,7 +1730,6 @@
     Hodeb("Logado : ", TempoPausas.Logado);
 
     vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
-
     if (compararDatas(agora, exibirHora(horafun.Saida, 1, "00:10:00"))) {
       stt.temHorasExtras = 1;
       stt.tempoCumprido = 0;
