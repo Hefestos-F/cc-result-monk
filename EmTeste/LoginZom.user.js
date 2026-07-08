@@ -1716,6 +1716,14 @@
     }
       */
 
+    const HdPD1 = document.getElementById("HdP-D-1");
+    const HdPL1 = document.getElementById("HdP-L-1");
+    const HdPD2 = document.getElementById("HdP-D-2");
+
+    if (HdPD1 && HdPL1 && HdPD2) {
+      //HdPD1.textContent = (converterParaSegundos(TempoPausas.Falta)-converterParaSegundos("00:40:00"))/2;
+    }
+
     Hodeb("Online : ", TempoPausas.Online);
     Hodeb("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
     Hodeb("Falta : ", TempoPausas.Falta);
@@ -3584,6 +3592,43 @@
     }
 
     ContCaidp.appendChild(container);
+
+    const cescPaus = document.createElement("div");
+    cescPaus.style.cssText = `
+    padding: 5px;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    grid-auto-flow: row;
+    gap: 2px 6px;
+    border-top: white solid 1px;
+    `;
+
+    let okt = 0;
+    function addLPausa(ap) {
+      const a = document.createElement("div");
+      a.textContent = ap;
+      a.id = `HdP${ap + okt}`;
+      a.style.cssText = `
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      `;
+
+      return a;
+    }
+    ["Descanso", "-D-", "Lanche", "-L-", "Descanso", "-D-"].forEach((g) => {
+      cescPaus.appendChild(addLPausa(g));
+      if (g === "Descanso") okt++;
+    });
+
+    /*
+    HdP-D-1
+    HdP-L-1
+    HdP-D-2
+    */
+
+    ContCaidp.appendChild(cescPaus);
+
     return ContCaidp;
   }
 
