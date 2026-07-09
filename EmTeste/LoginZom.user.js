@@ -1696,32 +1696,38 @@
         calcularDuracao(AntFim.inicio, agora),
       );
 
-    /*
-    const contDispo = document.getElementById("duracao0");
-    const inicio0 = document.getElementById("inicio0");
-    const fim0 = document.getElementById("fim0");
-    if (contDispo && inicio0 && fim0 && stt.Status === "Disponivel") {
-      const gf = converterParaSegundos(TempoPausas.ContAtual);
-      const bb = converterParaSegundos(stt.UltDisp);
-
-      contDispo.textContent = `-${tempoEncurtado(
-        gf > bb ? TempoPausas.ContAtual : stt.UltDisp,
-      )}-`;
-
-      if (stt.vudip && gf > bb) {
-        stt.vudip = 0;
-        inicio0.textContent = `-${exibirHora(agora, 0, converterParaTempo(gf)).hora}-`;
-        fim0.textContent = "---";
-      }
-    }
-      */
-
     const HdPD1 = document.getElementById("HdP-D-1");
     const HdPL1 = document.getElementById("HdP-L-1");
     const HdPD2 = document.getElementById("HdP-D-2");
 
     if (HdPD1 && HdPL1 && HdPD2) {
-      //HdPD1.textContent = (converterParaSegundos(TempoPausas.Falta)-converterParaSegundos("00:40:00"))/2;
+      let ValorDescanso = 0;
+      let ndPausas = 0;
+      const FimTrab = {};
+
+      dadosdePausas.forEach((ty) => {
+        const pausa = ty?.pausa ?? "";
+        const duracao = ty?.duracao ?? 0;
+        const inicioHora = ty?.inicio?.hora ?? 0;
+        if (duracao) {
+          if (pausa === "Descanso" || pausa === "Lanche") {
+            ValorDescanso += converterParaSegundos(duracao);
+            FimTrab[pausa + ndPausas] = inicioHora;
+            ndPausas++;
+          } else if (pausa === "Particular") {
+            FimTrab[pausa + ndPausas] = inicioHora;
+            ndPausas++;
+          }
+        }
+      });
+      Hlog("FimTrab : ", FimTrab);
+
+      //HdPD1.textContent = agora.hora;
+
+      exibirHora(
+        (agora, 1, converterParaSegundos(TempoPausas.Falta) - ValorDescanso) /
+          ndPausas,
+      ).hora;
     }
 
     Hodeb("Online : ", TempoPausas.Online);
@@ -3615,18 +3621,27 @@
 
       return a;
     }
-    ["Descanso", "-D-", "Lanche", "-L-", "Descanso", "-D-"].forEach((g) => {
+    [
+      "Trabalhando",
+      "-T-",
+      "Descanso",
+      "-D-",
+      "Trabalhando",
+      "-T-",
+      "Lanche",
+      "-L-",
+      "Trabalhando",
+      "-T-",
+      "Descanso",
+      "-D-",
+      "Trabalhando",
+      "-T-",
+    ].forEach((g) => {
       cescPaus.appendChild(addLPausa(g));
-      if (g === "Descanso") okt++;
+      okt++;
     });
 
-    /*
-    HdP-D-1
-    HdP-L-1
-    HdP-D-2
-    */
-
-    ContCaidp.appendChild(cescPaus);
+    //ContCaidp.appendChild(cescPaus);
 
     return ContCaidp;
   }

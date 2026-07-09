@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.9
+// @version      0.0.0.10
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -84,6 +84,7 @@
     LadoBotAnterior: 0,
     verificarDurac: 0,
     ContAnt: 0,
+    UltDisp: 0,
   };
 
   let TempoPausas = {
@@ -427,7 +428,7 @@
         config.pausalimitada = 1;
         // exibirHora soma duracaoPrevista ao "agora"
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
-        TempoPausas.Estouro = fimPrevistoObj;
+        TempoPausas.Estouro = exibirAHora(fimPrevistoObj, 0, "00:00:20");
       }
 
       DDPausa.inicioUltimaP = agora;
@@ -1695,13 +1696,46 @@
         calcularDuracao(AntFim.inicio, agora),
       );
 
+    const HdPD1 = document.getElementById("HdP-D-1");
+    const HdPL1 = document.getElementById("HdP-L-1");
+    const HdPD2 = document.getElementById("HdP-D-2");
+
+    if (HdPD1 && HdPL1 && HdPD2) {
+      let ValorDescanso = 0;
+      let ndPausas = 0;
+      const FimTrab = {};
+
+      dadosdePausas.forEach((ty) => {
+        const pausa = ty?.pausa ?? "";
+        const duracao = ty?.duracao ?? 0;
+        const inicioHora = ty?.inicio?.hora ?? 0;
+        if (duracao) {
+          if (pausa === "Descanso" || pausa === "Lanche") {
+            ValorDescanso += converterParaSegundos(duracao);
+            FimTrab[pausa + ndPausas] = inicioHora;
+            ndPausas++;
+          } else if (pausa === "Particular") {
+            FimTrab[pausa + ndPausas] = inicioHora;
+            ndPausas++;
+          }
+        }
+      });
+      Hlog("FimTrab : ", FimTrab);
+
+      //HdPD1.textContent = agora.hora;
+
+      exibirHora(
+        (agora, 1, converterParaSegundos(TempoPausas.Falta) - ValorDescanso) /
+          ndPausas,
+      ).hora;
+    }
+
     Hodeb("Online : ", TempoPausas.Online);
     Hodeb("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
     Hodeb("Falta : ", TempoPausas.Falta);
     Hodeb("Logado : ", TempoPausas.Logado);
 
     vLogado.textContent = tempoEncurtado(TempoPausas.Logado);
-
     if (compararDatas(agora, exibirHora(horafun.Saida, 1, "00:10:00"))) {
       stt.temHorasExtras = 1;
       stt.tempoCumprido = 0;
@@ -1892,30 +1926,6 @@
   }
 
   /**
-   * abrirDB - abre ou cria IndexedDB para persistência de dados
-   * @param {Function} callback - função a executar com banco de dados aberto
-   */
-  function abrirDB(callback) {
-    const requisicao_bd = indexedDB.open(nomeBD, 1);
-
-    requisicao_bd.onupgradeneeded = function (event) {
-      const banco_dados = event.target.result;
-      if (!banco_dados.objectStoreNames.contains(StoreBD)) {
-        banco_dados.createObjectStore(StoreBD);
-      }
-    };
-
-    requisicao_bd.onsuccess = function (event) {
-      const banco_dados = event.target.result;
-      callback(banco_dados);
-    };
-
-    requisicao_bd.onerror = function (event) {
-      Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
-    };
-  }
-
-  /**
    * listarChavesEConteudos - lista todas as chaves e conteúdos do IndexedDB
    * Exibe painel interativo com visualização e exclusão de registros
    */
@@ -2007,6 +2017,30 @@
         Herror("Erro ao listar as chaves:", event.target.errorCode);
       };
     });
+  }
+
+  /**
+   * abrirDB - abre ou cria IndexedDB para persistência de dados
+   * @param {Function} callback - função a executar com banco de dados aberto
+   */
+  function abrirDB(callback) {
+    const requisicao_bd = indexedDB.open(nomeBD, 1);
+
+    requisicao_bd.onupgradeneeded = function (event) {
+      const banco_dados = event.target.result;
+      if (!banco_dados.objectStoreNames.contains(StoreBD)) {
+        banco_dados.createObjectStore(StoreBD);
+      }
+    };
+
+    requisicao_bd.onsuccess = function (event) {
+      const banco_dados = event.target.result;
+      callback(banco_dados);
+    };
+
+    requisicao_bd.onerror = function (event) {
+      Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
+    };
   }
 
   /**
@@ -3404,19 +3438,23 @@
     AntFim.duracao = "---";
     AntFim.pausa = "";
 
-    const container = document.createElement("div");
-    container.id = "CaiDPa";
-    container.style.cssText = `
+    const ContCaidp = document.createElement("div");
+    ContCaidp.id = "CaiDPa";
+    ContCaidp.style.cssText = `
     background: ${Ccor.Config};
     margin-${config.LadoBot ? "left" : "right"}: ${config.FaixaVerti ? "5px" : ""};
     margin-top: ${config.FaixaVerti ? "" : "5px"};
     border-radius: 8px;
-    padding: 5px;
+    border: 1px solid white;
+    overflow: auto;
     max-height: 178px;
     height: max-content;
-    border: 1px solid white;
     transition: 0.5s;
-    overflow: auto;
+    `;
+
+    const container = document.createElement("div");
+    container.style.cssText = `
+    padding: 5px;
     display: grid;
     grid-template-columns: repeat(4, auto);
     grid-auto-flow: row;
@@ -3513,6 +3551,8 @@
           AntFim.inicio = TempoPausas.LogouA;
           AntFim.duracao = duracao;
           AntFim.pausa = pausa;
+          stt.UltDisp = duracao;
+          stt.vudip = 1;
           return;
         }
 
@@ -3556,7 +3596,54 @@
       );
     }
 
-    return container;
+    ContCaidp.appendChild(container);
+
+    const cescPaus = document.createElement("div");
+    cescPaus.style.cssText = `
+    padding: 5px;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    grid-auto-flow: row;
+    gap: 2px 6px;
+    border-top: white solid 1px;
+    `;
+
+    let okt = 0;
+    function addLPausa(ap) {
+      const a = document.createElement("div");
+      a.textContent = ap;
+      a.id = `HdP${ap + okt}`;
+      a.style.cssText = `
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      `;
+
+      return a;
+    }
+    [
+      "Trabalhando",
+      "-T-",
+      "Descanso",
+      "-D-",
+      "Trabalhando",
+      "-T-",
+      "Lanche",
+      "-L-",
+      "Trabalhando",
+      "-T-",
+      "Descanso",
+      "-D-",
+      "Trabalhando",
+      "-T-",
+    ].forEach((g) => {
+      cescPaus.appendChild(addLPausa(g));
+      okt++;
+    });
+
+    //ContCaidp.appendChild(cescPaus);
+
+    return ContCaidp;
   }
 
   function ADDCaiOutr() {
