@@ -428,7 +428,7 @@
         config.pausalimitada = 1;
         // exibirHora soma duracaoPrevista ao "agora"
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
-        TempoPausas.Estouro = exibirAHora(fimPrevistoObj, 0, "00:00:20");
+        TempoPausas.Estouro = exibirHora(fimPrevistoObj, 0, "00:00:20");
       }
 
       DDPausa.inicioUltimaP = agora;

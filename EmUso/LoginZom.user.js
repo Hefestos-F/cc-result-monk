@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.10
+// @version      0.0.0.11
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -428,7 +428,7 @@
         config.pausalimitada = 1;
         // exibirHora soma duracaoPrevista ao "agora"
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
-        TempoPausas.Estouro = exibirAHora(fimPrevistoObj, 0, "00:00:20");
+        TempoPausas.Estouro = exibirHora(fimPrevistoObj, 0, "00:00:20");
       }
 
       DDPausa.inicioUltimaP = agora;
