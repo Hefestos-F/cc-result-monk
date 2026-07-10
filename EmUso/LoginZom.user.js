@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.11
+// @version      0.0.0.12
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
