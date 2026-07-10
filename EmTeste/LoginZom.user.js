@@ -1776,7 +1776,6 @@
       stt.Estouro = TempoPausas.Estouro
         ? compararDatas(agora, TempoPausas.Estouro)
         : 0;
-      if (stt.Estouro) contr();
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
@@ -1788,6 +1787,7 @@
           } else {
             tocarBeep();
           }
+          contr();
         }, 3 * 1000);
       }
     }
