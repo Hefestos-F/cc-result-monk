@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.12
+// @version      0.0.0.13
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -331,6 +331,7 @@
   const duracaoPrevistaPorStatus = (s) => {
     if (s.includes("Lanche")) return "00:20:00";
     if (s.includes("Descanso")) return "00:10:00";
+    //if (s.includes("Disponivel")) return "00:00:30";
     return null;
   };
 
@@ -1696,6 +1697,7 @@
         calcularDuracao(AntFim.inicio, agora),
       );
 
+    /*
     const HdPD1 = document.getElementById("HdP-D-1");
     const HdPL1 = document.getElementById("HdP-L-1");
     const HdPD2 = document.getElementById("HdP-D-2");
@@ -1728,7 +1730,7 @@
         (agora, 1, converterParaSegundos(TempoPausas.Falta) - ValorDescanso) /
           ndPausas,
       ).hora;
-    }
+    }*/
 
     Hodeb("Online : ", TempoPausas.Online);
     Hodeb("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
@@ -1779,8 +1781,14 @@
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
         stt.Estour1 = 1;
-        tocarBeep();
-        setTimeout(RepetirBeep, 15000);
+        const ObipRep = setInterval(() => {
+          if (!stt.Estouro || !config.SomEstouro || !config.notiEstouro) {
+            clearInterval(ObipRep);
+            stt.Estour1 = 0;
+          } else {
+            tocarBeep();
+          }
+        }, 3 * 1000);
       }
     }
 
@@ -2519,6 +2527,29 @@
     return luminancia < 150 ? "#fff" : "#000";
   }
 
+  // Função auxiliar para criar linha com texto e bolinha
+  function criarLinhaTextoComBot2(idbola, texto, estaAtivo, funcao) {
+    const linha = document.createElement("div");
+    linha.style.cssText = `
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          margin: 3px 0px;
+      `;
+
+    const textoDiv = document.createElement("div");
+    textoDiv.style.cssText = `
+          margin-right: 5px;
+      `;
+    textoDiv.textContent = texto;
+
+    const botao = criarBotaoSlide2(idbola, estaAtivo, funcao);
+
+    linha.append(textoDiv, botao);
+    return linha;
+  }
+
   function criarC() {
     const oPEmCstyle = document.getElementById("PEmCstyle");
 
@@ -2599,23 +2630,6 @@
       );
       Codebb.append(Iodebb);
       return Codebb;
-    }
-
-    function FHistPa() {
-      const CHistPa = criarCaixaSeg();
-      const HistPa = criarLinhaTextoComBot2(
-        "HistoDpa",
-        "Historico Pausa",
-        config.HistComp,
-        () => {
-          config.HistComp = !config.HistComp;
-
-          atualizarVisual();
-          SalvandoVariConfig(1);
-        },
-      );
-      CHistPa.append(HistPa);
-      return CHistPa;
     }
 
     function criarCaixaSeg() {
@@ -3099,7 +3113,6 @@
       () => {
         config.SomEstouro = !config.SomEstouro;
         atualizarVisual();
-        RepetirBeep();
       },
     );
 
@@ -3165,8 +3178,6 @@
         criarSeparador(),
         odebb(),
         criarSeparador(),
-        FHistPa(),
-        criarSeparador(),
         CBBancDa,
         criarSeparador(),
         ContModoTeste(),
@@ -3219,29 +3230,6 @@
       textoDiv.textContent = texto;
 
       const botao = criarBotaoSlide(idbola);
-
-      linha.append(textoDiv, botao);
-      return linha;
-    }
-
-    // Função auxiliar para criar linha com texto e bolinha
-    function criarLinhaTextoComBot2(idbola, texto, estaAtivo, funcao) {
-      const linha = document.createElement("div");
-      linha.style.cssText = `
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-          margin: 3px 0px;
-      `;
-
-      const textoDiv = document.createElement("div");
-      textoDiv.style.cssText = `
-          margin-right: 5px;
-      `;
-      textoDiv.textContent = texto;
-
-      const botao = criarBotaoSlide2(idbola, estaAtivo, funcao);
 
       linha.append(textoDiv, botao);
       return linha;
@@ -3432,12 +3420,39 @@
     }
   }
 
-  function ADDCaiPausas() {
-    // Reset de estado para evitar lixo entre execuções
-    AntFim.inicio = "---";
-    AntFim.duracao = "---";
-    AntFim.pausa = "";
+  function linhaBotHist() {
+    const CBPausacom = document.createElement("div");
+    CBPausacom.style.cssText = `
+    border-bottom: white solid 1px;
+    `;
 
+    const HistPa = criarLinhaTextoComBot2(
+      "HistoDpa",
+      "Historico Completo",
+      config.HistComp,
+      () => {
+        config.HistComp = !config.HistComp;
+        atualizarVisual();
+        SalvandoVariConfig(1);
+
+        const CaiDPa = document.getElementById("CaiDPa");
+        const ups = document.getElementById("COntDpa");
+        if (ups && CaiDPa) {
+          ups.remove();
+          CaiDPa.appendChild(ADDContP());
+        }
+      },
+    );
+    HistPa.style.width = "";
+    HistPa.style.margin = "4px 6px";
+    HistPa.style.justifyContent = "flex-start";
+
+    CBPausacom.append(HistPa);
+
+    return CBPausacom;
+  }
+
+  function ADDCaiPausas() {
     const ContCaidp = document.createElement("div");
     ContCaidp.id = "CaiDPa";
     ContCaidp.style.cssText = `
@@ -3452,7 +3467,21 @@
     transition: 0.5s;
     `;
 
+    ContCaidp.appendChild(linhaBotHist());
+    ContCaidp.appendChild(ADDContP());
+    //ContCaidp.appendChild(previsDp());
+
+    return ContCaidp;
+  }
+
+  function ADDContP() {
+    // Reset de estado para evitar lixo entre execuções
+    AntFim.inicio = "---";
+    AntFim.duracao = "---";
+    AntFim.pausa = "";
+
     const container = document.createElement("div");
+    container.id = "COntDpa";
     container.style.cssText = `
     padding: 5px;
     display: grid;
@@ -3547,12 +3576,15 @@
         }
 
         if (item.id === 0) {
-          itemdetab(item.id, n(pausa), n(inicioHora), n(fimHora), duracao);
-          AntFim.inicio = TempoPausas.LogouA;
-          AntFim.duracao = duracao;
-          AntFim.pausa = pausa;
-          stt.UltDisp = duracao;
-          stt.vudip = 1;
+          if (!config.HistComp) {
+            itemdetab(item.id, n(pausa), n(inicioHora), n(fimHora), duracao);
+            AntFim.inicio = TempoPausas.LogouA;
+            AntFim.duracao = duracao;
+            AntFim.pausa = pausa;
+            stt.UltDisp = duracao;
+            stt.vudip = 1;
+          }
+
           return;
         }
 
@@ -3596,8 +3628,10 @@
       );
     }
 
-    ContCaidp.appendChild(container);
+    return container;
+  }
 
+  function previsDp() {
     const cescPaus = document.createElement("div");
     cescPaus.style.cssText = `
     padding: 5px;
@@ -3640,10 +3674,7 @@
       cescPaus.appendChild(addLPausa(g));
       okt++;
     });
-
-    //ContCaidp.appendChild(cescPaus);
-
-    return ContCaidp;
+    return cescPaus;
   }
 
   function ADDCaiOutr() {
@@ -3786,25 +3817,6 @@
 
     nodoOscilador.start();
     nodoOscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
-  }
-
-  /**
-   * RepetirBeep - toca beep repetidamente enquanto pausa estiver em estouro
-   */
-  function RepetirBeep() {
-    if (
-      !stt.BeepRet &&
-      stt.Estouro &&
-      config.SomEstouro &&
-      config.notiEstouro
-    ) {
-      stt.BeepRet = 1;
-      setTimeout(function () {
-        stt.BeepRet = 0;
-        if (stt.Estouro && config.SomEstouro && config.notiEstouro) tocarBeep();
-        RepetirBeep();
-      }, 3 * 1000);
-    }
   }
 
   /**

@@ -1785,8 +1785,9 @@
           if (!stt.Estouro || !config.SomEstouro || !config.notiEstouro) {
             clearInterval(ObipRep);
             stt.Estour1 = 0;
+          } else {
+            tocarBeep();
           }
-          tocarBeep();
         }, 3 * 1000);
       }
     }
