@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZendeskTimerChat
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      1.3.8.10
+// @version      1.3.8.11
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://smileshelp.zendesk.com/*
@@ -512,7 +512,7 @@
         config.pausalimitada = 1;
         // exibirHora soma duracaoPrevista ao "agora"
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
-        TempoPausas.Estouro = fimPrevistoObj;
+        TempoPausas.Estouro = exibirHora(fimPrevistoObj, 0, "00:00:20");
       }
 
       DDPausa.inicioUltimaP = agora;

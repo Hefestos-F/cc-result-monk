@@ -1,5 +1,3 @@
-Aeroporto / Cidade	Código (IATA)
-Múltiplos trechos	N/A
 Aalborg Airport	AAL
 Aberdeen	ABZ
 Abidjan, Ivory Coast	ABJ
@@ -490,3 +488,72 @@ Windhoek	WDH
 Windsor	YQG
 Winnipeg	YWG
 Wroclaw, Poland	WRO
+Belo Horizonte - Confins	CNF
+Belém	BEL
+Bergen	BGO
+Brest	BES
+Brussels, Belgium	BRU
+Concepción - Bío Bío	CCP
+Cotonou, Benin	COO
+Cruzeiro do Sul	CZS
+Cusco	CUZ
+Denver	DEN
+Des Moines	DSM
+Detroit	DTW
+Edinburgh	EDI
+Eirunepé	ERN
+Flores	FRS
+Georgetown	GEO
+Greensboro	GSO
+Greenwood	GWO
+Humberside	HUY
+Ilhéus	IOS
+Inverness, United Kingdom	INV
+Iquitos - Loreto	IQT
+Joinville	JOI
+Key West	EYW
+Knoxville	TYS
+León	BJX
+Little Rock	LIT
+Lome, Togo	LFW
+Louisville	SDF
+Luxembourg, Luxembourg	LUX
+Medellín	MDE
+Memphis	MEM
+Monterrey	MTY
+Montevidéu	MVD
+Montpellier	MPL
+Mucugê	CHD
+Mykonos, Greece	JMK
+Nice	NCE
+Phoenix	PHX
+Porto Seguro	BPS
+Porto Velho	PVH
+Presidente Prudente	PPB
+Quito	UIO
+Recife	REC
+Rennes	RNS
+Rio Verde	RVD
+Rochester	ROC
+Tefé	TFF
+Toulouse	TLS
+Trondheim	TRD
+Tumbes	TBP
+Bonito	BYO
+Bristol	BRS
+Kingston	KIN
+Norwich	NWI
+Nova Iorque - John F. Kennedy	JFK
+Pittsburgh	PIT
+Quibdó	UIB
+Richmond	RIC
+Rondonópolis	ROO
+Sinop	OPS
+Sorriso	SMT
+Turin	TRN
+Zurich	ZRH
+Boston	BOS
+Columbus	CMH
+Mossoró	MVF
+Porto	OPO
+Tulum	TQO
