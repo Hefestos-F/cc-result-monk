@@ -1763,14 +1763,6 @@
       ? "Cumprido"
       : tempoEncurtado(TempoPausas.Falta);
 
-    function atcorest() {
-      if (BotInicial && stt.Estouro !== stt.EstouroAnt) {
-        contr();
-        stt.EstouroAnt = stt.Estouro;
-      }
-    }
-
-    atcorest();
 
     if (
       (config.pausalimitada || test.Estouro) &&
@@ -1794,7 +1786,10 @@
           } else {
             tocarBeep();
           }
-          contr();
+          if (BotInicial && stt.Estouro !== stt.EstouroAnt) {
+            contr();
+            stt.EstouroAnt = stt.Estouro;
+          }
         }, 3 * 1000);
       }
     }
