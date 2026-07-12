@@ -87,6 +87,10 @@
     UltDisp: 0,
   };
 
+  const test = {
+    Estouro: 0,
+  };
+
   let TempoPausas = {
     Logou: 0,
     LogouA: 0,
@@ -1769,19 +1773,22 @@
     atcorest();
 
     if (
-      config.pausalimitada &&
+      (config.pausalimitada || test.Estouro) &&
       config.notiEstouro &&
       DDPausa.StatusANT === stt.Status
     ) {
-      stt.Estouro = TempoPausas.Estouro
-        ? compararDatas(agora, TempoPausas.Estouro)
-        : 0;
+      stt.Estouro = test.Estouro
+        ? 1
+        : TempoPausas.Estouro
+          ? compararDatas(agora, TempoPausas.Estouro)
+          : 0;
 
       if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
         stt.Estour1 = 1;
         const ObipRep = setInterval(() => {
           if (!stt.Estouro || !config.SomEstouro || !config.notiEstouro) {
+            Hwarn("Estouro de pausa finalizado");
             clearInterval(ObipRep);
             stt.Estour1 = 0;
           } else {
@@ -2981,11 +2988,27 @@
           }),
         );
       });
-      horaInputCai.append(horaInputCaiHM, salvEMod, SubPrLog);
+
+      horaInputCai.append(horaInputCaiHM, salvEMod, SubPrLog, Conttest());
 
       const a = CaixaDeOcultar(criarBotSalv("A28", "Teste"), horaInputCai);
 
       return a;
+    }
+
+    function Conttest() {
+      const Cont = criarCaixaSeg();
+      const ItemC = criarLinhaTextoComBot2(
+        "TestBip",
+        "Testar Bip",
+        test.Estouro,
+        () => {
+          test.Estouro = !test.Estouro;
+          atualizarVisual();
+        },
+      );
+      Cont.append(ItemC);
+      return Cont;
     }
 
     function criarSeparador() {
@@ -3334,6 +3357,7 @@
       ["Iodebb", config.dBUG],
       ["HistoDpa", config.HistComp],
       ["Recalc", !config.logueSalvo],
+      ["TestBip", test.Estouro],
     ].forEach(([g, t]) => {
       atualizarSlidePosi(g, t);
     });
