@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.15
+// @version      0.0.0.16
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -1543,6 +1543,9 @@
     stt.Encontrado = stt.Status === "---" ? 0 : 1;
     Hodeb("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
 
+    const agora = gerarDataHora();
+    //Hodeb("Hora atual", agora);
+
     if ((config.pausalimitada || test.Estouro) && config.notiEstouro) {
       stt.Estouro = test.Estouro
         ? 1
@@ -1590,9 +1593,6 @@
       });*/
       return;
     }
-
-    const agora = gerarDataHora();
-    //Hodeb("Hora atual", agora);
 
     if (config.TesteHora) {
       const tDataX = document.getElementById("tDataX");
