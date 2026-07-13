@@ -15,6 +15,9 @@
 //https://smileshelp.zendesk.com/*
 //https://cxagent.nicecxone.com/home*
 (function () {
+  const VerIni = document.getElementById("BotInicial");
+  if (VerIni) return;
+
   const config = {
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
     ValorMetaTMA: 725,
@@ -1540,6 +1543,42 @@
     stt.Encontrado = stt.Status === "---" ? 0 : 1;
     Hodeb("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
 
+    if ((config.pausalimitada || test.Estouro) && config.notiEstouro) {
+      stt.Estouro = test.Estouro
+        ? 1
+        : TempoPausas.Estouro
+          ? compararDatas(agora, TempoPausas.Estouro)
+          : 0;
+
+      if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
+        Hwarn("Estouro de pausa detectado");
+        stt.Estour1 = 1;
+        const ObipRep = setInterval(() => {
+          if (
+            !stt.Estouro ||
+            !config.SomEstouro ||
+            !config.notiEstouro ||
+            !stt.Encontrado ||
+            DDPausa.StatusANT !== stt.Status
+          ) {
+            Hwarn(
+              "Estouro de pausa finalizado" + !stt.Encontrado
+                ? " status Perdido"
+                : "",
+            );
+            clearInterval(ObipRep);
+            stt.Estour1 = 0;
+          } else {
+            tocarBeep();
+          }
+          if (BotInicial && stt.Estouro !== stt.EstouroAnt) {
+            contr();
+            stt.EstouroAnt = stt.Estouro;
+          }
+        }, 3 * 1000);
+      }
+    }
+
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
       /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
         time,
@@ -1734,7 +1773,8 @@
         (agora, 1, converterParaSegundos(TempoPausas.Falta) - ValorDescanso) /
           ndPausas,
       ).hora;
-    }*/
+    }
+    */
 
     Hodeb("Online : ", TempoPausas.Online);
     Hodeb("ContAtual : ", converterParaSegundos(TempoPausas.ContAtual));
@@ -1762,37 +1802,6 @@
     vFalta.textContent = stt.tempoCumprido
       ? "Cumprido"
       : tempoEncurtado(TempoPausas.Falta);
-
-
-    if (
-      (config.pausalimitada || test.Estouro) &&
-      config.notiEstouro &&
-      DDPausa.StatusANT === stt.Status
-    ) {
-      stt.Estouro = test.Estouro
-        ? 1
-        : TempoPausas.Estouro
-          ? compararDatas(agora, TempoPausas.Estouro)
-          : 0;
-
-      if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
-        Hwarn("Estouro de pausa detectado");
-        stt.Estour1 = 1;
-        const ObipRep = setInterval(() => {
-          if (!stt.Estouro || !config.SomEstouro || !config.notiEstouro) {
-            Hwarn("Estouro de pausa finalizado");
-            clearInterval(ObipRep);
-            stt.Estour1 = 0;
-          } else {
-            tocarBeep();
-          }
-          if (BotInicial && stt.Estouro !== stt.EstouroAnt) {
-            contr();
-            stt.EstouroAnt = stt.Estouro;
-          }
-        }, 3 * 1000);
-      }
-    }
 
     Hodeb("Tick finalizado com sucesso");
   }
