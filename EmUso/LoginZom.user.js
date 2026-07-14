@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.16
+// @version      0.0.0.17
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -29,7 +29,6 @@
     notiEstouro: 1,
     OBS_ATIVO: 1,
     TesteHora: 0,
-    valorTeste: "-03:00",
     VoltarPad: 0,
     LadoBot: 0,
     LadoBotAnterior: 0,
@@ -60,7 +59,6 @@
     notiEstouro: 1,
     OBS_ATIVO: 1,
     TesteHora: 0,
-    valorTeste: "-03:00",
     VoltarPad: 0,
     LadoBot: 0,
     LadoBotAnterior: 0,
@@ -75,7 +73,6 @@
     ocultarValor: 0,
     Estouro: 0,
     Estour1: 0,
-    EstouroAnt: 0,
     AbaPausas: 0,
     AbaConfig: 0,
     AbaOutros: 0,
@@ -92,6 +89,9 @@
 
   const test = {
     Estouro: 0,
+    modoTeste: 0,
+    modoTesteAnt: 0,
+    valorFuso: "-03:00",
   };
 
   let TempoPausas = {
@@ -1414,7 +1414,7 @@
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
   function gerarDataHora() {
     const agora = new Date();
-    const offsetStr = config.TesteHora ? config.valorTeste : "-03:00";
+    const offsetStr = test.modoTeste ? test.valorFuso : "-03:00";
 
     // --- parse do offset para minutos ---
     function parseOffsetToMinutes(s) {
@@ -1544,11 +1544,15 @@
     Hodeb("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
 
     const agora = gerarDataHora();
-    //Hodeb("Hora atual", agora);
 
-    if ((config.pausalimitada || test.Estouro) && config.notiEstouro) {
-      stt.Estouro = test.Estouro
-        ? 1
+    if (test.modoTeste !== test.modoTesteAnt) {
+      config.pausalimitada = test.modoTeste;
+      test.modoTesteAnt = test.modoTeste;
+    }
+
+    if (config.pausalimitada && config.notiEstouro) {
+      stt.Estouro = test.modoTeste
+        ? test.Estouro
         : TempoPausas.Estouro
           ? compararDatas(agora, TempoPausas.Estouro)
           : 0;
@@ -1558,11 +1562,11 @@
         stt.Estour1 = 1;
         const ObipRep = setInterval(() => {
           if (
+            !config.pausalimitada ||
             !stt.Estouro ||
             !config.SomEstouro ||
             !config.notiEstouro ||
-            !stt.Encontrado ||
-            DDPausa.StatusANT !== stt.Status
+            !stt.Encontrado
           ) {
             Hwarn(
               "Estouro de pausa finalizado" + !stt.Encontrado
@@ -1571,13 +1575,11 @@
             );
             clearInterval(ObipRep);
             stt.Estour1 = 0;
+            stt.Estouro = 0;
           } else {
             tocarBeep();
           }
-          if (BotInicial && stt.Estouro !== stt.EstouroAnt) {
-            contr();
-            stt.EstouroAnt = stt.Estouro;
-          }
+          contr();
         }, 3 * 1000);
       }
     }
@@ -1594,7 +1596,7 @@
       return;
     }
 
-    if (config.TesteHora) {
+    if (test.modoTeste) {
       const tDataX = document.getElementById("tDataX");
       const vDataX = document.getElementById("vDataX");
 
@@ -1660,7 +1662,7 @@
     );
 
     verificarMouse(["cTMA"], !config.LogueManual || stt.Encontrado);
-    verificarMouse(["SepCVal5", "cDataX"], config.TesteHora);
+    verificarMouse(["SepCVal5", "cDataX"], test.modoTeste);
 
     //const el = obterEstadoAgenteComoObjeto();
 
@@ -1715,8 +1717,8 @@
     const oLogou = document.getElementById("oLogou");
     const oSaida = document.getElementById("oSaida");
 
-    oLogou.textContent = config.TesteHora ? horafun.Logou.data : "";
-    oSaida.textContent = config.TesteHora ? horafun.Saida.data : "";
+    oLogou.textContent = test.modoTeste ? horafun.Logou.data : "";
+    oSaida.textContent = test.modoTeste ? horafun.Saida.data : "";
 
     if (
       !config.LogueManual &&
@@ -2707,7 +2709,6 @@
       DoisP.textContent = ":";
       DoisP.style.cssText = `
                 color: white;
-                padding: 0 5px;
                 font-size: 20px;
             `;
       return DoisP;
@@ -2889,6 +2890,16 @@
       return a;
     }
 
+    function osCont() {
+      const b = document.createElement("div");
+      b.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        margin: 3px 0;`;
+      return b;
+    }
+
     function ContModoTeste() {
       const horaInputCai = document.createElement("div");
       horaInputCai.style.cssText = `
@@ -2899,8 +2910,6 @@
         `;
       horaInputCai.id = "testefuso";
       const SalvarHora = criarBotSalv("A13", "Salvar");
-
-      SalvarHora.style.marginLeft = "5px";
       SalvarHora.addEventListener("click", function () {
         salvarHorario();
         SalvandoVariConfig(1);
@@ -2913,8 +2922,7 @@
        background: rgba(255, 255, 255, 0);
        border: 1px solid white;
        color: white;
-       border-radius: 8px;
-       margin-right: 5px;`;
+       border-radius: 8px;`;
 
       ["+", "-"].forEach((s) => {
         const opt = document.createElement("option");
@@ -2923,18 +2931,17 @@
         selSign.appendChild(opt);
       });
 
-      const horaInputCaiHM = document.createElement("div");
-      horaInputCaiHM.style.cssText = `display: flex;`;
+      const horaInputCaiHM = osCont();
 
-      const m = String(config.valorTeste)
+      const m = String(test.valorFuso)
         .trim()
         .match(/^([+-]?)(\d{2}):(\d{2})$/);
       if (!m) {
         // trate o erro, lance exceção, ou defina valores padrão
         Herror(
-          `valorTeste inválido "${config.valorTeste}"/"${m}. Esperado: [+|-]HH:MM`,
+          `valorTeste inválido "${test.valorFuso}"/"${m}. Esperado: [+|-]HH:MM`,
         );
-        config.valorTeste = "+03:00";
+        test.valorFuso = "-03:00";
         return;
       }
       const [, SinalT, HoraT, MinutosT] = m;
@@ -2961,26 +2968,15 @@
         const horarioFormatado = `${selSign.value}${horaFormatada}:${minutoFormatado}`;
 
         // Salva na variável
-        config.valorTeste = horarioFormatado;
+        test.valorFuso = horarioFormatado;
 
         horaInputTE.value = "";
         minuInputTE.value = "";
         horaInputTE.placeholder = horaFormatada;
         minuInputTE.placeholder = minutoFormatado;
       }
-      const ModoTesteAtivo = criarBotaoSlide2("TFuso", config.TesteHora, () => {
-        config.TesteHora = !config.TesteHora;
 
-        atualizarVisual();
-      });
       horaInputCaiHM.append(selSign, horaInputTE, doispontos(), minuInputTE);
-
-      const salvEMod = document.createElement("div");
-      salvEMod.style.cssText = `display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 5px;`;
-      salvEMod.append(SalvarHora, ModoTesteAtivo);
 
       const SubPrLog = criarBotSalv("ASubPrLog", "Substituir Logue");
 
@@ -2993,7 +2989,38 @@
         );
       });
 
-      horaInputCai.append(horaInputCaiHM, salvEMod, SubPrLog, Conttest());
+      function Fohr(oid) {
+        const ohr = document.createElement("hr");
+        ohr.id = `OseP${oid}`;
+        ohr.style.cssText = `
+        height: 1px;
+        background: white;
+        margin: 3px 0;
+        width: 100%;
+        `;
+        return ohr;
+      }
+
+      function addOtex(text) {
+        const a = document.createElement("div");
+        a.textContent = text;
+        return a;
+      }
+
+      const contNfuso = osCont();
+
+      contNfuso.append(addOtex("Novo Fuso"), SalvarHora);
+
+      horaInputCai.append(
+        FModoTeste(),
+        Fohr(0),
+        contNfuso,
+        horaInputCaiHM,
+        Fohr(1),
+        SubPrLog,
+        Fohr(2),
+        Conttest(),
+      );
 
       const a = CaixaDeOcultar(criarBotSalv("A28", "Teste"), horaInputCai);
 
@@ -3007,7 +3034,24 @@
         "Testar Bip",
         test.Estouro,
         () => {
+          if (!test.modoTeste) return;
           test.Estouro = !test.Estouro;
+          atualizarVisual();
+        },
+      );
+      Cont.append(ItemC);
+      return Cont;
+    }
+
+    function FModoTeste() {
+      const Cont = criarCaixaSeg();
+      const ItemC = criarLinhaTextoComBot2(
+        "modoTeste",
+        "Modo Testes",
+        test.modoTeste,
+        () => {
+          test.modoTeste = !test.modoTeste;
+          if (!test.modoTeste) test.Estouro = 0;
           atualizarVisual();
         },
       );
@@ -3242,26 +3286,6 @@
       Cbotavan(),
     );
 
-    // Função auxiliar para criar linha com texto e bolinha
-    function criarLinhaTextoComBot(idbola, texto) {
-      const linha = document.createElement("div");
-      linha.style.cssText = `
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            margin: 3px 0px;
-            `;
-
-      const textoDiv = document.createElement("div");
-      textoDiv.textContent = texto;
-
-      const botao = criarBotaoSlide(idbola);
-
-      linha.append(textoDiv, botao);
-      return linha;
-    }
-
     function LinhaSelCor(a, b, c) {
       const div1 = document.createElement("div");
       div1.style.cssText = `
@@ -3352,7 +3376,6 @@
     [
       ["TimerCh", config.OBS_ATIVO],
       ["LogManu", config.LogueManual],
-      ["TFuso", config.TesteHora],
       ["NotEst", config.notiEstouro],
       ["SomEst", config.SomEstouro],
       ["AtivaMeta", config.MetaTMA],
@@ -3362,6 +3385,7 @@
       ["HistoDpa", config.HistComp],
       ["Recalc", !config.logueSalvo],
       ["TestBip", test.Estouro],
+      ["modoTeste", test.modoTeste],
     ].forEach(([g, t]) => {
       atualizarSlidePosi(g, t);
     });

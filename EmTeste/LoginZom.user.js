@@ -1575,6 +1575,7 @@
             );
             clearInterval(ObipRep);
             stt.Estour1 = 0;
+            stt.Estouro = 0;
           } else {
             tocarBeep();
           }
