@@ -344,8 +344,82 @@ const quintaSinfonia = {
   ],
 };
 
+const sonataAoLuar = {
+  config: {
+    bpm: 90,
+
+    oscType: "triangle",
+
+    volume: 0.1,
+
+    vibratoDepth: 0.5,
+
+    vibratoSpeed: 3,
+
+    attack: 0.05,
+
+    decay: 0.2,
+
+    sustain: 0.65,
+
+    release: 3.5,
+
+    parciais: [
+      { mult: 1.0, vol: 1.0, dec: 1.0 },
+      { mult: 2.0, vol: 0.25, dec: 0.8 },
+      { mult: 3.0, vol: 0.1, dec: 0.6 },
+    ],
+
+    frequencias: {
+      Gs4: 415.3,
+      Cs5: 554.37,
+      E5: 659.25,
+
+      Gs5: 830.61,
+      Cs6: 1108.73,
+      E6: 1318.51,
+
+      B4: 493.88,
+      Fs5: 739.99,
+
+      A4: 440.0,
+      A5: 880.0,
+      C5: 523.25,
+      D5: 587.33,
+      G5: 783.99,
+    },
+  },
+
+  notas: [
+    ["Cs5+E5+Gs5", 4],
+    ["PAUSA", 0.5],
+
+    ["Cs5+E5+Gs5", 4],
+    ["PAUSA", 0.5],
+
+    ["B4+E5+Gs5", 4],
+    ["PAUSA", 0.5],
+
+    ["Cs5+E5+Gs5", 4],
+    ["PAUSA", 0.5],
+
+    ["Gs4+Cs5+E5", 6],
+    ["PAUSA", 1],
+
+    ["Cs5+E5+Gs5", 4],
+    ["PAUSA", 0.5],
+
+    ["B4+Fs5", 4],
+    ["PAUSA", 0.5],
+
+    ["Cs5+E5+Gs5", 8],
+  ],
+};
+
 console.clear();
 
 console.log("🎄 Jingle Bells Premium carregado");
 console.log("▶ tocarMusica(jingleBellsPremium)");
 console.log("⏹ pararMusica()");
+
+tocarMusica(sonataAoLuar);

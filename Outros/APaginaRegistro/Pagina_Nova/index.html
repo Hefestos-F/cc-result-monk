@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registro de Atendimento</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <header class="header">
+        <h1 class="titulo-sistema">Registro de Atendimento</h1>
+        <div class="accent" aria-hidden="true"></div>
+      </header>
+
+      <div class="field field--stacked">
+        <label class="label" for="ticket">Ticket</label>
+        <input type="text" id="ticket" class="input-plain">
+      </div>
+
+      <div class="field field--stacked">
+        <label class="label" for="contato">Nome do Cliente</label>
+        <input type="text" id="contato" class="input-plain">
+      </div>
+
+      <div class="field field--stacked">
+        <label class="label" for="localizador">Localizador</label>
+        <input type="text" id="localizador" class="input-plain">
+      </div>
+
+      <div class="field field--stacked">
+        <label class="label" for="descricao">Relato</label>
+        <textarea id="descricao" class="textarea-plain"></textarea>
+      </div>
+
+      <div class="select-group">
+        <label class="label" for="usouWaiver">Utilizou Waiver?</label>
+        <select id="usouWaiver" onchange="toggleWaiverInput()">
+          <option value="nao" selected>Não</option>
+          <option value="sim">Sim</option>
+        </select>
+      </div>
+
+      <div id="waiverInfo" class="hidden">
+        <div id="motivoContainer" class="field field--stacked hidden">
+          <label class="label">Motivo</label>
+          <select id="motivoSelect"></select>
+        </div>
+        <div id="waiverFieldContainer" class="field field--stacked hidden">
+          <label class="label">Tipo de Waiver</label>
+          <input id="tipoWaiver" class="input-plain" readonly>
+        </div>
+      </div>
+
+      <div class="select-group">
+        <label class="label" for="isentouDU">Isentou taxa DU?</label>
+        <select id="isentouDU" onchange="toggleIsencaoDU()">
+          <option value="nao" selected>Não</option>
+          <option value="sim">Sim</option>
+        </select>
+      </div>
+
+      <div id="isencaoDUInfo" class="hidden">
+        <div id="motivoIsencaoContainer" class="field field--stacked hidden">
+          <label class="label">Motivo da isenção</label>
+          <select id="motivoIsencaoSelect"></select>
+        </div>
+      </div>
+
+      <div class="select-group">
+        <label class="label" for="utilizouInvoice">Possui Infant na reserva?</label>
+        <select id="utilizouInvoice" onchange="toggleInvoice()">
+          <option value="nao" selected>Não</option>
+          <option value="sim">Sim</option>
+        </select>
+      </div>
+
+      <div id="invoiceInfo" class="hidden">
+        <div class="field field--stacked">
+          <label class="label">Emissor da Reserva</label>
+          <select id="empresaInvoice" onchange="preencherValorInvoice()">
+            <option value="">Selecione</option>
+            <option value="gol">Gol</option>
+            <option value="smiles">Smiles</option>
+          </select>
+        </div>
+        <div class="field field--stacked">
+          <label class="label">Invoice</label>
+          <input id="valorInvoice" class="input-plain" readonly>
+        </div>
+      </div>
+
+      <div class="select-group">
+        <label class="label" for="realizouPagamento">Utilizou link de pagamento?</label>
+        <select id="realizouPagamento" onchange="togglePagamentoInput()">
+          <option value="nao se aplica" selected>Não se aplica</option>
+          <option value="nao">Nao</option>
+          <option value="sim">Sim</option>
+        </select>
+      </div>
+
+      <div id="pagamentoInfo" class="hidden">
+        <div class="field field--stacked"><label class="label">Motivo</label><input id="link" class="input-plain"></div>
+        <div class="field field--stacked"><label class="label">Bandeira</label><input id="bandeira" class="input-plain"></div>
+        <div class="field field--stacked"><label class="label">Parcelas</label><select id="parcelas"></select></div>
+        <div class="field field--stacked"><label class="label">CardholderName</label><input id="cardName" class="input-plain"></div>
+      </div>
+
+      <div class="action-container">
+        <div class="field field--stacked">
+          <label class="label">Assinatura</label>
+          <input id="assinatura" class="input-plain">
+        </div>
+        <button class="btn btn-primary" onclick="gerarResumo()">Gerar</button>
+        <button class="btn btn-secondary" onclick="limparTela()">Limpar Tela</button>
+        <button class="btn btn-primary" onclick="copiarResultado()">Copiar</button>
+      </div>
+
+      <div class="field field--stacked">
+        <label class="label">Resultado</label>
+        <textarea id="resultado" class="textarea-plain" readonly></textarea>
+      </div>
+
+      <footer class="creditos">Desenvolvido por <strong>Leandro Salvador de Oliveira</strong></footer>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
