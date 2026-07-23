@@ -17,12 +17,12 @@ import {
   orderBy,
   startAfter,
   doc,
+  deleteDoc,
   writeBatch,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // firebaseConfig ocultado
-
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -563,11 +563,27 @@ async function baixarDD(
     await delay(3000);
     let cont2 = 0;
 
+    const limite6Meses = new Date();
+
+    limite6Meses.setMonth(limite6Meses.getMonth() - 6);
+
     for (const r of registros) {
       const dataISO = gerarDataISO(r.dataHora);
 
       if (!dataISO) {
         console.log("⚠ Data inválida:", r.dataHora);
+        continue;
+      }
+
+      const dataRegistro = new Date(dataISO);
+
+      // Mais antigo que 6 meses
+
+      if (dataRegistro < limite6Meses) {
+        console.log("🗑 Excluindo:", r.id, dataISO);
+
+        await deleteDoc(doc(db, "registros", r.id));
+
         continue;
       }
 
