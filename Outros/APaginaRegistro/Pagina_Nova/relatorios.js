@@ -20,6 +20,7 @@ import {
   writeBatch,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
 // firebaseConfig ocultado
 
 
@@ -115,6 +116,7 @@ function atualizarTabela() {
   document.getElementById("pageprev").disabled = paginaAtual === 1;
   document.getElementById("pagenext").disabled = paginaAtual === totalPaginas;
 }
+
 // ================== CARREGAR FILTROS ==================
 async function carregarFiltros() {
   try {
@@ -194,12 +196,19 @@ async function carregarFiltros() {
       return div;
     }
 
+    const AAnot = document.createElement("div");
+    AAnot.className = "filter-item";
+
+    AAnot.textContent = "Registro Corrigido para busca apos 23/07/2026";
+
+    datasWrap.appendChild(AAnot);
+
     datasWrap.appendChild(criarItem("De", "dataInicio"));
     datasWrap.appendChild(criarItem("Até", "dataFim"));
 
     const botao = document.createElement("button");
     botao.id = "botfilt";
-    botao.textContent = "Filtrar";
+    botao.textContent = "Filtrar Em Nuvem";
     botao.className = "btn-primary";
     botao.onclick = filtrarRelatorio;
 
@@ -269,7 +278,7 @@ async function filtrarRelatorio() {
         return true;
       });
     }
-*/
+    */
 
     registrosFiltrados = [...filtrados];
     atualizarTabela(filtrados);
@@ -630,7 +639,10 @@ async function verificar() {
     justify-content: flex-end;
     "
     >
-   <div id="CaixaBotBaix">
+   <div id="CaixaBotBaix" style="
+    display: flex;
+    flex-direction: column;
+    ">
     <div id="ItenNuvem"></div>
     <button id="BotBaix" class="btn-primary">Trazer da Nuvem</button>
    </div>
@@ -776,7 +788,7 @@ async function contarRegistros() {
 
     const el = document.getElementById("ItenNuvem");
     if (el) {
-      el.textContent = total + " Itens Em Nuvem | ";
+      el.textContent = total + " Itens Em Nuvem";
     }
 
     console.log("Total registros:", total);
