@@ -21,14 +21,7 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 // firebaseConfig ocultado
-const firebaseConfig = {
-  apiKey: "AIzaSyBZu2jtDe4W_nmqpD4qg8qtv32CUqgLhc",
-  authDomain: "registro-atendimentos-abda5.firebaseapp.com",
-  projectId: "registro-atendimentos-abda5",
-  storageBucket: "registro-atendimentos-abda5.appspot.com",
-  messagingSenderId: "27427533937",
-  appId: "1:27427533937:web:d8d0bb562302a2be08d7d0",
-};
+
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);

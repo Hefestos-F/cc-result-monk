@@ -11,6 +11,8 @@ const TOKEN = "Aug$2025";
     const { getFirestore, doc, setDoc } =
       await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
 
+      // firebaseConfig ocultado
+      
     let app;
 
     if (!getApps().length) {
