@@ -21,7 +21,14 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 // firebaseConfig ocultado
-
+const firebaseConfig = {
+  apiKey: "AIzaSyBZu2jtDe4W_nmqpD4qg8qtv32CUqgLhc",
+  authDomain: "registro-atendimentos-abda5.firebaseapp.com",
+  projectId: "registro-atendimentos-abda5",
+  storageBucket: "registro-atendimentos-abda5.appspot.com",
+  messagingSenderId: "27427533937",
+  appId: "1:27427533937:web:d8d0bb562302a2be08d7d0",
+};
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -123,7 +130,7 @@ async function carregarFiltros() {
     filtrosDiv.classList.add("toolbar");
 
     CAMPOS_FILTRO.forEach((campo) => {
-      if (["dataHora", "link"].includes(campo.id)) return;
+      //if (["dataHora", "link"].includes(campo.id)) return;
 
       const mapa = new Map();
 
@@ -169,7 +176,7 @@ async function carregarFiltros() {
 
       wrap.appendChild(label);
       wrap.appendChild(select);
-      filtrosDiv.appendChild(wrap);
+      //filtrosDiv.appendChild(wrap);
     });
 
     // Período
@@ -219,6 +226,29 @@ async function filtrarRelatorio() {
     const tabela = document.getElementById("tabelaRelatorios");
     tabela.innerHTML = `<tr><td colspan="15" style="text-align:center;">Carregando registros...</td></tr>`;
 
+    const dataInicio = document.getElementById("dataInicio")?.value || "";
+    const dataFim = document.getElementById("dataFim")?.value || "";
+
+    if (dataInicio || dataFim) {
+      const inicio = dataInicio
+        ? `${dataInicio}T00:00:00.000Z`
+        : "1900-01-01T00:00:00.000Z";
+
+      const fim = dataFim
+        ? new Date(new Date(dataFim).getTime() + 86400000).toISOString()
+        : "2999-12-31T23:59:59.999Z";
+
+      await baixarDD(
+        dataInicio
+          ? [
+              where("dataISO", ">=", inicio),
+              where("dataISO", "<", fim),
+              orderBy("dataISO"),
+            ]
+          : [],
+      );
+    }
+
     let filtrados = [...registros];
 
     CAMPOS_FILTRO.forEach((c) => {
@@ -232,7 +262,8 @@ async function filtrarRelatorio() {
     });
 
     // Período
-    const dataInicio = document.getElementById("dataInicio")?.value || "";
+
+    /*    const dataInicio = document.getElementById("dataInicio")?.value || "";
     const dataFim = document.getElementById("dataFim")?.value || "";
     if (dataInicio || dataFim) {
       const inicio = dataInicio ? new Date(dataInicio + "T00:00:00") : null;
@@ -245,6 +276,7 @@ async function filtrarRelatorio() {
         return true;
       });
     }
+*/
 
     registrosFiltrados = [...filtrados];
     atualizarTabela(filtrados);
@@ -437,16 +469,16 @@ function contarPorMes(lista, OsPorMes) {
 }
 
 // ================== MIGRAÇÃO DE DATA ==================
-async function baixarDD() {
-  const constraints = [
+async function baixarDD(
+  constraints = [
     //where("ticket", "==", "23147931"),
     //where("dataISO", "==", null),
     //where("dataISO", "==", ""),
     //where("migradoISO", "!=", true),
     //orderBy("migradoISO"), // 🔥 obrigatório
     //orderBy("__name__"), // opcional depois
-  ];
-
+  ],
+) {
   const atualiz = 0;
   const Climiti_b = 0;
   let ultimoDoc = null;
@@ -513,7 +545,7 @@ async function baixarDD() {
 
   console.log("Total Baixado: ", registros.length);
 
-  //console.log("registros[0]: ", registros[0]);
+  console.log("registros: ", registros);
 
   //const check = await getDoc(doc(db, "registros", registros[0].id));
 
@@ -575,12 +607,16 @@ async function baixarDD() {
     console.log("Total Atualizado:", totalAtualizados);
   }
 
-  await carregarFiltros();
-  resumoFiltro.textContent = `Selecione os filtros desejados e clique em 'Filtrar' para buscar os registros.`;
   atualizarTabela();
 }
 
 window.baixarDD = baixarDD;
+
+// ================== Testando ==================
+
+async function BusqData() {}
+
+window.BusqData = BusqData;
 
 // ================== INIT ==================
 
@@ -591,43 +627,43 @@ async function verificar() {
   if (senha === "Aug$2025") {
     document.body.innerHTML = `
     <h2>Relatórios - Acesso Administrador</h2>
-<div
-  style="
+    <div
+    style="
     display: flex;
     width: 100%;
     gap: 10px;
     margin: 10px 0px;
     align-items: center;
     justify-content: flex-end;
-  "
->
-  <div id="CaixaBotBaix">
+    "
+    >
+   <div id="CaixaBotBaix">
     <div id="ItenNuvem"></div>
     <button id="BotBaix" class="btn-primary">Trazer da Nuvem</button>
-  </div>
-</div>
+   </div>
+   </div>
 
-<div style="display: flex">
-  <div id="OsPorMes" style="min-width: 180px"></div>
-  <div id="filtros"></div>
-</div>
-<div
-  style="
+   <div style="display: flex">
+   <div id="OsPorMes" style="min-width: 180px"></div>
+   <div id="filtros"></div>
+   </div>
+   <div
+   style="
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     padding: 5px 0px;
-  "
->
-  <p id="resumoFiltro"></p>
+   "
+   >
+   <p id="resumoFiltro"></p>
 
-  <div id="totalEnc"></div>
-  <button id="exportarExcel">Exportar Excel</button>
-</div>
+   <div id="totalEnc"></div>
+   <button id="exportarExcel">Exportar Excel</button>
+   </div>
 
-<table>
-  <thead>
+   <table>
+   <thead>
     <tr>
       <th>#</th>
       <th>Ticket</th>
@@ -645,29 +681,29 @@ async function verificar() {
       <th>Data/Hora</th>
       <th>Assinatura</th>
     </tr>
-  </thead>
-  <tbody id="tabelaRelatorios"></tbody>
-</table>
+    </thead>
+   <tbody id="tabelaRelatorios"></tbody>
+   </table>
 
-<div style="margin: 10px 0; display: flex; gap: 10px; align-items: center">
-  <label>Linhas:</label>
-  <select id="linhasPagina">
+    <div style="margin: 10px 0; display: flex; gap: 10px; align-items: center">
+   <label>Linhas:</label>
+   <select id="linhasPagina">
     <option value="10">10</option>
     <option value="30">30</option>
     <option value="50">50</option>
     <option value="100">100</option>
-  </select>
+   </select>
 
-  <div>
+   <div>
     <button id="pageprev" disabled>◀</button>
     <span id="numeroDpages"></span>
     <button id="pagenext" disabled>▶</button>
-  </div>
-</div>
+   </div>
+   </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- Cache-busting para evitar versão antiga em cache -->
-<script type="module" src="relatorios.js?v=2026-02-11-02"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+   <!-- Cache-busting para evitar versão antiga em cache -->
+   <script type="module" src="relatorios.js?v=2026-02-11-02"></script>
 
     `;
     document.body.style.cssText = `
@@ -725,10 +761,14 @@ async function verificar() {
         baixarDD();
       }
     };
+
+    await carregarFiltros();
+    resumoFiltro.textContent = `Selecione os filtros desejados e clique em 'Filtrar' para buscar os registros.`;
   } else {
     document.getElementById("erro").innerText = "Senha incorreta!";
   }
 }
+
 let contando = false;
 
 async function contarRegistros() {
@@ -753,4 +793,5 @@ async function contarRegistros() {
 
   contando = false;
 }
+
 document.getElementById("bEntr").addEventListener("click", () => verificar());

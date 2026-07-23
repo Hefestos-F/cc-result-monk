@@ -33,6 +33,7 @@
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
   }
+
   function NorTX(valor) {
     if (!valor) return "";
 
