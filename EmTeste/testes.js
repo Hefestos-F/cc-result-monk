@@ -1,17 +1,188 @@
 // =====================================
 // PREMIUM WEB AUDIO PLAYER
 // =====================================
-
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-let stopMusic = false;
-let repetirMusic = true;
-let osciladoresAtivos = [];
+const asCofMus = {
+  stopMusic: false,
+  repetirMusic: true,
+  osciladoresAtivos: [],
+};
+
+// =====================================
+// MUSIC
+// =====================================
+const aSmusic = {
+  jingleBellsPremium: {
+    config: {
+      bpm: 180,
+
+      oscType: "sine",
+
+      volume: 0.15,
+
+      vibratoDepth: 3,
+
+      vibratoSpeed: 5,
+
+      attack: 0.002,
+
+      decay: 0.15,
+
+      sustain: 0.35,
+
+      release: 2.2,
+
+      parciais: [
+        { mult: 0.5, vol: 0.9, dec: 3.2 },
+        { mult: 1.0, vol: 1.0, dec: 2.4 },
+        { mult: 2.0, vol: 0.7, dec: 1.7 },
+        { mult: 2.92, vol: 0.5, dec: 1.2 },
+        { mult: 4.1, vol: 0.3, dec: 0.9 },
+        { mult: 5.43, vol: 0.2, dec: 0.6 },
+      ],
+
+      frequencias: {
+        C5: 523.25,
+        D5: 587.33,
+        E5: 659.25,
+        F5: 698.46,
+        G5: 783.99,
+        A5: 880.0,
+        B5: 987.77,
+        C6: 1046.5,
+      },
+    },
+
+    notas: [
+      ["E5", 1],
+      ["E5", 1],
+      ["E5", 2],
+
+      ["PAUSA", 0.4],
+
+      ["E5", 1],
+      ["E5", 1],
+      ["E5", 2],
+
+      ["PAUSA", 0.4],
+
+      ["E5", 1],
+      ["G5", 1],
+      ["C5", 1],
+      ["D5", 1],
+      ["E5", 3],
+
+      ["PAUSA", 0.8],
+
+      ["F5", 1],
+      ["F5", 1],
+      ["F5", 1],
+      ["F5", 1],
+
+      ["F5", 1],
+      ["E5", 1],
+      ["E5", 1],
+
+      ["E5", 0.5],
+      ["E5", 0.5],
+
+      ["G5", 1],
+      ["G5", 1],
+
+      ["F5", 1],
+      ["D5", 1],
+
+      ["C5", 3],
+    ],
+  },
+
+  alertaPremium: {
+    config: {
+      bpm: 220,
+
+      oscType: "triangle",
+
+      volume: 0.18,
+
+      vibratoDepth: 2,
+      vibratoSpeed: 6,
+
+      attack: 0.001,
+      decay: 0.08,
+      sustain: 0.25,
+      release: 0.4,
+
+      parciais: [
+        { mult: 1.0, vol: 1.0, dec: 1.0 },
+        { mult: 2.0, vol: 0.4, dec: 0.6 },
+        { mult: 3.0, vol: 0.15, dec: 0.4 },
+      ],
+
+      frequencias: {
+        C6: 1046.5,
+        D6: 1174.66,
+        E6: 1318.51,
+        G6: 1567.98,
+        A6: 1760.0,
+      },
+    },
+
+    notas: [
+      ["C6", 0.25],
+      ["E6", 0.25],
+      ["A6", 0.5],
+
+      ["PAUSA", 5],
+
+      ["A6", 0.25],
+      ["G6", 0.25],
+      ["E6", 0.5],
+    ],
+  },
+
+  alertaUrgente: {
+    config: {
+      bpm: 260,
+      oscType: "sawtooth",
+      volume: 0.16,
+
+      attack: 0.001,
+      decay: 0.05,
+      sustain: 0.15,
+      release: 0.25,
+
+      parciais: [
+        { mult: 1.0, vol: 1.0, dec: 0.8 },
+        { mult: 2.0, vol: 0.5, dec: 0.5 },
+        { mult: 4.0, vol: 0.15, dec: 0.3 },
+      ],
+
+      frequencias: {
+        A5: 880,
+        C6: 1046.5,
+        E6: 1318.5,
+      },
+    },
+
+    notas: [
+      ["A5", 0.2],
+      ["PAUSA", 2],
+
+      ["A5", 0.2],
+      ["PAUSA", 3],
+
+      ["C6", 0.2],
+      ["PAUSA", 4],
+
+      ["E6", 0.4],
+    ],
+  },
+};
 
 // =====================================
 // REVERB
 // =====================================
-
 function criarReverb(segundos = 2.5) {
   const sampleRate = audioCtx.sampleRate;
   const length = sampleRate * segundos;
@@ -36,7 +207,6 @@ reverb.connect(audioCtx.destination);
 // =====================================
 // BPM
 // =====================================
-
 function notaParaMs(valor, bpm) {
   return (60000 / bpm) * valor;
 }
@@ -44,16 +214,15 @@ function notaParaMs(valor, bpm) {
 // =====================================
 // TOCAR MÚSICA
 // =====================================
-
 async function tocarMusica(musica) {
-  stopMusic = false;
+  asCofMus.stopMusic = false;
 
   await audioCtx.resume();
 
   const bpm = musica.config.bpm || 120;
 
   for (const [notaTexto, valor] of musica.notas) {
-    if (stopMusic) {
+    if (asCofMus.stopMusic) {
       console.log("Música interrompida");
       return;
     }
@@ -79,7 +248,7 @@ async function tocarMusica(musica) {
     await new Promise((r) => setTimeout(r, duracao));
   }
 
-  if (repetirMusic && !stopMusic) return tocarMusica(musica);
+  if (asCofMus.repetirMusic && !asCofMus.stopMusic) return tocarMusica(musica);
 
   console.log("Fim da música");
 }
@@ -87,7 +256,6 @@ async function tocarMusica(musica) {
 // =====================================
 // NOTA PREMIUM
 // =====================================
-
 function tocarNotaPremium(freqFundamental, duracao, config) {
   const now = audioCtx.currentTime;
 
@@ -161,10 +329,10 @@ function tocarNotaPremium(freqFundamental, duracao, config) {
 
     lfo.stop(now + duracaoSegundos + release);
 
-    osciladoresAtivos.push(osc);
+    asCofMus.osciladoresAtivos.push(osc);
 
     osc.onended = () => {
-      osciladoresAtivos = osciladoresAtivos.filter((o) => o !== osc);
+      asCofMus.osciladoresAtivos = asCofMus.osciladoresAtivos.filter((o) => o !== osc);
     };
   });
 }
@@ -172,133 +340,24 @@ function tocarNotaPremium(freqFundamental, duracao, config) {
 // =====================================
 // PARAR
 // =====================================
-
 function pararMusica() {
-  stopMusic = true;
+  asCofMus.stopMusic = true;
 
-  osciladoresAtivos.forEach((osc) => {
+  asCofMus.osciladoresAtivos.forEach((osc) => {
     try {
       osc.stop();
     } catch {}
   });
 
-  osciladoresAtivos = [];
+  asCofMus.osciladoresAtivos = [];
 
   console.log("Parado");
 }
 
-// =====================================
-// JINGLE BELLS PREMIUM
-// =====================================
-
-const jingleBellsPremium = {
-  config: {
-    bpm: 180,
-
-    oscType: "sine",
-
-    volume: 0.15,
-
-    vibratoDepth: 3,
-
-    vibratoSpeed: 5,
-
-    attack: 0.002,
-
-    decay: 0.15,
-
-    sustain: 0.35,
-
-    release: 2.2,
-
-    parciais: [
-      { mult: 0.5, vol: 0.9, dec: 3.2 },
-      { mult: 1.0, vol: 1.0, dec: 2.4 },
-      { mult: 2.0, vol: 0.7, dec: 1.7 },
-      { mult: 2.92, vol: 0.5, dec: 1.2 },
-      { mult: 4.1, vol: 0.3, dec: 0.9 },
-      { mult: 5.43, vol: 0.2, dec: 0.6 },
-    ],
-
-    frequencias: {
-      C5: 523.25,
-      D5: 587.33,
-      E5: 659.25,
-      F5: 698.46,
-      G5: 783.99,
-      A5: 880.0,
-      B5: 987.77,
-      C6: 1046.5,
-    },
-  },
-
-  notas: [
-    ["E5", 1],
-    ["E5", 1],
-    ["E5", 2],
-
-    ["PAUSA", 0.4],
-
-    ["E5", 1],
-    ["E5", 1],
-    ["E5", 2],
-
-    ["PAUSA", 0.4],
-
-    ["E5", 1],
-    ["G5", 1],
-    ["C5", 1],
-    ["D5", 1],
-    ["E5", 3],
-
-    ["PAUSA", 0.8],
-
-    ["F5", 1],
-    ["F5", 1],
-    ["F5", 1],
-    ["F5", 1],
-
-    ["F5", 1],
-    ["E5", 1],
-    ["E5", 1],
-
-    ["E5", 0.5],
-    ["E5", 0.5],
-
-    ["G5", 1],
-    ["G5", 1],
-
-    ["F5", 1],
-    ["D5", 1],
-
-    ["C5", 3],
-  ],
-};
-
+/*
 console.clear();
 
 console.log("🎄 Jingle Bells Premium carregado");
 console.log("▶ tocarMusica(jingleBellsPremium)");
 console.log("⏹ pararMusica()");
-
-tocarMusica(sonataAoLuar);
-
-
-
-function gerarDataISO(dataStr) {
-  if (!dataStr) return null;
-
-  const limpa = dataStr.replace(",", "").trim();
-
-  const match = limpa.match(
-    /^(\d{2})\/(\d{2})\/(\d{4})\s(\d{2}):(\d{2})(?::(\d{2}))?$/,
-  );
-
-  if (!match) return null;
-
-  const [, dia, mes, ano, hora, min, seg] = match;
-
-  return `${ano}-${mes}-${dia}T${hora}:${min}:${seg || "00"}`;
-}
-
-gerarDataISO(r.dataHora);
+*/
