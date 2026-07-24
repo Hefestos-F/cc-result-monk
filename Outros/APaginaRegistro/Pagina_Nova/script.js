@@ -332,6 +332,7 @@ async function gerarResumo() {
   // Salvar no Firestore (se disponível); caso contrário, apenas loga
   const agora = new Date();
   //agora.toISOString()
+  //agora.toLocaleString("pt-BR")
 
   const novoRegistro = {
     ticket,

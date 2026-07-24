@@ -244,7 +244,7 @@ async function filtrarRelatorio() {
         dataInicio
           ? [
               where("dataISO", ">=", inicio),
-              where("dataISO", "<", fim),
+              where("dataISO", "<=", fim),
               orderBy("dataISO"),
             ]
           : [],
@@ -482,6 +482,7 @@ async function baixarDD(
   ],
 ) {
   const atualiz = 0;
+  const limparBD = 0;
   const Climiti_b = 0;
   let ultimoDoc = null;
   const LIMITE = 2000;
@@ -553,6 +554,20 @@ async function baixarDD(
 
   //console.log("✅ CONFIRMADO:", check.data());
 
+  if (limparBD) {
+    const limite6Meses = new Date();
+    limite6Meses.setMonth(limite6Meses.getMonth() - 6);
+    for (const r of registros) {
+      const dataISO = gerarDataISO(r.dataHora);
+      const dataRegistro = new Date(dataISO);
+      // Mais antigo que 6 meses
+      if (dataRegistro < limite6Meses) {
+        console.log("🗑 Excluindo:", r.id, dataISO);
+        await deleteDoc(doc(db, "registros", r.id));
+      }
+    }
+  }
+
   if (atualiz) {
     let totalAtualizados = 0;
     const BATCH_SIZE = 100;
@@ -563,27 +578,11 @@ async function baixarDD(
     await delay(3000);
     let cont2 = 0;
 
-    const limite6Meses = new Date();
-
-    limite6Meses.setMonth(limite6Meses.getMonth() - 6);
-
     for (const r of registros) {
       const dataISO = gerarDataISO(r.dataHora);
 
       if (!dataISO) {
         console.log("⚠ Data inválida:", r.dataHora);
-        continue;
-      }
-
-      const dataRegistro = new Date(dataISO);
-
-      // Mais antigo que 6 meses
-
-      if (dataRegistro < limite6Meses) {
-        console.log("🗑 Excluindo:", r.id, dataISO);
-
-        await deleteDoc(doc(db, "registros", r.id));
-
         continue;
       }
 
