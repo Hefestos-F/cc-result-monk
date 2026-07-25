@@ -72,13 +72,12 @@
     andament: 1,
     ocultarValor: 0,
     Estouro: 0,
-    Estour1: 0,
     AbaPausas: 0,
     AbaConfig: 0,
     AbaOutros: 0,
     tempoCumprido: 0,
     temHorasExtras: 0,
-    BeepRet: 0,
+    bipando: 0,
     Encontrado: 0,
     LadoBot: 0,
     LadoBotAnterior: 0,
@@ -357,9 +356,6 @@
 
       config.pausalimitada = 0;
       stt.Estouro = 0;
-      stt.Estour1 = 0;
-      pararMusica();
-      contr();
 
       atualizarComoff(0, Ccor.Aviso, "cTMA");
       SalvandoVariConfig(1);
@@ -1562,19 +1558,38 @@
           ? compararDatas(agora, TempoPausas.Estouro)
           : 0;
 
-      if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
+      if (!stt.bipando && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
-        stt.Estour1 = 1;
+        stt.bipando = 1;
 
         const [aano, mmes, ddia] = agora.data.split("-");
         //Hlog(`teste de data aano"${aano}" mmes"${mmes}" ddia"${ddia}"`);
-
         tocarMusica(
           mmes === "12" && ddia >= 10 && ddia <= 30
             ? aSmusic.jingleBellsPremium
             : aSmusic.alertaUrgente,
         );
       }
+    }
+
+    if (stt.bipando) {
+      if (
+        !config.pausalimitada ||
+        !stt.Estouro ||
+        !config.SomEstouro ||
+        !config.notiEstouro ||
+        !stt.Encontrado
+      ) {
+        Hwarn(
+          "Estouro de pausa finalizado" + !stt.Encontrado
+            ? " status Perdido"
+            : "",
+        );
+        stt.Estouro = 0;
+        stt.bipando = 0;
+        pararMusica();
+      }
+      contr();
     }
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
@@ -4113,28 +4128,9 @@
       await new Promise((r) => setTimeout(r, duracao));
     }
 
-    contr();
-    if (asCofMus.repetirMusic && !asCofMus.stopMusic) {
-      if (
-        !config.pausalimitada ||
-        !stt.Estouro ||
-        !config.SomEstouro ||
-        !config.notiEstouro ||
-        !stt.Encontrado
-      ) {
-        Hwarn(
-          "Estouro de pausa finalizado" + !stt.Encontrado
-            ? " status Perdido"
-            : "",
-        );
-        stt.Estour1 = 0;
-        stt.Estouro = 0;
-        pararMusica();
-        contr();
-      } else {
-        return tocarMusica(musica);
-      }
-    }
+    if (asCofMus.repetirMusic && !asCofMus.stopMusic)
+      return tocarMusica(musica);
+
     console.log("Fim da música");
   }
 
