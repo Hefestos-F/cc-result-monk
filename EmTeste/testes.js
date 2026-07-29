@@ -595,6 +595,95 @@ const animalsGarrix = {
   ],
 };
 
+const alarmeAvicii = {
+  config: {
+    bpm: 124,
+    oscType: "square", // Onda quadrada para o timbre clássico de synth do Avicii
+    volume: 0.15,
+    vibratoDepth: 0.05, // Leve vibrato para dar vivacidade ao sintetizador
+    vibratoSpeed: 6,
+    attack: 0.01, // Ataque rápido, mas sem o estalo agressivo do Garrix
+    decay: 0.15,
+    sustain: 0.4, // Sustain moderado para a melodia soar mais fluida e cantada
+    release: 0.15,
+    parciais: [
+      { mult: 1.0, vol: 1.0, dec: 0.6 },
+      { mult: 2.0, vol: 0.4, dec: 0.4 },
+      { mult: 1.5, vol: 0.3, dec: 0.3 }, // Quinta justa adicionada para brilho harmônico
+    ],
+    frequencias: {
+      D3: 146.83,
+      A3: 220.00,
+      B3: 246.94,
+      D4: 293.66,
+      E4: 329.63,
+      Fsh4: 369.99, // Fá sustenido para a escala de Ré Maior
+    },
+  },
+  notas: [
+    // Melodia principal ascendente e enérgica
+    ["D4", 0.5],
+    ["Fsh4", 0.5],
+    ["A3", 0.5],
+    ["D4", 0.5],
+    ["Fsh4", 0.5],
+    ["A3", 0.5],
+    ["D4", 0.5],
+    ["E4", 0.5],
+    
+    // Segunda parte com variação e repouso na tônica
+    ["Fsh4", 0.5],
+    ["E4", 0.5],
+    ["D4", 0.5],
+    ["B3", 0.5],
+    ["A3", 1.0],
+    ["PAUSA", 0.5],
+    ["D3", 1.5], // Nota de baixo preenchendo o final do ciclo
+  ],
+};
+
+const alarmeBipsIntercalados = {
+  config: {
+    bpm: 120, // Ritmo compassado de 2 bipes por segundo
+    oscType: "sine", // Onda senoidal pura para som de bipe eletrônico limpo
+    volume: 0.2, // Volume ligeiramente maior por ser uma frequência pura
+    vibratoDepth: 0,
+    vibratoSpeed: 0,
+    attack: 0.001, // Ataque instantâneo para estalar o início do bipe
+    decay: 0.05,
+    sustain: 0.8, // Mantém o bipe firme até o corte
+    release: 0.01, // Corte abrupto sem eco
+    parciais: [
+      { mult: 1.0, vol: 1.0, dec: 1.0 }, // Apenas a frequência fundamental para pureza
+    ],
+    frequencias: {
+      BipeAlto: 2500.00, // Tom agudo clássico de despertador de pulso
+      BipeBaixo: 2000.00, // Tom secundário para o efeito intercalado
+    },
+  },
+  notas: [
+    // Primeiro par de bipes rápidos
+    ["BipeAlto", 0.25],
+    ["PAUSA", 0.25],
+    ["BipeAlto", 0.25],
+    ["PAUSA", 0.25],
+    
+    // Pausa longa de respiro entre os blocos
+    ["PAUSA", 1.0],
+    
+    // Segundo par de bipes com tom intercalado (mais grave)
+    ["BipeBaixo", 0.25],
+    ["PAUSA", 0.25],
+    ["BipeBaixo", 0.25],
+    ["PAUSA", 0.25],
+    
+    // Pausa longa para reiniciar o ciclo do alarme
+    ["PAUSA", 1.0],
+  ],
+};
+
+
+
 console.clear();
 
 console.log("🎄 Jingle Bells Premium carregado");
