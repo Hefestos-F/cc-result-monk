@@ -1547,11 +1547,16 @@
     const agora = gerarDataHora();
 
     if (test.modoTeste !== test.modoTesteAnt) {
-      config.pausalimitada = test.modoTeste;
+      if (test.modoTeste) {
+        test.pausalimitadaAntt = config.pausalimitada;
+        config.pausalimitada = 1;
+      } else {
+        config.pausalimitada = test.pausalimitadaAntt;
+      }
       test.modoTesteAnt = test.modoTeste;
     }
 
-    if (config.pausalimitada && config.notiEstouro) {
+    if (config.pausalimitada && config.notiEstouro && stt.Encontrado) {
       stt.Estouro = test.modoTeste
         ? test.Estouro
         : TempoPausas.Estouro

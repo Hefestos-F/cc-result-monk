@@ -332,7 +332,9 @@ function tocarNotaPremium(freqFundamental, duracao, config) {
     asCofMus.osciladoresAtivos.push(osc);
 
     osc.onended = () => {
-      asCofMus.osciladoresAtivos = asCofMus.osciladoresAtivos.filter((o) => o !== osc);
+      asCofMus.osciladoresAtivos = asCofMus.osciladoresAtivos.filter(
+        (o) => o !== osc,
+      );
     };
   });
 }
@@ -354,10 +356,247 @@ function pararMusica() {
   console.log("Parado");
 }
 
-/*
+const jingleBellsPremium = {
+  config: {
+    bpm: 180,
+    oscType: "sine",
+    volume: 0.25, // Volume levemente aumentado pois frequências graves são menos audíveis
+    vibratoDepth: 2,
+    vibratoSpeed: 4,
+    attack: 0.01, // Ataque ligeiramente mais lento para evitar estalos no grave
+    decay: 0.3,
+    sustain: 0.4,
+    release: 2.5,
+    parciais: [
+      { mult: 0.5, vol: 1.0, dec: 4.0 }, // Sub-grave reforçado
+      { mult: 1.0, vol: 0.9, dec: 3.0 }, // Frequência fundamental
+      { mult: 1.5, vol: 0.6, dec: 2.0 }, // Quinta harmônica para dar corpo
+      { mult: 2.0, vol: 0.4, dec: 1.5 }, // Oitava superior harmônica
+      { mult: 3.0, vol: 0.2, dec: 1.0 }, // Brilho discreto
+    ],
+    frequencias: {
+      C3: 130.81,
+      D3: 146.83,
+      E3: 164.81,
+      F3: 174.61,
+      G3: 196.0,
+      A3: 220.0,
+      B3: 246.94,
+      C4: 261.63,
+    },
+  },
+  notas: [
+    ["E3", 1],
+    ["E3", 1],
+    ["E3", 2],
+    ["PAUSA", 0.4],
+    ["E3", 1],
+    ["E3", 1],
+    ["E3", 2],
+    ["PAUSA", 0.4],
+    ["E3", 1],
+    ["G3", 1],
+    ["C3", 1],
+    ["D3", 1],
+    ["E3", 3],
+    ["PAUSA", 0.8],
+    ["F3", 1],
+    ["F3", 1],
+    ["F3", 1],
+    ["F3", 1],
+    ["F3", 1],
+    ["E3", 1],
+    ["E3", 1],
+    ["E3", 0.5],
+    ["E3", 0.5],
+    ["G3", 1],
+    ["G3", 1],
+    ["F3", 1],
+    ["D3", 1],
+    ["C3", 3],
+  ],
+};
+
+const aroundTheWorldOriginal = {
+  config: {
+    bpm: 121,
+    oscType: "sawtooth", // Onda dente de serra para o timbre brilhante e rasgado do Daft Punk
+    volume: 0.12, // Reduzido drasticamente para não distorcer, por ser uma onda rica e forte
+    vibratoDepth: 1.5,
+    vibratoSpeed: 6.5, // Simula o efeito de modulação do filtro (wah-wah) do sintetizador
+    attack: 0.005,
+    decay: 0.25,
+    sustain: 0.6, // Sustain mais alto para as notas se conectarem como um contrabaixo real
+    release: 0.5,
+    parciais: [
+      { mult: 1.0, vol: 1.0, dec: 1.5 },
+      { mult: 2.0, vol: 0.5, dec: 1.0 }, // Harmônicos pares e ímpares cheios
+      { mult: 3.0, vol: 0.3, dec: 0.7 },
+      { mult: 4.0, vol: 0.15, dec: 0.4 },
+    ],
+    frequencias: {
+      E2: 82.41,
+      F3: 174.61,
+      G3: 196.0,
+      A3: 220.0,
+      B3: 246.94,
+      C4: 261.63,
+      D4: 293.66,
+      E4: 329.63,
+    },
+  },
+  notas: [
+    ["A3", 0.5],
+    ["C4", 0.5],
+    ["E4", 0.5],
+    ["D4", 1.0],
+    ["C4", 0.5],
+    ["B3", 0.5],
+    ["G3", 0.5],
+    ["A3", 1.0],
+    ["PAUSA", 0.5],
+    ["A3", 0.5],
+    ["C4", 0.5],
+    ["E4", 0.5],
+    ["D4", 1.0],
+    ["C4", 0.5],
+    ["E2", 1.0],
+    ["F3", 0.5],
+    ["G3", 0.5],
+    ["A3", 0.5],
+  ],
+};
+
+const blueEiffel65Extended = {
+  config: {
+    bpm: 128,
+    oscType: "square",
+    volume: 0.12,
+    vibratoDepth: 1,
+    vibratoSpeed: 5,
+    attack: 0.001,
+    decay: 0.12, // Ligeiramente mais rápido para dar clareza aos arpejos
+    sustain: 0.35,
+    release: 0.35,
+    parciais: [
+      { mult: 1.0, vol: 1.0, dec: 1.0 },
+      { mult: 2.0, vol: 0.4, dec: 0.5 },
+      { mult: 3.0, vol: 0.2, dec: 0.3 },
+    ],
+    frequencias: {
+      G2: 98.0, // Notas graves adicionadas para a complexidade
+      Bb2: 116.54, // do contra-tempo (arpejo)
+      C3: 130.81,
+      D3: 146.83,
+      G3: 196.0,
+      A3: 220.0,
+      Bb3: 233.08,
+      C4: 261.63,
+      D4: 293.66,
+      Eb4: 311.13,
+      F4: 349.23,
+      G4: 392.0,
+    },
+  },
+  notas: [
+    // --- PARTE 1: O Início clássico com resposta grave ---
+    ["G3", 0.5],
+    ["G2", 0.25],
+    ["Bb3", 0.5],
+    ["Bb2", 0.25],
+    ["C4", 0.5],
+    ["D4", 0.5],
+    ["C4", 0.5],
+    ["D4", 0.5],
+    ["G3", 1.0],
+    ["G2", 0.5],
+
+    // --- PARTE 2: Subida para o Eb4 ---
+    ["Bb3", 0.5],
+    ["C4", 0.5],
+    ["D4", 0.5],
+    ["Eb4", 0.5],
+    ["D4", 0.5],
+    ["Eb4", 0.5],
+    ["C4", 1.0],
+    ["C3", 0.5],
+
+    // --- PARTE 3: Caminho agudo pelo F4 ---
+    ["G3", 0.5],
+    ["Bb3", 0.5],
+    ["C4", 0.5],
+    ["D4", 0.5],
+    ["C4", 0.5],
+    ["D4", 0.5],
+    ["F4", 1.0],
+    ["D3", 0.5],
+
+    // --- PARTE 4: Extensão inédita (Segunda metade do refrão original) ---
+    ["Eb4", 0.5],
+    ["D4", 0.5],
+    ["C4", 0.5],
+    ["Bb3", 0.5],
+    ["C4", 0.5],
+    ["D4", 0.5],
+    ["Bb3", 1.0],
+    ["G2", 0.5],
+    ["A3", 0.5],
+    ["Bb3", 0.5],
+    ["C4", 0.5],
+    ["A3", 0.5],
+    ["G3", 2.0], // Nota final longa sustentada
+  ],
+};
+
+const animalsGarrix = {
+  config: {
+    bpm: 128,
+    oscType: "sawtooth", // Onda dente de serra para o som cortante de festival
+    volume: 0.14,
+    vibratoDepth: 0, // Sem vibrato para manter o som focado e seco
+    vibratoSpeed: 0,
+    attack: 0.002,
+    decay: 0.1, // Decaimento super rápido
+    sustain: 0.1, // Sustain baixo para a nota morrer rápido
+    release: 0.2, // Som cortado abruptamente (estilo staccato agressivo)
+    parciais: [
+      { mult: 1.0, vol: 1.0, dec: 0.5 },
+      { mult: 2.0, vol: 0.6, dec: 0.3 },
+      { mult: 3.0, vol: 0.4, dec: 0.2 },
+      { mult: 4.0, vol: 0.2, dec: 0.1 },
+    ],
+    frequencias: {
+      F2: 87.31, // Nota grave para a virada
+      F3: 174.61,
+      G3: 196.0,
+      Ab3: 207.65,
+      Bb3: 233.08,
+      C4: 261.63,
+    },
+  },
+  notas: [
+    ["F3", 0.5],
+    ["F3", 0.5],
+    ["F3", 0.5],
+    ["PAUSA", 0.5],
+    ["F3", 0.5],
+    ["F3", 0.5],
+    ["F3", 0.5],
+    ["PAUSA", 0.5],
+    ["F3", 0.5],
+    ["G3", 0.5],
+    ["Ab3", 0.5],
+    ["Bb3", 0.5],
+    ["C4", 0.5],
+    ["Bb3", 0.5],
+    ["Ab3", 0.5],
+    ["G3", 0.5],
+    ["F2", 1.0], // Drop impactante no grave
+  ],
+};
+
 console.clear();
 
 console.log("🎄 Jingle Bells Premium carregado");
 console.log("▶ tocarMusica(jingleBellsPremium)");
 console.log("⏹ pararMusica()");
-*/
