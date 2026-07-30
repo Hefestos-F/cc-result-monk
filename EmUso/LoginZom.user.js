@@ -72,13 +72,12 @@
     andament: 1,
     ocultarValor: 0,
     Estouro: 0,
-    Estour1: 0,
     AbaPausas: 0,
     AbaConfig: 0,
     AbaOutros: 0,
     tempoCumprido: 0,
     temHorasExtras: 0,
-    BeepRet: 0,
+    bipando: 0,
     Encontrado: 0,
     LadoBot: 0,
     LadoBotAnterior: 0,
@@ -92,6 +91,7 @@
     modoTeste: 0,
     modoTesteAnt: 0,
     valorFuso: "-03:00",
+    newdata: "2026-07-24",
   };
 
   let TempoPausas = {
@@ -356,7 +356,6 @@
 
       config.pausalimitada = 0;
       stt.Estouro = 0;
-      stt.Estour1 = 0;
 
       atualizarComoff(0, Ccor.Aviso, "cTMA");
       SalvandoVariConfig(1);
@@ -1309,6 +1308,32 @@
       minhaCaixa.appendChild(r);
     });
 
+    //Auxiliar
+
+    //Criar DIV
+    function CreDiv() {
+      const a = document.createElement("div");
+      return a;
+    }
+
+    //criar itens de nome e ticket
+    function VinCname() {
+      const a = CreDiv();
+      a.style.cssText = `
+      display: none;
+      `;
+      const Dad1 = CreDiv();
+      Dad1.id = "NomeOcAtivo";
+      const Dad2 = CreDiv();
+      Dad2.id = "IdOcAtivo";
+
+      a.appendChild(Dad1);
+      a.appendChild(Dad2);
+      return a;
+    }
+
+    minhaCaixa.appendChild(VinCname());
+
     return minhaCaixa;
   }
 
@@ -1413,7 +1438,9 @@
 
   // Data/hora local coerente (YYYY-MM-DD + HH:MM:SS)
   function gerarDataHora() {
-    const agora = new Date();
+    const agora = test.modoTeste
+      ? new Date(`${test.newdata}T${new Date().toTimeString().split(" ")[0]}`)
+      : new Date();
     const offsetStr = test.modoTeste ? test.valorFuso : "-03:00";
 
     // --- parse do offset para minutos ---
@@ -1546,42 +1573,54 @@
     const agora = gerarDataHora();
 
     if (test.modoTeste !== test.modoTesteAnt) {
-      config.pausalimitada = test.modoTeste;
+      if (test.modoTeste) {
+        test.pausalimitadaAntt = config.pausalimitada;
+        config.pausalimitada = 1;
+      } else {
+        config.pausalimitada = test.pausalimitadaAntt;
+      }
       test.modoTesteAnt = test.modoTeste;
     }
 
-    if (config.pausalimitada && config.notiEstouro) {
+    if (config.pausalimitada && config.notiEstouro && stt.Encontrado) {
       stt.Estouro = test.modoTeste
         ? test.Estouro
         : TempoPausas.Estouro
           ? compararDatas(agora, TempoPausas.Estouro)
           : 0;
 
-      if (!stt.Estour1 && stt.Estouro && config.SomEstouro) {
+      if (!stt.bipando && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
-        stt.Estour1 = 1;
-        const ObipRep = setInterval(() => {
-          if (
-            !config.pausalimitada ||
-            !stt.Estouro ||
-            !config.SomEstouro ||
-            !config.notiEstouro ||
-            !stt.Encontrado
-          ) {
-            Hwarn(
-              "Estouro de pausa finalizado" + !stt.Encontrado
-                ? " status Perdido"
-                : "",
-            );
-            clearInterval(ObipRep);
-            stt.Estour1 = 0;
-            stt.Estouro = 0;
-          } else {
-            tocarBeep();
-          }
-          contr();
-        }, 3 * 1000);
+        stt.bipando = 1;
+
+        const [aano, mmes, ddia] = agora.data.split("-");
+        //Hlog(`teste de data aano"${aano}" mmes"${mmes}" ddia"${ddia}"`);
+        tocarMusica(
+          mmes === "12" && ddia >= 10 && ddia <= 30
+            ? jingleBellsPremium
+            : alarmeBipsIntercalados,
+        );
       }
+    }
+
+    if (stt.bipando) {
+      if (
+        !config.pausalimitada ||
+        !stt.Estouro ||
+        !config.SomEstouro ||
+        !config.notiEstouro ||
+        !stt.Encontrado
+      ) {
+        Hwarn(
+          "Estouro de pausa finalizado" + !stt.Encontrado
+            ? " status Perdido"
+            : "",
+        );
+        stt.Estouro = 0;
+        stt.bipando = 0;
+        pararMusica();
+      }
+      contr();
     }
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
@@ -2812,7 +2851,6 @@
       dataInputlogueManual.type = "date";
       dataInputlogueManual.value = new Date().toISOString().split("T")[0];
       dataInputlogueManual.addEventListener("change", salvarHorariologueManual);
-
       dataInputlogueManual.style.cssText = `
       background: #fffefe00;
       border: solid 1px white;
@@ -2909,6 +2947,21 @@
         flex-direction: column;
         `;
       horaInputCai.id = "testefuso";
+
+      // Input de data
+      const dataInput = document.createElement("input");
+      dataInput.type = "date";
+      dataInput.value = new Date().toISOString().split("T")[0];
+      dataInput.addEventListener("change", () => {
+        test.newdata =
+          dataInput.value || new Date().toISOString().split("T")[0];
+      });
+      dataInput.style.cssText = `
+      background: #fffefe00;
+      border: solid 1px white;
+      border-radius: 8px;
+      `;
+
       const SalvarHora = criarBotSalv("A13", "Salvar");
       SalvarHora.addEventListener("click", function () {
         salvarHorario();
@@ -2923,6 +2976,9 @@
        border: 1px solid white;
        color: white;
        border-radius: 8px;`;
+      selSign.addEventListener("change", () => {
+        salvarHorario();
+      });
 
       ["+", "-"].forEach((s) => {
         const opt = document.createElement("option");
@@ -2951,11 +3007,17 @@
         1,
         String(HoraT).padStart(2, "0"),
       );
+      horaInputTE.addEventListener("input", () => {
+        salvarHorario();
+      });
       const minuInputTE = entradatempo(
         "MinuEsc",
         0,
         String(MinutosT).padStart(2, "0"),
       );
+      minuInputTE.addEventListener("input", () => {
+        salvarHorario();
+      });
       selSign.value = SinalT;
 
       function salvarHorario() {
@@ -2970,8 +3032,8 @@
         // Salva na variável
         test.valorFuso = horarioFormatado;
 
-        horaInputTE.value = "";
-        minuInputTE.value = "";
+        //horaInputTE.value = "";
+        //minuInputTE.value = "";
         horaInputTE.placeholder = horaFormatada;
         minuInputTE.placeholder = minutoFormatado;
       }
@@ -3007,14 +3069,12 @@
         return a;
       }
 
-      const contNfuso = osCont();
-
-      contNfuso.append(addOtex("Novo Fuso"), SalvarHora);
-
       horaInputCai.append(
         FModoTeste(),
         Fohr(0),
-        contNfuso,
+
+        addOtex("Novo Fuso"),
+        dataInput,
         horaInputCaiHM,
         Fohr(1),
         SubPrLog,
@@ -3849,27 +3909,284 @@
     return negativo ? `-${corpo}` : corpo;
   }
 
-  /**
-   * tocarBeep - toca tom de alerta via Web Audio API
-   * Frequência: 700Hz, duração: 0.5s, volume: 0.6
-   */
-  function tocarBeep() {
-    const contextoAudio = new (
-      window.AudioContext || window.webkitAudioContext
-    )();
-    const nodoOscilador = contextoAudio.createOscillator();
-    const nodoGanho = contextoAudio.createGain();
+  // =====================================
+  // PREMIUM WEB AUDIO PLAYER
+  // =====================================
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    nodoOscilador.type = "sine"; // Tipo de onda
-    nodoOscilador.frequency.setValueAtTime(700, contextoAudio.currentTime); // Frequência em Hz
-    nodoGanho.gain.setValueAtTime(0.6, contextoAudio.currentTime); // Volume entre 0.0 e 1.0
+  const asCofMus = {
+    stopMusic: false,
+    repetirMusic: true,
+    osciladoresAtivos: [],
+  };
 
-    nodoOscilador.connect(nodoGanho);
-    nodoGanho.connect(contextoAudio.destination);
+  // =====================================
+  // REVERB
+  // =====================================
+  function criarReverb(segundos = 2.5) {
+    const sampleRate = audioCtx.sampleRate;
+    const length = sampleRate * segundos;
+    const impulse = audioCtx.createBuffer(2, length, sampleRate);
 
-    nodoOscilador.start();
-    nodoOscilador.stop(contextoAudio.currentTime + 0.5); // Duração de 0.5 segundos
+    for (let c = 0; c < 2; c++) {
+      const data = impulse.getChannelData(c);
+      for (let i = 0; i < length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 3);
+      }
+    }
+    return impulse;
   }
+
+  const reverb = audioCtx.createConvolver();
+  reverb.buffer = criarReverb(2.8);
+  reverb.connect(audioCtx.destination);
+
+  // =====================================
+  // BPM
+  // =====================================
+  function notaParaMs(valor, bpm) {
+    return (60000 / bpm) * valor;
+  }
+
+  // =====================================
+  // TOCAR MÚSICA
+  // =====================================
+  async function tocarMusica(musica) {
+    asCofMus.stopMusic = false;
+    await audioCtx.resume();
+
+    const bpm = musica.config.bpm || 120;
+
+    for (const [notaTexto, valor] of musica.notas) {
+      if (asCofMus.stopMusic) {
+        console.log("Música interrompida");
+        return;
+      }
+
+      const duracao = notaParaMs(valor, bpm);
+
+      if (notaTexto === "PAUSA") {
+        await new Promise((r) => setTimeout(r, duracao));
+        continue;
+      }
+
+      const notas = notaTexto.split("+");
+      notas.forEach((nota) => {
+        const freq = musica.config.frequencias[nota];
+        if (!freq) return;
+        tocarNotaPremium(freq, duracao, musica.config);
+      });
+
+      await new Promise((r) => setTimeout(r, duracao));
+    }
+
+    if (asCofMus.repetirMusic && !asCofMus.stopMusic) {
+      return tocarMusica(musica);
+    }
+    console.log("Fim da música");
+  }
+
+  // =====================================
+  // NOTA PREMIUM (CORRIGIDA)
+  // =====================================
+  function tocarNotaPremium(freqFundamental, duracao, config) {
+    const now = audioCtx.currentTime;
+    const duracaoSegundos = duracao / 1000;
+    const parciais = config.parciais || [{ mult: 1, vol: 1, dec: 1 }];
+
+    parciais.forEach((parcial) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const pan = audioCtx.createStereoPanner();
+      const lfo = audioCtx.createOscillator();
+      const lfoGain = audioCtx.createGain();
+
+      osc.type = config.oscType || "sine";
+      osc.frequency.setValueAtTime(freqFundamental * parcial.mult, now);
+
+      // Vibrato
+      lfo.frequency.setValueAtTime(config.vibratoSpeed || 5, now);
+      lfoGain.gain.setValueAtTime(config.vibratoDepth || 0, now);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+
+      // Stereo Pan
+      pan.pan.setValueAtTime(Math.random() * 0.5 - 0.25, now);
+
+      // Configurações do Envelope ADSR
+      const volumeMaximo = (config.volume || 0.2) * parcial.vol;
+      const attack = config.attack || 0.01;
+      const decay = config.decay || 0.1;
+      const sustain = config.sustain || 0.4;
+      const release = (config.release || 1.5) * parcial.dec;
+
+      // Cálculo correto dos tempos de transição
+      const tempoAttack = now + attack;
+      const tempoDecay = tempoAttack + decay;
+      const tempoSustain = now + duracaoSegundos;
+      const tempoRelease = tempoSustain + release;
+
+      // Execução do Envelope de Volume (Garante curvas limpas sem estalos)
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(volumeMaximo, tempoAttack);
+      gain.gain.linearRampToValueAtTime(volumeMaximo * sustain, tempoDecay);
+
+      // Mantém o sustain estável e prepara a rampa exponencial sem conflito de tempo
+      gain.gain.setValueAtTime(volumeMaximo * sustain, tempoSustain);
+      gain.gain.exponentialRampToValueAtTime(0.0001, tempoRelease);
+
+      // Conexões de Áudio
+      osc.connect(gain);
+      gain.connect(pan);
+      gain.connect(reverb); // Reverb em paralelo
+      pan.connect(audioCtx.destination); // Som direto em estéreo
+
+      // Início e parada programada dos osciladores
+      osc.start(now);
+      lfo.start(now);
+      osc.stop(tempoRelease);
+      lfo.stop(tempoRelease);
+
+      // Registro para controle externo de parada
+      asCofMus.osciladoresAtivos.push(osc);
+
+      // FAXINA DE MEMÓRIA (Essencial para não travar o navegador)
+      osc.onended = () => {
+        asCofMus.osciladoresAtivos = asCofMus.osciladoresAtivos.filter(
+          (o) => o !== osc,
+        );
+
+        // Desconecta absolutamente tudo para liberar o Garbage Collector
+        osc.disconnect();
+        lfo.disconnect();
+        lfoGain.disconnect();
+        gain.disconnect();
+        pan.disconnect();
+      };
+    });
+  }
+
+  // =====================================
+  // PARAR
+  // =====================================
+  function pararMusica() {
+    asCofMus.stopMusic = true;
+
+    asCofMus.osciladoresAtivos.forEach((osc) => {
+      try {
+        osc.stop();
+      } catch {}
+    });
+
+    asCofMus.osciladoresAtivos = [];
+
+    console.log("Parado");
+  }
+
+  // =====================================
+  // MUSIC
+  // =====================================
+
+  const jingleBellsPremium = {
+    config: {
+      bpm: 180,
+      oscType: "sine",
+      volume: 0.25, // Volume levemente aumentado pois frequências graves são menos audíveis
+      vibratoDepth: 2,
+      vibratoSpeed: 4,
+      attack: 0.01, // Ataque ligeiramente mais lento para evitar estalos no grave
+      decay: 0.3,
+      sustain: 0.4,
+      release: 2.5,
+      parciais: [
+        { mult: 0.5, vol: 1.0, dec: 4.0 }, // Sub-grave reforçado
+        { mult: 1.0, vol: 0.9, dec: 3.0 }, // Frequência fundamental
+        { mult: 1.5, vol: 0.6, dec: 2.0 }, // Quinta harmônica para dar corpo
+        { mult: 2.0, vol: 0.4, dec: 1.5 }, // Oitava superior harmônica
+        { mult: 3.0, vol: 0.2, dec: 1.0 }, // Brilho discreto
+      ],
+      frequencias: {
+        C3: 130.81,
+        D3: 146.83,
+        E3: 164.81,
+        F3: 174.61,
+        G3: 196.0,
+        A3: 220.0,
+        B3: 246.94,
+        C4: 261.63,
+      },
+    },
+    notas: [
+      ["E3", 1],
+      ["E3", 1],
+      ["E3", 2],
+      ["PAUSA", 0.4],
+      ["E3", 1],
+      ["E3", 1],
+      ["E3", 2],
+      ["PAUSA", 0.4],
+      ["E3", 1],
+      ["G3", 1],
+      ["C3", 1],
+      ["D3", 1],
+      ["E3", 3],
+      ["PAUSA", 0.8],
+      ["F3", 1],
+      ["F3", 1],
+      ["F3", 1],
+      ["F3", 1],
+      ["F3", 1],
+      ["E3", 1],
+      ["E3", 1],
+      ["E3", 0.5],
+      ["E3", 0.5],
+      ["G3", 1],
+      ["G3", 1],
+      ["F3", 1],
+      ["D3", 1],
+      ["C3", 3],
+    ],
+  };
+
+  const alarmeBipsIntercalados = {
+    config: {
+      bpm: 120, // Ritmo compassado de 2 bipes por segundo
+      oscType: "square", // Onda senoidal pura para som de bipe eletrônico limpo
+      volume: 0.16, // Volume ligeiramente maior por ser uma frequência pura
+      vibratoDepth: 0,
+      vibratoSpeed: 0,
+      attack: 0.001, // Ataque instantâneo para estalar o início do bipe
+      decay: 0.05,
+      sustain: 0.8, // Mantém o bipe firme até o corte
+      release: 0.01, // Corte abrupto sem eco
+      parciais: [
+        { mult: 1.0, vol: 1.0, dec: 1.0 }, // Apenas a frequência fundamental para pureza
+      ],
+      frequencias: {
+        BipeAlto: 500.0, // Tom agudo clássico de despertador de pulso
+        BipeBaixo: 500.0, // Tom secundário para o efeito intercalado
+      },
+    },
+    notas: [
+      // Primeiro par de bipes rápidos
+      ["BipeAlto", 0.25],
+      ["PAUSA", 0.25],
+      ["BipeAlto", 0.25],
+      ["PAUSA", 0.25],
+
+      // Pausa longa de respiro entre os blocos
+      ["PAUSA", 1.0],
+
+      // Segundo par de bipes com tom intercalado (mais grave)
+      ["BipeBaixo", 0.25],
+      ["PAUSA", 0.25],
+      ["BipeBaixo", 0.25],
+      ["PAUSA", 0.25],
+
+      // Pausa longa para reiniciar o ciclo do alarme
+      ["PAUSA", 1.0],
+    ],
+  };
 
   /**
    * Escurece uma cor (hex, rgb, rgba) reduzindo cada canal por uma fração.
