@@ -2783,8 +2783,12 @@
       );
 
       function salvarHorario() {
-        const hora = parseInt(horaInputTE.value);
-        const minuto = parseInt(minuInputTE.value);
+        const hora = parseInt(
+          horaInputTE.value == "" ? horaInputTE.placeholder : horaInputTE.value,
+        );
+        const minuto = parseInt(
+          minuInputTE.value == "" ? minuInputTE.placeholder : minuInputTE.value,
+        );
 
         const horaFormatada = String(hora).padStart(2, "0");
         const minutoFormatado = String(minuto).padStart(2, "0");
@@ -2813,10 +2817,14 @@
     function ContlogueManual() {
       function salvarHorariologueManual() {
         const hora = parseInt(
-          horaInputlogueManual.value || horaInputlogueManual.placeholder,
+          horaInputlogueManual.value == ""
+            ? horaInputlogueManual.placeholder
+            : horaInputlogueManual.value,
         );
         const minuto = parseInt(
-          minuInputlogueManual.value || minuInputlogueManual.placeholder,
+          minuInputlogueManual.value == ""
+            ? minuInputlogueManual.placeholder
+            : minuInputlogueManual.value,
         );
 
         const horaFormatada = String(hora).padStart(2, "0");
