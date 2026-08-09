@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.19
+// @version      0.0.0.20
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -457,7 +457,7 @@
 
   async function verifiDataLogue(x = 0, z = 0) {
     const a = gerarDataHora();
-    const e = exibirHora(a, 0, "23:59:59");
+    const e = exibirHora(a, 0, "24:00:00");
     let limp = 0;
 
     if (
@@ -465,6 +465,15 @@
       (dadosPrimLogue.data !== a.data && dadosPrimLogue.data !== e.data)
     ) {
       limp = 1;
+    }
+
+    if (
+      !dadosLogueManu ||
+      (dadosLogueManu.data !== a.data && dadosLogueManu.data !== e.data)
+    ) {
+      dadosLogueManu = a;
+      AddOuAtuIindexdb(ChavelogueManu, dadosLogueManu);
+      Hlog("Dados salvos:", dadosLogueManu);
     }
 
     const b = exibirHora(dadosPrimLogue, 1, config.TempoEscaladoHoras);
@@ -1609,7 +1618,8 @@
         !stt.Estouro ||
         !config.SomEstouro ||
         !config.notiEstouro ||
-        !stt.Encontrado
+        (!stt.Encontrado && !config.LogueManual) ||
+        (stt.Encontrado && stt.Status === "Disponivel")
       ) {
         Hwarn(
           "Estouro de pausa finalizado" + !stt.Encontrado
