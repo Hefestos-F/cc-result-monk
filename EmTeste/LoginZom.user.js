@@ -1619,7 +1619,7 @@
         !config.SomEstouro ||
         !config.notiEstouro ||
         (!stt.Encontrado && !config.LogueManual) ||
-        (stt.Encontrado && stt.Status === "Disponivel")
+        (stt.Encontrado && !["Descanso", "Lanche"].includes(stt.Status))
       ) {
         Hwarn(
           "Estouro de pausa finalizado" + !stt.Encontrado
