@@ -592,9 +592,8 @@ if (lista.length > 0) {
   lista.forEach((a) => {
     if (oig.includes(a.Agente)) return;
     
-    a["Hora de fim"]
 
-    exibirAHora(a, op, b)
+    //exibirAHora(agora, 0, a["Hora de fim"])
 
 
     oig.push(a.Agente);
