@@ -510,94 +510,15 @@ console.log("⏹ pararMusica()");
 
 //teste itens
 
-function compararDatas(a, b) {
-  // Validação básica
-  if (!a?.data || !a?.hora || !b?.data || !b?.hora) {
-    throw new Error(
-      "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}",
-    );
-  }
+function gag() {
+  const agora = new Date();
 
-  // Usa horário local (interpretação padrão do JS para strings ISO sem timezone)
-  const da = new Date(`${a.data}T${a.hora}`);
-  const db = new Date(`${b.data}T${b.hora}`);
+  const dataHora = {
+    data: agora.toLocaleDateString("pt-BR"), // dd/mm/aaaa
 
-  // Verifica se datas são válidas
-  if (isNaN(da) || isNaN(db)) {
-    throw new Error(
-      "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'.",
-    );
-  }
-
-  return da.getTime() > db.getTime();
-}
-
-function converterDataHora(texto) {
-  const match = texto.match(
-    /(\d{1,2}):(\d{2})\s(AM|PM)\s+(\d{2})\/(\d{2})\/(\d{4})/i,
-  );
-
-  if (!match) {
-    return null;
-  }
-
-  let [, hora, minuto, periodo, mes, dia, ano] = match;
-
-  hora = parseInt(hora, 10);
-
-  if (periodo.toUpperCase() === "PM" && hora !== 12) {
-    hora += 12;
-  }
-
-  if (periodo.toUpperCase() === "AM" && hora === 12) {
-    hora = 0;
-  }
-
-  return {
-    data: `${dia}/${mes}/${ano}`,
-    hora: `${String(hora).padStart(2, "0")}:${minuto}:00`,
+    hora: agora.toLocaleTimeString("pt-BR"), // hh:mm:ss
   };
-}
-
-const lista = [];
-const itens = document.querySelectorAll("span");
-
-if (itens.length > 0) {
-  itens.forEach((a) => {
-    if (!a.textContent.includes("ID da interação")) return;
-
-    const acima1 = a.parentElement;
-    const acima2 = acima1.parentElement;
-    const alinha = {};
-
-    for (const f of acima2.children) {
-      alinha[f.children[0].textContent] = f.children[0].textContent.includes(
-        "Hora de",
-      )
-        ? converterDataHora(f.children[1].textContent)
-        : f.children[1].textContent;
-    }
-
-    lista.push(alinha);
-  });
-
-  console.log(lista);
-} else {
-  console.log(`itens <= 0`);
-}
-let oag = 0;
-const oig = [];
-
-if (lista.length > 0) {
-  lista.forEach((a) => {
-    if (oig.includes(a.Agente)) return;
-    
-
-    //exibirAHora(agora, 0, a["Hora de fim"])
-
-
-    oig.push(a.Agente);
-  });
+  return dataHora;
 }
 
 function exibirAHora(a, op, b) {
@@ -683,6 +604,104 @@ function exibirAHora(a, op, b) {
   }
 
   return { hora: outHora, data: outData };
+}
+
+function compararDatas(a, b) {
+  // Validação básica
+  if (!a?.data || !a?.hora || !b?.data || !b?.hora) {
+    throw new Error(
+      "Objetos precisam ter {data: 'YYYY-MM-DD', hora: 'HH:MM:SS'}",
+    );
+  }
+
+  // Usa horário local (interpretação padrão do JS para strings ISO sem timezone)
+  const da = new Date(`${a.data}T${a.hora}`);
+  const db = new Date(`${b.data}T${b.hora}`);
+
+  // Verifica se datas são válidas
+  if (isNaN(da) || isNaN(db)) {
+    throw new Error(
+      "Data/hora inválidas. Formato esperado: 'YYYY-MM-DD' e 'HH:MM:SS'.",
+    );
+  }
+
+  return da.getTime() > db.getTime();
+}
+
+function converterDataHora(texto) {
+  const match = texto.match(
+    /(\d{1,2}):(\d{2})\s(AM|PM)\s+(\d{2})\/(\d{2})\/(\d{4})/i,
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  let [, hora, minuto, periodo, mes, dia, ano] = match;
+
+  hora = parseInt(hora, 10);
+
+  if (periodo.toUpperCase() === "PM" && hora !== 12) {
+    hora += 12;
+  }
+
+  if (periodo.toUpperCase() === "AM" && hora === 12) {
+    hora = 0;
+  }
+
+  return {
+    data: `${dia}/${mes}/${ano}`,
+    hora: `${String(hora).padStart(2, "0")}:${minuto}:00`,
+  };
+}
+
+const lista = [];
+const itens = document.querySelectorAll("span");
+
+if (itens.length > 0) {
+  itens.forEach((a) => {
+    if (!a.textContent.includes("ID da interação")) return;
+
+    const acima1 = a.parentElement;
+    const acima2 = acima1.parentElement;
+    const alinha = {};
+
+    for (const f of acima2.children) {
+      alinha[f.children[0].textContent] = f.children[0].textContent.includes(
+        "Hora de",
+      )
+        ? converterDataHora(f.children[1].textContent)
+        : f.children[1].textContent;
+    }
+
+    lista.push(alinha);
+  });
+
+  console.log(lista);
+} else {
+  console.log(`itens <= 0`);
+}
+let oag = 0;
+const oig = [];
+const ost = [];
+
+if (lista.length > 0) {
+  lista.forEach((a) => {
+    if (oig.includes(a.Agente)) return;
+
+    const otime = exibirAHora(gag(), 0, a["Hora de fim"]);
+
+    const oage = a.Agente;
+
+    const qtime = {
+      nome: oage,
+      tempo: otime,
+    };
+
+    oig.push(oage);
+    ost.push(qtime);
+  });
+  console.log(ost);
 }
 
 function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
