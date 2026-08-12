@@ -681,7 +681,7 @@ if (itens.length > 0) {
 } else {
   console.log(`itens <= 0`);
 }
-let oag = 0;
+
 const oig = [];
 const ost = [];
 
@@ -691,14 +691,16 @@ if (lista.length > 0) {
 
     const otime = exibirAHora(gag(), 0, a["Hora de fim"]);
 
-    const oage = a.Agente;
+    const nomeEncontradoAgente = a.Agente;
+
+    const nomeDoAgenteLimpo = nomeEncontradoAgente.replace(/[0-9_@!.,/\\#%&*()\-+=[\]{};:<>?]/g, "");
 
     const qtime = {
-      nome: oage,
+      nome: nomeDoAgenteLimpo,
       tempo: otime,
     };
 
-    oig.push(oage);
+    oig.push(nomeEncontradoAgente);
     ost.push(qtime);
   });
   console.log(ost);
