@@ -510,7 +510,7 @@ console.log("⏹ pararMusica()");
 
 //teste itens
 
-function gag() {
+function dataHoraFormat() {
   const agora = new Date();
 
   const dataHora = {
@@ -655,167 +655,127 @@ function converterDataHora(texto) {
   };
 }
 
-const lista = [];
-const itens = document.querySelectorAll("span");
+function aListaInteracoes() {
+  const listaDInteracoes = [];
 
-if (itens.length > 0) {
-  itens.forEach((a) => {
-    if (!a.textContent.includes("ID da interação")) return;
+  const TodascaixasSpan = document.querySelectorAll("span");
 
-    const acima1 = a.parentElement;
-    const acima2 = acima1.parentElement;
-    const alinha = {};
+  if (TodascaixasSpan.length > 0) {
+    TodascaixasSpan.forEach((caixaSpan) => {
+      if (!caixaSpan.textContent.includes("ID da interação")) return;
 
-    for (const f of acima2.children) {
-      alinha[f.children[0].textContent] = f.children[0].textContent.includes(
-        "Hora de",
-      )
-        ? converterDataHora(f.children[1].textContent)
-        : f.children[1].textContent;
-    }
+      const linhaidInteracao = caixaSpan.parentElement;
+      const caixaInteracao = linhaidInteracao.parentElement;
+      const listaItensInteracao = {};
 
-    lista.push(alinha);
-  });
+      for (const linhasiIteracao of caixaInteracao.children) {
+        listaItensInteracao[linhasiIteracao.children[0].textContent] =
+          linhasiIteracao.children[0].textContent.includes("Hora de")
+            ? converterDataHora(linhasiIteracao.children[1].textContent)
+            : linhasiIteracao.children[1].textContent;
+      }
 
-  console.log(lista);
-} else {
-  console.log(`itens <= 0`);
-}
+      listaDInteracoes.push(listaItensInteracao);
+    });
 
-const oig = [];
-const ost = [];
-
-if (lista.length > 0) {
-  lista.forEach((a) => {
-    if (oig.includes(a.Agente)) return;
-
-    const otime = exibirAHora(gag(), 0, a["Hora de fim"]);
-
-    const nomeEncontradoAgente = a.Agente;
-
-    const nomeDoAgenteLimpo = nomeEncontradoAgente.replace(/[0-9_@!.,/\\#%&*()\-+=[\]{};:<>?]/g, "");
-
-    const qtime = {
-      nome: nomeDoAgenteLimpo,
-      tempo: otime,
-    };
-
-    oig.push(nomeEncontradoAgente);
-    ost.push(qtime);
-  });
-  console.log(ost);
-}
-
-function exibirHora(horaedataparacalculo, maisoumenos, valordeacrecimo) {
-  // --- Parsers de data/hora flexíveis ---
-  function parseDateFlexible(dateStr) {
-    const s = String(dateStr || "").trim();
-
-    // YYYY-MM-DD
-    let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (m) return { year: +m[1], month: +m[2], day: +m[3] };
-
-    // DD/MM/YYYY
-    m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (m) return { year: +m[3], month: +m[2], day: +m[1] };
-
-    return null;
-  }
-
-  function parseTimeFlexible(timeStr) {
-    const m = String(timeStr || "")
-      .trim()
-      .match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-    if (!m) return { hh: 0, mm: 0, ss: 0 };
-    return { hh: +m[1], mm: +m[2], ss: m[3] ? +m[3] : 0 };
-  }
-
-  // --- Constrói Date a partir de {data, hora} ---
-  function buildDateTime(obj) {
-    const d = parseDateFlexible(obj?.data || "");
-    const t = parseTimeFlexible(obj?.hora || "00:00:00");
-    if (!d) return new Date(); // fallback: agora
-
-    let { year, month, day } = d;
-    let { hh, mm, ss } = t;
-
-    // Trate "24:00:00" como 00:00:00 do dia seguinte
-    if (hh === 24) {
-      hh = 0;
-      const tmp = new Date(year, month - 1, day);
-      tmp.setDate(tmp.getDate() + 1);
-      year = tmp.getFullYear();
-      month = tmp.getMonth() + 1;
-      day = tmp.getDate();
-    }
-
-    return new Date(year, month - 1, day, hh, mm, ss);
-  }
-
-  // --- Offset string "+HH:MM[:SS]" | "-HH:MM[:SS]" => segundos ---
-  function parseOffset(offsetStr) {
-    const m = String(offsetStr || "").match(
-      /^([+-])(\d{1,2}):(\d{2})(?::(\d{2}))?$/,
-    );
-    if (!m) return 0;
-    const sign = m[1] === "-" ? -1 : 1;
-    const h = +m[2],
-      mi = +m[3],
-      s = m[4] ? +m[4] : 0;
-    return sign * (h * 3600 + mi * 60 + s);
-  }
-
-  // --- Duração em segundos a partir de string ou objeto absoluto ---
-  // String "HH:MM[:SS]" => duração direta
-  // Objeto {data, hora} => usa a diferença ABS entre val e base (1º parâmetro)
-  function durationFromAbsoluteOrString(val, baseObj) {
-    if (typeof val === "string") {
-      const t = parseTimeFlexible(val);
-      return t.hh * 3600 + t.mm * 60 + t.ss;
-    }
-    if (typeof val === "object" && val) {
-      const dVal = buildDateTime(val);
-      const dBase = buildDateTime(
-        baseObj || { data: "1970-01-01", hora: "00:00:00" },
-      );
-      return Math.abs(Math.floor((dVal.getTime() - dBase.getTime()) / 1000));
-    }
-    return 0;
-  }
-
-  // --- Formata retorno {data:'YYYY-MM-DD', hora:'HH:MM:SS'} em fuso local ---
-  function formatObj(date) {
-    const data = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-      2,
-      "0",
-    )}-${String(date.getDate()).padStart(2, "0")}`;
-    const hora = `${String(date.getHours()).padStart(2, "0")}:${String(
-      date.getMinutes(),
-    ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
-    return { data, hora };
-  }
-
-  // --- Determina offset em segundos ---
-  let offsetSec = 0;
-
-  // Caso 1: maisoumenos é uma offset string e não há 3º parâmetro
-  if (typeof maisoumenos === "string" && valordeacrecimo === undefined) {
-    offsetSec = parseOffset(maisoumenos);
+    //console.log(listaDInteracoes);
   } else {
-    // Caso 2: sinal via maisoumenos (false/0/"0" => negativo; demais => positivo)
-    const dur = durationFromAbsoluteOrString(
-      valordeacrecimo || "00:00:00",
-      horaedataparacalculo,
-    );
-    const isNegative =
-      maisoumenos === false ||
-      (typeof maisoumenos === "number" && Number(maisoumenos) === 0) ||
-      (typeof maisoumenos === "string" && maisoumenos === "0");
-    const sign = isNegative ? -1 : 1;
-    offsetSec = sign * dur;
+    //console.log(`itens <= 0`);
   }
-
-  const base = buildDateTime(horaedataparacalculo);
-  const adjusted = new Date(base.getTime() + offsetSec * 1000);
-  return formatObj(adjusted);
+  return listaDInteracoes;
 }
+
+function listarAgentComTempoDisponivel() {
+  const osAgentIgnorados = [];
+  const ListaAgentComTempo = [];
+  const listaDInteracoes = aListaInteracoes();
+  if (listaDInteracoes.length > 0) {
+    listaDInteracoes.forEach((interacao) => {
+      if (osAgentIgnorados.includes(interacao.Agente)) return;
+
+      const diferencaHoraFimParaAgora = exibirAHora(
+        dataHoraFormat(),
+        0,
+        interacao["Hora de fim"],
+      );
+
+      const nomeEncontradoAgente = interacao.Agente;
+
+      const nomeDoAgenteLimpo = nomeEncontradoAgente.replace(
+        /[0-9_@!.,/\\#%&*()\-+=[\]{};:<>?]/g,
+        "",
+      );
+
+      const nomeETempoDisponivel = {
+        nomeAgent: nomeDoAgenteLimpo,
+        TempoDisponivel: diferencaHoraFimParaAgora,
+      };
+
+      osAgentIgnorados.push(nomeEncontradoAgente);
+      ListaAgentComTempo.push(nomeETempoDisponivel);
+    });
+    //console.log("ListaAgentComTempo: ");
+    //console.log(ListaAgentComTempo);
+  } else {
+    //console.log("ListaAgentComTempo: Não encontrado");
+  }
+  return ListaAgentComTempo;
+}
+
+function colocarListaDeDisponibilidade() {
+  const abaInteracaoConcluida = document.getElementById("pane-active");
+
+  if (abaInteracaoConcluida) {
+    const opai = abaInteracaoConcluida.parentElement;
+
+    const criarDiv = () => document.createElement("div");
+
+    const aCaixaDaListaDisponivel = document.getElementById(
+      "aCaixaDaListaDisponivel",
+    );
+
+    if (aCaixaDaListaDisponivel) aCaixaDaListaDisponivel.remove();
+
+    const aCaixaDaLista = criarDiv();
+    aCaixaDaLista.id = "aCaixaDaListaDisponivel";
+    aCaixaDaLista.style.cssText = `
+      color: rgba(4, 4, 19, .56);
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+    `;
+
+    const listaAgentComTempo = listarAgentComTempoDisponivel();
+
+    listaAgentComTempo.forEach((linhaLista) => {
+      const linhaCaixa = criarDiv();
+      linhaCaixa.style.cssText = `
+        display: flex;
+        width: 90%;
+        justify-content: space-between;
+      `;
+
+      const nome = criarDiv();
+      nome.textContent = linhaLista.nomeAgent;
+
+      const Tempo = criarDiv();
+      Tempo.textContent = linhaLista.TempoDisponivel.hora;
+
+      linhaCaixa.append(nome, Tempo);
+
+      aCaixaDaLista.append(linhaCaixa);
+    });
+
+    opai.prepend(aCaixaDaLista);
+
+    //console.log("Caixa Criada e Adicionada");
+  } else {
+    //console.log("abaInteracaoConcluida não encontrada");
+  }
+}
+
+const atualizarLista = setInterval(colocarListaDeDisponibilidade, 3000);
+
+//clearInterval(atualizarLista);
