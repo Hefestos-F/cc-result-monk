@@ -779,3 +779,19 @@ function colocarListaDeDisponibilidade() {
 const atualizarLista = setInterval(colocarListaDeDisponibilidade, 3000);
 
 //clearInterval(atualizarLista);
+
+const alistaNova = [
+  { id: 12, a: "a", b: "b", c: "c" },
+  { id: 13, a: "a", b: "b", c: "c" },
+  { id: 14, a: "a", b: "b", c: "c" },
+];
+
+const lista1= { id: 12, a: "a", b: "b", c: "c" };
+
+const lista2= { id: 12, a: "n", b: "b", c: "h" };
+
+Object.keys(lista1).forEach(chave => {
+  if (lista1[chave] !== lista2[chave]) {
+    console.log(chave);
+  }
+});

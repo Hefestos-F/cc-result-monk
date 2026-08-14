@@ -371,39 +371,33 @@
   function SincronizarTicketsObservados() {
     Hlog("Sincronizando tickets observados...");
 
-    const atual = ObterEntityId().ids.map(String); // garante string
+    const idsAtual = ObterEntityId().ids.map(String); // garante string
 
-    const setAtual = new Set(atual);
-    const existentes = new Set(ticketsSet.keys());
+    const idsNaLista = [];
+    const idsRemovidos = [];
+    const idsNovos = [];
 
-    // IDs novos (apareceram na aba)
-    const novos = atual.filter((id) => !existentes.has(id));
+    listaTicketCabecalho.forEach((linhas) => {
+      if (!idsNaLista.includes(linhas.id)) {
+        idsNaLista.push(linhas.id);
+      }
+      if (!idsAtual.includes(id)) {
+        idsRemovidos.push(id);
+      }
+    });
 
-    // IDs removidos (sumiram da aba)
-    const removidos = [...existentes].filter((id) => !setAtual.has(id));
+    idsAtual.forEach((id) => {
+      if (!idsNaLista.includes(id)) {
+        idsNovos.push(id);
+      }
+    });
 
-    // --- Adicionar novos ---
-    if (novos.length) {
-      novos.forEach((id) => {
-        ticketsSet.set(id, {
-          id,
-          datatime: null,
-          nome: null,
-          seqQtd: null,
-          seqPrimeiroDatetime: null,
-          status: null,
-          QuemAt: null,
-          wpp: null,
-        });
-
-        observarTicket(id);
-        Hlog(`Novo ID observado: ${id}`);
-      });
-    }
+    //gfg
+    //alistaNova.filter(item => item.id !== 13);
 
     // --- Verificar/reconectar os já existentes (anteriores) ---
     // Para todos os IDs que ainda estão na aba agora
-    atual.forEach((id) => {
+    idsAtual.forEach((id) => {
       const jaTemObserver = ticketObservers.has(id);
       if (!jaTemObserver) {
         // Não há observer para um ID que está visível → adicionar
@@ -427,33 +421,15 @@
     });
 
     // --- Remover os que saíram ---
-    if (removidos.length) {
-      removidos.forEach((id) => {
+    if (idsRemovidos.length) {
+      idsRemovidos.forEach((id) => {
         pararObservacaoTicket(id);
-        ticketsSet.delete(id);
+        listaTicketCabecalho = listaTicketCabecalho.filter(
+          (item) => item.id !== id,
+        );
         Hlog(`ID removido e observador limpo: ${id}`);
       });
     }
-
-    // Exibe tudo (debug)
-    logTicketsSet();
-  }
-
-  // ========= LOG DO MAP (formato objeto como você pediu) =========
-  function logTicketsSet() {
-    const pretty =
-      "{" +
-      Array.from(ticketsSet.values())
-        .map(
-          (v) =>
-            `${v.id}: { id: ${v.id}, datatime: ${v.datatime}, nome: ${JSON.stringify(
-              v.nome,
-            )}, seqQtd: ${v.seqQtd}, seqPrimeiroDatetime: ${v.seqPrimeiroDatetime}, status: ${v.status}, QuemAt: ${v.QuemAt}, wpp: ${v.wpp}  `,
-        )
-        .join(", ") +
-      "}";
-
-    Hlog(`ticketsSet = ${pretty}`);
   }
 
   // ========= OBSERVAÇÃO DE TICKET =========
@@ -703,8 +679,24 @@
 
     let itemdaLista = {};
 
+    let itemdaListaAnterior = {};
+
     listaTicketCabecalho.forEach((itemLista) => {
       if (itemLista.id == id) {
+        itemdaListaAnterior = itemLista;
+
+        itemLista.setor = AgenteESetor.setor || null;
+        itemLista.status = status || null;
+        itemLista.agente = AgenteESetor.agente || null;
+        itemLista.UltimoTime = chat.ultimoDatetime || null;
+        itemLista.nomeCliente =
+          (chat.ultimoNome != AgenteESetor.agente
+            ? chat.ultimoNome
+            : itemLista.nomeCliente) || null;
+        itemLista.nomeUltimaMens = chat.ultimoNome || null;
+        itemLista.NumeroMensagensSequencia = chat.quantidade || null;
+        itemLista.PrimeiroDateTimeSequencia = chat.primeiroDatetime || null;
+
         itemdaLista = itemLista;
         return;
       }
@@ -714,9 +706,10 @@
         status: null,
         agente: null,
         UltimoTime: null,
-        tipoAtendimento: null,
-        PrimeiroDateTimeSequencia: null,
+        nomeCliente: null,
+        nomeUltimaMens: null,
         NumeroMensagensSequencia: null,
+        PrimeiroDateTimeSequencia: null,
       };
 
       listaTicketCabecalho.push(itemdaLista);
@@ -727,65 +720,15 @@
       return;
     }
 
-    // --- Compatibilidade com retorno antigo e novo ---
-    // Antigo:  { datatime, nome }
-    // Novo:    { ultimoDatetime, ultimoNome, sequencia: { nome, quantidade, primeiroDatetime } }
-    const datatimeAtual = chat.ultimoDatetime ?? null;
-    const nomeAtual = chat.ultimoNome ?? null;
-
-    const seqQtdAtual =
-      info.sequencia && typeof info.sequencia.quantidade === "number"
-        ? info.sequencia.quantidade
-        : null;
-
-    const seqPrimeiroDatetimeAtual =
-      info.sequencia && info.sequencia.primeiroDatetime
-        ? info.sequencia.primeiroDatetime
-        : null;
-
-    // --- Detectar mudanças ---
-    const changedDate = datatimeAtual !== prev.datatime;
-    const changedName = nomeAtual !== prev.nome;
-    const changedSeqQtd = seqQtdAtual !== prev.seqQtd;
-    const changedSeqPrimeiro =
-      seqPrimeiroDatetimeAtual !== prev.seqPrimeiroDatetime;
-
-    if (
-      changedDate ||
-      changedName ||
-      changedSeqQtd ||
-      changedSeqPrimeiro ||
-      ostatus
-    ) {
-      ticketsSet.set(id, {
-        id,
-        datatime: datatimeAtual,
-        nome: nomeAtual,
-        seqQtd: seqQtdAtual,
-        seqPrimeiroDatetime: seqPrimeiroDatetimeAtual,
-        status: ostatus,
-        QuemAt: QuemAt,
-        wpp: Ewpp,
+    if (itemdaLista !== itemdaListaAnterior) {
+      Object.keys(itemdaLista).forEach((chave) => {
+        if (itemdaLista[chave] !== itemdaListaAnterior[chave]) {
+          Hlog(`Atualizado ${id}: ${chave}`);
+        }
       });
 
-      if (changedDate) {
-        Hlog(`Atualizado datatime do ticket ${id}: ${datatimeAtual}`);
-      }
-      if (changedName) {
-        Hlog(`Atualizado nome do ticket ${id}: ${nomeAtual}`);
-      }
-      if (changedSeqQtd) {
-        Hlog(
-          `Atualizada sequência do mesmo remetente no ticket ${id}: quantidade = ${seqQtdAtual}`,
-        );
-      }
-      if (changedSeqPrimeiro) {
-        Hlog(
-          `Atualizado primeiro datetime da sequência no ticket ${id}: ${seqPrimeiroDatetimeAtual}`,
-        );
-      }
+      Hlog(`listaTicketCabecalho = ${listaTicketCabecalho}`);
 
-      logTicketsSet();
       if (ostatus) {
         /* const alis = EstaResolvido(id);
         if (alis.eMeu && !alis.Resol && ticketsSet.has(id).wpp) addContagem(id);*/
@@ -793,7 +736,6 @@
         addContagem(id);
       }
     } else {
-
       Hlog(`(sem mudança) ticket ${id}`);
     }
   }
@@ -1108,24 +1050,26 @@
   }
 
   function EncontrarAgenteESetor(id) {
+    /*
     const oAtribuido = ticketsSet.has(id).QuemAt;
     const wppI = ticketsSet.has(id).wpp;
-    if (oAtribuido && wppI) return { Agente: oAtribuido, setor: wppI };
+    if (oAtribuido && wppI) return { agente: oAtribuido, setor: wppI };
+    */
     const conteinerDoTicket = document.querySelector(
       `[data-test-id="ticket-${id}-standard-layout"]`,
     );
-    if (!conteinerDoTicket) return { Agente: null, setor: null };
+    if (!conteinerDoTicket) return { agente: null, setor: null };
 
     const linhaAtribuido = conteinerDoTicket.querySelector(
       '[data-test-id="assignee-field-selected-agent-tag"]',
     );
-    if (!linhaAtribuido) return { Agente: null, setor: null };
+    if (!linhaAtribuido) return { agente: null, setor: null };
 
     const elementosComTitle = linhaAtribuido.querySelectorAll("[title]");
-    if (elementosComTitle.length < 2) return { Agente: null, setor: null };
+    if (elementosComTitle.length < 2) return { agente: null, setor: null };
 
     return {
-      Agente: elementosComTitle[1].getAttribute("title"),
+      agente: elementosComTitle[1].getAttribute("title"),
       setor: elementosComTitle[0].getAttribute("title"),
     };
   }
@@ -1352,43 +1296,43 @@
   }
 
   function AtualizarTimerChat() {
-    if (!(ticketsSet instanceof Map)) return;
+    if (!listaTicketCabecalho) return;
 
     let aCont = 0;
-    for (const [id, info] of ticketsSet) {
-      if (!info || !info.seqPrimeiroDatetime || !info.nome || !info.status)
+    for (const linha of listaTicketCabecalho) {
+      if (!linha)
         continue; // precisa ter datatime
 
-      const e = document.querySelector(
-        `[data-entity-id="${CSS.escape(id)}"][data-test-id="header-tab"]`,
+      const abaTicket = document.querySelector(
+        `[data-entity-id="${CSS.escape(linha.id)}"][data-test-id="header-tab"]`,
       );
 
-      const el = document.getElementById(`Contador${id}`);
+      const elementoContador = document.getElementById(`Contador${linha.id}`);
 
-      const os = EstaResolvido(id);
+      //const os = EstaResolvido(linha.id);
 
-      if (!el) {
+      if (!elementoContador) {
         /*if (os.eMeu && !os.Resol && info.wpp) {
           addContagem(id); // cria contador se não existir
           Hdebug(`Contador Criado Em ${id}`);
         }*/
 
-        addContagem(id); // cria contador se não existir
+        addContagem(linha.id); // cria contador se não existir
 
         continue;
       }
 
       const agora = gerarDataHora(); // { data: "YYYY-MM-DD", hora: "HH:mm:ss" }
-      const a = isoParaDataHora(info.seqPrimeiroDatetime); // idem, vindo do ISO salvo
+      const datetimeConvertido = isoParaDataHora(linha.primeiroDatetime); // idem, vindo do ISO salvo
 
       // Só calcula se a data for a mesma
-      if (agora.data !== a.data) {
-        if (e && e.style.borderBottom !== "") e.style.borderBottom = "";
+      if (agora.data !== datetimeConvertido.data) {
+        if (abaTicket && abaTicket.style.borderBottom !== "") abaTicket.style.borderBottom = "";
         el.remove();
         continue;
       }
 
-      const c = exibirAHora(agora, 0, a);
+      const c = exibirAHora(agora, 0, datetimeConvertido);
       const d = converterParaSegundos(c.hora);
 
       // --- COR DO FUNDO ---
