@@ -76,6 +76,8 @@
 
   let tooltipObserver = null;
 
+  let listaTicketCabecalho = [];
+
   function gerarDataHora() {
     const agora = new Date();
 
@@ -373,31 +375,46 @@
 
     const idsAtual = ObterEntityId().ids.map(String); // garante string
 
+    const idsAtualLimpo = [];
     const idsNaLista = [];
     const idsRemovidos = [];
     const idsNovos = [];
+
+    idsAtual.forEach((ids) => {
+      const temLetra = /[a-zA-Z]/.test(ids);
+      if (!temLetra) {
+        idsAtualLimpo.push(ids);
+      }
+    });
 
     listaTicketCabecalho.forEach((linhas) => {
       if (!idsNaLista.includes(linhas.id)) {
         idsNaLista.push(linhas.id);
       }
-      if (!idsAtual.includes(id)) {
-        idsRemovidos.push(id);
+
+      if (!idsAtualLimpo.includes(linhas.id)) {
+        idsRemovidos.push(linhas.id);
       }
     });
 
-    idsAtual.forEach((id) => {
+    Hlog(`idsRemovidos: ${idsRemovidos}`);
+
+    Hlog(`idsNaLista: ${idsNaLista}`);
+
+    idsAtualLimpo.forEach((id) => {
       if (!idsNaLista.includes(id)) {
         idsNovos.push(id);
       }
     });
+
+    Hlog(`idsNovos: ${idsNovos}`);
 
     //gfg
     //alistaNova.filter(item => item.id !== 13);
 
     // --- Verificar/reconectar os já existentes (anteriores) ---
     // Para todos os IDs que ainda estão na aba agora
-    idsAtual.forEach((id) => {
+    idsAtualLimpo.forEach((id) => {
       const jaTemObserver = ticketObservers.has(id);
       if (!jaTemObserver) {
         // Não há observer para um ID que está visível → adicionar
@@ -424,9 +441,10 @@
     if (idsRemovidos.length) {
       idsRemovidos.forEach((id) => {
         pararObservacaoTicket(id);
-        listaTicketCabecalho = listaTicketCabecalho.filter(
+        const listaLimpa = listaTicketCabecalho.filter(
           (item) => item.id !== id,
         );
+        listaTicketCabecalho = listaLimpa;
         Hlog(`ID removido e observador limpo: ${id}`);
       });
     }
@@ -478,6 +496,7 @@
 
     // 👉 Executa imediatamente para capturar o estado inicial (ex.: datetime atual)
     handleTicketChange(id);
+    Hlog("handleTicketChange Chamado");
 
     // Observa adições/remoções de nós dentro do container, inclusive em subárvores
     obs.observe(root, { childList: true, subtree: true });
@@ -667,76 +686,54 @@
     }
   }
 
-  const listaTicketCabecalho = [];
-
   // ========= CALLBACK DE MUDANÇA DO TICKET =========
   function handleTicketChange(id) {
     const chat = varrerChat(id);
     const status = getStatusAntesDoTicket(id).status;
     const AgenteESetor = EncontrarAgenteESetor(id);
-    const QuemAt = Oatrib.Nome;
-    const Ewpp = Oatrib.wpp;
-
-    let itemdaLista = {};
-
-    let itemdaListaAnterior = {};
-
-    listaTicketCabecalho.forEach((itemLista) => {
-      if (itemLista.id == id) {
-        itemdaListaAnterior = itemLista;
-
-        itemLista.setor = AgenteESetor.setor || null;
-        itemLista.status = status || null;
-        itemLista.agente = AgenteESetor.agente || null;
-        itemLista.UltimoTime = chat.ultimoDatetime || null;
-        itemLista.nomeCliente =
-          (chat.ultimoNome != AgenteESetor.agente
-            ? chat.ultimoNome
-            : itemLista.nomeCliente) || null;
-        itemLista.nomeUltimaMens = chat.ultimoNome || null;
-        itemLista.NumeroMensagensSequencia = chat.quantidade || null;
-        itemLista.PrimeiroDateTimeSequencia = chat.primeiroDatetime || null;
-
-        itemdaLista = itemLista;
-        return;
-      }
-      itemdaLista = {
-        id: id,
-        setor: null,
-        status: null,
-        agente: null,
-        UltimoTime: null,
-        nomeCliente: null,
-        nomeUltimaMens: null,
-        NumeroMensagensSequencia: null,
-        PrimeiroDateTimeSequencia: null,
-      };
-
-      listaTicketCabecalho.push(itemdaLista);
-    });
 
     if (!chat) {
       Hlog(`(sem dados) ticket ${id}, mantendo anterior`);
       return;
     }
 
-    if (itemdaLista !== itemdaListaAnterior) {
-      Object.keys(itemdaLista).forEach((chave) => {
-        if (itemdaLista[chave] !== itemdaListaAnterior[chave]) {
-          Hlog(`Atualizado ${id}: ${chave}`);
+    let itemdaLista = {};
+
+    itemdaLista.id = id;
+    itemdaLista.setor = AgenteESetor.setor || null;
+    itemdaLista.status = status || null;
+    itemdaLista.agente = AgenteESetor.agente || null;
+    itemdaLista.UltimoTime = chat.ultimoDatetime || null;
+    itemdaLista.nomeCliente =
+      (chat.ultimoNome && chat.ultimoNome != AgenteESetor.agente
+        ? chat.ultimoNome
+        : itemdaLista.nomeCliente) || null;
+    itemdaLista.nomeUltimaMens = chat.ultimoNome || null;
+    itemdaLista.NumeroMensagensSequencia = chat.quantidade || null;
+    itemdaLista.PrimeiroDateTimeSequencia = chat.primeiroDatetime || null;
+
+    let itemdaListaAnterior = {};
+
+    if (!listaTicketCabecalho.length) {
+      listaTicketCabecalho.push(itemdaLista);
+      Hlog(`Adicionado a listaTicketCabecalho ${id}`);
+    } else {
+      listaTicketCabecalho.forEach((itemLista) => {
+        if (itemLista.id == id) {
+          if (itemdaLista !== itemLista) {
+            Object.keys(itemdaLista).forEach((chave) => {
+              if (itemdaLista[chave] !== itemLista[chave]) {
+                itemLista[chave] = itemdaLista[chave];
+                Hlog(`Atualizado ${id}: ${chave}`);
+              }
+            });
+            Hlog(`listaTicketCabecalho: `);
+            Hlog(listaTicketCabecalho);
+          } else {
+            Hlog(`(sem mudança) ticket ${id}`);
+          }
         }
       });
-
-      Hlog(`listaTicketCabecalho = ${listaTicketCabecalho}`);
-
-      if (ostatus) {
-        /* const alis = EstaResolvido(id);
-        if (alis.eMeu && !alis.Resol && ticketsSet.has(id).wpp) addContagem(id);*/
-
-        addContagem(id);
-      }
-    } else {
-      Hlog(`(sem mudança) ticket ${id}`);
     }
   }
 
@@ -1050,19 +1047,16 @@
   }
 
   function EncontrarAgenteESetor(id) {
-    /*
-    const oAtribuido = ticketsSet.has(id).QuemAt;
-    const wppI = ticketsSet.has(id).wpp;
-    if (oAtribuido && wppI) return { agente: oAtribuido, setor: wppI };
-    */
     const conteinerDoTicket = document.querySelector(
       `[data-test-id="ticket-${id}-standard-layout"]`,
     );
+
     if (!conteinerDoTicket) return { agente: null, setor: null };
 
     const linhaAtribuido = conteinerDoTicket.querySelector(
       '[data-test-id="assignee-field-selected-agent-tag"]',
     );
+
     if (!linhaAtribuido) return { agente: null, setor: null };
 
     const elementosComTitle = linhaAtribuido.querySelectorAll("[title]");
@@ -1071,95 +1065,6 @@
     return {
       agente: elementosComTitle[1].getAttribute("title"),
       setor: elementosComTitle[0].getAttribute("title"),
-    };
-  }
-
-  function obterEntityIdSelecionado() {
-    //const item = document.querySelector('[data-selected="true"]');
-    const item = document.querySelector('[data-entity-is-selected="true"]');
-    if (!item) return null; // ou "", ou false — como preferir
-
-    return item.getAttribute("data-entity-id");
-  }
-
-  const normalizeNome = (s) => (s || "").replace(/\s+/g, " ").trim();
-  // Utilitário: formata "fulano" -> "Fulano"
-  const formatPrimeiroNomeDIF = (txt) => {
-    const t = (txt || "").trim();
-    if (!t) return "";
-    // Extrai a primeira "palavra" (até espaço)
-    const first = t.split(/\s+/)[0];
-    const lower = first.toLowerCase();
-    return lower.charAt(0).toUpperCase() + lower.slice(1);
-  };
-
-  function getNomeAntesDoTicket(numeroTicket) {
-    if (!numeroTicket) return "-X";
-
-    // span do ticket
-    const ticketSpan = document.querySelectorAll(
-      '[data-test-id="tabs-section-nav-item-ticket"]',
-    );
-
-    if (ticketSpan.length === 0) {
-      return "X-X";
-    }
-    let onomecer = "XZX";
-
-    ticketSpan.forEach((s) => {
-      if (s.textContent.includes(`Ticket #${numeroTicket}`)) {
-        const gg = s.parentElement.querySelector(
-          '[data-test-id="tabs-nav-item-users"]',
-        );
-
-        if (gg) onomecer = gg.textContent;
-      }
-    });
-
-    const nomeCompleto = normalizeNome(onomecer);
-
-    return {
-      primeiroNome: formatPrimeiroNomeDIF(nomeCompleto),
-      nomeCompleto: nomeCompleto,
-    };
-  }
-
-  function nomeETicket() {
-    const numero = obterEntityIdSelecionado();
-    const ticket = numero || "000000";
-
-    let contato = "X-";
-    try {
-      const res = getNomeAntesDoTicket(ticket);
-      contato = res && res.primeiroNome ? res.primeiroNome : "XX-XX";
-    } catch (e) {
-      Hwarn("Falha ao obter contato via encontrarNome():", e);
-    }
-
-    return {
-      contato,
-      ticket,
-    };
-  }
-
-  function Preenc() {
-    const oSNom = nomeETicket();
-
-    const NomeOcAtivo = document.getElementById("NomeOcAtivo");
-    const IdOcAtivo = document.getElementById("IdOcAtivo");
-
-    if (NomeOcAtivo && NomeOcAtivo.textContent !== oSNom.contato)
-      NomeOcAtivo.textContent = oSNom.contato;
-    if (IdOcAtivo && IdOcAtivo.textContent !== oSNom.ticket)
-      IdOcAtivo.textContent = oSNom.ticket;
-
-    const nome = NomeOcAtivo ? "NomeOcAtivo true" : "NomeOcAtivo False";
-
-    const tick = IdOcAtivo ? "IdOcAtivo true" : "IdOcAtivo False";
-
-    return {
-      nome: nome,
-      tick: tick,
     };
   }
 
@@ -1199,8 +1104,16 @@
     }
   }
 
-  function aMarcacaoObrig(f, erroSalv) {
-    if (!f) return;
+  function marcarFaltaPreencher(id) {
+    const conteinerId = document.querySelector(
+      `[data-test-id="ticket-${CSS.escape(id)}-standard-layout"]`,
+    );
+    if (!conteinerId) return null;
+
+    const caixaErro = conteinerId?.querySelector(
+      '[data-test-id="ticket_saving_error_notification"]',
+    );
+    const erroNaTela = caixaErro ? 1 : 0;
 
     // 🔴 CSS de erro (injetado uma vez)
     const STYLE_ID = "estilo-ErroOb";
@@ -1217,18 +1130,18 @@
       document.head.appendChild(style);
     }
 
-    const oSidebar = f.querySelector("#ticket_sidebar");
-    if (!oSidebar) return;
+    const oSidebar = conteinerId.querySelector("#ticket_sidebar");
+    if (!oSidebar) return null;
 
     // 🧹 limpa erros antigos
     oSidebar
       .querySelectorAll(".erro-obrigatorio")
       .forEach((el) => el.classList.remove("erro-obrigatorio"));
 
-    if (!erroSalv) return;
+    if (!caixaErro) return erroNaTela;
 
     // ✅ lê corretamente os spans do erro
-    const osObrig = Array.from(erroSalv.querySelectorAll("li span")).map(
+    const osObrig = Array.from(caixaErro.querySelectorAll("li span")).map(
       (span) =>
         span.textContent.replace(" é obrigatório", "").replace(/"/g, "").trim(),
     );
@@ -1242,7 +1155,7 @@
         .replace(/\p{Diacritic}/gu, "")
         .trim();
 
-    if (osObrig.length === 0) return;
+    if (osObrig.length === 0) return null;
 
     const obrigNorm = osObrig.map(normalizar);
 
@@ -1258,50 +1171,19 @@
         label.classList.add("erro-obrigatorio");
       }
     });
-  }
 
-  function EstaResolvido(id) {
-    const f = document.querySelector(
-      `[data-test-id="ticket-${CSS.escape(id)}-standard-layout"]`,
-    );
-
-    const erroSalv = f?.querySelector(
-      '[data-test-id="ticket_saving_error_notification"]',
-    );
-
-    aMarcacaoObrig(f, erroSalv);
-
-    const os = getStatusAntesDoTicket(id)?.status;
-
-    //const enconAt = EncontrarAtribuido(id)?.Nome;
-    const enconAt = "FRANCIEL PAULINO DA SILVA";
-
-    // fallback seguro do cache
-    if (!os || !enconAt) {
-      //Hlog("Falso");
-      return {
-        eMeu: stt.StatusTk?.[id]?.eMeu ?? 0,
-        Resol: stt.StatusTk?.[id]?.Resol ?? 0,
-      };
-    }
-
-    const eMeu = config.NomeAt === enconAt || stt.eMeuIg ? 1 : 0;
-
-    const Resol = !erroSalv && outrav.includes(os) ? 1 : 0;
-
-    stt.StatusTk[id] = { eMeu, Resol };
-
-    //Hlog(`Resolvido: ${Resol} / Emeu: ${eMeu}`);
-    return { eMeu, Resol };
+    return erroNaTela;
   }
 
   function AtualizarTimerChat() {
     if (!listaTicketCabecalho) return;
 
-    let aCont = 0;
+    let atendimentosAtivos = 0;
+
     for (const linha of listaTicketCabecalho) {
-      if (!linha)
-        continue; // precisa ter datatime
+      if (!linha) continue; // precisa ter datatime
+
+      Hlog(`linha true`);
 
       const abaTicket = document.querySelector(
         `[data-entity-id="${CSS.escape(linha.id)}"][data-test-id="header-tab"]`,
@@ -1309,31 +1191,42 @@
 
       const elementoContador = document.getElementById(`Contador${linha.id}`);
 
-      //const os = EstaResolvido(linha.id);
+      //const estaResolvido = linha.status == "Resolvido" && !marcarFaltaPreencher(linha.id);
+      const estaResolvido = 0;
+      //const eMeu = config.NomeAt == linha.agente;
+      const eMeu = 1;
+      //const eWwp = linha.setor.includes("whatsapp");
+      const eWwp = 1;
 
       if (!elementoContador) {
-        /*if (os.eMeu && !os.Resol && info.wpp) {
-          addContagem(id); // cria contador se não existir
-          Hdebug(`Contador Criado Em ${id}`);
-        }*/
-
-        addContagem(linha.id); // cria contador se não existir
-
+        if (eMeu && !estaResolvido && eWwp) {
+          addContagem(linha.id); // cria contador se não existir
+          Hdebug(`Contador Criado Em ${linha.id}`);
+        }
         continue;
       }
 
       const agora = gerarDataHora(); // { data: "YYYY-MM-DD", hora: "HH:mm:ss" }
-      const datetimeConvertido = isoParaDataHora(linha.primeiroDatetime); // idem, vindo do ISO salvo
+      const datetimeConvertido = isoParaDataHora(
+        linha.PrimeiroDateTimeSequencia,
+      ); // idem, vindo do ISO salvo
 
       // Só calcula se a data for a mesma
       if (agora.data !== datetimeConvertido.data) {
-        if (abaTicket && abaTicket.style.borderBottom !== "") abaTicket.style.borderBottom = "";
-        el.remove();
+        if (abaTicket && abaTicket.style.borderBottom !== "")
+          abaTicket.style.borderBottom = "";
+        elementoContador.remove();
         continue;
       }
 
-      const c = exibirAHora(agora, 0, datetimeConvertido);
-      const d = converterParaSegundos(c.hora);
+      const diferencaUltimaMensAgora = exibirAHora(
+        agora,
+        0,
+        datetimeConvertido,
+      );
+      const diferencaSegundos = converterParaSegundos(
+        diferencaUltimaMensAgora.hora,
+      );
 
       // --- COR DO FUNDO ---
       const SeisM = converterParaSegundos("00:06:00");
@@ -1341,26 +1234,34 @@
       const TresM = converterParaSegundos("00:03:00");
       //const CincS = converterParaSegundos("00:00:05");
 
-      el.style.backgroundColor =
-        d > CincM ? Ccor.Alerta : d > TresM ? Ccor.Aviso : Ccor.Contagem;
+      elementoContador.style.backgroundColor =
+        diferencaSegundos > CincM
+          ? Ccor.Alerta
+          : diferencaSegundos > TresM
+            ? Ccor.Aviso
+            : Ccor.Contagem;
 
-      if (e)
-        e.style.borderBottom = d >= SeisM ? `6px solid ${Ccor.Alerta}` : "";
+      if (abaTicket)
+        abaTicket.style.borderBottom =
+          diferencaSegundos >= SeisM ? `6px solid ${Ccor.Alerta}` : "";
 
       // --- TEXTO DO CONTADOR ---
-      el.textContent = tempoEncurtado(c.hora);
+      elementoContador.textContent = tempoEncurtado(
+        diferencaUltimaMensAgora.hora,
+      );
 
-      if (os.Resol) {
-        if (e && e.style.borderBottom !== "") e.style.borderBottom = "";
-        el.remove();
+      if (estaResolvido) {
+        if (abaTicket && abaTicket.style.borderBottom !== "")
+          abaTicket.style.borderBottom = "";
+        elementoContador.remove();
       }
 
-      if (os.eMeu && !os.Resol) {
-        aCont += 1;
+      if (eMeu && !estaResolvido) {
+        atendimentosAtivos++;
       }
     }
-    if (aCont !== dadosDpausa.NdeIdAtivo) {
-      dadosDpausa.NdeIdAtivo = aCont;
+    if (atendimentosAtivos !== dadosDpausa.NdeIdAtivo) {
+      dadosDpausa.NdeIdAtivo = atendimentosAtivos;
       Hlog(`Mudança dadosDpausa.NdeIdAtivo: ${dadosDpausa.NdeIdAtivo}`);
     }
   }
