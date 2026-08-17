@@ -481,7 +481,7 @@
     if (!ticketDebouncers.has(id)) {
       ticketDebouncers.set(
         id,
-        debounce(() => handleTicketChange(id), config.DEBOUNCE_MS),
+        debounce(() => atualizarMudancaTicket(id), config.DEBOUNCE_MS),
       );
     }
 
@@ -495,8 +495,9 @@
     });
 
     // 👉 Executa imediatamente para capturar o estado inicial (ex.: datetime atual)
-    handleTicketChange(id);
-    Hlog("handleTicketChange Chamado");
+    await atualizarMudancaTicket(id);
+    addContagem(id);
+    //Hlog("atualizarMudancaTicket Chamado");
 
     // Observa adições/remoções de nós dentro do container, inclusive em subárvores
     obs.observe(root, { childList: true, subtree: true });
@@ -687,7 +688,7 @@
   }
 
   // ========= CALLBACK DE MUDANÇA DO TICKET =========
-  function handleTicketChange(id) {
+  function atualizarMudancaTicket(id) {
     const chat = varrerChat(id);
     const status = getStatusAntesDoTicket(id).status;
     const AgenteESetor = EncontrarAgenteESetor(id);
@@ -704,10 +705,8 @@
     itemdaLista.status = status || null;
     itemdaLista.agente = AgenteESetor.agente || null;
     itemdaLista.UltimoTime = chat.ultimoDatetime || null;
-    itemdaLista.nomeCliente =
-      (chat.ultimoNome && chat.ultimoNome != AgenteESetor.agente
-        ? chat.ultimoNome
-        : itemdaLista.nomeCliente) || null;
+    if (chat.ultimoNome && chat.ultimoNome != AgenteESetor.agente)
+      itemdaLista.nomeCliente = chat.ultimoNome;
     itemdaLista.nomeUltimaMens = chat.ultimoNome || null;
     itemdaLista.NumeroMensagensSequencia = chat.quantidade || null;
     itemdaLista.PrimeiroDateTimeSequencia = chat.primeiroDatetime || null;
@@ -720,15 +719,15 @@
     } else {
       listaTicketCabecalho.forEach((itemLista) => {
         if (itemLista.id == id) {
-          if (itemdaLista !== itemLista) {
-            Object.keys(itemdaLista).forEach((chave) => {
+          if (itemdaLista != itemLista) {
+            Object.keys(itemLista).forEach((chave) => {
               if (itemdaLista[chave] !== itemLista[chave]) {
                 itemLista[chave] = itemdaLista[chave];
-                Hlog(`Atualizado ${id}: ${chave}`);
+                Hlog(`Atualizado ${id}: ${chave} = ${itemdaLista[chave]}`);
               }
             });
-            Hlog(`listaTicketCabecalho: `);
-            Hlog(listaTicketCabecalho);
+            //Hlog(`listaTicketCabecalho: `);
+            // Hlog(listaTicketCabecalho);
           } else {
             Hlog(`(sem mudança) ticket ${id}`);
           }
@@ -944,14 +943,12 @@
 
     tablistRef = null; // solta referência
 
-    // 3) Para observação de cada ticket atualmente observado
-    if (ticketsSet && typeof ticketsSet.keys === "function") {
-      // se for Map<string, {...}>
-      for (const id of ticketsSet.keys()) {
+    if (listaTicketCabecalho.length) {
+      for (const linha of listaTicketCabecalho) {
         try {
-          pararObservacaoTicket(id); // sua função já desconecta o MutationObserver e limpa debouncer do ticket
+          pararObservacaoTicket(linha.id);
         } catch (e) {
-          Hwarn(`Erro ao pararObservacaoTicket(${id}):`, e);
+          Hwarn(`Erro ao pararObservacaoTicket(${linha.id}):`, e);
         }
       }
     }
@@ -1183,7 +1180,7 @@
     for (const linha of listaTicketCabecalho) {
       if (!linha) continue; // precisa ter datatime
 
-      Hlog(`linha true`);
+      //Hlog(`linha true`);
 
       const abaTicket = document.querySelector(
         `[data-entity-id="${CSS.escape(linha.id)}"][data-test-id="header-tab"]`,
@@ -1191,12 +1188,17 @@
 
       const elementoContador = document.getElementById(`Contador${linha.id}`);
 
-      //const estaResolvido = linha.status == "Resolvido" && !marcarFaltaPreencher(linha.id);
-      const estaResolvido = 0;
+      const normalize = (s) =>
+        (s || "").replace(/\s+/g, " ").trim().toUpperCase();
+
+      const estaResolvido =
+        ["RESOLVIDO", "FECHADO"].includes(normalize(linha.status)) &&
+        !marcarFaltaPreencher(linha.id);
+
       //const eMeu = config.NomeAt == linha.agente;
       const eMeu = 1;
-      //const eWwp = linha.setor.includes("whatsapp");
-      const eWwp = 1;
+
+      const eWwp = normalize(linha.setor).includes(normalize("whatsapp"));
 
       if (!elementoContador) {
         if (eMeu && !estaResolvido && eWwp) {
@@ -1211,13 +1213,8 @@
         linha.PrimeiroDateTimeSequencia,
       ); // idem, vindo do ISO salvo
 
-      // Só calcula se a data for a mesma
-      if (agora.data !== datetimeConvertido.data) {
-        if (abaTicket && abaTicket.style.borderBottom !== "")
-          abaTicket.style.borderBottom = "";
-        elementoContador.remove();
-        continue;
-      }
+      //Hdebug(`datetimeConvertido: `);
+      //Hdebug(datetimeConvertido);
 
       const diferencaUltimaMensAgora = exibirAHora(
         agora,
@@ -1250,7 +1247,7 @@
         diferencaUltimaMensAgora.hora,
       );
 
-      if (estaResolvido) {
+      if (estaResolvido || agora.data !== datetimeConvertido.data) {
         if (abaTicket && abaTicket.style.borderBottom !== "")
           abaTicket.style.borderBottom = "";
         elementoContador.remove();
