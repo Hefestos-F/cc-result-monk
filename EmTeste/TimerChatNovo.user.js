@@ -31,6 +31,7 @@
     dBUG: 1,
     OBS_ATIVO: 1, // flag opcional para bloquear reconexões enquanto limpa
     DEBOUNCE_MS: 300,
+    agenteZndesk: "",
   };
 
   const stt = {};
@@ -690,8 +691,6 @@
   // ========= CALLBACK DE MUDANÇA DO TICKET =========
   function atualizarMudancaTicket(id) {
     const chat = varrerChat(id);
-    const status = getStatusAntesDoTicket(id).status;
-    const AgenteESetor = EncontrarAgenteESetor(id);
 
     if (!chat) {
       Hlog(`(sem dados) ticket ${id}, mantendo anterior`);
@@ -701,12 +700,16 @@
     let itemdaLista = {};
 
     itemdaLista.id = id;
-    itemdaLista.setor = AgenteESetor.setor || null;
-    itemdaLista.status = status || null;
-    itemdaLista.agente = AgenteESetor.agente || null;
+    if (!itemdaLista.setor) itemdaLista.setor = null;
+    if (!itemdaLista.status) itemdaLista.status = null;
+    if (!itemdaLista.agente) itemdaLista.agente = null;
     itemdaLista.UltimoTime = chat.ultimoDatetime || null;
-    if (chat.ultimoNome && chat.ultimoNome != AgenteESetor.agente)
-      itemdaLista.nomeCliente = chat.ultimoNome;
+    itemdaLista.nomeCliente =
+      chat.ultimoNome &&
+      itemdaLista.agente &&
+      chat.ultimoNome != itemdaLista.agente
+        ? chat.ultimoNome
+        : null;
     itemdaLista.nomeUltimaMens = chat.ultimoNome || null;
     itemdaLista.NumeroMensagensSequencia = chat.quantidade || null;
     itemdaLista.PrimeiroDateTimeSequencia = chat.primeiroDatetime || null;
@@ -717,7 +720,9 @@
       listaTicketCabecalho.push(itemdaLista);
       Hlog(`Adicionado a listaTicketCabecalho ${id}`);
     } else {
+      const listaNTicket = [];
       listaTicketCabecalho.forEach((itemLista) => {
+        listaNTicket.push(itemLista.id);
         if (itemLista.id == id) {
           if (itemdaLista != itemLista) {
             Object.keys(itemLista).forEach((chave) => {
@@ -726,14 +731,20 @@
                 Hlog(`Atualizado ${id}: ${chave} = ${itemdaLista[chave]}`);
               }
             });
-            //Hlog(`listaTicketCabecalho: `);
-            // Hlog(listaTicketCabecalho);
           } else {
             Hlog(`(sem mudança) ticket ${id}`);
           }
         }
       });
+
+      if (!listaNTicket.includes(id)) {
+        listaTicketCabecalho.push(itemdaLista);
+        Hlog(`Adicionado a lista: ${numeroTicket}`);
+      }
     }
+
+    Hlog(`listaTicketCabecalho: `);
+    Hlog(listaTicketCabecalho);
   }
 
   // ========= BOOTSTRAP =========
@@ -1181,6 +1192,13 @@
       if (!linha) continue; // precisa ter datatime
 
       //Hlog(`linha true`);
+      if (!linha.status) linha.status = getStatusAntesDoTicket(linha.id).status;
+
+      if (!linha.setor || !linha.agente) {
+        const AgenteESetor = EncontrarAgenteESetor(linha.id);
+        linha.setor = AgenteESetor.setor;
+        linha.agente = AgenteESetor.agente;
+      }
 
       const abaTicket = document.querySelector(
         `[data-entity-id="${CSS.escape(linha.id)}"][data-test-id="header-tab"]`,
@@ -1198,12 +1216,19 @@
       //const eMeu = config.NomeAt == linha.agente;
       const eMeu = 1;
 
-      const eWwp = normalize(linha.setor).includes(normalize("whatsapp"));
+      let eWwp = 1;
+      if (linha.setor) {
+        eWwp = normalize(linha.setor).includes(normalize("whatsapp"));
+      }
+      //Hlog(`eWwp ${linha.id}:  ${eWwp}/linha.setor: ${linha.setor}`);
+
+      //Hdebug(`Linha: `);
+
+      //Hdebug(linha);
 
       if (!elementoContador) {
         if (eMeu && !estaResolvido && eWwp) {
           addContagem(linha.id); // cria contador se não existir
-          Hdebug(`Contador Criado Em ${linha.id}`);
         }
         continue;
       }
@@ -1247,10 +1272,16 @@
         diferencaUltimaMensAgora.hora,
       );
 
-      if (estaResolvido || agora.data !== datetimeConvertido.data) {
+      if (
+        !eMeu ||
+        !eWwp ||
+        estaResolvido ||
+        agora.data !== datetimeConvertido.data
+      ) {
         if (abaTicket && abaTicket.style.borderBottom !== "")
           abaTicket.style.borderBottom = "";
         elementoContador.remove();
+        Hdebug(`Contador removido ${linha.id}`);
       }
 
       if (eMeu && !estaResolvido) {

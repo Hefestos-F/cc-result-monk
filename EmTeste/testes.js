@@ -786,6 +786,8 @@ const alistaNova = [
   { id: 14, a: "a", b: "b", c: "c" },
 ];
 
+
+
 const lista1= { id: 12, a: "a", b: "b", c: "c" };
 
 const lista2= { id: 12, a: "n", b: "b", c: "h" };
