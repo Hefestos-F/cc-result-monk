@@ -700,16 +700,11 @@
     let itemdaLista = {};
 
     itemdaLista.id = id;
-    if (!itemdaLista.setor) itemdaLista.setor = null;
-    if (!itemdaLista.status) itemdaLista.status = null;
-    if (!itemdaLista.agente) itemdaLista.agente = null;
+    itemdaLista.setor = null;
+    itemdaLista.status = null;
+    itemdaLista.agente = null;
     itemdaLista.UltimoTime = chat.ultimoDatetime || null;
-    itemdaLista.nomeCliente =
-      chat.ultimoNome &&
-      itemdaLista.agente &&
-      chat.ultimoNome != itemdaLista.agente
-        ? chat.ultimoNome
-        : null;
+    itemdaLista.nomeCliente = null;
     itemdaLista.nomeUltimaMens = chat.ultimoNome || null;
     itemdaLista.NumeroMensagensSequencia = chat.quantidade || null;
     itemdaLista.PrimeiroDateTimeSequencia = chat.primeiroDatetime || null;
@@ -726,9 +721,19 @@
         if (itemLista.id == id) {
           if (itemdaLista != itemLista) {
             Object.keys(itemLista).forEach((chave) => {
+              if (
+                chave == "nomeCliente" &&
+                chat.ultimoNome &&
+                itemLista.agente &&
+                chat.ultimoNome != itemLista.agente
+              ) {
+                itemdaLista[chave] = chat.ultimoNome;
+              }
+
               if (itemdaLista[chave] !== itemLista[chave]) {
                 itemLista[chave] = itemdaLista[chave];
-                Hlog(`Atualizado ${id}: ${chave} = ${itemdaLista[chave]}`);
+
+                Hlog(`Atualizado ${id}: ${chave} = ${itemLista[chave]}`);
               }
             });
           } else {
