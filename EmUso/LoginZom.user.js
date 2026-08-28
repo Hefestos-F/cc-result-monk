@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.20
+// @version      0.0.0.21
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -296,7 +296,9 @@
   }
 
   function encoStatus() {
-    const statusName = document.querySelector(".statusName");
+    const statusName = document.querySelector(
+      ".global-status-sub-status-name-tag",
+    );
 
     const NomeDp = document.querySelector(".cus-badge__status");
 

@@ -67,11 +67,8 @@
 
   /** @typedef {{ id: string, datatime: string|null, nome: string|null }} TicketInfo */
 
-  /** @type {Map<string, TicketInfo>} */
-  const ticketsSet = new Map();
+  let ticketsObservados = [];
 
-  /** @type {Map<string, MutationObserver>} */
-  const ticketObservers = new Map();
   /** @type {Map<string, Function>} */
   const ticketDebouncers = new Map();
 
@@ -364,7 +361,7 @@
   }
 
   // Helper: root do ticket (mesmo seletor usado em observarTicket)
-  function getTicketRoot(id) {
+  function pegarConteinerChat(id) {
     return document.querySelector(
       `[data-ticket-id="${CSS.escape(id)}"] [data-test-id="omni-log-container"]`,
     );
@@ -416,8 +413,9 @@
     // --- Verificar/reconectar os já existentes (anteriores) ---
     // Para todos os IDs que ainda estão na aba agora
     idsAtualLimpo.forEach((id) => {
-      const jaTemObserver = ticketObservers.has(id);
-      if (!jaTemObserver) {
+      const observerExiste = ticketsObservados.includes(id);
+
+      if (!observerExiste) {
         // Não há observer para um ID que está visível → adicionar
         observarTicket(id);
         Hlog(`Observer faltando para ID existente; adicionado: ${id}`);
@@ -426,8 +424,8 @@
 
       // Há observer, mas o root pode ter sido recriado/desconectado
       // Se não houver root ou não estiver conectado, reconecta
-      const root = getTicketRoot(id);
-      if (!root || !root.isConnected) {
+      const ConteinerChat = pegarConteinerChat(id);
+      if (!ConteinerChat || !ConteinerChat.isConnected) {
         try {
           pararObservacaoTicket(id); // desconecta o antigo com segurança
         } catch {
@@ -454,7 +452,7 @@
   // ========= OBSERVAÇÃO DE TICKET =========
   async function observarTicket(id) {
     // Evita criar mais de um observer para o mesmo ticket
-    if (ticketObservers.has(id)) return;
+    if (ticketsObservados.includes(id)) return;
 
     // Função que localiza o container de logs do ticket pelo data-ticket-id
     const selector = () =>
@@ -504,19 +502,31 @@
     obs.observe(root, { childList: true, subtree: true });
 
     // Armazena o observer para evitar duplicações e permitir controle futuro
-    ticketObservers.set(id, obs);
+    const item = { id: id, obs: obs };
+
+    ticketsObservados.push(item);
+  }
+
+  function removeTicket(id) {
+    const index = ticketsObservados.findIndex((item) => item.id === id);
+    if (index !== -1) ticketsObservados.splice(index, 1);
   }
 
   function pararObservacaoTicket(id) {
-    const obs = ticketObservers.get(id);
-    if (obs) {
+    let ticket;
+
+    ticketsObservados.forEach((item) => {
+      if (item.id == id) ticket = item.obs;
+    });
+
+    if (ticket) {
       try {
-        obs.disconnect();
+        ticket.disconnect();
       } catch {
         /* noop */
       }
 
-      ticketObservers.delete(id);
+      removeTicket(id);
     }
     if (ticketDebouncers.has(id)) {
       ticketDebouncers.delete(id);
@@ -968,10 +978,6 @@
         }
       }
     }
-
-    // 4) (Opcional) Limpa estruturas auxiliares se existirem
-    if (ticketObservers && ticketObservers.clear) ticketObservers.clear();
-    if (ticketDebouncers && ticketDebouncers.clear) ticketDebouncers.clear();
 
     Hlog(`Monitoramento desligado: ${motivo}`);
   }

@@ -663,6 +663,7 @@ function aListaInteracoes() {
   if (TodascaixasSpan.length > 0) {
     TodascaixasSpan.forEach((caixaSpan) => {
       if (!caixaSpan.textContent.includes("ID da interação")) return;
+      
 
       const linhaidInteracao = caixaSpan.parentElement;
       const caixaInteracao = linhaidInteracao.parentElement;
@@ -693,10 +694,12 @@ function listarAgentComTempoDisponivel() {
     listaDInteracoes.forEach((interacao) => {
       if (osAgentIgnorados.includes(interacao.Agente)) return;
 
+      const horaFim = "Hora de fim";
+
       const diferencaHoraFimParaAgora = exibirAHora(
         dataHoraFormat(),
         0,
-        interacao["Hora de fim"],
+        interacao[horaFim],
       );
 
       const nomeEncontradoAgente = interacao.Agente;
@@ -706,8 +709,12 @@ function listarAgentComTempoDisponivel() {
         "",
       );
 
+      const seNomeVazio = nomeDoAgenteLimpo
+        ? nomeDoAgenteLimpo
+        : `-?-${interacao[horaFim].hora}-?-`;
+
       const nomeETempoDisponivel = {
-        nomeAgent: nomeDoAgenteLimpo,
+        nomeAgent: seNomeVazio,
         TempoDisponivel: diferencaHoraFimParaAgora,
       };
 
@@ -786,14 +793,16 @@ const alistaNova = [
   { id: 14, a: "a", b: "b", c: "c" },
 ];
 
+const novas = [1564875, 1564877, 15648758, 1564879, 1564870];
 
+const lista1 = { id: 12, a: "a", b: "b", c: "c" };
 
-const lista1= { id: 12, a: "a", b: "b", c: "c" };
+const lista2 = { id: 12, a: "n", b: "b", c: "h" };
 
-const lista2= { id: 12, a: "n", b: "b", c: "h" };
-
-Object.keys(lista1).forEach(chave => {
+Object.keys(lista1).forEach((chave) => {
   if (lista1[chave] !== lista2[chave]) {
     console.log(chave);
   }
 });
+
+array.forEach((element) => {});
