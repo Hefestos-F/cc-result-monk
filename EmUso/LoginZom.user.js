@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.21
+// @version      0.0.0.22
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -296,14 +296,30 @@
   }
 
   function encoStatus() {
-    const statusName = document.querySelector(
-      ".global-status-sub-status-name-tag",
-    );
+    const statusName = document.querySelector(".statusName");
 
-    const NomeDp = document.querySelector(".cus-badge__status");
+    const NomeDp = document.querySelector(".global-status-sub-status-name-tag");
 
     const timer = document.querySelector(".side-row-timer__text");
+    /*
+    const TodascaixasSpan = document.querySelectorAll("span");
+    let spanNPronto;
 
+    if (TodascaixasSpan.length > 0) {
+      TodascaixasSpan.forEach((caixaSpan) => {
+        if (!caixaSpan.textContent.includes("Não pronto")) return;
+        spanNPronto = caixaSpan;
+
+        const oPai = caixaSpan.parentElement;
+
+        const oAvo = oPai.parentElement;
+
+        const oTitulo = oAvo.querySelectorAll("[title]");
+
+        const aPausa = oTitulo.getAttribute("title");
+      });
+    }
+    */
     if (!statusName) return false;
 
     let statusNameTex = statusName.textContent;

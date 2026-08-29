@@ -296,11 +296,9 @@
   }
 
   function encoStatus() {
-    const statusName = document.querySelector(
-      ".global-status-sub-status-name-tag",
-    );
+    const statusName = document.querySelector(".statusName");
 
-    const NomeDp = document.querySelector(".cus-badge__status");
+    const NomeDp = document.querySelector(".global-status-sub-status-name-tag");
 
     const timer = document.querySelector(".side-row-timer__text");
     /*
@@ -321,7 +319,7 @@
         const aPausa = oTitulo.getAttribute("title");
       });
     }
-*/
+    */  
     if (!statusName) return false;
 
     let statusNameTex = statusName.textContent;
