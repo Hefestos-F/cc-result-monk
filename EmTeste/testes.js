@@ -663,7 +663,6 @@ function aListaInteracoes() {
   if (TodascaixasSpan.length > 0) {
     TodascaixasSpan.forEach((caixaSpan) => {
       if (!caixaSpan.textContent.includes("ID da interação")) return;
-      
 
       const linhaidInteracao = caixaSpan.parentElement;
       const caixaInteracao = linhaidInteracao.parentElement;
@@ -704,10 +703,10 @@ function listarAgentComTempoDisponivel() {
 
       const nomeEncontradoAgente = interacao.Agente;
 
-      const nomeDoAgenteLimpo = nomeEncontradoAgente.replace(
-        /[0-9_@!.,/\\#%&*()\-+=[\]{};:<>?]/g,
-        "",
-      );
+      const nomeDoAgenteLimpo = nomeEncontradoAgente
+        .replace(/[0-9_@!.,/\\#%&*()\-+=[\]{};:<>?]/g, "")
+        .toLowerCase()
+        .replace(/\b\w/g, (char) => char.toUpperCase());
 
       const seNomeVazio = nomeDoAgenteLimpo
         ? nomeDoAgenteLimpo
