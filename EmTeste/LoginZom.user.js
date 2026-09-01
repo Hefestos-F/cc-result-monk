@@ -1813,7 +1813,7 @@
         verifiDataLogue(1, horafun.Logou);
         stt.verificarDurac = 0;
       }
-      somarDuteracoesGeral();
+      somarDuracoesGeral();
       stt.verificarDurac = 1;
     }
 
@@ -4432,12 +4432,12 @@
   }
 
   function inclusaoManual(qual = 0) {
-    if (qual == 1) {
+    if (qual == 2) {
       const inicio = { hora: "09:35:03", data: "2026-09-01" };
       const fim = { hora: "09:41:11", data: "2026-09-01" };
       const duracaoReal = calcularDuracao(inicio, fim);
 
-      const nAtendimento = DDPausa.numero + 2;
+      const nAtendimento = DDPausa.numero + 1;
 
       AddouAtualizarPausas(
         nAtendimento,
