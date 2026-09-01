@@ -319,7 +319,7 @@
         const aPausa = oTitulo.getAttribute("title");
       });
     }
-    */  
+    */
     if (!statusName) return false;
 
     let statusNameTex = statusName.textContent;
@@ -443,6 +443,20 @@
 
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
       DDPausa.numero += 1;
+
+      let seExistePausaNesseNumero = await getValorDadosPausa(
+        DDPausa.numero,
+        "inicio",
+      ); // {data,hora} ou undefined
+
+      for (let c = 0; c < 20 && seExistePausaNesseNumero; c++) {
+        DDPausa.numero += 1;
+
+        seExistePausaNesseNumero = await getValorDadosPausa(
+          DDPausa.numero,
+          "inicio",
+        ); // {data,hora} ou undefined
+      }
 
       const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
       let fimPrevistoObj = null;
@@ -1946,26 +1960,25 @@
     return c;
   }
 
-  function buildDateTime(obj) {
-    const [y, m, d] = String(obj?.data || "")
-      .split("-")
-      .map(Number);
-    const [hh = 0, mm = 0, ss = 0] = String(obj?.hora || "00:00:00")
-      .split(":")
-      .map(Number);
-    if (!y || !m || !d) return new Date();
-    return new Date(y, m - 1, d, hh, mm, ss);
-  }
-
-  function formatHHMMSS(totalSeconds) {
-    const s = Math.max(0, Math.floor(totalSeconds));
-    const hh = String(Math.floor(s / 3600)).padStart(2, "0");
-    const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-    const ss = String(s % 60).padStart(2, "0");
-    return `${hh}:${mm}:${ss}`;
-  }
-
   function calcularDuracao(inicioObj, fimObj) {
+    function formatHHMMSS(totalSeconds) {
+      const s = Math.max(0, Math.floor(totalSeconds));
+      const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+      const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+      const ss = String(s % 60).padStart(2, "0");
+      return `${hh}:${mm}:${ss}`;
+    }
+
+    function buildDateTime(obj) {
+      const [y, m, d] = String(obj?.data || "")
+        .split("-")
+        .map(Number);
+      const [hh = 0, mm = 0, ss = 0] = String(obj?.hora || "00:00:00")
+        .split(":")
+        .map(Number);
+      if (!y || !m || !d) return new Date();
+      return new Date(y, m - 1, d, hh, mm, ss);
+    }
     const inicio = buildDateTime(inicioObj);
     const fim = buildDateTime(fimObj);
     const diffSec = Math.round((fim.getTime() - inicio.getTime()) / 1000);
@@ -3105,10 +3118,18 @@
         return a;
       }
 
+      const botaoInclusaoManual = c1riarBotSalv(
+        "botaoInclusaoManual",
+        "Ação Manual",
+      );
+      botaoInclusaoManual.addEventListener("click", inclusaoManual(1));
+
+      const caixaBotaoInclusaoManual = criarCaixaSeg();
+      caixaBotaoInclusaoManual.append(botaoInclusaoManual);
+
       horaInputCai.append(
         FModoTeste(),
         Fohr(0),
-
         addOtex("Novo Fuso"),
         dataInput,
         horaInputCaiHM,
@@ -3116,6 +3137,8 @@
         SubPrLog,
         Fohr(2),
         Conttest(),
+        Fohr(3),
+        caixaBotaoInclusaoManual,
       );
 
       const a = CaixaDeOcultar(criarBotSalv("A28", "Teste"), horaInputCai);
@@ -4406,5 +4429,23 @@
     caixa.appendChild(caixaBotoes);
 
     return caixa;
+  }
+
+  function inclusaoManual(qual = 0) {
+    if (qual == 1) {
+      const inicio = { hora: "09:35:03", data: "2026-09-01" };
+      const fim = { hora: "09:41:11", data: "2026-09-01" };
+      const duracaoReal = calcularDuracao(inicio, fim);
+
+      const nAtendimento = DDPausa.numero + 2;
+
+      AddouAtualizarPausas(
+        nAtendimento,
+        "Disponivel",
+        inicio, // inicio: {data,hora}
+        fim, // fim previsto: {data,hora} ou null
+        duracaoReal, // duracao prevista: "HH:MM:SS" ou "---"
+      );
+    }
   }
 })();
