@@ -1751,15 +1751,17 @@
 
     if (TempoPausas.Online === undefined) TempoPausas.Online = "00:00:00";
 
-    const onli2 =
+    const duracoesComContAtualSegundos =
       converterParaSegundos(TempoPausas.Online) +
       converterParaSegundos(TempoPausas.ContAtual);
 
-    const onli4 = converterParaTempo(onli2);
+    const duracoesComContAtualTempo = converterParaTempo(
+      duracoesComContAtualSegundos,
+    );
 
     Hodeb(`Andamento Online ContAtual: ${TempoPausas.ContAtual}/
-       onli4: ${onli4}/
-       onli2: ${onli2}/
+       duracoesComContAtualTempo: ${duracoesComContAtualTempo}/
+       duracoesComContAtualSegundos: ${duracoesComContAtualSegundos}/
       `);
 
     const QLogou = config.LogueManual
@@ -1768,7 +1770,7 @@
         ? dadosPrimLogue
         : null;
 
-    const horafun = horarios(QLogou, onli4);
+    const horafun = horarios(QLogou, duracoesComContAtualTempo);
 
     TempoPausas.Logou = horafun.Logou.hora;
     TempoPausas.LogouA = horafun.Logou;
@@ -1780,9 +1782,16 @@
     vSaida.textContent = TempoPausas.Saida;
 
     const onli3 = exibirAHora(agora, 0, horafun.Logou).hora;
-    //TempoPausas.Online = onli2;
 
-    const compTole = converterParaSegundos(onli3) - onli2;
+    const logueDuracoesComContAtual = exibirHora(
+      agora,
+      0,
+      duracoesComContAtualTempo,
+    );
+    //TempoPausas.Online = duracoesComContAtualSegundos;
+
+    const compTole =
+      converterParaSegundos(onli3) - duracoesComContAtualSegundos;
     if (compTole > config.TolerOff) {
       Hodeb(
         "Logado pelo Logue maior que pela tolerancia",
@@ -1803,16 +1812,25 @@
     oLogou.textContent = test.modoTeste ? horafun.Logou.data : "";
     oSaida.textContent = test.modoTeste ? horafun.Saida.data : "";
 
+    const primeiroLogueMaior = compararDatas(
+      dadosPrimLogue,
+      logueDuracoesComContAtual,
+    );
+
+    //Hlog(`PrimeiroLogue e Maior: ${primeiroLogueMaior}`);
+    //Hlog(dadosPrimLogue);
+    //Hlog(horafun.Logou);
+
     if (
       !config.LogueManual &&
       config.logueSalvo &&
       dadosPrimLogue &&
-      compararDatas(dadosPrimLogue, horafun.Logou)
+      primeiroLogueMaior
     ) {
       if (stt.verificarDurac) {
         Hlog("Atualizando dadosPrimLogue");
-        dadosPrimLogue = horafun.Logou;
-        verifiDataLogue(1, horafun.Logou);
+        dadosPrimLogue = logueDuracoesComContAtual;
+        verifiDataLogue(1, logueDuracoesComContAtual);
         stt.verificarDurac = 0;
       }
       somarDuracoesGeral();
@@ -4435,14 +4453,14 @@
 
   function inclusaoManual(qual = 0) {
     if (qual == 2) {
-      const inicio = { hora: "09:35:03", data: "2026-09-01" };
+      const inicio = { hora: "09:30:03", data: "2026-09-01" };
       const fim = { hora: "09:41:11", data: "2026-09-01" };
       const duracaoReal = calcularDuracao(inicio, fim);
 
       const nAtendimento = DDPausa.numero + 1;
 
       AddouAtualizarPausas(
-        nAtendimento,
+        6,
         "Disponivel",
         inicio, // inicio: {data,hora}
         fim, // fim previsto: {data,hora} ou null
