@@ -1583,6 +1583,8 @@
     const el = encoStatus();
     Hodeb("Estado do agente", el);
 
+    colocarListaDeDisponibilidade();
+
     if (el) {
       TempoPausas.ContAtual = el.Timer;
 
@@ -4018,7 +4020,7 @@
 
     for (const [notaTexto, valor] of musica.notas) {
       if (asCofMus.stopMusic) {
-        console.log("Música interrompida");
+        Hlog("Música interrompida");
         return;
       }
 
@@ -4042,7 +4044,7 @@
     if (asCofMus.repetirMusic && !asCofMus.stopMusic) {
       return tocarMusica(musica);
     }
-    console.log("Fim da música");
+    Hlog("Fim da música");
   }
 
   // =====================================
@@ -4139,7 +4141,7 @@
 
     asCofMus.osciladoresAtivos = [];
 
-    console.log("Parado");
+    Hlog("Parado");
   }
 
   // =====================================
@@ -4448,4 +4450,173 @@
       );
     }
   }
+
+  // inicio da lista de disponibilidade
+
+  function dataHoraFormat() {
+    const agora = new Date();
+
+    const dataHora = {
+      data: agora.toLocaleDateString("pt-BR"), // dd/mm/aaaa
+
+      hora: agora.toLocaleTimeString("pt-BR"), // hh:mm:ss
+    };
+    return dataHora;
+  }
+
+  function converterDataHora(texto) {
+    const match = texto.match(
+      /(\d{1,2}):(\d{2})\s(AM|PM)\s+(\d{2})\/(\d{2})\/(\d{4})/i,
+    );
+
+    if (!match) {
+      return null;
+    }
+
+    let [, hora, minuto, periodo, mes, dia, ano] = match;
+
+    hora = parseInt(hora, 10);
+
+    if (periodo.toUpperCase() === "PM" && hora !== 12) {
+      hora += 12;
+    }
+
+    if (periodo.toUpperCase() === "AM" && hora === 12) {
+      hora = 0;
+    }
+
+    return {
+      data: `${dia}/${mes}/${ano}`,
+      hora: `${String(hora).padStart(2, "0")}:${minuto}:00`,
+    };
+  }
+
+  function aListaInteracoes() {
+    const listaDInteracoes = [];
+
+    const TodascaixasSpan = document.querySelectorAll("span");
+
+    if (TodascaixasSpan.length > 0) {
+      TodascaixasSpan.forEach((caixaSpan) => {
+        if (!caixaSpan.textContent.includes("ID da interação")) return;
+
+        const linhaidInteracao = caixaSpan.parentElement;
+        const caixaInteracao = linhaidInteracao.parentElement;
+        const listaItensInteracao = {};
+
+        for (const linhasiIteracao of caixaInteracao.children) {
+          listaItensInteracao[linhasiIteracao.children[0].textContent] =
+            linhasiIteracao.children[0].textContent.includes("Hora de")
+              ? converterDataHora(linhasiIteracao.children[1].textContent)
+              : linhasiIteracao.children[1].textContent;
+        }
+
+        listaDInteracoes.push(listaItensInteracao);
+      });
+
+      //console.log(listaDInteracoes);
+    } else {
+      //console.log(`itens <= 0`);
+    }
+    return listaDInteracoes;
+  }
+
+  function listarAgentComTempoDisponivel() {
+    const osAgentIgnorados = [];
+    const ListaAgentComTempo = [];
+    const listaDInteracoes = aListaInteracoes();
+    if (listaDInteracoes.length > 0) {
+      listaDInteracoes.forEach((interacao) => {
+        if (osAgentIgnorados.includes(interacao.Agente)) return;
+
+        const horaFim = "Hora de fim";
+
+        const diferencaHoraFimParaAgora = exibirAHora(
+          dataHoraFormat(),
+          0,
+          interacao[horaFim],
+        );
+
+        const nomeEncontradoAgente = interacao.Agente;
+
+        const nomeDoAgenteLimpo = nomeEncontradoAgente
+          .replace(/[0-9_@!.,/\\#%&*()\-+=[\]{};:<>?]/g, "")
+          .toLowerCase()
+          .replace(/\b\w/g, (char) => char.toUpperCase());
+
+        const seNomeVazio = nomeDoAgenteLimpo
+          ? nomeDoAgenteLimpo
+          : `-?-${interacao[horaFim].hora}-?-`;
+
+        const nomeETempoDisponivel = {
+          nomeAgent: seNomeVazio,
+          TempoDisponivel: diferencaHoraFimParaAgora,
+        };
+
+        osAgentIgnorados.push(nomeEncontradoAgente);
+        ListaAgentComTempo.push(nomeETempoDisponivel);
+      });
+      //console.log("ListaAgentComTempo: ");
+      //console.log(ListaAgentComTempo);
+    } else {
+      //console.log("ListaAgentComTempo: Não encontrado");
+    }
+    return ListaAgentComTempo;
+  }
+
+  function colocarListaDeDisponibilidade() {
+    const abaInteracaoConcluida = document.getElementById("pane-active");
+
+    if (abaInteracaoConcluida) {
+      const opai = abaInteracaoConcluida.parentElement;
+
+      const criarDiv = () => document.createElement("div");
+
+      const aCaixaDaListaDisponivel = document.getElementById(
+        "aCaixaDaListaDisponivel",
+      );
+
+      if (aCaixaDaListaDisponivel) aCaixaDaListaDisponivel.remove();
+
+      const aCaixaDaLista = criarDiv();
+      aCaixaDaLista.id = "aCaixaDaListaDisponivel";
+      aCaixaDaLista.style.cssText = `
+      color: rgba(4, 4, 19, .56);
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+      `;
+
+      const listaAgentComTempo = listarAgentComTempoDisponivel();
+
+      listaAgentComTempo.forEach((linhaLista) => {
+        const linhaCaixa = criarDiv();
+        linhaCaixa.style.cssText = `
+        display: flex;
+        width: 90%;
+        justify-content: space-between;
+      `;
+
+        const nome = criarDiv();
+        nome.textContent = linhaLista.nomeAgent;
+
+        const Tempo = criarDiv();
+        Tempo.textContent = linhaLista.TempoDisponivel.hora;
+
+        linhaCaixa.append(nome, Tempo);
+
+        aCaixaDaLista.append(linhaCaixa);
+      });
+
+      opai.prepend(aCaixaDaLista);
+
+      //console.log("Caixa Criada e Adicionada");
+    } else {
+      //console.log("abaInteracaoConcluida não encontrada");
+    }
+  }
+
+  // fim da lista de disponibilidade
 })();
