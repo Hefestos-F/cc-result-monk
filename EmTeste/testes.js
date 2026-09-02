@@ -691,9 +691,10 @@ function listarAgentComTempoDisponivel() {
   const listaDInteracoes = aListaInteracoes();
   if (listaDInteracoes.length > 0) {
     listaDInteracoes.forEach((interacao) => {
-      if (osAgentIgnorados.includes(interacao.Agente)) return;
-
       const horaFim = "Hora de fim";
+
+      if (osAgentIgnorados.includes(interacao.Agente) || !interacao[horaFim])
+        return;
 
       const diferencaHoraFimParaAgora = exibirAHora(
         dataHoraFormat(),
