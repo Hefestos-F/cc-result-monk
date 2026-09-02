@@ -1781,7 +1781,7 @@
 
     vSaida.textContent = TempoPausas.Saida;
 
-    const onli3 = exibirAHora(agora, 0, horafun.Logou).hora;
+    const logadoUsandoLogou = exibirAHora(agora, 0, horafun.Logou).hora;
 
     const logueDuracoesComContAtual = exibirHora(
       agora,
@@ -1790,8 +1790,9 @@
     );
     //TempoPausas.Online = duracoesComContAtualSegundos;
 
-    const compTole =
-      converterParaSegundos(onli3) - duracoesComContAtualSegundos;
+    const logadoUsandoLogouSegundos = converterParaSegundos(logadoUsandoLogou);
+
+    const compTole = logadoUsandoLogouSegundos - duracoesComContAtualSegundos;
     if (compTole > config.TolerOff) {
       Hodeb(
         "Logado pelo Logue maior que pela tolerancia",
