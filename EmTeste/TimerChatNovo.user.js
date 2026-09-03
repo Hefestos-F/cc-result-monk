@@ -36,7 +36,18 @@
 
   const stt = {};
 
-  const Ccor = {};
+  const Ccor = {
+    Alerta: "#992e2e",
+    Aviso: "#c97123ff",
+    Contagem: "darkcyan",
+    MetaTMA: "#229b8d",
+    destaque: "#1b81ff",
+    Principal: "#4c95bd",
+    AreaAr: "#337091",
+    Config: "#96a8bb",
+    Varian: "",
+    TVarian: "",
+  };
 
   const outrav = {};
 
@@ -610,8 +621,16 @@
           }
         }
 
+        const itemTextoMensagem = it.querySelector(
+          '[data-test-id="omni-log-omni-to-ag-comment"]',
+        );
+
+        const textoMensagem = itemTextoMensagem
+          ? itemTextoMensagem.textContent
+          : null;
+
         if (datatime || nome) {
-          ultimo = { index: i, datatime, nome, elemento: it };
+          ultimo = { index: i, datatime, nome, elemento: it, textoMensagem };
           break;
         }
       }
@@ -691,6 +710,7 @@
         elemento: ultimo.elemento,
         quantidade: count,
         primeiroDatetime: primeiroDatetimeDaSequencia,
+        ultimoTextoMensagem: ultimo.textoMensagem,
       };
     } catch (err) {
       console.error("Erro em varrerChat:", err);
@@ -716,6 +736,7 @@
     itemdaLista.UltimoTime = chat.ultimoDatetime || null;
     itemdaLista.nomeCliente = null;
     itemdaLista.nomeUltimaMens = chat.ultimoNome || null;
+    itemdaLista.ultimoTextoMensagem = chat.ultimoTextoMensagem || null;
     itemdaLista.NumeroMensagensSequencia = chat.quantidade || null;
     itemdaLista.PrimeiroDateTimeSequencia = chat.primeiroDatetime || null;
 
@@ -1220,9 +1241,10 @@
       const normalize = (s) =>
         (s || "").replace(/\s+/g, " ").trim().toUpperCase();
 
-      const estaResolvido =
-        ["RESOLVIDO", "FECHADO"].includes(normalize(linha.status)) &&
-        !marcarFaltaPreencher(linha.id);
+      const estaResolvido = 0;
+
+      /*const estaResolvido = ["RESOLVIDO", "FECHADO"].includes(normalize(linha.status)) &&
+        !marcarFaltaPreencher(linha.id);*/
 
       //const eMeu = config.NomeAt == linha.agente;
       const eMeu = 1;
@@ -1267,16 +1289,20 @@
       const TresM = converterParaSegundos("00:03:00");
       //const CincS = converterParaSegundos("00:00:05");
 
+      const maiorDeSeis = diferencaSegundos > SeisM;
+      const maiorDeTres = diferencaSegundos > TresM;
+
       elementoContador.style.backgroundColor =
         diferencaSegundos > CincM
           ? Ccor.Alerta
-          : diferencaSegundos > TresM
+          : maiorDeTres
             ? Ccor.Aviso
             : Ccor.Contagem;
 
       if (abaTicket)
-        abaTicket.style.borderBottom =
-          diferencaSegundos >= SeisM ? `6px solid ${Ccor.Alerta}` : "";
+        abaTicket.style.borderBottom = maiorDeSeis
+          ? `6px solid ${Ccor.Alerta}`
+          : "";
 
       // --- TEXTO DO CONTADOR ---
       elementoContador.textContent = tempoEncurtado(
@@ -1292,7 +1318,7 @@
         if (abaTicket && abaTicket.style.borderBottom !== "")
           abaTicket.style.borderBottom = "";
         elementoContador.remove();
-        Hdebug(`Contador removido ${linha.id}`);
+        Hlog(`Contador removido ${linha.id}`);
       }
 
       if (eMeu && !estaResolvido) {
