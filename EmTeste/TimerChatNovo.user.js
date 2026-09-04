@@ -58,9 +58,6 @@
   function Hlog(...args) {
     console.log(PreFixo, ...args);
   }
-  function Hlog(...args) {
-    console.log(PreFixo, ...args);
-  }
   function Hwarn(...args) {
     console.warn(PreFixo, ...args);
   }
