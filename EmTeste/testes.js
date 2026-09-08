@@ -791,6 +791,9 @@ console.log = console.info;
   const open = XMLHttpRequest.prototype.open;
   const send = XMLHttpRequest.prototype.send;
 
+  window.completeEngagementPages = [];
+  window.activeEngagementResponses = [];
+
   XMLHttpRequest.prototype.open = function (method, url) {
     this._url = url;
     this._method = method;
@@ -799,28 +802,53 @@ console.log = console.info;
 
   XMLHttpRequest.prototype.send = function (body) {
     this.addEventListener("load", () => {
-      if (!this._url) return;
+      const url = this._url || "";
+
+      // Ignora tudo que não interessa
+      const isCompleteEngagement = url.includes(
+        "/analytics/historical/completeEngagement/report",
+      );
+
+      const isActiveEngagement = url.includes("/active/engagement/omni");
+
+      if (!isCompleteEngagement && !isActiveEngagement) {
+        return;
+      }
 
       try {
         const data = JSON.parse(this.responseText);
 
-        if (
-          this._url.includes("/analytics/historical/completeEngagement/report")
-        ) {
-          console.log("📋 COMPLETE ENGAGEMENT REPORT");
+        if (isCompleteEngagement) {
+          console.group("📋 COMPLETE ENGAGEMENT REPORT");
+          console.log("URL:", url);
           console.log(data);
+          console.groupEnd();
 
           window.completeEngagementReport = data;
+
+          window.completeEngagementPages.push({
+            url,
+            timestamp: new Date().toISOString(),
+            data,
+          });
         }
 
-        if (this._url.includes("/active/engagement/omni")) {
-          console.log("🎧 ACTIVE ENGAGEMENT OMNI");
+        if (isActiveEngagement) {
+          console.group("🎧 ACTIVE ENGAGEMENT OMNI");
+          console.log("URL:", url);
           console.log(data);
+          console.groupEnd();
 
           window.activeEngagementOmni = data;
+
+          window.activeEngagementResponses.push({
+            url,
+            timestamp: new Date().toISOString(),
+            data,
+          });
         }
-      } catch (e) {
-        console.error("Erro ao processar resposta:", this._url, e);
+      } catch (err) {
+        console.error("❌ Resposta não é JSON", url, this.responseText);
       }
     });
 
@@ -938,6 +966,9 @@ function iniciarObservacao() {
   const open = XMLHttpRequest.prototype.open;
   const send = XMLHttpRequest.prototype.send;
 
+  window.completeEngagementPages = [];
+  window.activeEngagementResponses = [];
+
   XMLHttpRequest.prototype.open = function (method, url) {
     this._url = url;
     this._method = method;
@@ -946,31 +977,61 @@ function iniciarObservacao() {
 
   XMLHttpRequest.prototype.send = function (body) {
     this.addEventListener("load", () => {
-      if (!this._url) return;
+      const url = this._url || "";
+
+      // Ignora tudo que não interessa
+      const isCompleteEngagement = url.includes(
+        "/analytics/historical/completeEngagement/report",
+      );
+
+      const isActiveEngagement = url.includes("/active/engagement/omni");
+
+      if (!isCompleteEngagement && !isActiveEngagement) {
+        return;
+      }
 
       try {
         const data = JSON.parse(this.responseText);
 
-        if (
-          this._url.includes("/analytics/historical/completeEngagement/report")
-        ) {
-          console.log("📋 COMPLETE ENGAGEMENT REPORT");
-
-          osAtendimentosCompletos = listarTempoDisponivelDoAgente(data);
+        if (isCompleteEngagement) {
+          console.group("📋 COMPLETE ENGAGEMENT REPORT");
+          console.log("URL:", url);
           console.log(data);
+          console.groupEnd();
+
+          const retornoLista = listarTempoDisponivelDoAgente(data);
+
+          osAtendimentosCompletos = retornoLista ?? osAtendimentosCompletos;
 
           window.completeEngagementReport = data;
+
+          window.completeEngagementPages.push({
+            url,
+            timestamp: new Date().toISOString(),
+            data,
+          });
         }
 
-        if (this._url.includes("/active/engagement/omni")) {
-          console.log("🎧 ACTIVE ENGAGEMENT OMNI");
-          osAtendimentosAtivo = listarAgentesAtendendo(data);
+        if (isActiveEngagement) {
+          console.group("🎧 ACTIVE ENGAGEMENT OMNI");
+          console.log("URL:", url);
           console.log(data);
+          console.groupEnd();
+
+          const retornoLista = listarAgentesAtendendo(data);
+
+          osAtendimentosAtivo = retornoLista ?? osAtendimentosAtivo;
 
           window.activeEngagementOmni = data;
+
+          window.activeEngagementResponses.push({
+            url,
+            timestamp: new Date().toISOString(),
+            data,
+          });
         }
-      } catch (e) {
-        console.error("Erro ao processar resposta:", this._url, e);
+      } catch (err) {
+        console.error("❌ Resposta não é JSON", url, this.responseText);
       }
     });
 
@@ -1107,7 +1168,7 @@ function colocarListaDeDisponibilidade() {
         osAtendimentosAtivo.includes(textoNome);
 
       const nome = criarDiv();
-      nome.textContent = textoNome;
+      nome.textContent = textoNome + oBackground ? " - Atendendo" : "";
       nome.style.cssText = `
          border-radius: 15px;
          padding: 0px 3px;
@@ -1143,6 +1204,6 @@ function colocarListaDeDisponibilidade() {
   }
 }
 
-const atualizarLista = setInterval(colocarListaDeDisponibilidade, 3000);
+const atualizarLista = setInterval(colocarListaDeDisponibilidade, 1000);
 
 //clearInterval(atualizarLista);

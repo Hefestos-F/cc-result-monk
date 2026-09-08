@@ -66,6 +66,7 @@
   };
 
   const stt = {
+    observarDisponibilidade: 1,
     logueInicio: 1,
     observa: 1,
     Status: "",
@@ -1583,7 +1584,7 @@
     const el = encoStatus();
     Hodeb("Estado do agente", el);
 
-    //colocarListaDeDisponibilidade();
+    if (stt.observarDisponibilidade) colocarListaDeDisponibilidade();
 
     if (el) {
       TempoPausas.ContAtual = el.Timer;
@@ -4472,6 +4473,264 @@
 
   // inicio da lista de disponibilidade
 
-  
+  //Nova versao encotrar ativo e concluido
+
+  let osAtendimentosCompletos = {};
+  let osAtendimentosAtivo = {};
+
+  function dataHoraFormat() {
+    const agora = new Date();
+
+    const dataHora = {
+      data: agora.toLocaleDateString("pt-BR"), // dd/mm/aaaa
+
+      hora: agora.toLocaleTimeString("pt-BR"), // hh:mm:ss
+    };
+    return dataHora;
+  }
+
+  //iniciar observacao de atendimento ativo e concluido
+  function iniciarObservacao() {
+    const open = XMLHttpRequest.prototype.open;
+    const send = XMLHttpRequest.prototype.send;
+
+    window.completeEngagementPages = [];
+    window.activeEngagementResponses = [];
+
+    XMLHttpRequest.prototype.open = function (method, url) {
+      this._url = url;
+      this._method = method;
+      return open.apply(this, arguments);
+    };
+
+    XMLHttpRequest.prototype.send = function (body) {
+      this.addEventListener("load", () => {
+        const url = this._url || "";
+
+        // Ignora tudo que não interessa
+        const isCompleteEngagement = url.includes(
+          "/analytics/historical/completeEngagement/report",
+        );
+
+        const isActiveEngagement = url.includes("/active/engagement/omni");
+
+        if (!isCompleteEngagement && !isActiveEngagement) {
+          return;
+        }
+
+        try {
+          const data = JSON.parse(this.responseText);
+
+          if (isCompleteEngagement) {
+            console.group("📋 COMPLETE ENGAGEMENT REPORT");
+            console.log("URL:", url);
+            console.log(data);
+            console.groupEnd();
+
+            const retornoLista = listarTempoDisponivelDoAgente(data);
+
+            osAtendimentosCompletos = retornoLista ?? osAtendimentosCompletos;
+
+            window.completeEngagementReport = data;
+
+            window.completeEngagementPages.push({
+              url,
+              timestamp: new Date().toISOString(),
+              data,
+            });
+          }
+
+          if (isActiveEngagement) {
+            console.group("🎧 ACTIVE ENGAGEMENT OMNI");
+            console.log("URL:", url);
+            console.log(data);
+            console.groupEnd();
+
+            const retornoLista = listarAgentesAtendendo(data);
+
+            osAtendimentosAtivo = retornoLista ?? osAtendimentosAtivo;
+
+            window.activeEngagementOmni = data;
+
+            window.activeEngagementResponses.push({
+              url,
+              timestamp: new Date().toISOString(),
+              data,
+            });
+          }
+        } catch (err) {
+          console.error("❌ Resposta não é JSON", url, this.responseText);
+        }
+      });
+
+      return send.apply(this, arguments);
+    };
+
+    console.log("✅ Interceptador instalado");
+  }
+
+  iniciarObservacao();
+
+  function converterTimestamp(timestamp) {
+    // Ajusta se o timestamp estiver em segundos (10 dígitos) em vez de milissegundos (13 dígitos)
+    const dataObjeto = new Date(
+      timestamp.toString().length === 10 ? timestamp * 1000 : timestamp,
+    );
+
+    // Formata a data no fuso de Brasília (-3) no padrão ISO (AAAA-MM-DD)
+    const [dia, mes, ano] = dataObjeto
+      .toLocaleDateString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+      })
+      .split("/");
+
+    // Formata a hora no fuso de Brasília (-3) no padrão 24h (HH:MM:SS)
+    const hora = dataObjeto.toLocaleTimeString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      hour12: false,
+    });
+
+    return {
+      data: `${ano}-${mes}-${dia}`,
+      hora: hora,
+    };
+  }
+  // Saída esperada: { data: '2026-09-07', hora: '12:49:11' }
+  //converterTimestamp(1788802541754);
+
+  const nomeDoAgenteLimpo = (nomeEncontrado) =>
+    nomeEncontrado
+      .replace(/[0-9_@!.,/\\#%&*()\-+=[\]{};:<>?]/g, "")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+
+  function listarAgentesAtendendo(data) {
+    const agentesAtendendo = [];
+
+    const listaAtendimentos = data.result.records;
+
+    if (listaAtendimentos.length == 0 || !data) return agentesAtendendo;
+
+    listaAtendimentos.forEach((atendimento) => {
+      agentesAtendendo.push(nomeDoAgenteLimpo(atendimento.agents[0].agentName));
+    });
+
+    return agentesAtendendo;
+  }
+
+  function listarTempoDisponivelDoAgente(data) {
+    const agentes = [];
+    const agentesIgnorados = [];
+
+    const listaAtendimentos = data.result.list;
+
+    if (listaAtendimentos.length == 0 || !data) return agentes;
+
+    listaAtendimentos.forEach((atendimento) => {
+      if (agentesIgnorados.includes(atendimento.agentName)) return;
+
+      const linhatendimento = {
+        id: atendimento.engagementId,
+        agente: nomeDoAgenteLimpo(atendimento.agentName),
+        tempoFim: exibirAHora(
+          dataHoraFormat(),
+          0,
+          converterTimestamp(atendimento.endTime),
+        ),
+      };
+
+      agentesIgnorados.push(atendimento.agentName);
+      agentes.push(linhatendimento);
+    });
+
+    return agentes;
+  }
+
+  function colocarListaDeDisponibilidade() {
+    const abaInteracaoConcluida = document.getElementById("pane-active");
+
+    if (abaInteracaoConcluida) {
+      const opai = abaInteracaoConcluida.parentElement;
+
+      const criarDiv = () => document.createElement("div");
+
+      const aCaixaDaListaDisponivel = document.getElementById(
+        "aCaixaDaListaDisponivel",
+      );
+
+      if (aCaixaDaListaDisponivel) aCaixaDaListaDisponivel.remove();
+
+      const aCaixaDaLista = criarDiv();
+      aCaixaDaLista.id = "aCaixaDaListaDisponivel";
+      aCaixaDaLista.style.cssText = `
+      color: rgba(4, 4, 19, .56);
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+    `;
+
+      //const listaAgentComTempo = listarTempoDisponivelDoAgente();
+
+      if (Object.keys(osAtendimentosCompletos).length === 0) {
+        console.log("osAtendimentosCompletos não encontrado");
+        return;
+      }
+
+      //Object.keys(lista1)
+
+      //console.log("osAtendimentosCompletos: ");
+      //console.log(osAtendimentosCompletos);
+
+      function addLinhas(textoNome, textoTempo) {
+        const linhaCaixa = criarDiv();
+        linhaCaixa.style.cssText = `
+          display: flex;
+          width: 90%;
+          justify-content: space-between;
+        `;
+
+        const oBackground =
+          Object.keys(osAtendimentosAtivo).length !== 0 &&
+          osAtendimentosAtivo.includes(textoNome);
+
+        const nome = criarDiv();
+        nome.textContent = textoNome + oBackground ? " - Atendendo" : "";
+        nome.style.cssText = `
+         border-radius: 15px;
+         padding: 0px 3px;
+         ${oBackground ? "background: #b9b9b9;" : ""}
+        `;
+
+        const Tempo = criarDiv();
+        Tempo.textContent = textoTempo;
+
+        linhaCaixa.append(nome, Tempo);
+
+        aCaixaDaLista.append(linhaCaixa);
+      }
+
+      const agenteJaAdicionados = [];
+
+      osAtendimentosCompletos.forEach((linhaLista) => {
+        addLinhas(linhaLista.agente, linhaLista.tempoFim.hora);
+        agenteJaAdicionados.push(linhaLista.agente);
+      });
+
+      if (Object.keys(osAtendimentosAtivo).length !== 0) {
+        osAtendimentosAtivo.forEach((agente) => {
+          if (!agenteJaAdicionados.includes(agente)) addLinhas(agente, "---");
+        });
+      }
+
+      opai.prepend(aCaixaDaLista);
+
+      //console.log("Caixa Criada e Adicionada");
+    } else {
+      //console.log("abaInteracaoConcluida não encontrada");
+    }
+  }
+
   // fim da lista de disponibilidade
 })();
