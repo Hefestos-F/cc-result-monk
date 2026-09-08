@@ -4473,9 +4473,8 @@
 
   // inicio da lista de disponibilidade
 
-  //Nova versao encotrar ativo e concluido
+  const osAtendimentosCompletos = [];
 
-  let osAtendimentosCompletos = {};
   let osAtendimentosAtivo = {};
 
   function dataHoraFormat() {
@@ -4522,14 +4521,12 @@
           const data = JSON.parse(this.responseText);
 
           if (isCompleteEngagement) {
-            console.group("📋 COMPLETE ENGAGEMENT REPORT");
+            /*console.group("📋 COMPLETE ENGAGEMENT REPORT");
             console.log("URL:", url);
             console.log(data);
-            console.groupEnd();
+            console.groupEnd();*/
 
-            const retornoLista = listarTempoDisponivelDoAgente(data);
-
-            osAtendimentosCompletos = retornoLista ?? osAtendimentosCompletos;
+            listarTempoDisponivelDoAgente(data);
 
             window.completeEngagementReport = data;
 
@@ -4541,10 +4538,10 @@
           }
 
           if (isActiveEngagement) {
-            console.group("🎧 ACTIVE ENGAGEMENT OMNI");
+            /*console.group("🎧 ACTIVE ENGAGEMENT OMNI");
             console.log("URL:", url);
             console.log(data);
-            console.groupEnd();
+            console.groupEnd();*/
 
             const retornoLista = listarAgentesAtendendo(data);
 
@@ -4569,7 +4566,7 @@
     console.log("✅ Interceptador instalado");
   }
 
-  iniciarObservacao();
+  if (stt.observarDisponibilidade) iniciarObservacao();
 
   function converterTimestamp(timestamp) {
     // Ajusta se o timestamp estiver em segundos (10 dígitos) em vez de milissegundos (13 dígitos)
@@ -4619,31 +4616,30 @@
   }
 
   function listarTempoDisponivelDoAgente(data) {
-    const agentes = [];
-    const agentesIgnorados = [];
-
     const listaAtendimentos = data.result.list;
 
-    if (listaAtendimentos.length == 0 || !data) return agentes;
+    if (listaAtendimentos.length == 0 || !data) return;
 
     listaAtendimentos.forEach((atendimento) => {
-      if (agentesIgnorados.includes(atendimento.agentName)) return;
+      const ultimoAgente = atendimento.agentNames.length - 1;
+      const oAgente = nomeDoAgenteLimpo(atendimento.agentNames[ultimoAgente]);
+      //const oAgente = nomeDoAgenteLimpo(atendimento.agentName);
+      let comparaId = 0;
+      osAtendimentosCompletos.forEach((linhas) => {
+        if (linhas.id == atendimento.engagementId) {
+          comparaId = 1;
+        }
+      });
+      if (comparaId) return;
 
       const linhatendimento = {
         id: atendimento.engagementId,
-        agente: nomeDoAgenteLimpo(atendimento.agentName),
-        tempoFim: exibirAHora(
-          dataHoraFormat(),
-          0,
-          converterTimestamp(atendimento.endTime),
-        ),
+        agente: oAgente,
+        tempoFim: atendimento.endTime,
       };
 
-      agentesIgnorados.push(atendimento.agentName);
-      agentes.push(linhatendimento);
+      osAtendimentosCompletos.push(linhatendimento);
     });
-
-    return agentes;
   }
 
   function colocarListaDeDisponibilidade() {
@@ -4696,7 +4692,7 @@
           osAtendimentosAtivo.includes(textoNome);
 
         const nome = criarDiv();
-        nome.textContent = textoNome + oBackground ? " - Atendendo" : "";
+        nome.textContent = textoNome + (oBackground ? " - Atendendo" : "");
         nome.style.cssText = `
          border-radius: 15px;
          padding: 0px 3px;
@@ -4704,7 +4700,10 @@
         `;
 
         const Tempo = criarDiv();
-        Tempo.textContent = textoTempo;
+        Tempo.textContent =
+          !textoTempo || textoTempo == "---"
+            ? textoTempo
+            : tempoEncurtado(textoTempo);
 
         linhaCaixa.append(nome, Tempo);
 
@@ -4713,8 +4712,23 @@
 
       const agenteJaAdicionados = [];
 
-      osAtendimentosCompletos.forEach((linhaLista) => {
-        addLinhas(linhaLista.agente, linhaLista.tempoFim.hora);
+      const novaLista = osAtendimentosCompletos.sort(
+        (x, y) => y.tempoFim - x.tempoFim,
+      );
+
+      //console.log("novaLista: ")
+      //console.log(novaLista)
+
+      novaLista.forEach((linhaLista) => {
+        if (agenteJaAdicionados.includes(linhaLista.agente)) return;
+        addLinhas(
+          linhaLista.agente,
+          exibirAHora(
+            dataHoraFormat(),
+            0,
+            converterTimestamp(linhaLista.tempoFim),
+          ).hora,
+        );
         agenteJaAdicionados.push(linhaLista.agente);
       });
 

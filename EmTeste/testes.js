@@ -862,7 +862,8 @@ console.log = console.info;
 
 //Nova versao encotrar ativo e concluido
 
-let osAtendimentosCompletos = {};
+const osAtendimentosCompletos = [];
+
 let osAtendimentosAtivo = {};
 
 function dataHoraFormat() {
@@ -961,6 +962,76 @@ function exibirAHora(a, op, b) {
   return { hora: outHora, data: outData };
 }
 
+function tempoEncurtado(input) {
+  // --- Normaliza entrada para total de segundos (inteiro) ---
+  let totalSeg;
+
+  if (typeof input === "number" && Number.isFinite(input)) {
+    totalSeg = Math.trunc(input);
+  } else if (typeof input === "string") {
+    const str = input.trim();
+    // Detecta sinal
+    const negativo = str.startsWith("-");
+    const limpo = negativo ? str.slice(1) : str;
+
+    const partes = limpo.split(":").map((p) => p.trim());
+    if (partes.some((p) => p === "" || isNaN(Number(p)))) {
+      throw new Error(`Formato inválido: "${input}"`);
+    }
+
+    let h = 0,
+      m = 0,
+      s = 0;
+    if (partes.length === 3) {
+      [h, m, s] = partes.map(Number);
+    } else if (partes.length === 2) {
+      [m, s] = partes.map(Number);
+    } else if (partes.length === 1) {
+      [s] = partes.map(Number);
+    } else {
+      throw new Error(`Formato inválido: "${input}"`);
+    }
+
+    if (m < 0 || s < 0 || h < 0)
+      throw new Error(
+        `Valores negativos não são permitidos nas partes: "${input}"`,
+      );
+    if (m >= 60 || s >= 60) {
+      // Aceitamos mm/ss >= 60? Se preferir, pode normalizar; aqui vamos rejeitar:
+      // para normalizar, comente o throw e deixe passar (iremos somar abaixo).
+      // throw new Error(`Minutos/segundos devem ser < 60: "${input}"`);
+    }
+
+    totalSeg = h * 3600 + m * 60 + s;
+    if (negativo) totalSeg = -totalSeg;
+  } else {
+    throw new Error(
+      'Entrada deve ser string "HH:MM:SS" | "MM:SS" | "SS" ou número de segundos.',
+    );
+  }
+
+  // --- Constrói saída no menor formato possível ---
+  const negativo = totalSeg < 0;
+  const abs = Math.abs(totalSeg);
+
+  const horas = Math.floor(abs / 3600);
+  const minutos = Math.floor((abs % 3600) / 60);
+  const segundos = abs % 60;
+
+  const pad2 = (n) => String(n).padStart(2, "0");
+
+  let corpo;
+  if (horas > 0) {
+    corpo = `${horas}:${pad2(minutos)}:${pad2(segundos)}`;
+  } else if (minutos > 0) {
+    corpo = `${minutos}:${pad2(segundos)}`;
+  } else {
+    corpo = `${segundos}`; // sem zero-padding em SS puro
+  }
+
+  return negativo ? `-${corpo}` : corpo;
+}
+
 //iniciar observacao de atendimento ativo e concluido
 function iniciarObservacao() {
   const open = XMLHttpRequest.prototype.open;
@@ -999,9 +1070,7 @@ function iniciarObservacao() {
           console.log(data);
           console.groupEnd();
 
-          const retornoLista = listarTempoDisponivelDoAgente(data);
-
-          osAtendimentosCompletos = retornoLista ?? osAtendimentosCompletos;
+          listarTempoDisponivelDoAgente(data);
 
           window.completeEngagementReport = data;
 
@@ -1091,31 +1160,30 @@ function listarAgentesAtendendo(data) {
 }
 
 function listarTempoDisponivelDoAgente(data) {
-  const agentes = [];
-  const agentesIgnorados = [];
-
   const listaAtendimentos = data.result.list;
 
-  if (listaAtendimentos.length == 0 || !data) return agentes;
+  if (listaAtendimentos.length == 0 || !data) return;
 
   listaAtendimentos.forEach((atendimento) => {
-    if (agentesIgnorados.includes(atendimento.agentName)) return;
+    const ultimoAgente = atendimento.agentNames.length - 1;
+    const oAgente = nomeDoAgenteLimpo(atendimento.agentNames[ultimoAgente]);
+    //const oAgente = nomeDoAgenteLimpo(atendimento.agentName);
+    let comparaId = 0;
+    osAtendimentosCompletos.forEach((linhas) => {
+      if (linhas.id == atendimento.engagementId) {
+        comparaId = 1;
+      }
+    });
+    if (comparaId) return;
 
     const linhatendimento = {
       id: atendimento.engagementId,
-      agente: nomeDoAgenteLimpo(atendimento.agentName),
-      tempoFim: exibirAHora(
-        dataHoraFormat(),
-        0,
-        converterTimestamp(atendimento.endTime),
-      ),
+      agente: oAgente,
+      tempoFim: atendimento.endTime,
     };
 
-    agentesIgnorados.push(atendimento.agentName);
-    agentes.push(linhatendimento);
+    osAtendimentosCompletos.push(linhatendimento);
   });
-
-  return agentes;
 }
 
 function colocarListaDeDisponibilidade() {
@@ -1168,7 +1236,7 @@ function colocarListaDeDisponibilidade() {
         osAtendimentosAtivo.includes(textoNome);
 
       const nome = criarDiv();
-      nome.textContent = textoNome + oBackground ? " - Atendendo" : "";
+      nome.textContent = textoNome + (oBackground ? " - Atendendo" : "");
       nome.style.cssText = `
          border-radius: 15px;
          padding: 0px 3px;
@@ -1176,7 +1244,10 @@ function colocarListaDeDisponibilidade() {
         `;
 
       const Tempo = criarDiv();
-      Tempo.textContent = textoTempo;
+      Tempo.textContent =
+        !textoTempo || textoTempo == "---"
+          ? textoTempo
+          : tempoEncurtado(textoTempo);
 
       linhaCaixa.append(nome, Tempo);
 
@@ -1185,8 +1256,23 @@ function colocarListaDeDisponibilidade() {
 
     const agenteJaAdicionados = [];
 
-    osAtendimentosCompletos.forEach((linhaLista) => {
-      addLinhas(linhaLista.agente, linhaLista.tempoFim.hora);
+    const novaLista = osAtendimentosCompletos.sort(
+      (x, y) => y.tempoFim - x.tempoFim,
+    );
+
+    //console.log("novaLista: ")
+    //console.log(novaLista)
+
+    novaLista.forEach((linhaLista) => {
+      if (agenteJaAdicionados.includes(linhaLista.agente)) return;
+      addLinhas(
+        linhaLista.agente,
+        exibirAHora(
+          dataHoraFormat(),
+          0,
+          converterTimestamp(linhaLista.tempoFim),
+        ).hora,
+      );
       agenteJaAdicionados.push(linhaLista.agente);
     });
 
