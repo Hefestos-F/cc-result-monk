@@ -1204,13 +1204,13 @@ function colocarListaDeDisponibilidade() {
     const aCaixaDaLista = criarDiv();
     aCaixaDaLista.id = "aCaixaDaListaDisponivel";
     aCaixaDaLista.style.cssText = `
-      color: rgba(4, 4, 19, .56);
-      font-size: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 10px;
-    `;
+        color: rgba(4, 4, 19, .56);
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 10px;
+      `;
 
     //const listaAgentComTempo = listarTempoDisponivelDoAgente();
 
@@ -1251,7 +1251,7 @@ function colocarListaDeDisponibilidade() {
         `;
 
       if (id) {
-        Object.keys(osAtendimentosCompletos).forEach((linha) => {
+        osAtendimentosCompletos.forEach((linha) => {
           if (id != linha.id) return;
           if (oBackground) linha.status = "Atendendo";
           else if (anteriorAtendendo) linha.status = "Ausente";
