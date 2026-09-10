@@ -1180,6 +1180,7 @@ function listarTempoDisponivelDoAgente(data) {
       id: atendimento.engagementId,
       agente: oAgente,
       tempoFim: atendimento.endTime,
+      status: "---",
     };
 
     osAtendimentosCompletos.push(linhatendimento);
@@ -1223,7 +1224,9 @@ function colocarListaDeDisponibilidade() {
     //console.log("osAtendimentosCompletos: ");
     //console.log(osAtendimentosCompletos);
 
-    function addLinhas(textoNome, textoTempo) {
+    let anteriorAtendendo = 0;
+
+    function addLinhas(textoNome, textoTempo, status, id) {
       const linhaCaixa = criarDiv();
       linhaCaixa.style.cssText = `
           display: flex;
@@ -1235,13 +1238,28 @@ function colocarListaDeDisponibilidade() {
         Object.keys(osAtendimentosAtivo).length !== 0 &&
         osAtendimentosAtivo.includes(textoNome);
 
+      const osStatus = ["Atendendo", "Ausente"];
+
       const nome = criarDiv();
-      nome.textContent = textoNome + (oBackground ? " - Atendendo" : "");
+      nome.textContent =
+        textoNome + (osStatus.includes(status) ? ` - ${status}` : "");
+
       nome.style.cssText = `
          border-radius: 15px;
          padding: 0px 3px;
-         ${oBackground ? "background: #b9b9b9;" : ""}
+         background: ${status == "Atendendo" ? "#b9b9b9" : status == "Ausente" ? "#fff0af" : ""};
         `;
+
+      if (id) {
+        Object.keys(osAtendimentosCompletos).forEach((linha) => {
+          if (id != linha.id) return;
+          if (oBackground) linha.status = "Atendendo";
+          else if (anteriorAtendendo) linha.status = "Ausente";
+          else if (linha.status == "Atendendo") linha.status = "---";
+        });
+      }
+
+      if (oBackground) anteriorAtendendo = 1;
 
       const Tempo = criarDiv();
       Tempo.textContent =
@@ -1272,13 +1290,16 @@ function colocarListaDeDisponibilidade() {
           0,
           converterTimestamp(linhaLista.tempoFim),
         ).hora,
+        linhaLista.status,
+        linhaLista.id,
       );
       agenteJaAdicionados.push(linhaLista.agente);
     });
 
     if (Object.keys(osAtendimentosAtivo).length !== 0) {
       osAtendimentosAtivo.forEach((agente) => {
-        if (!agenteJaAdicionados.includes(agente)) addLinhas(agente, "---");
+        if (!agenteJaAdicionados.includes(agente))
+          addLinhas(agente, "---", "Atendendo", 0);
       });
     }
 
