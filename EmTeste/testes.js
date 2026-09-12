@@ -1032,10 +1032,82 @@ function tempoEncurtado(input) {
   return negativo ? `-${corpo}` : corpo;
 }
 
+function converterParaSegundos(tempo) {
+  // Mais tolerante: aceita "HH:MM:SS", "MM:SS" e números; retorna segundos inteiros.
+  if (tempo == null || tempo === "") return 0;
+  if (typeof tempo === "number") return Math.floor(tempo);
+  if (typeof tempo === "string") {
+    const parts = tempo
+      .trim()
+      .split(":")
+      .map((p) => Number(p.trim()));
+    if (parts.length === 3) {
+      const [h, m, s] = parts;
+      return (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0);
+    }
+    if (parts.length === 2) {
+      const [m, s] = parts;
+      return (Number(m) || 0) * 60 + (Number(s) || 0);
+    }
+    if (/^\d+$/.test(tempo.trim())) {
+      return Number(tempo.trim());
+    }
+  }
+  return 0;
+}
+
+function converterParaTempo(input) {
+  if (input == null) return "00:00:00";
+
+  // aceita número (segundos) ou string ("HH:MM:SS" / "MM:SS" / "SS")
+  let total = Number(input);
+
+  if (Number.isNaN(total)) {
+    if (typeof input === "string" && input.includes(":")) {
+      const parts = input.split(":").map((p) => Number(p.trim()));
+      if (parts.length === 3) {
+        total = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      } else if (parts.length === 2) {
+        total = parts[0] * 60 + parts[1];
+      } else {
+        total = 0;
+      }
+    } else {
+      // caso seja string só com segundos ("15", "90") ou inválida
+      const onlyNum = Number(String(input).trim());
+      total = Number.isFinite(onlyNum) ? onlyNum : 0;
+    }
+  }
+
+  // normaliza para inteiro e evita negativo
+  total = Math.max(0, Math.floor(total));
+
+  const horas = Math.floor(total / 3600);
+  const minutos = Math.floor((total % 3600) / 60);
+  const segundos = total % 60;
+
+  return (
+    String(horas).padStart(2, "0") +
+    ":" +
+    String(minutos).padStart(2, "0") +
+    ":" +
+    String(segundos).padStart(2, "0")
+  );
+}
+
 //iniciar observacao de atendimento ativo e concluido
 function iniciarObservacao() {
-  const open = XMLHttpRequest.prototype.open;
-  const send = XMLHttpRequest.prototype.send;
+  // Evita instalar duas vezes
+  if (window.__observacaoAtiva) {
+    console.log("⚠️ Interceptador já está ativo");
+    return;
+  }
+
+  window.__observacaoAtiva = true;
+
+  // Salva os métodos originais
+  window.__originalOpen = XMLHttpRequest.prototype.open;
+  window.__originalSend = XMLHttpRequest.prototype.send;
 
   window.completeEngagementPages = [];
   window.activeEngagementResponses = [];
@@ -1043,14 +1115,13 @@ function iniciarObservacao() {
   XMLHttpRequest.prototype.open = function (method, url) {
     this._url = url;
     this._method = method;
-    return open.apply(this, arguments);
+    return window.__originalOpen.apply(this, arguments);
   };
 
   XMLHttpRequest.prototype.send = function (body) {
     this.addEventListener("load", () => {
       const url = this._url || "";
 
-      // Ignora tudo que não interessa
       const isCompleteEngagement = url.includes(
         "/analytics/historical/completeEngagement/report",
       );
@@ -1065,49 +1136,43 @@ function iniciarObservacao() {
         const data = JSON.parse(this.responseText);
 
         if (isCompleteEngagement) {
-          console.group("📋 COMPLETE ENGAGEMENT REPORT");
-          console.log("URL:", url);
-          console.log(data);
-          console.groupEnd();
-
+          console.log("📋 COMPLETE ENGAGEMENT REPORT", data);
           listarTempoDisponivelDoAgente(data);
-
-          window.completeEngagementReport = data;
-
-          window.completeEngagementPages.push({
-            url,
-            timestamp: new Date().toISOString(),
-            data,
-          });
         }
 
         if (isActiveEngagement) {
-          console.group("🎧 ACTIVE ENGAGEMENT OMNI");
-          console.log("URL:", url);
-          console.log(data);
-          console.groupEnd();
-
+          console.log("🎧 ACTIVE ENGAGEMENT OMNI", data);
           const retornoLista = listarAgentesAtendendo(data);
 
           osAtendimentosAtivo = retornoLista ?? osAtendimentosAtivo;
-
-          window.activeEngagementOmni = data;
-
-          window.activeEngagementResponses.push({
-            url,
-            timestamp: new Date().toISOString(),
-            data,
-          });
         }
       } catch (err) {
-        console.error("❌ Resposta não é JSON", url, this.responseText);
+        console.error("❌ Resposta não é JSON");
       }
     });
 
-    return send.apply(this, arguments);
+    return window.__originalSend.apply(this, arguments);
   };
 
   console.log("✅ Interceptador instalado");
+}
+
+function pararObservacao() {
+  if (!window.__observacaoAtiva) {
+    console.log("⚠️ Interceptador já está desativado");
+    return;
+  }
+
+  // Restaura os métodos originais
+  XMLHttpRequest.prototype.open = window.__originalOpen;
+  XMLHttpRequest.prototype.send = window.__originalSend;
+
+  delete window.__originalOpen;
+  delete window.__originalSend;
+
+  window.__observacaoAtiva = false;
+
+  console.log("🛑 Interceptador removido");
 }
 
 iniciarObservacao();
@@ -1181,6 +1246,7 @@ function listarTempoDisponivelDoAgente(data) {
       agente: oAgente,
       tempoFim: atendimento.endTime,
       status: "---",
+      ultimaDisponibilidade: "---",
     };
 
     osAtendimentosCompletos.push(linhatendimento);
@@ -1226,7 +1292,13 @@ function colocarListaDeDisponibilidade() {
 
     let anteriorAtendendo = 0;
 
-    function addLinhas(textoNome, textoTempo, status, id) {
+    function addLinhas(
+      textoNome,
+      textoTempo,
+      status,
+      id,
+      ultimaDisponibilidade,
+    ) {
       const linhaCaixa = criarDiv();
       linhaCaixa.style.cssText = `
           display: flex;
@@ -1253,8 +1325,10 @@ function colocarListaDeDisponibilidade() {
       if (id) {
         osAtendimentosCompletos.forEach((linha) => {
           if (id != linha.id) return;
-          if (oBackground) linha.status = "Atendendo";
-          else if (anteriorAtendendo) linha.status = "Ausente";
+          if (oBackground) {
+            linha.status = "Atendendo";
+            linha.ultimaDisponibilidade = textoTempo;
+          } else if (anteriorAtendendo) linha.status = "Ausente";
           else if (linha.status == "Atendendo") linha.status = "---";
         });
       }
@@ -1262,12 +1336,24 @@ function colocarListaDeDisponibilidade() {
       if (oBackground) anteriorAtendendo = 1;
 
       const Tempo = criarDiv();
-      Tempo.textContent =
-        !textoTempo || textoTempo == "---"
+      Tempo.textContent = oBackground
+        ? ultimaDisponibilidade
+        : !textoTempo || textoTempo == "---"
           ? textoTempo
           : tempoEncurtado(textoTempo);
 
-      linhaCaixa.append(nome, Tempo);
+      const atendendo = criarDiv();
+      atendendo.textContent =
+        oBackground && textoTempo && ultimaDisponibilidade
+          ? `- ${tempoEncurtado(
+              converterParaTempo(
+                converterParaSegundos(textoTempo) -
+                  converterParaSegundos(ultimaDisponibilidade),
+              ),
+            )} -`
+          : "";
+
+      linhaCaixa.append(nome, atendendo, Tempo);
 
       aCaixaDaLista.append(linhaCaixa);
     }

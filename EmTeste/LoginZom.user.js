@@ -22,6 +22,7 @@
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
     ValorMetaTMA: 725,
     logueEntreDatas: 0,
+    disponibilidade: 0,
     pausalimitada: 0,
     LogueManual: 0,
     logueSalvo: 1,
@@ -2747,6 +2748,29 @@
       return Codebb;
     }
 
+    function buscarDisponibilidade() {
+      const caixa = criarCaixaSeg();
+      const linha = criarLinhaTextoComBot2(
+        "Disponibilidade",
+        "Dispon",
+        config.disponibilidade,
+        () => {
+          config.disponibilidade = !config.disponibilidade;
+
+          if (config.disponibilidade) {
+            iniciarObservacao();
+          } else {
+            pararObservacao();
+          }
+
+          atualizarVisual();
+          SalvandoVariConfig(1);
+        },
+      );
+      caixa.append(linha);
+      return caixa;
+    }
+
     function criarCaixaSeg() {
       const caixa = document.createElement("div");
       caixa.style.cssText = `
@@ -3390,6 +3414,8 @@
         criarSeparador(),
         odebb(),
         criarSeparador(),
+        buscarDisponibilidade(),
+        criarSeparador(),
         CBBancDa,
         criarSeparador(),
         ContModoTeste(),
@@ -3527,6 +3553,7 @@
       ["Recalc", !config.logueSalvo],
       ["TestBip", test.Estouro],
       ["modoTeste", test.modoTeste],
+      ["Dispon", config.disponibilidade],
     ].forEach(([g, t]) => {
       atualizarSlidePosi(g, t);
     });
@@ -4490,8 +4517,17 @@
 
   //iniciar observacao de atendimento ativo e concluido
   function iniciarObservacao() {
-    const open = XMLHttpRequest.prototype.open;
-    const send = XMLHttpRequest.prototype.send;
+    // Evita instalar duas vezes
+    if (window.__observacaoAtiva) {
+      console.log("⚠️ Interceptador já está ativo");
+      return;
+    }
+
+    window.__observacaoAtiva = true;
+
+    // Salva os métodos originais
+    window.__originalOpen = XMLHttpRequest.prototype.open;
+    window.__originalSend = XMLHttpRequest.prototype.send;
 
     window.completeEngagementPages = [];
     window.activeEngagementResponses = [];
@@ -4499,14 +4535,13 @@
     XMLHttpRequest.prototype.open = function (method, url) {
       this._url = url;
       this._method = method;
-      return open.apply(this, arguments);
+      return window.__originalOpen.apply(this, arguments);
     };
 
     XMLHttpRequest.prototype.send = function (body) {
       this.addEventListener("load", () => {
         const url = this._url || "";
 
-        // Ignora tudo que não interessa
         const isCompleteEngagement = url.includes(
           "/analytics/historical/completeEngagement/report",
         );
@@ -4521,52 +4556,44 @@
           const data = JSON.parse(this.responseText);
 
           if (isCompleteEngagement) {
-            /*console.group("📋 COMPLETE ENGAGEMENT REPORT");
-            console.log("URL:", url);
-            console.log(data);
-            console.groupEnd();*/
-
+            console.log("📋 COMPLETE ENGAGEMENT REPORT", data);
             listarTempoDisponivelDoAgente(data);
-
-            window.completeEngagementReport = data;
-
-            window.completeEngagementPages.push({
-              url,
-              timestamp: new Date().toISOString(),
-              data,
-            });
           }
 
           if (isActiveEngagement) {
-            /*console.group("🎧 ACTIVE ENGAGEMENT OMNI");
-            console.log("URL:", url);
-            console.log(data);
-            console.groupEnd();*/
-
+            console.log("🎧 ACTIVE ENGAGEMENT OMNI", data);
             const retornoLista = listarAgentesAtendendo(data);
 
             osAtendimentosAtivo = retornoLista ?? osAtendimentosAtivo;
-
-            window.activeEngagementOmni = data;
-
-            window.activeEngagementResponses.push({
-              url,
-              timestamp: new Date().toISOString(),
-              data,
-            });
           }
         } catch (err) {
-          console.error("❌ Resposta não é JSON", url, this.responseText);
+          console.error("❌ Resposta não é JSON");
         }
       });
 
-      return send.apply(this, arguments);
+      return window.__originalSend.apply(this, arguments);
     };
 
     console.log("✅ Interceptador instalado");
   }
 
-  if (stt.observarDisponibilidade) iniciarObservacao();
+  function pararObservacao() {
+    if (!window.__observacaoAtiva) {
+      console.log("⚠️ Interceptador já está desativado");
+      return;
+    }
+
+    // Restaura os métodos originais
+    XMLHttpRequest.prototype.open = window.__originalOpen;
+    XMLHttpRequest.prototype.send = window.__originalSend;
+
+    delete window.__originalOpen;
+    delete window.__originalSend;
+
+    window.__observacaoAtiva = false;
+
+    console.log("🛑 Interceptador removido");
+  }
 
   function converterTimestamp(timestamp) {
     // Ajusta se o timestamp estiver em segundos (10 dígitos) em vez de milissegundos (13 dígitos)
@@ -4637,6 +4664,7 @@
         agente: oAgente,
         tempoFim: atendimento.endTime,
         status: "---",
+        ultimaDisponibilidade: "---",
       };
 
       osAtendimentosCompletos.push(linhatendimento);
@@ -4682,7 +4710,13 @@
 
       let anteriorAtendendo = 0;
 
-      function addLinhas(textoNome, textoTempo, status, id) {
+      function addLinhas(
+        textoNome,
+        textoTempo,
+        status,
+        id,
+        ultimaDisponibilidade,
+      ) {
         const linhaCaixa = criarDiv();
         linhaCaixa.style.cssText = `
           display: flex;
@@ -4709,8 +4743,10 @@
         if (id) {
           osAtendimentosCompletos.forEach((linha) => {
             if (id != linha.id) return;
-            if (oBackground) linha.status = "Atendendo";
-            else if (anteriorAtendendo) linha.status = "Ausente";
+            if (oBackground) {
+              linha.status = "Atendendo";
+              linha.ultimaDisponibilidade = textoTempo;
+            } else if (anteriorAtendendo) linha.status = "Ausente";
             else if (linha.status == "Atendendo") linha.status = "---";
           });
         }
@@ -4718,12 +4754,24 @@
         if (oBackground) anteriorAtendendo = 1;
 
         const Tempo = criarDiv();
-        Tempo.textContent =
-          !textoTempo || textoTempo == "---"
+        Tempo.textContent = oBackground
+          ? ultimaDisponibilidade
+          : !textoTempo || textoTempo == "---"
             ? textoTempo
             : tempoEncurtado(textoTempo);
 
-        linhaCaixa.append(nome, Tempo);
+        const atendendo = criarDiv();
+        atendendo.textContent =
+          oBackground && textoTempo && ultimaDisponibilidade
+            ? `- ${tempoEncurtado(
+                converterParaTempo(
+                  converterParaSegundos(textoTempo) -
+                    converterParaSegundos(ultimaDisponibilidade),
+                ),
+              )} -`
+            : "";
+
+        linhaCaixa.append(nome, atendendo, Tempo);
 
         aCaixaDaLista.append(linhaCaixa);
       }
