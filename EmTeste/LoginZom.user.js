@@ -67,7 +67,6 @@
   };
 
   const stt = {
-    observarDisponibilidade: 1,
     logueInicio: 1,
     observa: 1,
     Status: "",
@@ -242,6 +241,7 @@
     }
     await SalvandoVariConfig(0);
     CriarBotInicial();
+    if (config.disponibilidade) iniciarObservacao();
   }
 
   function observarItem(aoMudar) {
@@ -1585,7 +1585,7 @@
     const el = encoStatus();
     Hodeb("Estado do agente", el);
 
-    if (stt.observarDisponibilidade) colocarListaDeDisponibilidade();
+    if (config.disponibilidade) colocarListaDeDisponibilidade();
 
     if (el) {
       TempoPausas.ContAtual = el.Timer;
@@ -3553,7 +3553,7 @@
       ["Recalc", !config.logueSalvo],
       ["TestBip", test.Estouro],
       ["modoTeste", test.modoTeste],
-      ["Dispon", config.disponibilidade],
+      ["Disponibilidade", config.disponibilidade],
     ].forEach(([g, t]) => {
       atualizarSlidePosi(g, t);
     });
@@ -4745,7 +4745,8 @@
             if (id != linha.id) return;
             if (oBackground) {
               linha.status = "Atendendo";
-              linha.ultimaDisponibilidade = textoTempo;
+              if (linha.ultimaDisponibilidade == "---")
+                linha.ultimaDisponibilidade = textoTempo;
             } else if (anteriorAtendendo) linha.status = "Ausente";
             else if (linha.status == "Atendendo") linha.status = "---";
           });
@@ -4755,7 +4756,7 @@
 
         const Tempo = criarDiv();
         Tempo.textContent = oBackground
-          ? ultimaDisponibilidade
+          ? tempoEncurtado(ultimaDisponibilidade)
           : !textoTempo || textoTempo == "---"
             ? textoTempo
             : tempoEncurtado(textoTempo);
@@ -4796,6 +4797,7 @@
           ).hora,
           linhaLista.status,
           linhaLista.id,
+          linhaLista.ultimaDisponibilidade,
         );
         agenteJaAdicionados.push(linhaLista.agente);
       });
@@ -4803,7 +4805,7 @@
       if (Object.keys(osAtendimentosAtivo).length !== 0) {
         osAtendimentosAtivo.forEach((agente) => {
           if (!agenteJaAdicionados.includes(agente))
-            addLinhas(agente, "---", "Atendendo", 0);
+            addLinhas(agente, "---", "Atendendo", 0, 0);
         });
       }
 
