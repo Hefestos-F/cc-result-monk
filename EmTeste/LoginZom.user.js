@@ -363,9 +363,9 @@
   };
 
   async function fimdepausa(agora) {
-    const inicioObj = await getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
+    const inicioObj = getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
 
-    const duracaoObj = await getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
+    const duracaoObj = getValorDadosPausa(DDPausa.numero, "duracao"); // {data,hora} ou undefined
 
     //Hlog(`fimObj: ${JSON.stringify(fimObj)}`);
 
@@ -406,14 +406,20 @@
 
     // Se não mudou, não faz nada
 
-    let oRet = stt.Status === "" || stt.Status === "---" ? 1 : 0;
+    const statusFalso = stt.Status === "" || stt.Status === "---";
+    const timerFalso = Otimer == "---";
 
-    if (Otimer >= stt.ContAnt) {
-      oRet = 1;
-    }
-    if (Otimer !== "---") stt.ContAnt = Otimer;
+    const tempoNewPausa = !timerFalso && stt.ContAnt > Otimer;
+    if (!timerFalso) stt.ContAnt = Otimer;
 
-    if (oRet) return (stt.andament = 1);
+    let seExistePausaNesseNumero = getValorDadosPausa(DDPausa.numero, "inicio");
+
+    if (
+      statusFalso ||
+      timerFalso ||
+      (!tempoNewPausa && seExistePausaNesseNumero)
+    )
+      return (stt.andament = 1);
 
     // ==========================================================
     // 3) Atualiza status anterior
@@ -446,18 +452,12 @@
       // Seu comentário original: "Se for abrir nova pausa, incremente o id"
       DDPausa.numero += 1;
 
-      let seExistePausaNesseNumero = await getValorDadosPausa(
-        DDPausa.numero,
-        "inicio",
-      ); // {data,hora} ou undefined
+      seExistePausaNesseNumero = getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
 
       for (let c = 0; c < 20 && seExistePausaNesseNumero; c++) {
         DDPausa.numero += 1;
 
-        seExistePausaNesseNumero = await getValorDadosPausa(
-          DDPausa.numero,
-          "inicio",
-        ); // {data,hora} ou undefined
+        seExistePausaNesseNumero = getValorDadosPausa(DDPausa.numero, "inicio"); // {data,hora} ou undefined
       }
 
       const duracaoPrevista = duracaoPrevistaPorStatus(stt.Status);
@@ -696,9 +696,9 @@
   }
 
   async function UltimoDisponivel(item) {
-    const inicioObj = await getValorDadosPausa(item?.id, "inicio"); // { data, hora } ou undefined
-    const duracaoObj = await getValorDadosPausa(item?.id, "duracao"); // "HH:MM:SS" ou "---"
-    const fimObj = await getValorDadosPausa(item?.id, "fim"); // { data, hora } ou undefined
+    const inicioObj = getValorDadosPausa(item?.id, "inicio"); // { data, hora } ou undefined
+    const duracaoObj = getValorDadosPausa(item?.id, "duracao"); // "HH:MM:SS" ou "---"
+    const fimObj = getValorDadosPausa(item?.id, "fim"); // { data, hora } ou undefined
 
     if (duracaoObj === "---" || fimObj === "---") return;
     // Efeito colateral explícito (mantido, mas isolado do somatório)
@@ -4636,7 +4636,14 @@
     if (listaAtendimentos.length == 0 || !data) return agentesAtendendo;
 
     listaAtendimentos.forEach((atendimento) => {
-      agentesAtendendo.push(nomeDoAgenteLimpo(atendimento.agents[0].agentName));
+      agentesAtendendo.push({
+        id: atendimento.engagementId,
+        agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
+        status: "---",
+        tempoFim: "---",
+        tempoInicio: atendimento.startTime,
+        ultimaDisponibilidade: "---",
+      });
     });
 
     return agentesAtendendo;
@@ -4662,8 +4669,9 @@
       const linhatendimento = {
         id: atendimento.engagementId,
         agente: oAgente,
-        tempoFim: atendimento.endTime,
         status: "---",
+        tempoFim: atendimento.endTime,
+        tempoInicio: "---",
         ultimaDisponibilidade: "---",
       };
 
@@ -4698,7 +4706,7 @@
 
       //const listaAgentComTempo = listarTempoDisponivelDoAgente();
 
-      if (Object.keys(osAtendimentosCompletos).length === 0) {
+      if (osAtendimentosCompletos.length === 0) {
         console.log("osAtendimentosCompletos não encontrado");
         return;
       }
@@ -4710,13 +4718,7 @@
 
       let anteriorAtendendo = 0;
 
-      function addLinhas(
-        textoNome,
-        textoTempo,
-        status,
-        id,
-        ultimaDisponibilidade,
-      ) {
+      function addLinhas(agente, status, timeAtendendo, timeDisponivel) {
         const linhaCaixa = criarDiv();
         linhaCaixa.style.cssText = `
           display: flex;
@@ -4724,15 +4726,11 @@
           justify-content: space-between;
         `;
 
-        const oBackground =
-          Object.keys(osAtendimentosAtivo).length !== 0 &&
-          osAtendimentosAtivo.includes(textoNome);
-
         const osStatus = ["Atendendo", "Ausente"];
 
         const nome = criarDiv();
         nome.textContent =
-          textoNome + (osStatus.includes(status) ? ` - ${status}` : "");
+          agente + (osStatus.includes(status) ? ` - ${status}` : "");
 
         nome.style.cssText = `
          border-radius: 15px;
@@ -4740,39 +4738,13 @@
          background: ${status == "Atendendo" ? "#b9b9b9" : status == "Ausente" ? "#fff0af" : ""};
         `;
 
-        if (id) {
-          osAtendimentosCompletos.forEach((linha) => {
-            if (id != linha.id) return;
-            if (oBackground) {
-              linha.status = "Atendendo";
-              if (linha.ultimaDisponibilidade == "---")
-                linha.ultimaDisponibilidade = textoTempo;
-            } else if (anteriorAtendendo) linha.status = "Ausente";
-            else if (linha.status == "Atendendo") linha.status = "---";
-          });
-        }
-
-        if (oBackground) anteriorAtendendo = 1;
-
         const Tempo = criarDiv();
-        Tempo.textContent = oBackground
-          ? tempoEncurtado(ultimaDisponibilidade)
-          : !textoTempo || textoTempo == "---"
-            ? textoTempo
-            : tempoEncurtado(textoTempo);
+        Tempo.textContent = timeDisponivel ? timeDisponivel : "";
 
-        const atendendo = criarDiv();
-        atendendo.textContent =
-          oBackground && textoTempo && ultimaDisponibilidade
-            ? `- ${tempoEncurtado(
-                converterParaTempo(
-                  converterParaSegundos(textoTempo) -
-                    converterParaSegundos(ultimaDisponibilidade),
-                ),
-              )} -`
-            : "";
+        const TempoAtendendo = criarDiv();
+        TempoAtendendo.textContent = timeAtendendo ? timeAtendendo : "";
 
-        linhaCaixa.append(nome, atendendo, Tempo);
+        linhaCaixa.append(nome, TempoAtendendo, Tempo);
 
         aCaixaDaLista.append(linhaCaixa);
       }
@@ -4786,26 +4758,69 @@
       //console.log("novaLista: ")
       //console.log(novaLista)
 
+      function filtrador(agente, status, tempoFim) {
+        if (agenteJaAdicionados.includes(agente)) return;
+
+        let oBackground = 0;
+
+        let tempoInicio = null;
+
+        if (osAtendimentosAtivo.length > 0) {
+          osAtendimentosAtivo.forEach((linha) => {
+            if (linha.agente != agente) return;
+            oBackground = 1;
+            tempoInicio = linha.tempoInicio;
+          });
+        }
+
+        let tempoDisponivel = null;
+
+        if (tempoFim != "---") {
+          tempoDisponivel = tempoEncurtado(
+            exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoFim)).hora,
+          );
+        }
+
+        if (osAtendimentosCompletos.length != 0) {
+          osAtendimentosCompletos.forEach((linha) => {
+            if (linha.agente != agente) return;
+            if (oBackground) {
+              linha.status = "Atendendo";
+              if (linha.ultimaDisponibilidade == "---") {
+                linha.ultimaDisponibilidade = tempoEncurtado(tempoDisponivel);
+              } else {
+                tempoDisponivel = linha.ultimaDisponibilidade;
+              }
+            } else if (anteriorAtendendo) linha.status = "Ausente";
+            else if (linha.status == "Atendendo") linha.status = "---";
+          });
+        }
+
+        if (oBackground) anteriorAtendendo = 1;
+
+        let tempoAtendendo = null;
+
+        //  Hlog("tempoInicio: ");
+        // Hlog(tempoInicio);
+
+        if (tempoInicio) {
+          tempoAtendendo = `- ${tempoEncurtado(
+            exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoInicio))
+              .hora,
+          )} -`;
+        }
+
+        addLinhas(agente, status, tempoAtendendo, tempoDisponivel);
+      }
+
       novaLista.forEach((linhaLista) => {
-        if (agenteJaAdicionados.includes(linhaLista.agente)) return;
-        addLinhas(
-          linhaLista.agente,
-          exibirAHora(
-            dataHoraFormat(),
-            0,
-            converterTimestamp(linhaLista.tempoFim),
-          ).hora,
-          linhaLista.status,
-          linhaLista.id,
-          linhaLista.ultimaDisponibilidade,
-        );
+        filtrador(linhaLista.agente, linhaLista.status, linhaLista.tempoFim);
         agenteJaAdicionados.push(linhaLista.agente);
       });
 
-      if (Object.keys(osAtendimentosAtivo).length !== 0) {
-        osAtendimentosAtivo.forEach((agente) => {
-          if (!agenteJaAdicionados.includes(agente))
-            addLinhas(agente, "---", "Atendendo", 0, 0);
+      if (osAtendimentosAtivo.length > 0) {
+        osAtendimentosAtivo.forEach((linha) => {
+          filtrador(linha.agente, "Atendendo", linha.tempoFim);
         });
       }
 
