@@ -1104,6 +1104,19 @@ function converterParaTempo(input) {
   );
 }
 
+function formatPrimeiroNome(txt) {
+  const t = (txt ?? "").trim();
+  if (!t) return "";
+
+  // Divide no primeiro espaço, pipe (|) ou hífen (-)
+  // O modificador 'u' garante suporte Unicode
+  const first = t.split(/[|\/\-\s]+/u)[0];
+
+  // Normaliza: primeira letra maiúscula, restante minúsculo
+  const lower = first.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
 //iniciar observacao de atendimento ativo e concluido
 function iniciarObservacao() {
   // Evita instalar duas vezes
@@ -1307,7 +1320,7 @@ function colocarListaDeDisponibilidade() {
     //console.log("osAtendimentosCompletos: ");
     //console.log(osAtendimentosCompletos);
 
-    let anteriorAtendendo = 0;
+    let anteriorAtendendo = [0, 0];
 
     function addLinhas(agente, status, timeAtendendo, timeDisponivel) {
       const linhaCaixa = criarDiv();
@@ -1356,11 +1369,14 @@ function colocarListaDeDisponibilidade() {
 
       let tempoInicio = null;
 
+      let idAtendendo = 0;
+
       if (osAtendimentosAtivo.length > 0) {
         osAtendimentosAtivo.forEach((linha) => {
           if (linha.agente != agente) return;
           oBackground = 1;
           tempoInicio = linha.tempoInicio;
+          idAtendendo = linha.id;
         });
       }
 
@@ -1368,7 +1384,11 @@ function colocarListaDeDisponibilidade() {
 
       if (tempoFim != "---") {
         tempoDisponivel = tempoEncurtado(
-          exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoFim)).hora,
+          exibirAHora(
+            tempoInicio ? converterTimestamp(tempoInicio) : dataHoraFormat(),
+            0,
+            converterTimestamp(tempoFim),
+          ).hora,
         );
       }
 
@@ -1377,17 +1397,20 @@ function colocarListaDeDisponibilidade() {
           if (linha.agente != agente) return;
           if (oBackground) {
             linha.status = "Atendendo";
-            if (linha.ultimaDisponibilidade == "---") {
+            /*if (linha.ultimaDisponibilidade == "---") {
               linha.ultimaDisponibilidade = tempoEncurtado(tempoDisponivel);
             } else {
               tempoDisponivel = linha.ultimaDisponibilidade;
-            }
-          } else if (anteriorAtendendo) linha.status = "Ausente";
+            }*/
+          } else if (anteriorAtendendo[0]) linha.status = "Ausente";
           else if (linha.status == "Atendendo") linha.status = "---";
         });
       }
 
-      if (oBackground) anteriorAtendendo = 1;
+      if (oBackground) {
+        anteriorAtendendo[0] = 1;
+        anteriorAtendendo[1] = idAtendendo;
+      }
 
       let tempoAtendendo = null;
 
@@ -1422,6 +1445,165 @@ function colocarListaDeDisponibilidade() {
     //console.log("abaInteracaoConcluida não encontrada");
   }
 }
+
+const agenteJaAdicionados = [];
+function colocarListaDeDisponibilidade() {
+  const abaInteracaoConcluida = document.getElementById("pane-active");
+
+  if (abaInteracaoConcluida) {
+    const opai = abaInteracaoConcluida.parentElement;
+
+    const criarDiv = () => document.createElement("div");
+
+    const aCaixaDaListaDisponivel = document.getElementById(
+      "aCaixaDaListaDisponivel",
+    );
+
+    const aCaixaDaLista = criarDiv();
+    aCaixaDaLista.id = "aCaixaDaListaDisponivel";
+    aCaixaDaLista.style.cssText = `
+        color: rgba(4, 4, 19, .56);
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 10px;
+      `;
+
+    if (osAtendimentosCompletos.length != 0) {
+      osAtendimentosCompletos.forEach((linha) => {
+        if (agenteJaAdicionados.includes(linha.agente)) return;
+
+        addLinhas(linha.id, linha.agente);
+
+        agenteJaAdicionados.push(linha.agente);
+        
+      });
+    }
+
+    function addLinhas(id, agente, status, timeAtendendo, timeDisponivel) {
+      const linhaCaixa = criarDiv();
+      linhaCaixa.style.cssText = `
+        display: flex;
+        width: 90%;
+        justify-content: space-between;
+      `;
+
+      const osStatus = ["Atendendo", "Ausente"];
+
+      const nome = criarDiv();
+      nome.textContent =
+        agente + (osStatus.includes(status) ? ` - ${status}` : "");
+
+      nome.style.cssText = `
+         border-radius: 15px;
+         padding: 0px 3px;
+         background: ${status == "Atendendo" ? "#b9b9b9" : status == "Ausente" ? "#fff0af" : ""};
+        `;
+
+      const Tempo = criarDiv();
+      Tempo.textContent = timeDisponivel ? timeDisponivel : "";
+
+      const TempoAtendendo = criarDiv();
+      TempoAtendendo.textContent = timeAtendendo ? timeAtendendo : "";
+
+      linhaCaixa.append(nome, TempoAtendendo, Tempo);
+
+      aCaixaDaLista.append(linhaCaixa);
+    }
+
+    const agenteJaAdicionados = [];
+
+    const novaLista = osAtendimentosCompletos.sort(
+      (x, y) => y.tempoFim - x.tempoFim,
+    );
+
+    //console.log("novaLista: ")
+    //console.log(novaLista)
+
+    function filtrador(agente, status, tempoFim) {
+      let oBackground = 0;
+
+      let tempoInicio = null;
+
+      let idAtendendo = 0;
+
+      if (osAtendimentosAtivo.length > 0) {
+        osAtendimentosAtivo.forEach((linha) => {
+          if (linha.agente != agente) return;
+          oBackground = 1;
+          tempoInicio = linha.tempoInicio;
+          idAtendendo = linha.id;
+        });
+      }
+
+      let tempoDisponivel = null;
+
+      if (tempoFim != "---") {
+        tempoDisponivel = tempoEncurtado(
+          exibirAHora(
+            tempoInicio ? converterTimestamp(tempoInicio) : dataHoraFormat(),
+            0,
+            converterTimestamp(tempoFim),
+          ).hora,
+        );
+      }
+
+      if (osAtendimentosCompletos.length != 0) {
+        osAtendimentosCompletos.forEach((linha) => {
+          if (linha.agente != agente) return;
+          if (oBackground) {
+            linha.status = "Atendendo";
+            /*if (linha.ultimaDisponibilidade == "---") {
+              linha.ultimaDisponibilidade = tempoEncurtado(tempoDisponivel);
+            } else {
+              tempoDisponivel = linha.ultimaDisponibilidade;
+            }*/
+          } else if (anteriorAtendendo[0]) linha.status = "Ausente";
+          else if (linha.status == "Atendendo") linha.status = "---";
+        });
+      }
+
+      if (oBackground) {
+        anteriorAtendendo[0] = 1;
+        anteriorAtendendo[1] = idAtendendo;
+      }
+
+      let tempoAtendendo = null;
+
+      //  Hlog("tempoInicio: ");
+      // Hlog(tempoInicio);
+
+      if (tempoInicio) {
+        tempoAtendendo = `- ${tempoEncurtado(
+          exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoInicio))
+            .hora,
+        )} -`;
+      }
+
+      addLinhas(agente, status, tempoAtendendo, tempoDisponivel);
+    }
+
+    novaLista.forEach((linhaLista) => {
+      filtrador(linhaLista.agente, linhaLista.status, linhaLista.tempoFim);
+      agenteJaAdicionados.push(linhaLista.agente);
+    });
+
+    if (osAtendimentosAtivo.length > 0) {
+      osAtendimentosAtivo.forEach((linha) => {
+        filtrador(linha.agente, "Atendendo", linha.tempoFim);
+      });
+    }
+
+    opai.prepend(aCaixaDaLista);
+
+    //console.log("Caixa Criada e Adicionada");
+  } else {
+    //console.log("abaInteracaoConcluida não encontrada");
+  }
+}
+
+function atualizarTabela() {}
 
 const atualizarLista = setInterval(colocarListaDeDisponibilidade, 1000);
 

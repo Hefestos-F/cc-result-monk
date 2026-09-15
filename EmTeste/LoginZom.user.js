@@ -414,6 +414,28 @@
 
     let seExistePausaNesseNumero = getValorDadosPausa(DDPausa.numero, "inicio");
 
+    if (seExistePausaNesseNumero) {
+      const statusSalvo = getValorDadosPausa(DDPausa.numero, "Pausa");
+
+      let eoMesmoStatus = true;
+
+      if (!statusFalso && statusSalvo) {
+        eoMesmoStatus = statusSalvo == stt.Status;
+      }
+      const testeTimePausa = exibirAHora(
+        gerarDataHora(),
+        0,
+        seExistePausaNesseNumero,
+      ).hora;
+
+      const diferencaTempos = converterParaSegundos(testeTimePausa) - Otimer;
+      if (!eoMesmoStatus || (diferencaTempos && diferencaTempos > 3)) {
+        Hlog(
+          `eoMesmoStatus: ${eoMesmoStatus} / diferencaTempos: ${diferencaTempos} / testeTimePausa: ${testeTimePausa}`,
+        );
+      }
+    }
+
     if (
       statusFalso ||
       timerFalso ||
