@@ -1238,13 +1238,13 @@ function listarAgentesAtendendo(data) {
     if (listaAtendimentos.length > 0) {
       listaAtendimentos.forEach((atendimento) => {
         const agentId = atendimento.agents[0].agentId;
-        const status = osAtendimentosCompletos[agentId].status;
+        const status = osAtendimentosCompletos[id]?.status ?? null;
 
         osAtendimentosCompletos[agentId] = {
           id: atendimento.engagementId,
           agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
-          status: agentId == id ? "-Atendendo-" : (status ?? null),
-          tempoFim: osAtendimentosCompletos[agentId].tempoFim ?? null,
+          status: agentId == id ? "-Atendendo-" : status,
+          tempoFim: osAtendimentosCompletos[agentId]?.tempoFim ?? null,
           tempoInicio: atendimento.startTime,
         };
       });
