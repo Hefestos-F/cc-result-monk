@@ -1278,11 +1278,8 @@ function listarTempoDisponivelDoAgente(data) {
   });
 }
 
-const agenteJaAdicionados = [];
-
 function colocarListaDeDisponibilidade() {
-
-   const criarDiv = () => document.createElement("div");
+  const criarDiv = () => document.createElement("div");
 
   function addLinhas(id, agente) {
     const linhaCaixa = criarDiv();
@@ -1311,28 +1308,23 @@ function colocarListaDeDisponibilidade() {
     const tempoDisponivel = criarDiv();
     tempoDisponivel.id = "disponivel-" + id;
 
-    return linhaCaixa.append(
-      itemNome,
-      itemStatus,
-      tempoAtendendo,
-      tempoDisponivel,
-    );
+    linhaCaixa.append(itemNome, itemStatus, tempoAtendendo, tempoDisponivel);
+    return linhaCaixa;
   }
 
   const abaInteracaoConcluida = document.getElementById("pane-active");
 
-  if (abaInteracaoConcluida) {
-    const opai = abaInteracaoConcluida.parentElement;
+  if (!abaInteracaoConcluida) return;
 
-   
+  const opai = abaInteracaoConcluida.parentElement;
 
-    const aCaixaDaListaDisponivel = document.getElementById(
-      "aCaixaDaListaDisponivel",
-    );
+  const aCaixaDaListaDisponivel = document.getElementById(
+    "aCaixaDaListaDisponivel",
+  );
 
-    const aCaixaDaLista = criarDiv();
-    aCaixaDaLista.id = "aCaixaDaListaDisponivel";
-    aCaixaDaLista.style.cssText = `
+  const aCaixaDaLista = criarDiv();
+  aCaixaDaLista.id = "aCaixaDaListaDisponivel";
+  aCaixaDaLista.style.cssText = `
         color: rgba(4, 4, 19, .56);
         font-size: 12px;
         display: flex;
@@ -1341,154 +1333,70 @@ function colocarListaDeDisponibilidade() {
         margin-bottom: 10px;
       `;
 
-    if (Object.keys(osAtendimentosCompletos).length > 0) {
-      Object.keys(osAtendimentosCompletos).forEach((linha) => {
-        if (agenteJaAdicionados.includes(osAtendimentosCompletos[linha]))
-          return;
+  if (Object.keys(osAtendimentosCompletos).length > 0) {
+    Object.keys(osAtendimentosCompletos).forEach((id) => {
+      const itemlinhaExiste = document.getElementById("linha-" + id);
 
-        const itemLinha = addLinhas(linha.idAgente, linha.agente);
+      if (!itemlinhaExiste) {
+        const itemLinha = addLinhas(id, osAtendimentosCompletos[id].agente);
 
         if (aCaixaDaListaDisponivel) {
           aCaixaDaListaDisponivel.append(itemLinha);
         } else {
           aCaixaDaLista.append(itemLinha);
+          opai.prepend(aCaixaDaLista);
         }
 
-        agenteJaAdicionados.push(osAtendimentosCompletos[linha]);
-      });
-    }
+        return;
+      }
 
-    if (!aCaixaDaListaDisponivel) opai.prepend(aCaixaDaLista);
+      const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
 
-    if (agenteJaAdicionados.length > 0) {
-      agenteJaAdicionados.forEach((id) => {
-        const oStatus = osAtendimentosCompletos[id].status;
-        let atendendo = oStatus == "-Atendendo-" ? 1 : 0;
+      let atendendo = oStatus == "-Atendendo-" ? 1 : 0;
 
-        const itemStatus = document.getElementById("status-" + id);
+      const itemStatus = document.getElementById("status-" + id);
 
-        const itemlinha = document.getElementById("linha-" + id);
+      if (itemStatus && atendendo) {
+        itemStatus.textContent = oStatus;
+      }
+      if (itemlinhaExiste)
+        itemlinhaExiste.style.background = atendendo
+          ? "#b9b9b9"
+          : status == "-Ausente-"
+            ? "#fff0af"
+            : "";
 
-        if (itemStatus && atendendo) {
-          itemStatus.textContent = oStatus;
-        }
-        if (itemlinha)
-          itemlinha.style.background = atendendo
-            ? "#b9b9b9"
-            : status == "-Ausente-"
-              ? "#fff0af"
-              : "";
+      const itemAtendendo = document.getElementById("atendendo-" + id);
 
-        const itemAtendendo = document.getElementById("atendendo-" + id);
+      const tempoInicio = osAtendimentosCompletos[id]?.tempoInicio ?? 0;
 
-        const tempoInicio = osAtendimentosCompletos[id].tempoInicio;
+      if (itemAtendendo && tempoInicio)
+        itemAtendendo.textContent = `- ${tempoEncurtado(
+          exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoInicio))
+            .hora,
+        )} -`;
 
-        if (itemAtendendo && tempoInicio)
-          itemAtendendo.textContent = `- ${tempoEncurtado(
-            exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoInicio))
-              .hora,
-          )} -`;
+      const itemDisponivel = document.getElementById("disponivel-" + id);
 
-        const itemDisponivel = document.getElementById("disponivel-" + id);
+      const tempoFim = osAtendimentosCompletos[id]?.tempoFim ?? 0;
 
-        const tempoFim = osAtendimentosCompletos[id].tempoFim;
-
-        if (itemDisponivel && tempoFim)
-          itemDisponivel.textContent = tempoEncurtado(
-            exibirAHora(
-              tempoInicio ? converterTimestamp(tempoInicio) : dataHoraFormat(),
-              0,
-              converterTimestamp(tempoFim),
-            ).hora,
-          );
-      });
-    }
-
-    /*
-   "linha-" + id;
-   "status-" + id;
-   "atendendo-" + id;
-   "disponivel-" + id;
-   */
-
-    //console.log("novaLista: ")
-    //console.log(novaLista)
-    /*
-    function filtrador(agente, status, tempoFim) {
-      let oBackground = 0;
-
-      let tempoInicio = null;
-
-      let idAtendendo = 0;
-
-      let tempoDisponivel = null;
-
-      if (tempoFim != "---") {
-        tempoDisponivel = tempoEncurtado(
+      if (itemDisponivel && tempoFim)
+        itemDisponivel.textContent = tempoEncurtado(
           exibirAHora(
             tempoInicio ? converterTimestamp(tempoInicio) : dataHoraFormat(),
             0,
             converterTimestamp(tempoFim),
           ).hora,
         );
-      }
-
-      if (osAtendimentosCompletos.length != 0) {
-        osAtendimentosCompletos.forEach((linha) => {
-          if (linha.agente != agente) return;
-          if (oBackground) {
-            linha.status = "Atendendo";
-            /*if (linha.ultimaDisponibilidade == "---") {
-              linha.ultimaDisponibilidade = tempoEncurtado(tempoDisponivel);
-            } else {
-              tempoDisponivel = linha.ultimaDisponibilidade;
-            }
-          } else if (anteriorAtendendo[0]) linha.status = "Ausente";
-          else if (linha.status == "Atendendo") linha.status = "---";
-        });
-      }
-
-      if (oBackground) {
-        anteriorAtendendo[0] = 1;
-        anteriorAtendendo[1] = idAtendendo;
-      }
-
-      let tempoAtendendo = null;
-
-      //  Hlog("tempoInicio: ");
-      // Hlog(tempoInicio);
-
-      if (tempoInicio) {
-        tempoAtendendo = `- ${tempoEncurtado(
-          exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoInicio))
-            .hora,
-        )} -`;
-      }
-
-      addLinhas(agente, status, tempoAtendendo, tempoDisponivel);
-    }
-
-    novaLista.forEach((linhaLista) => {
-      filtrador(linhaLista.agente, linhaLista.status, linhaLista.tempoFim);
-      agenteJaAdicionados.push(linhaLista.agente);
     });
-
-    if (osAtendimentosAtivo.length > 0) {
-      osAtendimentosAtivo.forEach((linha) => {
-        filtrador(linha.agente, "Atendendo", linha.tempoFim);
-      });
-    }
-  */
-    //console.log("Caixa Criada e Adicionada");
-  } else {
-    //console.log("abaInteracaoConcluida não encontrada");
   }
 }
 
 const atualizarLista = setInterval(colocarListaDeDisponibilidade, 1000);
 
-
 //
 clearInterval(atualizarLista);
 
-pararObservacao()
+pararObservacao();
+
+console.log = console.info;
