@@ -873,8 +873,6 @@ console.log = console.info;
 
 const osAtendimentosCompletos = [];
 
-let osAtendimentosAtivo = [];
-
 function dataHoraFormat() {
   const agora = new Date();
 
@@ -1239,12 +1237,14 @@ function listarAgentesAtendendo(data) {
   Object.keys(osAtendimentosCompletos).forEach((id) => {
     if (listaAtendimentos.length > 0) {
       listaAtendimentos.forEach((atendimento) => {
-        osAtendimentosCompletos[atendimento.agents[0].agentId] = {
+        const agentId = atendimento.agents[0].agentId;
+        const status = osAtendimentosCompletos[agentId].status;
+
+        osAtendimentosCompletos[agentId] = {
           id: atendimento.engagementId,
           agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
-          status: "-Atendendo-",
-          tempoFim:
-            osAtendimentosCompletos[atendimento.agents[0].agentId] ?? null,
+          status: agentId == id ? "-Atendendo-" : (status ?? null),
+          tempoFim: osAtendimentosCompletos[agentId].tempoFim ?? null,
           tempoInicio: atendimento.startTime,
         };
       });
@@ -1342,6 +1342,8 @@ function colocarListaDeDisponibilidade() {
         margin-bottom: 10px;
       `;
 
+  const itemSalvo = {};
+
   if (Object.keys(osAtendimentosCompletos).length > 0) {
     Object.keys(osAtendimentosCompletos).forEach((id) => {
       const itemlinhaExiste = document.getElementById("linha-" + id);
@@ -1361,13 +1363,12 @@ function colocarListaDeDisponibilidade() {
 
       const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
 
-      let atendendo = oStatus == "-Atendendo-" ? 1 : 0;
+      const atendendo = oStatus == "-Atendendo-" ? 1 : 0;
 
       const itemStatus = document.getElementById("status-" + id);
 
-      if (itemStatus && atendendo) {
-        itemStatus.textContent = oStatus;
-      }
+      if (itemStatus) itemStatus.textContent = oStatus ? oStatus : "";
+
       if (itemlinhaExiste)
         itemlinhaExiste.style.background = atendendo
           ? "#b9b9b9"
@@ -1403,12 +1404,25 @@ function colocarListaDeDisponibilidade() {
               ).hora,
             )
           : "";
+
+      if (
+        itemSalvo.item &&
+        itemSalvo.tempoFim &&
+        tempoFim > itemSalvo.tempoFim
+      ) {
+        aCaixaDaListaDisponivel.insertBefore(itemlinhaExiste, itemSalvo.item);
+      }
+
+      itemSalvo.item = itemlinhaExiste;
+      itemSalvo.tempoFim = tempoFim;
     });
   }
 }
 
 const atualizarLista = setInterval(colocarListaDeDisponibilidade, 1000);
 
+//
+//
 //
 clearInterval(atualizarLista);
 
