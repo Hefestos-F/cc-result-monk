@@ -873,7 +873,7 @@ console.log = console.info;
 
 const osAtendimentosCompletos = [];
 
-let osAtendimentosAtivo = {};
+let osAtendimentosAtivo = [];
 
 function dataHoraFormat() {
   const agora = new Date();
@@ -1231,20 +1231,29 @@ function pararObservacao() {
 iniciarObservacao();
 
 function listarAgentesAtendendo(data) {
+  if (!data) return;
   const agentesAtendendo = [];
 
   const listaAtendimentos = data.result.records;
 
-  if (listaAtendimentos.length == 0 || !data) return agentesAtendendo;
-
-  listaAtendimentos.forEach((atendimento) => {
-    osAtendimentosCompletos[atendimento.agents[0].agentId] = {
-      id: atendimento.engagementId,
-      agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
-      status: "-Atendendo-",
-      tempoFim: osAtendimentosCompletos[atendimento.agents[0].agentId] ?? null,
-      tempoInicio: atendimento.startTime,
-    };
+  Object.keys(osAtendimentosCompletos).forEach((id) => {
+    if (listaAtendimentos.length > 0) {
+      listaAtendimentos.forEach((atendimento) => {
+        osAtendimentosCompletos[atendimento.agents[0].agentId] = {
+          id: atendimento.engagementId,
+          agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
+          status: "-Atendendo-",
+          tempoFim:
+            osAtendimentosCompletos[atendimento.agents[0].agentId] ?? null,
+          tempoInicio: atendimento.startTime,
+        };
+      });
+    } else {
+      if (osAtendimentosCompletos[id].status == "-Atendendo-") {
+        osAtendimentosCompletos[id].status = null;
+        osAtendimentosCompletos[id].tempoInicio = null;
+      }
+    }
   });
 }
 
@@ -1370,24 +1379,30 @@ function colocarListaDeDisponibilidade() {
 
       const tempoInicio = osAtendimentosCompletos[id]?.tempoInicio ?? 0;
 
-      if (itemAtendendo && tempoInicio)
-        itemAtendendo.textContent = `- ${tempoEncurtado(
-          exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoInicio))
-            .hora,
-        )} -`;
+      itemAtendendo.textContent =
+        itemAtendendo && tempoInicio
+          ? `- ${tempoEncurtado(
+              exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoInicio))
+                .hora,
+            )} -`
+          : "";
 
       const itemDisponivel = document.getElementById("disponivel-" + id);
 
       const tempoFim = osAtendimentosCompletos[id]?.tempoFim ?? 0;
 
-      if (itemDisponivel && tempoFim)
-        itemDisponivel.textContent = tempoEncurtado(
-          exibirAHora(
-            tempoInicio ? converterTimestamp(tempoInicio) : dataHoraFormat(),
-            0,
-            converterTimestamp(tempoFim),
-          ).hora,
-        );
+      itemDisponivel.textContent =
+        itemDisponivel && tempoFim
+          ? tempoEncurtado(
+              exibirAHora(
+                tempoInicio
+                  ? converterTimestamp(tempoInicio)
+                  : dataHoraFormat(),
+                0,
+                converterTimestamp(tempoFim),
+              ).hora,
+            )
+          : "";
     });
   }
 }
