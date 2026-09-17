@@ -1260,7 +1260,7 @@ function listarAgentesAtendendo(data) {
 function listarTempoDisponivelDoAgente(data) {
   const listaAtendimentos = data.result.list;
 
-  if (listaAtendimentos.length == 0 || !data) return;
+  if (!listaAtendimentos.length > 0 || !data) return;
 
   const novaLista = listaAtendimentos.sort((x, y) => y.endTime - x.endTime);
 
