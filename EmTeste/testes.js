@@ -1346,7 +1346,6 @@ function colocarListaDeDisponibilidade() {
       `;
 
   const itemSalvo = {};
-  const ItensLa = [];
 
   if (Object.keys(osAtendimentosCompletos).length > 0) {
     Object.keys(osAtendimentosCompletos).forEach((id) => {
@@ -1375,12 +1374,12 @@ function colocarListaDeDisponibilidade() {
 
       if (atendendo) {
         if (agente && agente != "-Atendendo-")
-          osAtendimentosCompletos[id]?.agente = "-Atendendo-";
+          osAtendimentosCompletos[id].agente = "-Atendendo-";
 
         const agenteAnterior = osAtendimentosCompletos[id]?.agente ?? 0;
 
         if (agenteAnterior && agenteAnterior != "-Ausente-")
-          osAtendimentosCompletos[itemSalvo.id]?.agente = "-Ausente-";
+          osAtendimentosCompletos[itemSalvo.id].agente = "-Ausente-";
       }
 
       const itemStatus = document.getElementById("status-" + id);
