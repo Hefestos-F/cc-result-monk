@@ -784,6 +784,9 @@ const lista3 = [
 ];
 const lista4 = [];
 
+const a = "ola Maria";
+const b = a.split(" ");
+
 const d = lista4.length > 0;
 
 Object.keys(lista1).forEach((chave) => {
@@ -1264,26 +1267,27 @@ function listarTempoDisponivelDoAgente(data) {
 
   const novaLista = listaAtendimentos.sort((x, y) => y.endTime - x.endTime);
 
+  const agenteAdicionado = [];
+
   novaLista.forEach((atendimento) => {
     const oAgente = nomeDoAgenteLimpo(
       atendimento.agentNames[atendimento.agentNames.length - 1],
     );
     const oIdAgente = atendimento.agentIds[atendimento.agentIds.length - 1];
 
-    let comparaId = 0;
-    if (osAtendimentosCompletos[oIdAgente]) {
-      comparaId = 1;
-    }
-    if (comparaId) return;
+    if (agenteAdicionado.includes(oIdAgente)) return;
 
     osAtendimentosCompletos[oIdAgente] = {
       id: atendimento.engagementId,
       agente: oAgente,
-      status: null,
+      status: osAtendimentosCompletos[oIdAgente]?.status ?? null,
       tempoFim: atendimento.endTime,
-      tempoInicio: null,
-      ultimaDisponibilidade: null,
+      tempoInicio: osAtendimentosCompletos[oIdAgente]?.tempoInicio ?? null,
+      ultimaDisponibilidade:
+        osAtendimentosCompletos[oIdAgente]?.ultimaDisponibilidade ?? null,
     };
+
+    agenteAdicionado.push(oIdAgente);
   });
 }
 
@@ -1343,6 +1347,7 @@ function colocarListaDeDisponibilidade() {
       `;
 
   const itemSalvo = {};
+  const ItensLa = [];
 
   if (Object.keys(osAtendimentosCompletos).length > 0) {
     Object.keys(osAtendimentosCompletos).forEach((id) => {
@@ -1405,15 +1410,22 @@ function colocarListaDeDisponibilidade() {
             )
           : "";
 
-      if (
-        itemSalvo.item &&
-        itemSalvo.tempoFim &&
-        tempoFim > itemSalvo.tempoFim
-      ) {
-        aCaixaDaListaDisponivel.insertBefore(itemlinhaExiste, itemSalvo.item);
+      const agente = osAtendimentosCompletos[id]?.agente ?? 0;
+
+      const posicao = Array.from(aCaixaDaListaDisponivel.children).indexOf(
+        itemlinhaExiste,
+      );
+
+      //console.log(`${agente} : ${posicao}`);
+
+      if (tempoFim > itemSalvo.tempoFim) {
+        aCaixaDaListaDisponivel.insertBefore(
+          aCaixaDaListaDisponivel.children[posicao],
+          aCaixaDaListaDisponivel.children[posicao + 1],
+        );
       }
 
-      itemSalvo.item = itemlinhaExiste;
+      itemSalvo.posicao = posicao;
       itemSalvo.tempoFim = tempoFim;
     });
   }
@@ -1429,3 +1441,9 @@ clearInterval(atualizarLista);
 pararObservacao();
 
 console.log = console.info;
+
+const aCaixaDaListaDisponivel = document.getElementById(
+  "aCaixaDaListaDisponivel",
+);
+
+const a = aCaixaDaListaDisponivel.children[0].textContent;
