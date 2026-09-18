@@ -1241,12 +1241,11 @@ function listarAgentesAtendendo(data) {
     if (listaAtendimentos.length > 0) {
       listaAtendimentos.forEach((atendimento) => {
         const agentId = atendimento.agents[0].agentId;
-        const status = osAtendimentosCompletos[id]?.status ?? null;
 
         osAtendimentosCompletos[agentId] = {
           id: atendimento.engagementId,
           agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
-          status: agentId == id ? "-Atendendo-" : status,
+          status: osAtendimentosCompletos[id]?.status ?? null,
           tempoFim: osAtendimentosCompletos[agentId]?.tempoFim ?? null,
           tempoInicio: atendimento.startTime,
         };
@@ -1368,7 +1367,21 @@ function colocarListaDeDisponibilidade() {
 
       const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
 
-      const atendendo = oStatus == "-Atendendo-" ? 1 : 0;
+      const tempoInicio = osAtendimentosCompletos[id]?.tempoInicio ?? 0;
+
+      const agente = osAtendimentosCompletos[id]?.agente ?? 0;
+
+      const atendendo = tempoInicio ? 1 : 0;
+
+      if (atendendo) {
+        if (agente && agente != "-Atendendo-")
+          osAtendimentosCompletos[id]?.agente = "-Atendendo-";
+
+        const agenteAnterior = osAtendimentosCompletos[id]?.agente ?? 0;
+
+        if (agenteAnterior && agenteAnterior != "-Ausente-")
+          osAtendimentosCompletos[itemSalvo.id]?.agente = "-Ausente-";
+      }
 
       const itemStatus = document.getElementById("status-" + id);
 
@@ -1382,8 +1395,6 @@ function colocarListaDeDisponibilidade() {
             : "";
 
       const itemAtendendo = document.getElementById("atendendo-" + id);
-
-      const tempoInicio = osAtendimentosCompletos[id]?.tempoInicio ?? 0;
 
       itemAtendendo.textContent =
         itemAtendendo && tempoInicio
@@ -1410,8 +1421,6 @@ function colocarListaDeDisponibilidade() {
             )
           : "";
 
-      const agente = osAtendimentosCompletos[id]?.agente ?? 0;
-
       const posicao = Array.from(aCaixaDaListaDisponivel.children).indexOf(
         itemlinhaExiste,
       );
@@ -1427,6 +1436,7 @@ function colocarListaDeDisponibilidade() {
 
       itemSalvo.posicao = posicao;
       itemSalvo.tempoFim = tempoFim;
+      itemSalvo.id = id;
     });
   }
 }
