@@ -1245,7 +1245,7 @@ function listarAgentesAtendendo(data) {
         osAtendimentosCompletos[agentId] = {
           id: atendimento.engagementId,
           agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
-          status: osAtendimentosCompletos[id]?.status ?? null,
+          status: osAtendimentosCompletos[agentId]?.status ?? null,
           tempoFim: osAtendimentosCompletos[agentId]?.tempoFim ?? null,
           tempoInicio: atendimento.startTime,
         };
