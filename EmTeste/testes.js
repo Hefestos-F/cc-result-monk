@@ -1426,16 +1426,19 @@ function colocarListaDeDisponibilidade() {
 
       //console.log(`${agente} : ${posicao}`);
 
-      if (tempoFim > itemSalvo.tempoFim) {
+
+
+      if (agente != itemSalvo.agente ) {
         aCaixaDaListaDisponivel.insertBefore(
-          aCaixaDaListaDisponivel.children[posicao],
-          aCaixaDaListaDisponivel.children[posicao + 1],
+          aCaixaDaListaDisponivel.children[posicao == 0 ? 0 : posicao - 1],
+          aCaixaDaListaDisponivel.children[posicao == 0 ? 1 : posicao],
         );
       }
 
       itemSalvo.posicao = posicao;
       itemSalvo.tempoFim = tempoFim;
       itemSalvo.id = id;
+      itemSalvo.agente = agente;
     });
   }
 }
