@@ -872,6 +872,10 @@ console.log = console.info;
 
 ///
 
+clearInterval(atualizarLista);
+
+pararObservacao();
+
 //Nova versao encotrar ativo e concluido
 
 const osAtendimentosCompletos = [];
@@ -1426,12 +1430,17 @@ function colocarListaDeDisponibilidade() {
 
       //console.log(`${agente} : ${posicao}`);
 
-
-
-      if (agente != itemSalvo.agente ) {
+      if (
+        posicao &&
+        tempoFim < itemSalvo.tempoFim &&
+        itemSalvo.posicao != posicao - 1
+      ) {
         aCaixaDaListaDisponivel.insertBefore(
-          aCaixaDaListaDisponivel.children[posicao == 0 ? 0 : posicao - 1],
-          aCaixaDaListaDisponivel.children[posicao == 0 ? 1 : posicao],
+          aCaixaDaListaDisponivel.children[itemSalvo.posicao],
+          aCaixaDaListaDisponivel.children[posicao],
+        );
+        console.log(
+          `posicao: ${posicao} / Tempo: ${tempoFim} / itemSalvo.tempoFim: ${itemSalvo.tempoFim}`,
         );
       }
 
@@ -1448,9 +1457,6 @@ const atualizarLista = setInterval(colocarListaDeDisponibilidade, 1000);
 //
 //
 //
-clearInterval(atualizarLista);
-
-pararObservacao();
 
 console.log = console.info;
 
