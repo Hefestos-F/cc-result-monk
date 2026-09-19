@@ -1256,7 +1256,7 @@ function listarAgentesAtendendo(data) {
       });
     } else {
       if (osAtendimentosCompletos[id].status == "-Atendendo-") {
-        osAtendimentosCompletos[id].status = null;
+        osAtendimentosCompletos[id].status = "---";
         osAtendimentosCompletos[id].tempoInicio = null;
       }
     }
@@ -1374,16 +1374,20 @@ function colocarListaDeDisponibilidade() {
 
       const agente = osAtendimentosCompletos[id]?.agente ?? 0;
 
+      const statusAnterior = itemSalvo.id
+        ? osAtendimentosCompletos[itemSalvo.id]?.status
+        : 0;
+
+      const osStatus = ["-Atendendo-", "-Ausente-"];
+
       const atendendo = tempoInicio ? 1 : 0;
 
       if (atendendo) {
-        if (agente && agente != "-Atendendo-")
-          osAtendimentosCompletos[id].agente = "-Atendendo-";
+        if (oStatus != "-Atendendo-")
+          osAtendimentosCompletos[id].status = "-Atendendo-";
 
-        const agenteAnterior = osAtendimentosCompletos[id]?.agente ?? 0;
-
-        if (agenteAnterior && agenteAnterior != "-Ausente-")
-          osAtendimentosCompletos[itemSalvo.id].agente = "-Ausente-";
+        if (statusAnterior && !osStatus.includes(statusAnterior))
+          osAtendimentosCompletos[itemSalvo.id].status = "-Ausente-";
       }
 
       const itemStatus = document.getElementById("status-" + id);
@@ -1393,7 +1397,7 @@ function colocarListaDeDisponibilidade() {
       if (itemlinhaExiste)
         itemlinhaExiste.style.background = atendendo
           ? "#b9b9b9"
-          : status == "-Ausente-"
+          : oStatus == "-Ausente-"
             ? "#fff0af"
             : "";
 
@@ -1440,7 +1444,7 @@ function colocarListaDeDisponibilidade() {
           aCaixaDaListaDisponivel.children[posicao],
         );
         console.log(
-          `posicao: ${posicao} / Tempo: ${tempoFim} / itemSalvo.tempoFim: ${itemSalvo.tempoFim}`,
+          `${agente} ${posicao} abaixo de ${itemSalvo.agente} ${itemSalvo.posicao}`,
         );
       }
 
