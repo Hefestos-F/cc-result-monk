@@ -1242,8 +1242,8 @@ function listarAgentesAtendendo(data) {
   const listaAtendimentos = data.result.records;
 
   Object.keys(osAtendimentosCompletos).forEach((id) => {
+    const ignorarAgentes = [];
     if (listaAtendimentos.length > 0) {
-      const ignorarAgentes = [];
       listaAtendimentos.forEach((atendimento) => {
         const agentId = atendimento.agents[0].agentId;
 
@@ -1256,19 +1256,14 @@ function listarAgentesAtendendo(data) {
         };
         ignorarAgentes.push(agentId);
       });
+    }
 
-      if (
-        !ignorarAgentes.includes(id) &&
-        osAtendimentosCompletos[id].status == "-Atendendo-"
-      ) {
-        osAtendimentosCompletos[id].status = "---";
-        osAtendimentosCompletos[id].tempoInicio = null;
-      }
-    } else {
-      if (osAtendimentosCompletos[id].status == "-Atendendo-") {
-        osAtendimentosCompletos[id].status = "---";
-        osAtendimentosCompletos[id].tempoInicio = null;
-      }
+    if (
+      !ignorarAgentes.includes(id) &&
+      osAtendimentosCompletos[id].status == "-Atendendo-"
+    ) {
+      osAtendimentosCompletos[id].status = "---";
+      osAtendimentosCompletos[id].tempoInicio = null;
     }
   });
 }
