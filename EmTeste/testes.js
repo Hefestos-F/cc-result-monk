@@ -1362,6 +1362,7 @@ function colocarListaDeDisponibilidade() {
       `;
 
   const itemSalvo = {};
+  const posicoesTempos = {};
 
   if (Object.keys(osAtendimentosCompletos).length > 0) {
     Object.keys(osAtendimentosCompletos).forEach((id) => {
@@ -1446,12 +1447,16 @@ function colocarListaDeDisponibilidade() {
         itemlinhaExiste,
       );
 
+      const posicaoSalva = osAtendimentosCompletos[id]?.posicao;
+
+      if (!posicaoSalva) osAtendimentosCompletos[id].posicao = posicao;
+
       //console.log(`${agente} : ${posicao}`);
 
-      if (posicao && itemSalvo.tempoZero < tempoFim) {
+      if (posicoesTempos[0] && tempoFim > posicoesTempos[0]) {
         aCaixaDaListaDisponivel.insertBefore(
-          aCaixaDaListaDisponivel.children[itemSalvo.posicao],
-          aCaixaDaListaDisponivel.children[1],
+          aCaixaDaListaDisponivel.children[posicao],
+          aCaixaDaListaDisponivel.children[0],
         );
 
         console.log(
@@ -1459,10 +1464,10 @@ function colocarListaDeDisponibilidade() {
         );
       }
 
-      if (posicao == 0) {
-        itemSalvo.tempoZero = tempoFim;
-      }
+      posicoesTempos[posicao] = tempoFim;
 
+      itemSalvo.tempoFim = tempoFim;
+      itemSalvo.posicao = posicao;
       itemSalvo.id = id;
       itemSalvo.agente = agente;
     });
