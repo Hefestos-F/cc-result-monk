@@ -1259,7 +1259,6 @@ function listarAgentesAtendendo(data) {
         const agentId = atendimento.agents[0].agentId;
 
         osAtendimentosCompletos[agentId] = {
-          id: atendimento.engagementId,
           agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
           status: osAtendimentosCompletos[agentId]?.status ?? null,
           tempoFim: osAtendimentosCompletos[agentId]?.tempoFim ?? null,
@@ -1297,7 +1296,6 @@ function listarTempoDisponivelDoAgente(data) {
     if (agenteAdicionado.includes(oIdAgente)) return;
 
     osAtendimentosCompletos[oIdAgente] = {
-      id: atendimento.engagementId,
       agente: oAgente,
       status: osAtendimentosCompletos[oIdAgente]?.status ?? null,
       tempoFim: atendimento.endTime,
@@ -1450,22 +1448,21 @@ function colocarListaDeDisponibilidade() {
 
       //console.log(`${agente} : ${posicao}`);
 
-      if (
-        tempoFim < itemSalvo.tempoFim &&
-        posicao &&
-        posicao < itemSalvo.posicao
-      ) {
+      if (posicao && itemSalvo.tempoZero < tempoFim) {
         aCaixaDaListaDisponivel.insertBefore(
           aCaixaDaListaDisponivel.children[itemSalvo.posicao],
-          aCaixaDaListaDisponivel.children[posicao],
+          aCaixaDaListaDisponivel.children[1],
         );
+
         console.log(
           `${agente} ${posicao} abaixo de ${itemSalvo.agente} ${itemSalvo.posicao}`,
         );
       }
 
-      itemSalvo.posicao = posicao;
-      itemSalvo.tempoFim = tempoFim;
+      if (posicao == 0) {
+        itemSalvo.tempoZero = tempoFim;
+      }
+
       itemSalvo.id = id;
       itemSalvo.agente = agente;
     });
