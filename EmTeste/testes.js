@@ -1451,13 +1451,13 @@ function colocarListaDeDisponibilidade() {
       //console.log(`${agente} : ${posicao}`);
 
       if (
+        tempoFim < itemSalvo.tempoFim &&
         posicao &&
-        tempoFim > itemSalvo.tempoFim &&
-        posicao > itemSalvo.posicao
+        posicao < itemSalvo.posicao
       ) {
         aCaixaDaListaDisponivel.insertBefore(
-          aCaixaDaListaDisponivel.children[posicao],
           aCaixaDaListaDisponivel.children[itemSalvo.posicao],
+          aCaixaDaListaDisponivel.children[posicao],
         );
         console.log(
           `${agente} ${posicao} abaixo de ${itemSalvo.agente} ${itemSalvo.posicao}`,

@@ -557,6 +557,8 @@
     if (x) await AddOuAtuIindexdb(ChavePrimLogue, dadosPrimLogue);
   }
 
+  //verifiDataLogue(1, { hora: "09:38:08", data: "2026-09-21" });
+
   function converterParaSegundos(tempo) {
     // Mais tolerante: aceita "HH:MM:SS", "MM:SS" e números; retorna segundos inteiros.
     if (tempo == null || tempo === "") return 0;
@@ -3162,7 +3164,9 @@
       SubPrLog.addEventListener("click", () => {
         caixa.appendChild(
           ADDCaixaDAviso("Substituir P. Logue", () => {
-            dadosPrimLogue = { hora: "10:06:16", data: "2026-03-13" };
+            //verifiDataLogue(1, { hora: "09:38:08", data: "2026-09-21" });
+            //dadosPrimLogue = dadosLogueManu;
+            dadosPrimLogue = { hora: "09:38:08", data: "2026-09-21" };
             verifiDataLogue(1, gerarDataHora());
           }),
         );
