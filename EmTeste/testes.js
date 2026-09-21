@@ -784,9 +784,6 @@ const lista3 = [
 ];
 const lista4 = [];
 
-const a = "ola Maria";
-const b = a.split(" ");
-
 const d = lista4.length > 0;
 
 Object.keys(lista1).forEach((chave) => {
@@ -1122,6 +1119,21 @@ function formatPrimeiroNome(txt) {
   return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
 
+function dosiNomes(nomeCompleto) {
+  if (!nomeCompleto) return;
+  const nomesSeparados = nomeCompleto.split(" ");
+  const primeiroNome = nomesSeparados[0];
+  const segundoNome = nomesSeparados[1];
+  let proximoNome = segundoNome;
+  let numeroDoNome = 2;
+
+  if (proximoNome.split("").length <= 2) {
+    proximoNome = segundoNome + " " + nomesSeparados[numeroDoNome];
+  }
+
+  return primeiroNome + " " + proximoNome + "...";
+}
+
 function converterTimestamp(timestamp) {
   // Ajusta se o timestamp estiver em segundos (10 dígitos) em vez de milissegundos (13 dígitos)
   const dataObjeto = new Date(
@@ -1237,7 +1249,6 @@ iniciarObservacao();
 
 function listarAgentesAtendendo(data) {
   if (!data) return;
-  const agentesAtendendo = [];
 
   const listaAtendimentos = data.result.records;
 
@@ -1315,7 +1326,7 @@ function colocarListaDeDisponibilidade() {
 
     const itemNome = criarDiv();
     itemNome.id = "nome-" + id;
-    itemNome.textContent = agente;
+    itemNome.textContent = dosiNomes(agente);
 
     // background: ${status == "Atendendo" ? "#b9b9b9" : status == "Ausente" ? "#fff0af" : ""};
     const itemStatus = criarDiv();
@@ -1440,13 +1451,13 @@ function colocarListaDeDisponibilidade() {
       //console.log(`${agente} : ${posicao}`);
 
       if (
-        tempoFim < itemSalvo.tempoFim &&
         posicao &&
-        itemSalvo.posicao != posicao - 1
+        tempoFim > itemSalvo.tempoFim &&
+        posicao > itemSalvo.posicao
       ) {
         aCaixaDaListaDisponivel.insertBefore(
-          aCaixaDaListaDisponivel.children[itemSalvo.posicao],
           aCaixaDaListaDisponivel.children[posicao],
+          aCaixaDaListaDisponivel.children[itemSalvo.posicao],
         );
         console.log(
           `${agente} ${posicao} abaixo de ${itemSalvo.agente} ${itemSalvo.posicao}`,
