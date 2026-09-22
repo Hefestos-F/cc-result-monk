@@ -1281,7 +1281,7 @@ function listarAgentesAtendendo(data) {
     ) {
 
       osAtendimentosCompletos[id].idAnterior =
-        osAtendimentosCompletos[id]?.idAnterior;
+        osAtendimentosCompletos[id]?.id;
       osAtendimentosCompletos[id].status = "---";
       osAtendimentosCompletos[id].tempoInicio = null;
     }
