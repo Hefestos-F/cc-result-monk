@@ -879,6 +879,10 @@ pararObservacao();
 
 const osAtendimentosCompletos = [];
 
+let aCadaCiclo = 0;
+
+const posicoesTempos = {};
+
 function dataHoraFormat() {
   const agora = new Date();
 
@@ -1363,7 +1367,7 @@ function colocarListaDeDisponibilidade() {
         margin-bottom: 10px;
       `;
 
-  const posicoesTempos = {};
+  
 
   if (Object.keys(osAtendimentosCompletos).length > 0) {
     Object.keys(osAtendimentosCompletos).forEach((id) => {
@@ -1374,9 +1378,11 @@ function colocarListaDeDisponibilidade() {
 
         if (aCaixaDaListaDisponivel) {
           aCaixaDaListaDisponivel.append(itemLinha);
+          console.log("Linha nao existe, criada");
         } else {
           aCaixaDaLista.append(itemLinha);
           opai.prepend(aCaixaDaLista);
+          console.log("lista nao existe, criada");
         }
 
         return;
@@ -1407,7 +1413,7 @@ function colocarListaDeDisponibilidade() {
           osAtendimentosCompletos[id].status = "-Atendendo-";
         }
       } else {
-        if (statusAnterior == "-Atendendo-") {
+        if (osStatus.includes(statusAnterior)) {
           osAtendimentosCompletos[id].status = "-Ausente-";
         }
       }
@@ -1453,19 +1459,35 @@ function colocarListaDeDisponibilidade() {
 
       const posicaoTwo = posicao + 1;
 
-      if (
-        posicoesTempos[posicaoTwo]?.tempoFim &&
-        posicoesTempos[posicaoTwo].tempoFim > tempoFim
-      ) {
+      const posicaoTwoTempoFim = posicoesTempos[posicaoTwo]?.tempoFim ?? 0;
+      const posicaoTwoTempoFimMaior = posicaoTwoTempoFim > tempoFim;
+
+      if (aCadaCiclo) {
+        console.log(
+          `posicaoTwoTempoFim; ${posicaoTwoTempoFim} / posicaoTwoTempoFimMaior: ${posicaoTwoTempoFimMaior}`,
+        );
+        console.log(
+          `aCadaCiclo > ${posicoesTempos[posicaoTwo]?.agente} acima de ${agente}`,
+        );
+      }
+
+      if (posicaoTwoTempoFimMaior) {
         aCaixaDaListaDisponivel.insertBefore(
           aCaixaDaListaDisponivel.children[posicaoTwo],
           aCaixaDaListaDisponivel.children[posicao],
         );
 
-        console.log(`${posicoesTempos[posicaoTwo].agente} acima de ${agente}`);
+        console.log(`${posicoesTempos[posicaoTwo]?.agente} acima de ${agente}`);
       }
 
-      posicoesTempos[posicao] = { tempoFim: tempoFim, id: id, agente: agente };
+      if (tempoFim && agente)
+        posicoesTempos[posicao] = {
+          tempoFim: tempoFim,
+          id: id,
+          agente: agente,
+        };
+
+      //osAtendimentosCompletos[id].posicao = posicao;
     });
   }
 }
