@@ -1454,6 +1454,7 @@ function colocarListaDeDisponibilidade() {
 
       const posicaoTwo = posicao + 1;
 
+
       if (
         posicoesTempos[posicaoTwo]?.tempoFim &&
         posicoesTempos[posicaoTwo].tempoFim > tempoFim
@@ -1463,7 +1464,7 @@ function colocarListaDeDisponibilidade() {
           aCaixaDaListaDisponivel.children[posicao],
         );
 
-        console.log(`agente: ${posicoesTempos[posicaoTwo].agente} abaixo de agente: ${agente}`);
+        console.log(`agente: ${posicoesTempos[posicaoTwo].agente} acima de ${agente}`);
       }
 
       posicoesTempos[posicao] = { tempoFim: tempoFim, id: id, agente: agente };
