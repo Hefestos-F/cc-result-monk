@@ -777,6 +777,8 @@ const lista1 = { id: 12, a: "a", b: "b", c: "c" };
 
 const lista2 = { id: 12, a: "n", b: "b", c: "h" };
 
+Object.keys(lista2).length;
+
 const lista3 = [
   { id: 13, a: "m" },
   { id: 14, a: "g" },
@@ -1453,10 +1455,12 @@ function colocarListaDeDisponibilidade() {
 
       //console.log(`${agente} : ${posicao}`);
 
-      if (posicoesTempos[0] && tempoFim > posicoesTempos[0]) {
+      const posicaoTwo = posicao + 1;
+
+      if (posicoesTempos[posicaoTwo] && posicoesTempos[posicaoTwo] > tempoFim) {
         aCaixaDaListaDisponivel.insertBefore(
+          aCaixaDaListaDisponivel.children[posicaoTwo],
           aCaixaDaListaDisponivel.children[posicao],
-          aCaixaDaListaDisponivel.children[0],
         );
 
         console.log(
