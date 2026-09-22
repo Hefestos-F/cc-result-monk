@@ -1363,7 +1363,6 @@ function colocarListaDeDisponibilidade() {
         margin-bottom: 10px;
       `;
 
-  const itemSalvo = {};
   const posicoesTempos = {};
 
   if (Object.keys(osAtendimentosCompletos).length > 0) {
@@ -1393,8 +1392,14 @@ function colocarListaDeDisponibilidade() {
 
       const atendendo = tempoInicio ? 1 : 0;
 
-      const statusAnterior = itemSalvo.id
-        ? osAtendimentosCompletos[itemSalvo.id]?.status
+      const posicao = Array.from(aCaixaDaListaDisponivel.children).indexOf(
+        itemlinhaExiste,
+      );
+
+      const idLinhaAcima = posicoesTempos[posicao - 1]?.id;
+
+      const statusAnterior = idLinhaAcima
+        ? osAtendimentosCompletos[idLinhaAcima]?.status
         : 0;
 
       if (atendendo) {
@@ -1445,35 +1450,23 @@ function colocarListaDeDisponibilidade() {
             )
           : "";
 
-      const posicao = Array.from(aCaixaDaListaDisponivel.children).indexOf(
-        itemlinhaExiste,
-      );
-
-      const posicaoSalva = osAtendimentosCompletos[id]?.posicao;
-
-      if (!posicaoSalva) osAtendimentosCompletos[id].posicao = posicao;
-
       //console.log(`${agente} : ${posicao}`);
 
       const posicaoTwo = posicao + 1;
 
-      if (posicoesTempos[posicaoTwo] && posicoesTempos[posicaoTwo] > tempoFim) {
+      if (
+        posicoesTempos[posicaoTwo]?.tempoFim &&
+        posicoesTempos[posicaoTwo].tempoFim > tempoFim
+      ) {
         aCaixaDaListaDisponivel.insertBefore(
           aCaixaDaListaDisponivel.children[posicaoTwo],
           aCaixaDaListaDisponivel.children[posicao],
         );
 
-        console.log(
-          `${agente} ${posicao} abaixo de ${itemSalvo.agente} ${itemSalvo.posicao}`,
-        );
+        console.log(`agente: ${posicoesTempos[posicaoTwo].agente} abaixo de agente: ${agente}`);
       }
 
-      posicoesTempos[posicao] = tempoFim;
-
-      itemSalvo.tempoFim = tempoFim;
-      itemSalvo.posicao = posicao;
-      itemSalvo.id = id;
-      itemSalvo.agente = agente;
+      posicoesTempos[posicao] = { tempoFim: tempoFim, id: id, agente: agente };
     });
   }
 }
