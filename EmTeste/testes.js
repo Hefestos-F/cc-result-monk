@@ -1279,9 +1279,7 @@ function listarAgentesAtendendo(data) {
       !ignorarAgentes.includes(id) &&
       osAtendimentosCompletos[id].status == "-Atendendo-"
     ) {
-
-      osAtendimentosCompletos[id].idAnterior =
-        osAtendimentosCompletos[id]?.id;
+      osAtendimentosCompletos[id].idAnterior = osAtendimentosCompletos[id]?.id;
       osAtendimentosCompletos[id].status = "---";
       osAtendimentosCompletos[id].tempoInicio = null;
     }
@@ -1415,6 +1413,8 @@ function colocarListaDeDisponibilidade() {
         ? osAtendimentosCompletos[idLinhaAcima]?.status
         : 0;
 
+      const posicaoTwo = posicao + 1;
+
       const posicaoTwoStatus = posicoesTempos[posicaoTwo]?.status ?? 0;
 
       if (atendendo) {
@@ -1468,8 +1468,6 @@ function colocarListaDeDisponibilidade() {
           : "";
 
       //console.log(`${agente} : ${posicao}`);
-
-      const posicaoTwo = posicao + 1;
 
       const posicaoTwoTempoFim = posicoesTempos[posicaoTwo]?.tempoFim ?? 0;
 
