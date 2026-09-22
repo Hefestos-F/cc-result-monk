@@ -1464,7 +1464,7 @@ function colocarListaDeDisponibilidade() {
           aCaixaDaListaDisponivel.children[posicao],
         );
 
-        console.log(`agente: ${posicoesTempos[posicaoTwo].agente} acima de ${agente}`);
+        console.log(`${posicoesTempos[posicaoTwo].agente} acima de ${agente}`);
       }
 
       posicoesTempos[posicao] = { tempoFim: tempoFim, id: id, agente: agente };
