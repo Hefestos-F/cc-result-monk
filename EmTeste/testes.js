@@ -1414,14 +1414,13 @@ function colocarListaDeDisponibilidade() {
 
       const itemStatus = document.getElementById("status-" + id);
 
-      if (itemStatus) itemStatus.textContent = oStatus ? oStatus : "";
+      itemStatus.textContent = oStatus ? oStatus : "";
 
-      if (itemlinhaExiste)
-        itemlinhaExiste.style.background = atendendo
-          ? "#b9b9b9"
-          : oStatus == "-Ausente-"
-            ? "#fff0af"
-            : "";
+      itemlinhaExiste.style.background = atendendo
+        ? "#b9b9b9"
+        : oStatus == "-Ausente-"
+          ? "#fff0af"
+          : "";
 
       const itemAtendendo = document.getElementById("atendendo-" + id);
 
@@ -1453,7 +1452,6 @@ function colocarListaDeDisponibilidade() {
       //console.log(`${agente} : ${posicao}`);
 
       const posicaoTwo = posicao + 1;
-
 
       if (
         posicoesTempos[posicaoTwo]?.tempoFim &&
