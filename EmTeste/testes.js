@@ -1404,9 +1404,20 @@ function colocarListaDeDisponibilidade() {
 
       const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
 
+      const osStatus = ["-Atendendo-", "-Ausente-"];
+
+      const idLinhaAcima = posicoesTempos[posicao - 1]?.id;
+      const statusAnterior = idLinhaAcima
+        ? osAtendimentosCompletos[idLinhaAcima]?.status
+        : 0;
+
       if (atendendo) {
         if (oStatus != "-Atendendo-") {
           osAtendimentosCompletos[id].status = "-Atendendo-";
+        }
+      } else if (posicao) {
+        if (osStatus.includes(statusAnterior)) {
+          osAtendimentosCompletos[id].status = "-Ausente-";
         }
       }
 
@@ -1468,14 +1479,12 @@ function colocarListaDeDisponibilidade() {
           aCaixaDaListaDisponivel.children[posicao],
         );
 
-        const idLinhaAcima = posicoesTempos[posicaoTwo]?.id;
-        const statusAnterior = idLinhaAcima
-          ? osAtendimentosCompletos[idLinhaAcima]?.status
-          : 0;
+        const idPosicaoTwo = posicoesTempos[posicaoTwo]?.id ?? null;
 
-        const osStatus = ["-Atendendo-", "-Ausente-"];
-
-        if (osStatus.includes(statusAnterior)) {
+        if (
+          idPosicaoTwo &&
+          osStatus.includes(osAtendimentosCompletos[idPosicaoTwo]?.status)
+        ) {
           osAtendimentosCompletos[id].status = "-Ausente-";
         }
 

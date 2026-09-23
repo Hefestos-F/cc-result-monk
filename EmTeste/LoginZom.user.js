@@ -4738,14 +4738,14 @@
       const linhaCaixa = criarDiv();
       linhaCaixa.id = "linha-" + id;
       linhaCaixa.style.cssText = `
-        display: flex;
-        width: 90%;
-        justify-content: space-between;
-        border-radius: 15px;
-        padding: 0px 3px;
-        border-bottom: 1px dotted;
-        margin-bottom: 4px;
-      `;
+      display: flex;
+      width: 90%;
+      justify-content: space-between;
+      border-radius: 15px;
+      padding: 0px 3px;
+      border-bottom: 1px dotted;
+      margin-bottom: 4px;
+    `;
 
       const itemNome = criarDiv();
       itemNome.id = "nome-" + id;
@@ -4821,9 +4821,20 @@
 
         const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
 
+        const osStatus = ["-Atendendo-", "-Ausente-"];
+
+        const idLinhaAcima = posicoesTempos[posicao - 1]?.id;
+        const statusAnterior = idLinhaAcima
+          ? osAtendimentosCompletos[idLinhaAcima]?.status
+          : 0;
+
         if (atendendo) {
           if (oStatus != "-Atendendo-") {
             osAtendimentosCompletos[id].status = "-Atendendo-";
+          }
+        } else if (posicao) {
+          if (osStatus.includes(statusAnterior)) {
+            osAtendimentosCompletos[id].status = "-Ausente-";
           }
         }
 
@@ -4888,14 +4899,12 @@
             aCaixaDaListaDisponivel.children[posicao],
           );
 
-          const idLinhaAcima = posicoesTempos[posicaoTwo]?.id;
-          const statusAnterior = idLinhaAcima
-            ? osAtendimentosCompletos[idLinhaAcima]?.status
-            : 0;
+          const idPosicaoTwo = posicoesTempos[posicaoTwo]?.id ?? null;
 
-          const osStatus = ["-Atendendo-", "-Ausente-"];
-
-          if (osStatus.includes(statusAnterior)) {
+          if (
+            idPosicaoTwo &&
+            osStatus.includes(osAtendimentosCompletos[idPosicaoTwo]?.status)
+          ) {
             osAtendimentosCompletos[id].status = "-Ausente-";
           }
 
