@@ -1329,8 +1329,6 @@ function colocarListaDeDisponibilidade() {
          padding: 0px 3px;
       `;
 
-    const osStatus = ["Atendendo", "Ausente"];
-
     const itemNome = criarDiv();
     itemNome.id = "nome-" + id;
     itemNome.textContent = dosiNomes(agente);
@@ -1389,13 +1387,9 @@ function colocarListaDeDisponibilidade() {
         return;
       }
 
-      const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
-
       const tempoInicio = osAtendimentosCompletos[id]?.tempoInicio ?? 0;
 
       const agente = osAtendimentosCompletos[id]?.agente ?? 0;
-
-      const osStatus = ["-Atendendo-", "-Ausente-"];
 
       const atendendo = tempoInicio ? 1 : 0;
 
@@ -1410,6 +1404,8 @@ function colocarListaDeDisponibilidade() {
       const posicaoTwo = posicao + 1;
 
       const posicaoTwoStatus = posicoesTempos[posicaoTwo]?.status ?? 0;
+
+      const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
 
       if (atendendo) {
         if (oStatus != "-Atendendo-") {
@@ -1479,6 +1475,8 @@ function colocarListaDeDisponibilidade() {
         const statusAnterior = idLinhaAcima
           ? osAtendimentosCompletos[idLinhaAcima]?.status
           : 0;
+
+        const osStatus = ["-Atendendo-", "-Ausente-"];
 
         if (osStatus.includes(statusAnterior)) {
           osAtendimentosCompletos[id].status = "-Ausente-";
