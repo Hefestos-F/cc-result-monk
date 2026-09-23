@@ -1403,15 +1403,9 @@ function colocarListaDeDisponibilidade() {
         itemlinhaExiste,
       );
 
-      const idLinhaAcima = posicoesTempos[posicao - 1]?.id;
-
       const idAtendimento = osAtendimentosCompletos[id]?.id;
 
       const idAnteriorAtendimento = osAtendimentosCompletos[id]?.idAnterior;
-
-      const statusAnterior = idLinhaAcima
-        ? osAtendimentosCompletos[idLinhaAcima]?.status
-        : 0;
 
       const posicaoTwo = posicao + 1;
 
@@ -1420,13 +1414,6 @@ function colocarListaDeDisponibilidade() {
       if (atendendo) {
         if (oStatus != "-Atendendo-") {
           osAtendimentosCompletos[id].status = "-Atendendo-";
-        }
-      } else {
-        if (
-          osStatus.includes(statusAnterior) &&
-          idAnteriorAtendimento == idAtendimento
-        ) {
-          osAtendimentosCompletos[id].status = "-Ausente-";
         }
       }
 
@@ -1473,8 +1460,6 @@ function colocarListaDeDisponibilidade() {
 
       const posicaoTwoTempoFimMaior = posicaoTwoTempoFim > tempoFim;
 
-      status;
-
       if (aCadaCiclo) {
         console.log(
           `posicaoTwoTempoFim; ${posicaoTwoTempoFim} / posicaoTwoTempoFimMaior: ${posicaoTwoTempoFimMaior}`,
@@ -1489,6 +1474,15 @@ function colocarListaDeDisponibilidade() {
           aCaixaDaListaDisponivel.children[posicaoTwo],
           aCaixaDaListaDisponivel.children[posicao],
         );
+
+        const idLinhaAcima = posicoesTempos[posicaoTwo]?.id;
+        const statusAnterior = idLinhaAcima
+          ? osAtendimentosCompletos[idLinhaAcima]?.status
+          : 0;
+
+        if (osStatus.includes(statusAnterior)) {
+          osAtendimentosCompletos[id].status = "-Ausente-";
+        }
 
         console.log(`${posicoesTempos[posicaoTwo]?.agente} acima de ${agente}`);
       }
