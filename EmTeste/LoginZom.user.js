@@ -4832,11 +4832,11 @@
           if (oStatus != "-Atendendo-") {
             osAtendimentosCompletos[id].status = "-Atendendo-";
           }
-        } else if (posicao) {
+        } /*else if (posicao) {
           if (osStatus.includes(statusAnterior)) {
             osAtendimentosCompletos[id].status = "-Ausente-";
           }
-        }
+        }*/
 
         const itemStatus = document.getElementById("status-" + id);
 
