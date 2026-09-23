@@ -4742,7 +4742,9 @@
         width: 90%;
         justify-content: space-between;
         border-radius: 15px;
-         padding: 0px 3px;
+        padding: 0px 3px;
+        border-bottom: 1px dotted;
+        margin-bottom: 4px;
       `;
 
       const itemNome = criarDiv();
