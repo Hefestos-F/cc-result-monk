@@ -1279,7 +1279,6 @@ function listarAgentesAtendendo(data) {
       !ignorarAgentes.includes(id) &&
       osAtendimentosCompletos[id].status == "-Atendendo-"
     ) {
-      osAtendimentosCompletos[id].idAnterior = osAtendimentosCompletos[id]?.id;
       osAtendimentosCompletos[id].status = "---";
       osAtendimentosCompletos[id].tempoInicio = null;
     }
@@ -1396,10 +1395,6 @@ function colocarListaDeDisponibilidade() {
       const posicao = Array.from(aCaixaDaListaDisponivel.children).indexOf(
         itemlinhaExiste,
       );
-
-      const idAtendimento = osAtendimentosCompletos[id]?.id;
-
-      const idAnteriorAtendimento = osAtendimentosCompletos[id]?.idAnterior;
 
       const posicaoTwo = posicao + 1;
 
