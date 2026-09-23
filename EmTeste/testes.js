@@ -1321,12 +1321,14 @@ function colocarListaDeDisponibilidade() {
     const linhaCaixa = criarDiv();
     linhaCaixa.id = "linha-" + id;
     linhaCaixa.style.cssText = `
-        display: flex;
-        width: 90%;
-        justify-content: space-between;
-        border-radius: 15px;
-         padding: 0px 3px;
-      `;
+      display: flex;
+      width: 90%;
+      justify-content: space-between;
+      border-radius: 15px;
+      padding: 0px 3px;
+      border-bottom: 1px dotted;
+      margin-bottom: 4px;
+    `;
 
     const itemNome = criarDiv();
     itemNome.id = "nome-" + id;
