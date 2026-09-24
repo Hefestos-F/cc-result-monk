@@ -1480,7 +1480,7 @@ function colocarListaDeDisponibilidade() {
           aCaixaDaListaDisponivel.children[posicao],
         );
 
-        if (osStatus.includes(osAtendimentosCompletos[id]?.status)) {
+        if (atendendo) {
           osAtendimentosCompletos[idposicaoProxima].status = "---";
         }
 
