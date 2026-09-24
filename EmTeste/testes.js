@@ -1398,10 +1398,6 @@ function colocarListaDeDisponibilidade() {
         itemlinhaExiste,
       );
 
-      const posicaoTwo = posicao + 1;
-
-      const posicaoTwoStatus = posicoesTempos[posicaoTwo]?.status ?? 0;
-
       const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
 
       const osStatus = ["-Atendendo-", "-Ausente-"];
@@ -1456,6 +1452,12 @@ function colocarListaDeDisponibilidade() {
 
       //console.log(`${agente} : ${posicao}`);
 
+      const posicaoTwo = posicao + 1;
+
+      const posicaoAnterior = posicao - 1;
+
+      const posicaoTwoStatus = posicoesTempos[posicaoTwo]?.status ?? 0;
+
       const posicaoTwoTempoFim = posicoesTempos[posicaoTwo]?.tempoFim ?? 0;
 
       const posicaoTwoTempoFimMaior = posicaoTwoTempoFim > tempoFim;
@@ -1469,23 +1471,23 @@ function colocarListaDeDisponibilidade() {
         );
       }
 
+      const idPosicaoTwo = posicoesTempos[posicaoTwo]?.id ?? null;
+
       if (posicaoTwoTempoFimMaior) {
         aCaixaDaListaDisponivel.insertBefore(
           aCaixaDaListaDisponivel.children[posicaoTwo],
           aCaixaDaListaDisponivel.children[posicao],
         );
 
-        const idPosicaoTwo = posicoesTempos[posicaoTwo]?.id ?? null;
-
-        if (
-          !atendendo &&
-          idPosicaoTwo &&
-          osStatus.includes(osAtendimentosCompletos[idPosicaoTwo]?.status)
-        ) {
-          osAtendimentosCompletos[id].status = "-Ausente-";
-        }
-
         console.log(`${posicoesTempos[posicaoTwo]?.agente} acima de ${agente}`);
+      } else if (
+        !atendendo &&
+        posicaoAnterior &&
+        osStatus.includes(
+          osAtendimentosCompletos[posicoesTempos[posicaoAnterior]?.id]?.status,
+        )
+      ) {
+        osAtendimentosCompletos[id].status = "-Ausente-";
       }
 
       if (tempoFim && agente)
