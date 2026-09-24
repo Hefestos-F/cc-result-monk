@@ -1415,10 +1415,6 @@ function colocarListaDeDisponibilidade() {
         if (oStatus != "-Atendendo-") {
           osAtendimentosCompletos[id].status = "-Atendendo-";
         }
-      } else if (posicao) {
-        if (osStatus.includes(statusAnterior)) {
-          osAtendimentosCompletos[id].status = "-Ausente-";
-        }
       }
 
       const itemStatus = document.getElementById("status-" + id);
@@ -1482,6 +1478,7 @@ function colocarListaDeDisponibilidade() {
         const idPosicaoTwo = posicoesTempos[posicaoTwo]?.id ?? null;
 
         if (
+          !atendendo &&
           idPosicaoTwo &&
           osStatus.includes(osAtendimentosCompletos[idPosicaoTwo]?.status)
         ) {
