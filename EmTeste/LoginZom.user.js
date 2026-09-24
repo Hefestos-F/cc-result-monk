@@ -4872,35 +4872,41 @@
 
         //console.log(`${agente} : ${posicao}`);
 
-        const posicaoTwo = posicao + 1;
+        const posicaoProxima = posicao + 1;
 
         const posicaoAnterior = posicao - 1;
 
-        const posicaoTwoStatus = posicoesTempos[posicaoTwo]?.status ?? 0;
+        const posicaoProximaStatus =
+          posicoesTempos[posicaoProxima]?.status ?? 0;
 
-        const posicaoTwoTempoFim = posicoesTempos[posicaoTwo]?.tempoFim ?? 0;
+        const posicaoProximaTempoFim =
+          posicoesTempos[posicaoProxima]?.tempoFim ?? 0;
 
-        const posicaoTwoTempoFimMaior = posicaoTwoTempoFim > tempoFim;
+        const posicaoProximaTempoFimMaior = posicaoProximaTempoFim > tempoFim;
 
         if (aCadaCiclo) {
           console.log(
-            `posicaoTwoTempoFim; ${posicaoTwoTempoFim} / posicaoTwoTempoFimMaior: ${posicaoTwoTempoFimMaior}`,
+            `posicaoProximaTempoFim; ${posicaoProximaTempoFim} / posicaoProximaTempoFimMaior: ${posicaoProximaTempoFimMaior}`,
           );
           console.log(
-            `aCadaCiclo > ${posicoesTempos[posicaoTwo]?.agente} acima de ${agente}`,
+            `aCadaCiclo > ${posicoesTempos[posicaoProxima]?.agente} acima de ${agente}`,
           );
         }
 
-        const idPosicaoTwo = posicoesTempos[posicaoTwo]?.id ?? null;
+        const idposicaoProxima = posicoesTempos[posicaoProxima]?.id ?? null;
 
-        if (posicaoTwoTempoFimMaior) {
+        if (posicaoProximaTempoFimMaior) {
           aCaixaDaListaDisponivel.insertBefore(
-            aCaixaDaListaDisponivel.children[posicaoTwo],
+            aCaixaDaListaDisponivel.children[posicaoProxima],
             aCaixaDaListaDisponivel.children[posicao],
           );
 
+          if (osStatus.includes(osAtendimentosCompletos[id]?.status)) {
+            osAtendimentosCompletos[idposicaoProxima].status = "---";
+          }
+
           console.log(
-            `${posicoesTempos[posicaoTwo]?.agente} acima de ${agente}`,
+            `${posicoesTempos[posicaoProxima]?.agente} acima de ${agente}`,
           );
         } else if (
           !atendendo &&
