@@ -4824,12 +4824,6 @@
           ? osAtendimentosCompletos[idLinhaAcima]?.status
           : 0;
 
-        if (atendendo) {
-          if (oStatus != "-Atendendo-") {
-            osAtendimentosCompletos[id].status = "-Atendendo-";
-          }
-        }
-
         const itemStatus = document.getElementById("status-" + id);
 
         itemStatus.textContent = oStatus ? oStatus : "";
@@ -4908,6 +4902,8 @@
           console.log(
             `${posicoesTempos[posicaoProxima]?.agente} acima de ${agente}`,
           );
+        } else if (atendendo && oStatus != "-Atendendo-") {
+          osAtendimentosCompletos[id].status = "-Atendendo-";
         } else if (
           !atendendo &&
           posicaoAnterior &&

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.26
+// @version      0.0.0.27
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -4824,12 +4824,6 @@
           ? osAtendimentosCompletos[idLinhaAcima]?.status
           : 0;
 
-        if (atendendo) {
-          if (oStatus != "-Atendendo-") {
-            osAtendimentosCompletos[id].status = "-Atendendo-";
-          }
-        }
-
         const itemStatus = document.getElementById("status-" + id);
 
         itemStatus.textContent = oStatus ? oStatus : "";
@@ -4908,6 +4902,8 @@
           console.log(
             `${posicoesTempos[posicaoProxima]?.agente} acima de ${agente}`,
           );
+        } else if (atendendo && oStatus != "-Atendendo-") {
+          osAtendimentosCompletos[id].status = "-Atendendo-";
         } else if (
           !atendendo &&
           posicaoAnterior &&
