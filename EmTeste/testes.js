@@ -1373,6 +1373,11 @@ function colocarListaDeDisponibilidade() {
     Object.keys(osAtendimentosCompletos).forEach((id) => {
       const itemlinhaExiste = document.getElementById("linha-" + id);
 
+      if (!osAtendimentosCompletos[id]) {
+        if (itemlinhaExiste) itemlinhaExiste.remove();
+        return;
+      }
+
       if (!itemlinhaExiste) {
         const itemLinha = addLinhas(id, osAtendimentosCompletos[id].agente);
 
@@ -1419,11 +1424,12 @@ function colocarListaDeDisponibilidade() {
 
       const itemAtendendo = document.getElementById("atendendo-" + id);
 
+      const agora = dataHoraFormat();
+
       itemAtendendo.textContent =
         itemAtendendo && tempoInicio
           ? `- ${tempoEncurtado(
-              exibirAHora(dataHoraFormat(), 0, converterTimestamp(tempoInicio))
-                .hora,
+              exibirAHora(agora, 0, converterTimestamp(tempoInicio)).hora,
             )} -`
           : "";
 
@@ -1431,18 +1437,18 @@ function colocarListaDeDisponibilidade() {
 
       const tempoFim = osAtendimentosCompletos[id]?.tempoFim ?? 0;
 
-      itemDisponivel.textContent =
+      const valorTempoDisponivel =
         itemDisponivel && tempoFim
           ? tempoEncurtado(
               exibirAHora(
-                tempoInicio
-                  ? converterTimestamp(tempoInicio)
-                  : dataHoraFormat(),
+                tempoInicio ? converterTimestamp(tempoInicio) : agora,
                 0,
                 converterTimestamp(tempoFim),
               ).hora,
             )
           : "";
+
+      itemDisponivel.textContent = valorTempoDisponivel;
 
       //console.log(`${agente} : ${posicao}`);
 
@@ -1492,7 +1498,25 @@ function colocarListaDeDisponibilidade() {
           osAtendimentosCompletos[posicoesTempos[posicaoAnterior]?.id]?.status,
         )
       ) {
-        osAtendimentosCompletos[id].status = "-Ausente-";
+        if (oStatus == "-Ausente-") {
+          const timeAusente = osAtendimentosCompletos[id]?.timeAusente ?? 0;
+
+          if (timeAusente) {
+            const timeAusenteSalvo = converterParaSegundos(
+              exibirAHora(agora, 0, timeAusente).hora,
+            );
+
+            const trintaMinutos = converterParaSegundos("30:00");
+
+            if (timeAusenteSalvo > trintaMinutos)
+              osAtendimentosCompletos[id] = 0;
+          }
+
+          //console.log(`Ausente ${agente}`);
+        } else {
+          osAtendimentosCompletos[id].status = "-Ausente-";
+          osAtendimentosCompletos[id].timeAusente = agora;
+        }
       }
 
       if (tempoFim && agente)
