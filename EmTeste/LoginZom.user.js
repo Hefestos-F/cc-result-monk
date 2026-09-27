@@ -4900,7 +4900,7 @@
             aCaixaDaListaDisponivel.children[posicao],
           );
 
-          if (atendendo) {
+          if (atendendo || oStatus == "-Atendendo-") {
             osAtendimentosCompletos[idposicaoProxima].status = "---";
           }
 
