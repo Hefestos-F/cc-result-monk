@@ -4731,6 +4731,8 @@
     });
   }
 
+  const primeiroAtendendo = {};
+
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
 
@@ -4788,7 +4790,11 @@
 
     let numeroAcima = 0;
 
-    if (Object.keys(osAtendimentosCompletos).length > 0) {
+    const nAtendimento = Object.keys(osAtendimentosCompletos).length;
+
+    if (nAtendimento > 0) {
+      let oUltimo = nAtendimento;
+      let existeAtendento = 0;
       Object.keys(osAtendimentosCompletos).forEach((id) => {
         const itemlinhaExiste = document.getElementById("linha-" + id);
 
@@ -4821,6 +4827,11 @@
           itemlinhaExiste,
         );
 
+        if (atendendo) {
+          existeAtendento = 1;
+          oUltimo = posicao < oUltimo ? posicao : oUltimo;
+        }
+
         const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
 
         const osStatus = ["-Atendendo-", "-Ausente-"];
@@ -4831,15 +4842,12 @@
 
         const idLinhaAcima = posicoesTempos[posicaoAnterior]?.id;
 
-        const statusLinhaAcima = idLinhaAcima
-          ? osAtendimentosCompletos[idLinhaAcima]?.status
-          : 0;
+        const statusLinhaAcima = osAtendimentosCompletos[idLinhaAcima]?.status;
 
         const idLinhaAbaixo = posicoesTempos[posicaoProxima]?.id;
 
-        const statusLinhaAbaixo = idLinhaAbaixo
-          ? osAtendimentosCompletos[idLinhaAbaixo]?.status
-          : 0;
+        const statusLinhaAbaixo =
+          osAtendimentosCompletos[idLinhaAbaixo]?.status;
 
         const itemStatus = document.getElementById("status-" + id);
 
@@ -4908,12 +4916,12 @@
           numeroAcima = 1;
         }
 
-        if (!numeroAcima && statusLinhaAcima) {
+        if (!numeroAcima) {
           const oNovoStatus = atendendo
             ? "-Atendendo-"
             : oStatus == "-Atendendo-"
               ? "---"
-              : statusLinhaAcima.includes(osStatus)
+              : primeiroAtendendo.ultimo && posicao > primeiroAtendendo.ultimo
                 ? "-Ausente-"
                 : oStatus;
 
@@ -4931,6 +4939,9 @@
 
         //osAtendimentosCompletos[id].posicao = posicao;
       });
+
+      primeiroAtendendo.Atendendo = existeAtendento;
+      primeiroAtendendo.ultimo = oUltimo;
     }
   }
 
