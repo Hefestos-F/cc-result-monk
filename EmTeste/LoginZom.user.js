@@ -4840,24 +4840,17 @@
 
         const posicaoAnterior = posicao - 1;
 
-        const idLinhaAcima = posicoesTempos[posicaoAnterior]?.id;
-
-        const statusLinhaAcima = osAtendimentosCompletos[idLinhaAcima]?.status;
-
-        const idLinhaAbaixo = posicoesTempos[posicaoProxima]?.id;
-
-        const statusLinhaAbaixo =
-          osAtendimentosCompletos[idLinhaAbaixo]?.status;
-
         const itemStatus = document.getElementById("status-" + id);
 
-        itemStatus.textContent = oStatus ? oStatus : "";
+        if (itemStatus.textContent != oStatus) {
+          itemStatus.textContent = oStatus ? oStatus : "";
 
-        itemlinhaExiste.style.background = atendendo
-          ? "#b9b9b9"
-          : oStatus == "-Ausente-"
-            ? "#fff0af"
-            : "";
+          itemlinhaExiste.style.background = atendendo
+            ? "#b9b9b9"
+            : oStatus == "-Ausente-"
+              ? "#fff0af"
+              : "";
+        }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
 
@@ -4889,9 +4882,6 @@
 
         //console.log(`${agente} : ${posicao}`);
 
-        const posicaoProximaStatus =
-          posicoesTempos[posicaoProxima]?.status ?? 0;
-
         const posicaoProximaTempoFim =
           posicoesTempos[posicaoProxima]?.tempoFim ?? 0;
 
@@ -4906,8 +4896,6 @@
           );
         }
 
-        const idposicaoProxima = posicoesTempos[posicaoProxima]?.id ?? null;
-
         if (posicaoProximaTempoFimMaior) {
           aCaixaDaListaDisponivel.insertBefore(
             aCaixaDaListaDisponivel.children[posicaoProxima],
@@ -4916,12 +4904,12 @@
           numeroAcima = 1;
         }
 
-        if (!numeroAcima) {
+        if (!numeroAcima && primeiroAtendendo.ultimo) {
           const oNovoStatus = atendendo
             ? "-Atendendo-"
-            : oStatus == "-Atendendo-"
+            : posicao < primeiroAtendendo.ultimo
               ? "---"
-              : primeiroAtendendo.ultimo && posicao > primeiroAtendendo.ultimo
+              : posicao > primeiroAtendendo.ultimo
                 ? "-Ausente-"
                 : oStatus;
 
