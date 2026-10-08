@@ -4729,6 +4729,8 @@
 
       if (agenteAdicionado.includes(oIdAgente)) return;
 
+      if (!dadosFilaAtendimentos) dadosFilaAtendimentos = {};
+
       dadosFilaAtendimentos[oIdAgente] = {
         id: atendimento.engagementId,
         agente: oAgente,
@@ -4743,12 +4745,11 @@
 
   const primeiroAtendendo = {};
 
+  const atualizarFila = async () =>
+    await AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
+  //
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
-
-    /*(async () => {
-      await AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
-    })();*/
 
     function addLinhas(id, agente) {
       const linhaCaixa = criarDiv();
@@ -4761,7 +4762,7 @@
       padding: 0px 3px;
       border-bottom: 1px dotted;
       margin-bottom: 4px;
-    `;
+      `;
 
       const itemNome = criarDiv();
       itemNome.id = "nome-" + id;
@@ -4803,6 +4804,10 @@
       `;
 
     const nAtendimento = Object.keys(dadosFilaAtendimentos).length;
+
+    // console.log("O nAtendimento:")
+    // console.log(nAtendimento)
+    // console.log(dadosFilaAtendimentos)
 
     if (nAtendimento > 0) {
       let oUltimo = nAtendimento;
@@ -4886,10 +4891,10 @@
           oUltimo = posicao < oUltimo ? posicao : oUltimo;
         }
 
-        let oNovoStatus;
+        const itemStatus = document.getElementById("status-" + id);
 
         if (primeiroAtendendo.Atendendo && primeiroAtendendo.ultimo) {
-          oNovoStatus = atendendo
+          let oNovoStatus = atendendo
             ? "-Atendendo-"
             : posicao < primeiroAtendendo.ultimo
               ? "---"
@@ -4902,19 +4907,16 @@
 
             if (oNovoStatus == "-Ausente-")
               dadosFilaAtendimentos[id].ausente = agora;
+
+            itemStatus.textContent = oNovoStatus;
+
+            itemlinhaExiste.style.background = atendendo
+              ? "#b9b9b9"
+              : oNovoStatus == "-Ausente-"
+                ? "#fff0af"
+                : "";
+            atualizarFila;
           }
-        }
-
-        const itemStatus = document.getElementById("status-" + id);
-
-        if (oNovoStatus && oNovoStatus != oStatus) {
-          itemStatus.textContent = oNovoStatus;
-
-          itemlinhaExiste.style.background = atendendo
-            ? "#b9b9b9"
-            : oStatus == "-Ausente-"
-              ? "#fff0af"
-              : "";
         }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
