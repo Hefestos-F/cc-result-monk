@@ -164,6 +164,7 @@
   const ChavelogueManu = "LogueManual";
   const ChavePrimLogue = "PrimeiroLogue";
   const ChavePrimLogueOntem = "PrimeiroLogueOntem";
+  const ChaveFilaAtendimentos = "FilaAtendimentos";
 
   // Variáveis que receberão dados recuperados do banco local (indexedDB)
   let dadosdePausas;
@@ -172,6 +173,7 @@
   let dadosPrimLogue;
   let dadosPrimLogueOnt;
   let dadosLogueManu;
+  let dadosFilaAtendimentos;
 
   // Configuração do IndexedDB
   const nomeBD = "Hefestos";
@@ -210,6 +212,13 @@
       Hodeb("Encontrados em dadosdePausas:", dadosdePausas);
     } catch (e) {
       Herror("Erro ao recuperar dadosdePausas:", e);
+    }
+
+    try {
+      dadosFilaAtendimentos = await RecDadosindexdb(ChaveFilaAtendimentos);
+      Hodeb("Encontrados em dadosFilaAtendimentos:", dadosFilaAtendimentos);
+    } catch (e) {
+      Herror("Erro ao recuperar dadosFilaAtendimentos:", e);
     }
 
     try {
@@ -4526,7 +4535,7 @@
 
   // inicio da lista de disponibilidade
 
-  const osAtendimentosCompletos = [];
+  //const osAtendimentosCompletos = dadosFilaAtendimentos ?? [];
 
   let aCadaCiclo = 0;
 
@@ -4675,18 +4684,19 @@
 
     const listaAtendimentos = data.result.records;
 
-    Object.keys(osAtendimentosCompletos).forEach((id) => {
+    Object.keys(dadosFilaAtendimentos).forEach((id) => {
       const ignorarAgentes = [];
       if (listaAtendimentos.length > 0) {
         listaAtendimentos.forEach((atendimento) => {
           const agentId = atendimento.agents[0].agentId;
 
-          osAtendimentosCompletos[agentId] = {
+          dadosFilaAtendimentos[agentId] = {
             id: atendimento.engagementId,
             agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
-            status: osAtendimentosCompletos[agentId]?.status ?? null,
-            tempoFim: osAtendimentosCompletos[agentId]?.tempoFim ?? null,
+            status: dadosFilaAtendimentos[agentId]?.status ?? null,
+            tempoFim: dadosFilaAtendimentos[agentId]?.tempoFim ?? null,
             tempoInicio: atendimento.startTime,
+            ausente: null,
           };
           ignorarAgentes.push(agentId);
         });
@@ -4694,10 +4704,10 @@
 
       if (
         !ignorarAgentes.includes(id) &&
-        osAtendimentosCompletos[id].status == "-Atendendo-"
+        dadosFilaAtendimentos[id].status == "-Atendendo-"
       ) {
-        osAtendimentosCompletos[id].status = "---";
-        osAtendimentosCompletos[id].tempoInicio = null;
+        dadosFilaAtendimentos[id].status = "---";
+        dadosFilaAtendimentos[id].tempoInicio = null;
       }
     });
   }
@@ -4719,12 +4729,12 @@
 
       if (agenteAdicionado.includes(oIdAgente)) return;
 
-      osAtendimentosCompletos[oIdAgente] = {
+      dadosFilaAtendimentos[oIdAgente] = {
         id: atendimento.engagementId,
         agente: oAgente,
-        status: osAtendimentosCompletos[oIdAgente]?.status ?? null,
+        status: dadosFilaAtendimentos[oIdAgente]?.status ?? null,
         tempoFim: atendimento.endTime,
-        tempoInicio: osAtendimentosCompletos[oIdAgente]?.tempoInicio ?? null,
+        tempoInicio: dadosFilaAtendimentos[oIdAgente]?.tempoInicio ?? null,
       };
 
       agenteAdicionado.push(oIdAgente);
@@ -4735,6 +4745,10 @@
 
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
+
+    /*(async () => {
+      await AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
+    })();*/
 
     function addLinhas(id, agente) {
       const linhaCaixa = criarDiv();
@@ -4788,18 +4802,51 @@
         margin-bottom: 10px;
       `;
 
-    let numeroAcima = 0;
-
-    const nAtendimento = Object.keys(osAtendimentosCompletos).length;
+    const nAtendimento = Object.keys(dadosFilaAtendimentos).length;
 
     if (nAtendimento > 0) {
       let oUltimo = nAtendimento;
       let existeAtendento = 0;
-      Object.keys(osAtendimentosCompletos).forEach((id) => {
+      Object.keys(dadosFilaAtendimentos).forEach((id) => {
+        const agora = dataHoraFormat();
+
+        const tempoInicio = dadosFilaAtendimentos[id]?.tempoInicio ?? 0;
+
+        const agente = dadosFilaAtendimentos[id]?.agente ?? 0;
+
+        const atendendo = tempoInicio ? 1 : 0;
+
+        const oStatus = dadosFilaAtendimentos[id]?.status ?? 0;
+
+        const osStatus = ["-Atendendo-", "-Ausente-"];
+
+        const tempoFim = dadosFilaAtendimentos[id]?.tempoFim ?? 0;
+
+        const valorTempoDisponivel = tempoFim
+          ? tempoEncurtado(
+              exibirAHora(
+                tempoInicio ? converterTimestamp(tempoInicio) : agora,
+                0,
+                converterTimestamp(tempoFim),
+              ).hora,
+            )
+          : "";
+
+        const oAusente = dadosFilaAtendimentos[id].ausente;
+
+        const maisDquarenta =
+          oAusente &&
+          agora.data == oAusente.data &&
+          converterParaSegundos(agora.hora) -
+            converterParaSegundos(oAusente.hora) >
+            converterParaSegundos("00:40:00");
+
         const itemlinhaExiste = document.getElementById("linha-" + id);
 
         if (!itemlinhaExiste) {
-          const itemLinha = addLinhas(id, osAtendimentosCompletos[id].agente);
+          if (maisDquarenta) return;
+
+          const itemLinha = addLinhas(id, dadosFilaAtendimentos[id].agente);
 
           if (aCaixaDaListaDisponivel) {
             aCaixaDaListaDisponivel.append(itemLinha);
@@ -4811,39 +4858,57 @@
           }
 
           return;
+        } else {
+          if (maisDquarenta) {
+            itemlinhaExiste.remove();
+            return;
+          }
         }
-        if (!osAtendimentosCompletos[id]) {
-          itemlinhaExiste.remove();
-          return;
-        }
-
-        const tempoInicio = osAtendimentosCompletos[id]?.tempoInicio ?? 0;
-
-        const agente = osAtendimentosCompletos[id]?.agente ?? 0;
-
-        const atendendo = tempoInicio ? 1 : 0;
 
         const posicao = Array.from(aCaixaDaListaDisponivel.children).indexOf(
           itemlinhaExiste,
         );
+
+        if (tempoFim && agente)
+          posicoesTempos[posicao] = {
+            tempoFim: tempoFim,
+            id: id,
+            agente: agente,
+            status: oStatus,
+          };
+
+        const posicaoProxima = posicao + 1;
+
+        const posicaoAnterior = posicao - 1;
 
         if (atendendo) {
           existeAtendento = 1;
           oUltimo = posicao < oUltimo ? posicao : oUltimo;
         }
 
-        const oStatus = osAtendimentosCompletos[id]?.status ?? 0;
+        let oNovoStatus;
 
-        const osStatus = ["-Atendendo-", "-Ausente-"];
+        if (primeiroAtendendo.Atendendo && primeiroAtendendo.ultimo) {
+          oNovoStatus = atendendo
+            ? "-Atendendo-"
+            : posicao < primeiroAtendendo.ultimo
+              ? "---"
+              : posicao > primeiroAtendendo.ultimo
+                ? "-Ausente-"
+                : oStatus;
 
-        const posicaoProxima = posicao + 1;
+          if (oNovoStatus != oStatus) {
+            dadosFilaAtendimentos[id].status = oNovoStatus;
 
-        const posicaoAnterior = posicao - 1;
+            if (oNovoStatus == "-Ausente-")
+              dadosFilaAtendimentos[id].ausente = agora;
+          }
+        }
 
         const itemStatus = document.getElementById("status-" + id);
 
-        if (itemStatus.textContent != oStatus) {
-          itemStatus.textContent = oStatus ? oStatus : "";
+        if (oNovoStatus && oNovoStatus != oStatus) {
+          itemStatus.textContent = oNovoStatus;
 
           itemlinhaExiste.style.background = atendendo
             ? "#b9b9b9"
@@ -4854,8 +4919,6 @@
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
 
-        const agora = dataHoraFormat();
-
         itemAtendendo.textContent =
           itemAtendendo && tempoInicio
             ? `- ${tempoEncurtado(
@@ -4864,19 +4927,6 @@
             : "";
 
         const itemDisponivel = document.getElementById("disponivel-" + id);
-
-        const tempoFim = osAtendimentosCompletos[id]?.tempoFim ?? 0;
-
-        const valorTempoDisponivel =
-          itemDisponivel && tempoFim
-            ? tempoEncurtado(
-                exibirAHora(
-                  tempoInicio ? converterTimestamp(tempoInicio) : agora,
-                  0,
-                  converterTimestamp(tempoFim),
-                ).hora,
-              )
-            : "";
 
         itemDisponivel.textContent = valorTempoDisponivel;
 
@@ -4901,31 +4951,7 @@
             aCaixaDaListaDisponivel.children[posicaoProxima],
             aCaixaDaListaDisponivel.children[posicao],
           );
-          numeroAcima = 1;
         }
-
-        if (!numeroAcima && primeiroAtendendo.ultimo) {
-          const oNovoStatus = atendendo
-            ? "-Atendendo-"
-            : posicao < primeiroAtendendo.ultimo
-              ? "---"
-              : posicao > primeiroAtendendo.ultimo
-                ? "-Ausente-"
-                : oStatus;
-
-          if (oNovoStatus != oStatus)
-            osAtendimentosCompletos[id].status = oNovoStatus;
-        }
-
-        if (tempoFim && agente)
-          posicoesTempos[posicao] = {
-            tempoFim: tempoFim,
-            id: id,
-            agente: agente,
-            status: oStatus,
-          };
-
-        //osAtendimentosCompletos[id].posicao = posicao;
       });
 
       primeiroAtendendo.Atendendo = existeAtendento;
