@@ -1184,7 +1184,7 @@
     //   window.setFlutOBSide(null) => volta para auto por viewport
     window.setFlutOBSide = function (val) {
       if (val !== 0 && val !== 1 && val !== null) {
-        console.warn("Use 1 (left), 0 (right) ou null (auto).");
+        Hwarn("Use 1 (left), 0 (right) ou null (auto).");
         return;
       }
       QualLado = val;
@@ -4605,7 +4605,7 @@
   function iniciarObservacao() {
     // Evita instalar duas vezes
     if (window.__observacaoAtiva) {
-      console.log("⚠️ Interceptador já está ativo");
+      Hlog("⚠️ Interceptador já está ativo");
       return;
     }
 
@@ -4642,28 +4642,28 @@
           const data = JSON.parse(this.responseText);
 
           if (isCompleteEngagement) {
-            console.log("📋 COMPLETE ENGAGEMENT REPORT", data);
+            Hlog("📋 COMPLETE ENGAGEMENT REPORT", data);
             listarTempoDisponivelDoAgente(data);
           }
 
           if (isActiveEngagement) {
-            console.log("🎧 ACTIVE ENGAGEMENT OMNI", data);
+            Hlog("🎧 ACTIVE ENGAGEMENT OMNI", data);
             listarAgentesAtendendo(data);
           }
         } catch (err) {
-          console.error("❌ Resposta não é JSON");
+          Herror("❌ Resposta não é JSON");
         }
       });
 
       return window.__originalSend.apply(this, arguments);
     };
 
-    console.log("✅ Interceptador instalado");
+    Hlog("✅ Interceptador instalado");
   }
 
   function pararObservacao() {
     if (!window.__observacaoAtiva) {
-      console.log("⚠️ Interceptador já está desativado");
+      Hlog("⚠️ Interceptador já está desativado");
       return;
     }
 
@@ -4676,7 +4676,7 @@
 
     window.__observacaoAtiva = false;
 
-    console.log("🛑 Interceptador removido");
+    Hlog("🛑 Interceptador removido");
   }
 
   function listarAgentesAtendendo(data) {
@@ -4745,9 +4745,6 @@
 
   const primeiroAtendendo = {};
 
-  const atualizarFila = async () =>
-    await AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
-  //
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
 
@@ -4805,9 +4802,9 @@
 
     const nAtendimento = Object.keys(dadosFilaAtendimentos).length;
 
-    // console.log("O nAtendimento:")
-    // console.log(nAtendimento)
-    // console.log(dadosFilaAtendimentos)
+    // Hlog("O nAtendimento:")
+    // Hlog(nAtendimento)
+    // Hlog(dadosFilaAtendimentos)
 
     if (nAtendimento > 0) {
       let oUltimo = nAtendimento;
@@ -4855,11 +4852,11 @@
 
           if (aCaixaDaListaDisponivel) {
             aCaixaDaListaDisponivel.append(itemLinha);
-            console.log("Linha nao existe, criada");
+            Hlog("Linha nao existe, criada");
           } else {
             aCaixaDaLista.append(itemLinha);
             opai.prepend(aCaixaDaLista);
-            console.log("lista nao existe, criada");
+            Hlog("lista nao existe, criada");
           }
 
           return;
@@ -4893,30 +4890,37 @@
 
         const itemStatus = document.getElementById("status-" + id);
 
-        if (primeiroAtendendo.Atendendo && primeiroAtendendo.ultimo) {
-          let oNovoStatus = atendendo
+        let oNovoStatus = primeiroAtendendo.Atendendo
+          ? atendendo
             ? "-Atendendo-"
             : posicao < primeiroAtendendo.ultimo
               ? "---"
               : posicao > primeiroAtendendo.ultimo
                 ? "-Ausente-"
-                : oStatus;
+                : oStatus
+          : oStatus == "-Atendendo-"
+            ? "---"
+            : oStatus;
 
-          if (oNovoStatus != oStatus) {
-            dadosFilaAtendimentos[id].status = oNovoStatus;
+        if (itemStatus.textContent != oNovoStatus) {
+          dadosFilaAtendimentos[id].status = oNovoStatus;
 
-            if (oNovoStatus == "-Ausente-")
-              dadosFilaAtendimentos[id].ausente = agora;
+          if (oNovoStatus == "-Ausente-")
+            dadosFilaAtendimentos[id].ausente = agora;
 
-            itemStatus.textContent = oNovoStatus;
+          itemStatus.textContent = oNovoStatus;
 
-            itemlinhaExiste.style.background = atendendo
-              ? "#b9b9b9"
-              : oNovoStatus == "-Ausente-"
-                ? "#fff0af"
-                : "";
-            atualizarFila;
-          }
+          itemlinhaExiste.style.background = atendendo
+            ? "#b9b9b9"
+            : oNovoStatus == "-Ausente-"
+              ? "#fff0af"
+              : "";
+          (async () => {
+            await AddOuAtuIindexdb(
+              ChaveFilaAtendimentos,
+              dadosFilaAtendimentos,
+            );
+          })();
         }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
@@ -4932,7 +4936,7 @@
 
         itemDisponivel.textContent = valorTempoDisponivel;
 
-        //console.log(`${agente} : ${posicao}`);
+        //Hlog(`${agente} : ${posicao}`);
 
         const posicaoProximaTempoFim =
           posicoesTempos[posicaoProxima]?.tempoFim ?? 0;
@@ -4940,10 +4944,10 @@
         const posicaoProximaTempoFimMaior = posicaoProximaTempoFim > tempoFim;
 
         if (aCadaCiclo) {
-          console.log(
+          Hlog(
             `posicaoProximaTempoFim; ${posicaoProximaTempoFim} / posicaoProximaTempoFimMaior: ${posicaoProximaTempoFimMaior}`,
           );
-          console.log(
+          Hlog(
             `aCadaCiclo > ${posicoesTempos[posicaoProxima]?.agente} acima de ${agente}`,
           );
         }
