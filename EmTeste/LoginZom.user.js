@@ -956,25 +956,63 @@
 
   function CriarBotInicial() {
     if (document.getElementById("FlutOB")) return;
+    const conteinerBInicial = document.createElement("div");
+
+    conteinerBInicial.id = "conteinerBInicial";
+    conteinerBInicial.style.cssText = `
+      display: grid;
+      gap: 5px;
+      position: absolute;
+      top: 12px;
+      right: 80px;
+      grid-auto-flow: column;
+      font-size: 14px;
+      color: ${Ccor.AreaAr};
+    `;
+
     const div = document.createElement("div");
     div.id = "BotInicial";
     div.style.cssText = `
     width: auto;
     height: 20px;
-    position: absolute;
-    top: 12px;
-    right: 80px;
     border-radius: 15px;
     border: 1px solid;
     border-color: ${Ccor.AreaAr};
     cursor: pointer;
-    font-size: 14px;
     padding: 0px 4px;
     background-color: white;
-    color: ${Ccor.AreaAr};
     `;
-    div.addEventListener("mouseover", () => contr(1));
-    div.addEventListener("mouseout", () => contr(0));
+
+    const botaoAlarmeInicial = document.createElement("div");
+    botaoAlarmeInicial.id = "botaoAlarmeInicial";
+    botaoAlarmeInicial.style.cssText = `
+      display: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 15px;
+      border: 1px solid;
+      border-color: ${Ccor.AreaAr};
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background-color: white;
+    `;
+    botaoAlarmeInicial.textContent = config.SomEstouro ? "N" : "S";
+
+    botaoAlarmeInicial.addEventListener("click", () => {
+      config.SomEstouro = !config.SomEstouro;
+      botaoAlarmeInicial.textContent = config.SomEstouro ? "N" : "S";
+    });
+
+    botaoAlarmeInicial.addEventListener("mouseover", () =>
+      contr("botaoAlarmeInicial", 1),
+    );
+    botaoAlarmeInicial.addEventListener("mouseout", () =>
+      contr("botaoAlarmeInicial", 0),
+    );
+
+    div.addEventListener("mouseover", () => contr("BotInicial", 1));
+    div.addEventListener("mouseout", () => contr("BotInicial", 0));
 
     div.addEventListener("click", () => {
       const FlutOB = document.getElementById("FlutOB");
@@ -991,11 +1029,14 @@
         PosicaoFaixa();
       }
     });
-    document.body.appendChild(div);
+
+    conteinerBInicial.append(botaoAlarmeInicial, div);
+
+    document.body.appendChild(conteinerBInicial);
   }
 
-  function contr(a = 0) {
-    const div = document.getElementById("BotInicial");
+  function contr(adiv, a = 0) {
+    const div = document.getElementById(adiv);
     div.style.backgroundColor = stt.Estouro
       ? Ccor.Aviso
       : a
@@ -1614,6 +1655,7 @@
     const InfoV = document.getElementById("InfoV");
     const ContPaCo = document.getElementById("ContPaCo");
     const BotInicial = document.getElementById("BotInicial");
+    const botaoAlarmeInicial = document.getElementById("botaoAlarmeInicial");
 
     const el = encoStatus();
     Hodeb("Estado do agente", el);
@@ -1670,6 +1712,14 @@
           ? compararDatas(agora, TempoPausas.Estouro)
           : 0;
 
+      const botaoAlarmeInicialDisplay = botaoAlarmeInicial.style.display;
+
+      if (
+        (stt.Estouro && botaoAlarmeInicialDisplay != "flex") ||
+        (!stt.Estouro && botaoAlarmeInicialDisplay != "none")
+      )
+        botaoAlarmeInicial.style.display = stt.Estouro ? "flex" : "none";
+
       if (!stt.bipando && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
         stt.bipando = 1;
@@ -1702,7 +1752,7 @@
         stt.bipando = 0;
         pararMusica();
       }
-      contr();
+      contr("BotInicial", 0);
     }
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
