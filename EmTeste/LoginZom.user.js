@@ -4909,7 +4909,10 @@
             ? "---"
             : oStatus;
 
-        if (itemStatus.textContent != oNovoStatus) {
+        if (
+          itemStatus.textContent != oNovoStatus &&
+          !variavelLista.reorganizou
+        ) {
           dadosFilaAtendimentos[id].status = oNovoStatus;
 
           if (oNovoStatus == "-Ausente-")

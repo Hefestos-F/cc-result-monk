@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.28
+// @version      0.0.0.29
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -1635,12 +1635,15 @@
 
       const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
 
+      const statusAtual = stt.Encontrado
+        ? el.Pausa
+          ? `${terc} > ${el.Pausa}`
+          : terc
+        : "Nada Encontrado";
+
       if (BotInicial)
-        BotInicial.textContent = stt.Encontrado
-          ? el.Pausa
-            ? `${terc} > ${el.Pausa}`
-            : terc
-          : "Nada Encontrado";
+        if (statusAtual != BotInicial.textContent)
+          BotInicial.textContent = statusAtual;
     } else {
       Hodeb("Tempo do agente não encontrado", el);
     }
@@ -1812,9 +1815,11 @@
 
     TempoPausas.Saida = horafun.Saida.hora;
 
-    vLogou.textContent = TempoPausas.Logou;
+    if (vLogou.textContent != TempoPausas.Logou)
+      vLogou.textContent = TempoPausas.Logou;
 
-    vSaida.textContent = TempoPausas.Saida;
+    if (vSaida.textContent != TempoPausas.Saida)
+      vSaida.textContent = TempoPausas.Saida;
 
     const logadoUsandoLogou = exibirAHora(agora, 0, horafun.Logou).hora;
 
@@ -4642,12 +4647,12 @@
           const data = JSON.parse(this.responseText);
 
           if (isCompleteEngagement) {
-            Hlog("📋 COMPLETE ENGAGEMENT REPORT", data);
+            //Hlog("📋 COMPLETE ENGAGEMENT REPORT", data);
             listarTempoDisponivelDoAgente(data);
           }
 
           if (isActiveEngagement) {
-            Hlog("🎧 ACTIVE ENGAGEMENT OMNI", data);
+            //Hlog("🎧 ACTIVE ENGAGEMENT OMNI", data);
             listarAgentesAtendendo(data);
           }
         } catch (err) {
@@ -4743,7 +4748,7 @@
     });
   }
 
-  const primeiroAtendendo = {};
+  const variavelLista = {};
 
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
@@ -4809,6 +4814,8 @@
     if (nAtendimento > 0) {
       let oUltimo = nAtendimento;
       let existeAtendento = 0;
+      let mudouStatus = 0;
+      let reorganizou = 0;
       Object.keys(dadosFilaAtendimentos).forEach((id) => {
         const agora = dataHoraFormat();
 
@@ -4890,19 +4897,22 @@
 
         const itemStatus = document.getElementById("status-" + id);
 
-        let oNovoStatus = primeiroAtendendo.Atendendo
+        let oNovoStatus = variavelLista.Atendendo
           ? atendendo
             ? "-Atendendo-"
-            : posicao < primeiroAtendendo.ultimo
+            : posicao < variavelLista.ultimo
               ? "---"
-              : posicao > primeiroAtendendo.ultimo
+              : posicao > variavelLista.ultimo
                 ? "-Ausente-"
                 : oStatus
           : oStatus == "-Atendendo-"
             ? "---"
             : oStatus;
 
-        if (itemStatus.textContent != oNovoStatus) {
+        if (
+          itemStatus.textContent != oNovoStatus &&
+          !variavelLista.reorganizou
+        ) {
           dadosFilaAtendimentos[id].status = oNovoStatus;
 
           if (oNovoStatus == "-Ausente-")
@@ -4915,12 +4925,7 @@
             : oNovoStatus == "-Ausente-"
               ? "#fff0af"
               : "";
-          (async () => {
-            await AddOuAtuIindexdb(
-              ChaveFilaAtendimentos,
-              dadosFilaAtendimentos,
-            );
-          })();
+          mudouStatus = 1;
         }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
@@ -4957,11 +4962,21 @@
             aCaixaDaListaDisponivel.children[posicaoProxima],
             aCaixaDaListaDisponivel.children[posicao],
           );
+          reorganizou = 1;
         }
       });
 
-      primeiroAtendendo.Atendendo = existeAtendento;
-      primeiroAtendendo.ultimo = oUltimo;
+      if (mudouStatus)
+        AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
+
+      /*(async () => {
+        if (mudouStatus)
+          await AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
+      })();*/
+
+      variavelLista.Atendendo = existeAtendento;
+      variavelLista.ultimo = oUltimo;
+      variavelLista.reorganizou = reorganizou;
     }
   }
 
