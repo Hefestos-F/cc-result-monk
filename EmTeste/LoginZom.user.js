@@ -4642,12 +4642,12 @@
           const data = JSON.parse(this.responseText);
 
           if (isCompleteEngagement) {
-            Hlog("📋 COMPLETE ENGAGEMENT REPORT", data);
+            //Hlog("📋 COMPLETE ENGAGEMENT REPORT", data);
             listarTempoDisponivelDoAgente(data);
           }
 
           if (isActiveEngagement) {
-            Hlog("🎧 ACTIVE ENGAGEMENT OMNI", data);
+            //Hlog("🎧 ACTIVE ENGAGEMENT OMNI", data);
             listarAgentesAtendendo(data);
           }
         } catch (err) {
@@ -4809,6 +4809,7 @@
     if (nAtendimento > 0) {
       let oUltimo = nAtendimento;
       let existeAtendento = 0;
+      let mudouStatus = 0;
       Object.keys(dadosFilaAtendimentos).forEach((id) => {
         const agora = dataHoraFormat();
 
@@ -4915,12 +4916,7 @@
             : oNovoStatus == "-Ausente-"
               ? "#fff0af"
               : "";
-          (async () => {
-            await AddOuAtuIindexdb(
-              ChaveFilaAtendimentos,
-              dadosFilaAtendimentos,
-            );
-          })();
+          mudouStatus = 1;
         }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
@@ -4959,6 +4955,14 @@
           );
         }
       });
+
+      if (mudouStatus)
+        AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
+
+      /*(async () => {
+        if (mudouStatus)
+          await AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
+      })();*/
 
       primeiroAtendendo.Atendendo = existeAtendento;
       primeiroAtendendo.ultimo = oUltimo;
