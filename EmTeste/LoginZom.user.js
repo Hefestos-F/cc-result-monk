@@ -1635,12 +1635,15 @@
 
       const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
 
+      const statusAtual = stt.Encontrado
+        ? el.Pausa
+          ? `${terc} > ${el.Pausa}`
+          : terc
+        : "Nada Encontrado";
+
       if (BotInicial)
-        BotInicial.textContent = stt.Encontrado
-          ? el.Pausa
-            ? `${terc} > ${el.Pausa}`
-            : terc
-          : "Nada Encontrado";
+        if (statusAtual != BotInicial.textContent)
+          BotInicial.textContent = statusAtual;
     } else {
       Hodeb("Tempo do agente não encontrado", el);
     }
@@ -1812,9 +1815,11 @@
 
     TempoPausas.Saida = horafun.Saida.hora;
 
-    vLogou.textContent = TempoPausas.Logou;
+    if (vLogou.textContent != TempoPausas.Logou)
+      vLogou.textContent = TempoPausas.Logou;
 
-    vSaida.textContent = TempoPausas.Saida;
+    if (vSaida.textContent != TempoPausas.Saida)
+      vSaida.textContent = TempoPausas.Saida;
 
     const logadoUsandoLogou = exibirAHora(agora, 0, horafun.Logou).hora;
 
@@ -4743,7 +4748,7 @@
     });
   }
 
-  const primeiroAtendendo = {};
+  const variavelLista = {};
 
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
@@ -4810,6 +4815,7 @@
       let oUltimo = nAtendimento;
       let existeAtendento = 0;
       let mudouStatus = 0;
+      let reorganizou = 0;
       Object.keys(dadosFilaAtendimentos).forEach((id) => {
         const agora = dataHoraFormat();
 
@@ -4891,12 +4897,12 @@
 
         const itemStatus = document.getElementById("status-" + id);
 
-        let oNovoStatus = primeiroAtendendo.Atendendo
+        let oNovoStatus = variavelLista.Atendendo
           ? atendendo
             ? "-Atendendo-"
-            : posicao < primeiroAtendendo.ultimo
+            : posicao < variavelLista.ultimo
               ? "---"
-              : posicao > primeiroAtendendo.ultimo
+              : posicao > variavelLista.ultimo
                 ? "-Ausente-"
                 : oStatus
           : oStatus == "-Atendendo-"
@@ -4953,6 +4959,7 @@
             aCaixaDaListaDisponivel.children[posicaoProxima],
             aCaixaDaListaDisponivel.children[posicao],
           );
+          reorganizou = 1;
         }
       });
 
@@ -4964,8 +4971,9 @@
           await AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
       })();*/
 
-      primeiroAtendendo.Atendendo = existeAtendento;
-      primeiroAtendendo.ultimo = oUltimo;
+      variavelLista.Atendendo = existeAtendento;
+      variavelLista.ultimo = oUltimo;
+      variavelLista.reorganizou = reorganizou;
     }
   }
 
