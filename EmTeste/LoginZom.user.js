@@ -4905,22 +4905,14 @@
 
         const oAusente = dadosFilaAtendimentos[id].ausente;
 
-        const tempoDultimaLigacao = converterParaSegundos(
-          exibirAHora(agora, 0, converterTimestamp(tempoFim)).hora,
-        );
-
-        const tempoTresHora = converterParaSegundos("03:00:00");
+        const tempoDultimaLigacao = oAusente
+          ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
+          : 0;
 
         const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
 
-        const oAusenteTempo = oAusente
-          ? converterParaSegundos(oAusente.hora)
-          : 0;
-
         const maisDQ =
-          !tempoInicio &&
-          (tempoDultimaLigacao > tempoTresHora ||
-            oAusenteTempo > tempoQuarentaMinuto);
+          !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
 
         const itemlinhaExiste = document.getElementById("linha-" + id);
 
@@ -5029,7 +5021,11 @@
           );
         }
 
-        if (posicaoProximaTempoFimMaior) {
+        if (
+          posicaoProximaTempoFimMaior &&
+          aCaixaDaListaDisponivel.children[posicaoProxima]
+        ) {
+          Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
           aCaixaDaListaDisponivel.insertBefore(
             aCaixaDaListaDisponivel.children[posicaoProxima],
             aCaixaDaListaDisponivel.children[posicao],
