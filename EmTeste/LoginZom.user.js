@@ -4905,11 +4905,22 @@
 
         const oAusente = dadosFilaAtendimentos[id].ausente;
 
+        const tempoDultimaLigacao = converterParaSegundos(
+          exibirAHora(agora, 0, converterTimestamp(tempoFim)).hora,
+        );
+
+        const tempoTresHora = converterParaSegundos("03:00:00");
+
+        const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
+
+        const oAusenteTempo = oAusente
+          ? converterParaSegundos(oAusente.hora)
+          : 0;
+
         const maisDQ =
           !tempoInicio &&
-          converterParaSegundos(
-            exibirAHora(agora, 0, converterTimestamp(tempoFim)).hora,
-          ) > converterParaSegundos("03:00:00");
+          (tempoDultimaLigacao > tempoTresHora ||
+            oAusenteTempo > tempoQuarentaMinuto);
 
         const itemlinhaExiste = document.getElementById("linha-" + id);
 
