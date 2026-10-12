@@ -92,7 +92,7 @@
     modoTeste: 0,
     modoTesteAnt: 0,
     valorFuso: "-03:00",
-    newdata: "2026-07-24",
+    newdata: "2026-10-12",
   };
 
   let TempoPausas = {
@@ -472,7 +472,7 @@
 
       const agora = gerarDataHora(); // { data, hora }
 
-      if (stt.logueInicio) {
+      if (stt.logueInicio && !test.modoTeste) {
         Hlog("Primeiro logue detectado");
         verifiDataLogue(0, agora);
         stt.logueInicio = 0;
@@ -1695,7 +1695,7 @@
 
     const agora = gerarDataHora();
 
-    if (test.modoTeste !== test.modoTesteAnt) {
+    if (test.modoTeste != test.modoTesteAnt) {
       if (test.modoTeste) {
         test.pausalimitadaAntt = config.pausalimitada;
         config.pausalimitada = 1;
@@ -1713,12 +1713,19 @@
           : 0;
 
       const botaoAlarmeInicialDisplay = botaoAlarmeInicial.style.display;
-
+      if (stt.Estouro) {
+        contr("botaoAlarmeInicial", 1);
+        contr("BotInicial", 1);
+      }
       if (
         (stt.Estouro && botaoAlarmeInicialDisplay != "flex") ||
         (!stt.Estouro && botaoAlarmeInicialDisplay != "none")
       )
-        botaoAlarmeInicial.style.display = stt.Estouro ? "flex" : "none";
+        botaoAlarmeInicial.style.display = config.notiEstouro
+          ? stt.Estouro
+            ? "flex"
+            : "none"
+          : "none";
 
       if (!stt.bipando && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
@@ -1741,7 +1748,9 @@
         !config.SomEstouro ||
         !config.notiEstouro ||
         (!stt.Encontrado && !config.LogueManual) ||
-        (stt.Encontrado && !["Descanso", "Lanche"].includes(stt.Status))
+        (stt.Encontrado &&
+          !["Descanso", "Lanche"].includes(stt.Status) &&
+          !test.modoTeste)
       ) {
         Hwarn(
           "Estouro de pausa finalizado" + !stt.Encontrado
@@ -1752,6 +1761,7 @@
         stt.bipando = 0;
         pararMusica();
       }
+      contr("botaoAlarmeInicial", 0);
       contr("BotInicial", 0);
     }
 
@@ -1903,16 +1913,16 @@
     oLogou.textContent = test.modoTeste ? horafun.Logou.data : "";
     oSaida.textContent = test.modoTeste ? horafun.Saida.data : "";
 
-    const primeiroLogueMaior = compararDatas(
-      dadosPrimLogue,
-      logueDuracoesComContAtual,
-    );
+    const primeiroLogueMaior = dadosPrimLogue
+      ? compararDatas(dadosPrimLogue, logueDuracoesComContAtual)
+      : null;
 
     //Hlog(`PrimeiroLogue e Maior: ${primeiroLogueMaior}`);
     //Hlog(dadosPrimLogue);
     //Hlog(horafun.Logou);
 
     if (
+      !test.modoTeste &&
       !config.LogueManual &&
       config.logueSalvo &&
       dadosPrimLogue &&
@@ -3230,7 +3240,7 @@
           ADDCaixaDAviso("Substituir P. Logue", () => {
             //verifiDataLogue(1, { hora: "09:38:08", data: "2026-09-21" });
             //dadosPrimLogue = dadosLogueManu;
-            dadosPrimLogue = { hora: "09:38:08", data: "2026-09-21" };
+            dadosPrimLogue = { hora: "10:23:00", data: "2026-10-12" };
             verifiDataLogue(1, gerarDataHora());
           }),
         );
@@ -3398,6 +3408,7 @@
         () => {
           config.logueSalvo = !config.logueSalvo;
           atualizarVisual();
+          SalvandoVariConfig(1);
         },
       );
 
@@ -3409,6 +3420,7 @@
           config.logueSalvo = !config.logueSalvo;
           atualizarVisual();
           somarDuracoesGeral();
+          SalvandoVariConfig(1);
         },
       );
 
@@ -4893,17 +4905,16 @@
 
         const oAusente = dadosFilaAtendimentos[id].ausente;
 
-        const maisDquarenta =
-          oAusente &&
-          agora.data == oAusente.data &&
-          converterParaSegundos(agora.hora) -
-            converterParaSegundos(oAusente.hora) >
-            converterParaSegundos("00:40:00");
+        const maisDQ =
+          !tempoInicio &&
+          converterParaSegundos(
+            exibirAHora(agora, 0, converterTimestamp(tempoFim)).hora,
+          ) > converterParaSegundos("03:00:00");
 
         const itemlinhaExiste = document.getElementById("linha-" + id);
 
         if (!itemlinhaExiste) {
-          if (maisDquarenta) return;
+          if (maisDQ) return;
 
           const itemLinha = addLinhas(id, dadosFilaAtendimentos[id].agente);
 
@@ -4918,7 +4929,7 @@
 
           return;
         } else {
-          if (maisDquarenta) {
+          if (maisDQ) {
             itemlinhaExiste.remove();
             return;
           }
