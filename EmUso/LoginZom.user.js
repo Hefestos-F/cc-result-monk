@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoginZom
 // @namespace    https://github.com/Hefestos-F/cc-result-monk
-// @version      0.0.0.29
+// @version      0.0.0.30
 // @description  that's all folks!
 // @author       almaviva.fpsilva
 // @match        https://zoom.us/*
@@ -92,7 +92,7 @@
     modoTeste: 0,
     modoTesteAnt: 0,
     valorFuso: "-03:00",
-    newdata: "2026-07-24",
+    newdata: "2026-10-12",
   };
 
   let TempoPausas = {
@@ -472,7 +472,7 @@
 
       const agora = gerarDataHora(); // { data, hora }
 
-      if (stt.logueInicio) {
+      if (stt.logueInicio && !test.modoTeste) {
         Hlog("Primeiro logue detectado");
         verifiDataLogue(0, agora);
         stt.logueInicio = 0;
@@ -956,25 +956,63 @@
 
   function CriarBotInicial() {
     if (document.getElementById("FlutOB")) return;
+    const conteinerBInicial = document.createElement("div");
+
+    conteinerBInicial.id = "conteinerBInicial";
+    conteinerBInicial.style.cssText = `
+      display: grid;
+      gap: 5px;
+      position: absolute;
+      top: 12px;
+      right: 80px;
+      grid-auto-flow: column;
+      font-size: 14px;
+      color: ${Ccor.AreaAr};
+    `;
+
     const div = document.createElement("div");
     div.id = "BotInicial";
     div.style.cssText = `
     width: auto;
     height: 20px;
-    position: absolute;
-    top: 12px;
-    right: 80px;
     border-radius: 15px;
     border: 1px solid;
     border-color: ${Ccor.AreaAr};
     cursor: pointer;
-    font-size: 14px;
     padding: 0px 4px;
     background-color: white;
-    color: ${Ccor.AreaAr};
     `;
-    div.addEventListener("mouseover", () => contr(1));
-    div.addEventListener("mouseout", () => contr(0));
+
+    const botaoAlarmeInicial = document.createElement("div");
+    botaoAlarmeInicial.id = "botaoAlarmeInicial";
+    botaoAlarmeInicial.style.cssText = `
+      display: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 15px;
+      border: 1px solid;
+      border-color: ${Ccor.AreaAr};
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background-color: white;
+    `;
+    botaoAlarmeInicial.textContent = config.SomEstouro ? "N" : "S";
+
+    botaoAlarmeInicial.addEventListener("click", () => {
+      config.SomEstouro = !config.SomEstouro;
+      botaoAlarmeInicial.textContent = config.SomEstouro ? "N" : "S";
+    });
+
+    botaoAlarmeInicial.addEventListener("mouseover", () =>
+      contr("botaoAlarmeInicial", 1),
+    );
+    botaoAlarmeInicial.addEventListener("mouseout", () =>
+      contr("botaoAlarmeInicial", 0),
+    );
+
+    div.addEventListener("mouseover", () => contr("BotInicial", 1));
+    div.addEventListener("mouseout", () => contr("BotInicial", 0));
 
     div.addEventListener("click", () => {
       const FlutOB = document.getElementById("FlutOB");
@@ -991,11 +1029,14 @@
         PosicaoFaixa();
       }
     });
-    document.body.appendChild(div);
+
+    conteinerBInicial.append(botaoAlarmeInicial, div);
+
+    document.body.appendChild(conteinerBInicial);
   }
 
-  function contr(a = 0) {
-    const div = document.getElementById("BotInicial");
+  function contr(adiv, a = 0) {
+    const div = document.getElementById(adiv);
     div.style.backgroundColor = stt.Estouro
       ? Ccor.Aviso
       : a
@@ -1601,6 +1642,80 @@
     };
   }
 
+  function estouroDPause(agora) {
+    const botaoAlarmeInicial = document.getElementById("botaoAlarmeInicial");
+
+    if (test.modoTeste != test.modoTesteAnt) {
+      if (test.modoTeste) {
+        test.pausalimitadaAntt = config.pausalimitada;
+        config.pausalimitada = 1;
+      } else {
+        config.pausalimitada = test.pausalimitadaAntt;
+      }
+      test.modoTesteAnt = test.modoTeste;
+    }
+
+    if (config.pausalimitada && config.notiEstouro && stt.Encontrado) {
+      stt.Estouro = test.modoTeste
+        ? test.Estouro
+        : TempoPausas.Estouro
+          ? compararDatas(agora, TempoPausas.Estouro)
+          : 0;
+
+      const botaoAlarmeInicialDisplay = botaoAlarmeInicial.style.display;
+      if (stt.Estouro) {
+        contr("botaoAlarmeInicial", 1);
+        contr("BotInicial", 1);
+      }
+      if (
+        (stt.Estouro && botaoAlarmeInicialDisplay != "flex") ||
+        (!stt.Estouro && botaoAlarmeInicialDisplay != "none")
+      )
+        botaoAlarmeInicial.style.display = config.notiEstouro
+          ? stt.Estouro
+            ? "flex"
+            : "none"
+          : "none";
+
+      if (!stt.bipando && stt.Estouro && config.SomEstouro) {
+        Hwarn("Estouro de pausa detectado");
+        stt.bipando = 1;
+
+        const [aano, mmes, ddia] = agora.data.split("-");
+        //Hlog(`teste de data aano"${aano}" mmes"${mmes}" ddia"${ddia}"`);
+        tocarMusica(
+          mmes === "12" && ddia >= 10 && ddia <= 30
+            ? jingleBellsPremium
+            : alarmeBipsIntercalados,
+        );
+      }
+    }
+
+    if (stt.bipando) {
+      if (
+        !config.pausalimitada ||
+        !stt.Estouro ||
+        !config.SomEstouro ||
+        !config.notiEstouro ||
+        (!stt.Encontrado && !config.LogueManual) ||
+        (stt.Encontrado &&
+          !["Descanso", "Lanche"].includes(stt.Status) &&
+          !test.modoTeste)
+      ) {
+        Hwarn(
+          "Estouro de pausa finalizado" + !stt.Encontrado
+            ? " status Perdido"
+            : "",
+        );
+        stt.Estouro = 0;
+        stt.bipando = 0;
+        pararMusica();
+      }
+      contr("botaoAlarmeInicial", 0);
+      contr("BotInicial", 0);
+    }
+  }
+
   function oloop() {
     //Hodeb("Tick do timer iniciado");
 
@@ -1653,57 +1768,7 @@
 
     const agora = gerarDataHora();
 
-    if (test.modoTeste !== test.modoTesteAnt) {
-      if (test.modoTeste) {
-        test.pausalimitadaAntt = config.pausalimitada;
-        config.pausalimitada = 1;
-      } else {
-        config.pausalimitada = test.pausalimitadaAntt;
-      }
-      test.modoTesteAnt = test.modoTeste;
-    }
-
-    if (config.pausalimitada && config.notiEstouro && stt.Encontrado) {
-      stt.Estouro = test.modoTeste
-        ? test.Estouro
-        : TempoPausas.Estouro
-          ? compararDatas(agora, TempoPausas.Estouro)
-          : 0;
-
-      if (!stt.bipando && stt.Estouro && config.SomEstouro) {
-        Hwarn("Estouro de pausa detectado");
-        stt.bipando = 1;
-
-        const [aano, mmes, ddia] = agora.data.split("-");
-        //Hlog(`teste de data aano"${aano}" mmes"${mmes}" ddia"${ddia}"`);
-        tocarMusica(
-          mmes === "12" && ddia >= 10 && ddia <= 30
-            ? jingleBellsPremium
-            : alarmeBipsIntercalados,
-        );
-      }
-    }
-
-    if (stt.bipando) {
-      if (
-        !config.pausalimitada ||
-        !stt.Estouro ||
-        !config.SomEstouro ||
-        !config.notiEstouro ||
-        (!stt.Encontrado && !config.LogueManual) ||
-        (stt.Encontrado && !["Descanso", "Lanche"].includes(stt.Status))
-      ) {
-        Hwarn(
-          "Estouro de pausa finalizado" + !stt.Encontrado
-            ? " status Perdido"
-            : "",
-        );
-        stt.Estouro = 0;
-        stt.bipando = 0;
-        pararMusica();
-      }
-      contr();
-    }
+    estouroDPause(agora);
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
       /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
@@ -1853,20 +1918,21 @@
     oLogou.textContent = test.modoTeste ? horafun.Logou.data : "";
     oSaida.textContent = test.modoTeste ? horafun.Saida.data : "";
 
-    const primeiroLogueMaior = compararDatas(
-      dadosPrimLogue,
-      logueDuracoesComContAtual,
-    );
+    const primeiroLogueMaior = dadosPrimLogue
+      ? compararDatas(dadosPrimLogue, logueDuracoesComContAtual)
+      : null;
 
     //Hlog(`PrimeiroLogue e Maior: ${primeiroLogueMaior}`);
     //Hlog(dadosPrimLogue);
     //Hlog(horafun.Logou);
 
     if (
+      !test.modoTeste &&
       !config.LogueManual &&
       config.logueSalvo &&
       dadosPrimLogue &&
-      primeiroLogueMaior
+      primeiroLogueMaior &&
+      !stt.logueInicio
     ) {
       if (stt.verificarDurac) {
         Hlog("Atualizando dadosPrimLogue");
@@ -3180,7 +3246,7 @@
           ADDCaixaDAviso("Substituir P. Logue", () => {
             //verifiDataLogue(1, { hora: "09:38:08", data: "2026-09-21" });
             //dadosPrimLogue = dadosLogueManu;
-            dadosPrimLogue = { hora: "09:38:08", data: "2026-09-21" };
+            dadosPrimLogue = { hora: "10:23:00", data: "2026-10-12" };
             verifiDataLogue(1, gerarDataHora());
           }),
         );
@@ -3348,6 +3414,7 @@
         () => {
           config.logueSalvo = !config.logueSalvo;
           atualizarVisual();
+          SalvandoVariConfig(1);
         },
       );
 
@@ -3359,6 +3426,7 @@
           config.logueSalvo = !config.logueSalvo;
           atualizarVisual();
           somarDuracoesGeral();
+          SalvandoVariConfig(1);
         },
       );
 
@@ -4843,17 +4911,19 @@
 
         const oAusente = dadosFilaAtendimentos[id].ausente;
 
-        const maisDquarenta =
-          oAusente &&
-          agora.data == oAusente.data &&
-          converterParaSegundos(agora.hora) -
-            converterParaSegundos(oAusente.hora) >
-            converterParaSegundos("00:40:00");
+        const tempoDultimaLigacao = oAusente
+          ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
+          : 0;
+
+        const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
+
+        const maisDQ =
+          !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
 
         const itemlinhaExiste = document.getElementById("linha-" + id);
 
         if (!itemlinhaExiste) {
-          if (maisDquarenta) return;
+          if (maisDQ) return;
 
           const itemLinha = addLinhas(id, dadosFilaAtendimentos[id].agente);
 
@@ -4868,7 +4938,7 @@
 
           return;
         } else {
-          if (maisDquarenta) {
+          if (maisDQ) {
             itemlinhaExiste.remove();
             return;
           }
@@ -4910,12 +4980,12 @@
             : oStatus;
 
         if (
-          itemStatus.textContent != oNovoStatus &&
+          (itemStatus.textContent != oStatus || oStatus != oNovoStatus) &&
           !variavelLista.reorganizou
         ) {
           dadosFilaAtendimentos[id].status = oNovoStatus;
 
-          if (oNovoStatus == "-Ausente-")
+          if (oStatus != "-Ausente-" && oNovoStatus == "-Ausente-")
             dadosFilaAtendimentos[id].ausente = agora;
 
           itemStatus.textContent = oNovoStatus;
@@ -4957,7 +5027,11 @@
           );
         }
 
-        if (posicaoProximaTempoFimMaior) {
+        if (
+          posicaoProximaTempoFimMaior &&
+          aCaixaDaListaDisponivel.children[posicaoProxima]
+        ) {
+          Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
           aCaixaDaListaDisponivel.insertBefore(
             aCaixaDaListaDisponivel.children[posicaoProxima],
             aCaixaDaListaDisponivel.children[posicao],
