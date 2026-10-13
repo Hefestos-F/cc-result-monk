@@ -4980,7 +4980,7 @@
             : oStatus;
 
         if (
-          itemStatus.textContent != oStatus &&
+          (itemStatus.textContent != oStatus || oStatus != oNovoStatus) &&
           !variavelLista.reorganizou
         ) {
           dadosFilaAtendimentos[id].status = oNovoStatus;
