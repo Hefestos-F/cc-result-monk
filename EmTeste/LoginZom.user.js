@@ -4920,6 +4920,8 @@
         const maisDQ =
           !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
 
+        if (maisDQ) dadosFilaAtendimentos[id].tempoFim = null;
+
         const itemlinhaExiste = document.getElementById("linha-" + id);
 
         if (!itemlinhaExiste) {
@@ -4985,7 +4987,7 @@
         ) {
           dadosFilaAtendimentos[id].status = oNovoStatus;
 
-          if (oStatus != "-Ausente-" && oNovoStatus == "-Ausente-")
+          if (oNovoStatus == "-Ausente-")
             dadosFilaAtendimentos[id].ausente = agora;
 
           itemStatus.textContent = oNovoStatus;
