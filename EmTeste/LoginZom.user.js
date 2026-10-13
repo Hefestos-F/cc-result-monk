@@ -1642,58 +1642,8 @@
     };
   }
 
-  function oloop() {
-    //Hodeb("Tick do timer iniciado");
-
-    const time = document.getElementById("vTMA");
-    const titulo = document.getElementById("tTMA");
-    const vLogou = document.getElementById("vLogou");
-    const vSaida = document.getElementById("vSaida");
-    const vLogado = document.getElementById("vLogado");
-    const tFalta = document.getElementById("tFalta");
-    const vFalta = document.getElementById("vFalta");
-    const InfoV = document.getElementById("InfoV");
-    const ContPaCo = document.getElementById("ContPaCo");
-    const BotInicial = document.getElementById("BotInicial");
+  function estouroDPause(agora) {
     const botaoAlarmeInicial = document.getElementById("botaoAlarmeInicial");
-
-    const el = encoStatus();
-    Hodeb("Estado do agente", el);
-
-    if (config.disponibilidade) colocarListaDeDisponibilidade();
-
-    if (el) {
-      TempoPausas.ContAtual = el.Timer;
-
-      const ozero = document.querySelector(".phone-active__queue");
-
-      let segunda = "";
-
-      if (ozero) {
-        const onzero = ozero.textContent.trim().split(/\s+/);
-        segunda = onzero[0].includes("Diamante") ? onzero[0] : onzero[1];
-      }
-      //const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
-
-      const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
-
-      const statusAtual = stt.Encontrado
-        ? el.Pausa
-          ? `${terc} > ${el.Pausa}`
-          : terc
-        : "Nada Encontrado";
-
-      if (BotInicial)
-        if (statusAtual != BotInicial.textContent)
-          BotInicial.textContent = statusAtual;
-    } else {
-      Hodeb("Tempo do agente não encontrado", el);
-    }
-
-    stt.Encontrado = stt.Status === "---" ? 0 : 1;
-    Hodeb("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
-
-    const agora = gerarDataHora();
 
     if (test.modoTeste != test.modoTesteAnt) {
       if (test.modoTeste) {
@@ -1764,6 +1714,61 @@
       contr("botaoAlarmeInicial", 0);
       contr("BotInicial", 0);
     }
+  }
+
+  function oloop() {
+    //Hodeb("Tick do timer iniciado");
+
+    const time = document.getElementById("vTMA");
+    const titulo = document.getElementById("tTMA");
+    const vLogou = document.getElementById("vLogou");
+    const vSaida = document.getElementById("vSaida");
+    const vLogado = document.getElementById("vLogado");
+    const tFalta = document.getElementById("tFalta");
+    const vFalta = document.getElementById("vFalta");
+    const InfoV = document.getElementById("InfoV");
+    const ContPaCo = document.getElementById("ContPaCo");
+    const BotInicial = document.getElementById("BotInicial");
+
+    const el = encoStatus();
+    Hodeb("Estado do agente", el);
+
+    if (config.disponibilidade) colocarListaDeDisponibilidade();
+
+    if (el) {
+      TempoPausas.ContAtual = el.Timer;
+
+      const ozero = document.querySelector(".phone-active__queue");
+
+      let segunda = "";
+
+      if (ozero) {
+        const onzero = ozero.textContent.trim().split(/\s+/);
+        segunda = onzero[0].includes("Diamante") ? onzero[0] : onzero[1];
+      }
+      //const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
+
+      const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
+
+      const statusAtual = stt.Encontrado
+        ? el.Pausa
+          ? `${terc} > ${el.Pausa}`
+          : terc
+        : "Nada Encontrado";
+
+      if (BotInicial)
+        if (statusAtual != BotInicial.textContent)
+          BotInicial.textContent = statusAtual;
+    } else {
+      Hodeb("Tempo do agente não encontrado", el);
+    }
+
+    stt.Encontrado = stt.Status === "---" ? 0 : 1;
+    Hodeb("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
+
+    const agora = gerarDataHora();
+
+    estouroDPause(agora);
 
     if (!time || !titulo || !vLogou || !vSaida || !vLogado || !vFalta) {
       /*Hwarn("Elementos obrigatórios não encontrados no DOM", {
@@ -1926,7 +1931,8 @@
       !config.LogueManual &&
       config.logueSalvo &&
       dadosPrimLogue &&
-      primeiroLogueMaior
+      primeiroLogueMaior &&
+      !stt.logueInicio
     ) {
       if (stt.verificarDurac) {
         Hlog("Atualizando dadosPrimLogue");
@@ -4979,7 +4985,7 @@
         ) {
           dadosFilaAtendimentos[id].status = oNovoStatus;
 
-          if (oNovoStatus == "-Ausente-")
+          if (oStatus != "-Ausente-" && oNovoStatus == "-Ausente-")
             dadosFilaAtendimentos[id].ausente = agora;
 
           itemStatus.textContent = oNovoStatus;
