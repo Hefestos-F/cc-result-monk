@@ -4981,6 +4981,9 @@
             ? "---"
             : oStatus;
 
+        if (oStatus == "-Atendendo-" && oNovoStatus == "---")
+          dadosFilaAtendimentos[id].status = "---";
+
         if (
           (itemStatus.textContent != oStatus || oStatus != oNovoStatus) &&
           !variavelLista.reorganizou
@@ -5018,6 +5021,9 @@
         const posicaoProximaTempoFim =
           posicoesTempos[posicaoProxima]?.tempoFim ?? 0;
 
+        const statusPosicaoAnterior =
+          posicoesTempos[posicaoAnterior]?.status ?? 0;
+
         const posicaoProximaTempoFimMaior = posicaoProximaTempoFim > tempoFim;
 
         if (aCadaCiclo) {
@@ -5030,8 +5036,9 @@
         }
 
         if (
-          posicaoProximaTempoFimMaior &&
-          aCaixaDaListaDisponivel.children[posicaoProxima]
+          (posicaoProximaTempoFimMaior &&
+            aCaixaDaListaDisponivel.children[posicaoProxima]) ||
+          (!tempoFim && atendendo && statusPosicaoAnterior == "-Ausente-")
         ) {
           Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
           aCaixaDaListaDisponivel.insertBefore(
