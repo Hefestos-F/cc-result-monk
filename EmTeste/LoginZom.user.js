@@ -5024,9 +5024,10 @@
         const statusPosicaoAnterior =
           posicoesTempos[posicaoAnterior]?.status ?? 0;
 
-        const posicaoProximaTempoFimMaior = posicaoProximaTempoFim > tempoFim;
-
-       // (!tempoFim && atendendo && statusPosicaoAnterior == "-Ausente-")
+        const posicaoProximaTempoFimMaior =
+          posicaoProximaTempoFim > tempoFim ||
+          (posicaoProximaTempoFim == null &&
+            statusPosicaoAnterior == "-Ausente-");
 
         if (aCadaCiclo) {
           Hlog(
@@ -5040,7 +5041,6 @@
         if (
           posicaoProximaTempoFimMaior &&
           aCaixaDaListaDisponivel.children[posicaoProxima]
-          
         ) {
           Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
           aCaixaDaListaDisponivel.insertBefore(
