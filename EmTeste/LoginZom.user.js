@@ -415,7 +415,7 @@
 
     // Se não mudou, não faz nada
 
-    const statusFalso = stt.Status === "" || stt.Status === "---";
+    const statusFalso = stt.Status == "" || stt.Status == "---";
     const timerFalso = Otimer == "---";
 
     const tempoNewPausa = !timerFalso && stt.ContAnt > Otimer;
@@ -471,12 +471,6 @@
       // (desde que exista início registrado).
 
       const agora = gerarDataHora(); // { data, hora }
-
-      if (stt.logueInicio && !test.modoTeste) {
-        Hlog("Primeiro logue detectado");
-        verifiDataLogue(0, agora);
-        stt.logueInicio = 0;
-      }
 
       await fimdepausa(agora);
 
@@ -1735,7 +1729,15 @@
 
     if (config.disponibilidade) colocarListaDeDisponibilidade();
 
+    const agora = gerarDataHora();
+
     if (el) {
+      if (stt.logueInicio && !test.modoTeste) {
+        Hlog("Primeiro logue detectado");
+        verifiDataLogue(0, agora);
+        stt.logueInicio = 0;
+      }
+
       TempoPausas.ContAtual = el.Timer;
 
       const ozero = document.querySelector(".phone-active__queue");
@@ -1765,8 +1767,6 @@
 
     stt.Encontrado = stt.Status === "---" ? 0 : 1;
     Hodeb("Status encontrado:", stt.Encontrado, "Status:", stt.Status);
-
-    const agora = gerarDataHora();
 
     estouroDPause(agora);
 
@@ -4633,7 +4633,7 @@
     let proximoNome = segundoNome;
     let numeroDoNome = 2;
 
-    if (proximoNome.split("").length <= 2) {
+    if (proximoNome.split("").length <= 3) {
       proximoNome = segundoNome + " " + nomesSeparados[numeroDoNome];
     }
 
@@ -4987,7 +4987,7 @@
         ) {
           dadosFilaAtendimentos[id].status = oNovoStatus;
 
-          if (oNovoStatus == "-Ausente-")
+          if (oNovoStatus == "-Ausente-" && oStatus != "-Ausente-")
             dadosFilaAtendimentos[id].ausente = agora;
 
           itemStatus.textContent = oNovoStatus;
