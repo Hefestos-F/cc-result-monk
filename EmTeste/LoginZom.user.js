@@ -5026,6 +5026,8 @@
 
         const posicaoProximaTempoFimMaior = posicaoProximaTempoFim > tempoFim;
 
+       // (!tempoFim && atendendo && statusPosicaoAnterior == "-Ausente-")
+
         if (aCadaCiclo) {
           Hlog(
             `posicaoProximaTempoFim; ${posicaoProximaTempoFim} / posicaoProximaTempoFimMaior: ${posicaoProximaTempoFimMaior}`,
@@ -5036,9 +5038,9 @@
         }
 
         if (
-          (posicaoProximaTempoFimMaior &&
-            aCaixaDaListaDisponivel.children[posicaoProxima]) ||
-          (!tempoFim && atendendo && statusPosicaoAnterior == "-Ausente-")
+          posicaoProximaTempoFimMaior &&
+          aCaixaDaListaDisponivel.children[posicaoProxima]
+          
         ) {
           Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
           aCaixaDaListaDisponivel.insertBefore(
