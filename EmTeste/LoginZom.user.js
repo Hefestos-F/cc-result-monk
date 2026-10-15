@@ -4816,7 +4816,9 @@
     });
   }
 
-  const variavelLista = {};
+  const variavelLista = {
+    reorganizou: 1,
+  };
 
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
@@ -4883,7 +4885,7 @@
       let oUltimo = nAtendimento;
       let existeAtendento = 0;
       let mudouStatus = 0;
-      let reorganizou = 0;
+      let reorganizou = 1;
       Object.keys(dadosFilaAtendimentos).forEach((id) => {
         const agora = dataHoraFormat();
 
@@ -4984,22 +4986,25 @@
         if (oStatus == "-Atendendo-" && oNovoStatus == "---")
           dadosFilaAtendimentos[id].status = "---";
 
+        if (oNovoStatus == "-Ausente-" && oStatus != "-Ausente-")
+          dadosFilaAtendimentos[id].ausente = agora;
+
         if (
-          (itemStatus.textContent != oStatus || oStatus != oNovoStatus) &&
-          !variavelLista.reorganizou
+          oStatus != oNovoStatus &&
+          !variavelLista.reorganizou &&
+          !reorganizou
         ) {
           dadosFilaAtendimentos[id].status = oNovoStatus;
 
-          if (oNovoStatus == "-Ausente-" && oStatus != "-Ausente-")
-            dadosFilaAtendimentos[id].ausente = agora;
+          if (itemStatus.textContent != oNovoStatus) {
+            itemStatus.textContent = oNovoStatus;
+            itemlinhaExiste.style.background = atendendo
+              ? "#b9b9b9"
+              : oNovoStatus == "-Ausente-"
+                ? "#fff0af"
+                : "";
+          }
 
-          itemStatus.textContent = oNovoStatus;
-
-          itemlinhaExiste.style.background = atendendo
-            ? "#b9b9b9"
-            : oNovoStatus == "-Ausente-"
-              ? "#fff0af"
-              : "";
           mudouStatus = 1;
         }
 
@@ -5026,8 +5031,7 @@
 
         const posicaoProximaTempoFimMaior =
           posicaoProximaTempoFim > tempoFim ||
-          (posicaoProximaTempoFim == null &&
-            statusPosicaoAnterior == "-Ausente-");
+          (!posicaoProximaTempoFim && statusPosicaoAnterior == "-Ausente-");
 
         if (aCadaCiclo) {
           Hlog(
@@ -5047,7 +5051,8 @@
             aCaixaDaListaDisponivel.children[posicaoProxima],
             aCaixaDaListaDisponivel.children[posicao],
           );
-          reorganizou = 1;
+        } else {
+          reorganizou = 0;
         }
       });
 
