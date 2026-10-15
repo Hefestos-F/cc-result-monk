@@ -4766,7 +4766,7 @@
           dadosFilaAtendimentos[agentId] = {
             id: atendimento.engagementId,
             agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
-            status: dadosFilaAtendimentos[agentId]?.status ?? null,
+            status: "-Atendendo-",
             tempoFim: dadosFilaAtendimentos[agentId]?.tempoFim ?? null,
             tempoInicio: atendimento.startTime,
             ausente: null,
@@ -4775,9 +4775,12 @@
         });
       }
 
+      const ig = ["-Ausente-", "---"];
+
       if (
         !ignorarAgentes.includes(id) &&
-        dadosFilaAtendimentos[id].status == "-Atendendo-"
+        (!ig.includes(dadosFilaAtendimentos[id].status) ||
+          dadosFilaAtendimentos[id].tempoInicio)
       ) {
         dadosFilaAtendimentos[id].status = "---";
         dadosFilaAtendimentos[id].tempoInicio = null;
@@ -4893,9 +4896,9 @@
 
         const agente = dadosFilaAtendimentos[id]?.agente ?? 0;
 
-        const atendendo = tempoInicio ? 1 : 0;
-
         const oStatus = dadosFilaAtendimentos[id]?.status ?? 0;
+
+        const atendendo = oStatus == "-Atendendo-";
 
         const osStatus = ["-Atendendo-", "-Ausente-"];
 
@@ -4971,20 +4974,8 @@
 
         const itemStatus = document.getElementById("status-" + id);
 
-        let oNovoStatus = variavelLista.Atendendo
-          ? atendendo
-            ? "-Atendendo-"
-            : posicao < variavelLista.ultimo
-              ? "---"
-              : posicao > variavelLista.ultimo
-                ? "-Ausente-"
-                : oStatus
-          : oStatus == "-Atendendo-"
-            ? "---"
-            : oStatus;
-
-        if (oStatus == "-Atendendo-" && oNovoStatus == "---")
-          dadosFilaAtendimentos[id].status = "---";
+        let oNovoStatus =
+          !atendendo && posicao > variavelLista.ultimo ? "-Ausente-" : oStatus;
 
         if (oNovoStatus == "-Ausente-" && oStatus != "-Ausente-")
           dadosFilaAtendimentos[id].ausente = agora;
@@ -5026,12 +5017,14 @@
         const posicaoProximaTempoFim =
           posicoesTempos[posicaoProxima]?.tempoFim ?? 0;
 
-        const statusPosicaoAnterior =
-          posicoesTempos[posicaoAnterior]?.status ?? 0;
+        const statusPosicaoProxima =
+          posicoesTempos[posicaoProxima]?.status ?? 0;
+
+        const posicaoAnteriorAusente =
+          statusPosicaoProxima == "-Atendendo-" && oNovoStatus == "-Ausente-";
 
         const posicaoProximaTempoFimMaior =
-          posicaoProximaTempoFim > tempoFim ||
-          (!posicaoProximaTempoFim && statusPosicaoAnterior == "-Ausente-");
+          posicaoProximaTempoFim > tempoFim && !posicaoAnteriorAusente;
 
         if (aCadaCiclo) {
           Hlog(
@@ -5043,7 +5036,7 @@
         }
 
         if (
-          posicaoProximaTempoFimMaior &&
+          (posicaoProximaTempoFimMaior || posicaoAnteriorAusente) &&
           aCaixaDaListaDisponivel.children[posicaoProxima]
         ) {
           Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
