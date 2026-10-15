@@ -4766,7 +4766,7 @@
           dadosFilaAtendimentos[agentId] = {
             id: atendimento.engagementId,
             agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
-            status: "-Atendendo-",
+            status: dadosFilaAtendimentos[agentId]?.status ?? null,
             tempoFim: dadosFilaAtendimentos[agentId]?.tempoFim ?? null,
             tempoInicio: atendimento.startTime,
             ausente: null,
@@ -4775,12 +4775,10 @@
         });
       }
 
-      const ig = ["-Ausente-", "---"];
-
       if (
         !ignorarAgentes.includes(id) &&
-        (!ig.includes(dadosFilaAtendimentos[id].status) ||
-          dadosFilaAtendimentos[id].tempoInicio)
+        (dadosFilaAtendimentos[id].tempoInicio ||
+          dadosFilaAtendimentos[id].status == "-Atendendo-")
       ) {
         dadosFilaAtendimentos[id].status = "---";
         dadosFilaAtendimentos[id].tempoInicio = null;
@@ -4898,7 +4896,7 @@
 
         const oStatus = dadosFilaAtendimentos[id]?.status ?? 0;
 
-        const atendendo = oStatus == "-Atendendo-";
+        const atendendo = tempoInicio ? 1 : 0;
 
         const osStatus = ["-Atendendo-", "-Ausente-"];
 
@@ -4974,29 +4972,36 @@
 
         const itemStatus = document.getElementById("status-" + id);
 
-        let oNovoStatus =
-          !atendendo && posicao > variavelLista.ultimo ? "-Ausente-" : oStatus;
+        let oNovoStatus = oStatus;
 
-        if (oNovoStatus == "-Ausente-" && oStatus != "-Ausente-")
-          dadosFilaAtendimentos[id].ausente = agora;
+        if (!variavelLista.reorganizou && !reorganizou) {
+          oNovoStatus = variavelLista.Atendendo
+            ? atendendo
+              ? "-Atendendo-"
+              : posicao > variavelLista.ultimo
+                ? "-Ausente-"
+                : oStatus
+            : oStatus == "-Atendendo-"
+              ? "---"
+              : oStatus;
 
-        if (
-          oStatus != oNovoStatus &&
-          !variavelLista.reorganizou &&
-          !reorganizou
-        ) {
-          dadosFilaAtendimentos[id].status = oNovoStatus;
+          if (oStatus != oNovoStatus) {
+            if (oNovoStatus == "-Ausente-" && oStatus != "-Ausente-")
+              dadosFilaAtendimentos[id].ausente = agora;
 
-          if (itemStatus.textContent != oNovoStatus) {
-            itemStatus.textContent = oNovoStatus;
-            itemlinhaExiste.style.background = atendendo
-              ? "#b9b9b9"
-              : oNovoStatus == "-Ausente-"
-                ? "#fff0af"
-                : "";
+            dadosFilaAtendimentos[id].status = oNovoStatus;
+
+            if (itemStatus.textContent != oNovoStatus) {
+              itemStatus.textContent = oNovoStatus;
+              itemlinhaExiste.style.background = atendendo
+                ? "#b9b9b9"
+                : oNovoStatus == "-Ausente-"
+                  ? "#fff0af"
+                  : "";
+            }
+
+            mudouStatus = 1;
           }
-
-          mudouStatus = 1;
         }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
