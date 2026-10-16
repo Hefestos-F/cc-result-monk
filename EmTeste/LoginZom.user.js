@@ -4910,7 +4910,7 @@
             )
           : "";
 
-        const oAusente = dadosFilaAtendimentos[id].ausente;
+        const oAusente = dadosFilaAtendimentos[id]?.ausente ?? 0;
 
         const tempoDultimaLigacao = oAusente
           ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
@@ -4972,6 +4972,8 @@
 
         let oNovoStatus = oStatus;
 
+        let ausenteAcimaAtendendo = 0;
+
         if (variavelLista.reorganizou >= 3) {
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
@@ -4991,11 +4993,16 @@
           if (posicaoProximaStatus == "---" && oNovoStatus == "-Ausente-")
             dadosFilaAtendimentos[id].status = "---";
 
+          if (
+            oNovoStatus == "-Ausente-" &&
+            (oStatus != "-Ausente-" || !oAusente)
+          ) {
+            dadosFilaAtendimentos[id].ausente = agora;
+            mudouStatus = 1;
+          }
+
           if (oStatus && oStatus != oNovoStatus) {
             dadosFilaAtendimentos[id].status = oNovoStatus;
-
-            if (oNovoStatus == "-Ausente-" && oStatus != "-Ausente-")
-              dadosFilaAtendimentos[id].ausente = agora;
 
             mudouStatus = 1;
             variavelLista.reorganizou = 0;
@@ -5010,6 +5017,14 @@
             : oNovoStatus == "-Ausente-"
               ? "#fff0af"
               : "";
+
+          const posicaoProximastatus =
+            posicoesTempos[posicaoProxima]?.status ?? 0;
+
+          ausenteAcimaAtendendo =
+            oNovoStatus == "-Ausente-" &&
+            posicaoProximastatus == "-Atendendo-" &&
+            !tempoFim;
         }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
@@ -5030,7 +5045,8 @@
         const posicaoProximaTempoFim =
           posicoesTempos[posicaoProxima]?.tempoFim ?? 0;
 
-        const posicaoProximaTempoFimMaior = posicaoProximaTempoFim > tempoFim;
+        const posicaoProximaTempoFimMaior =
+          posicaoProximaTempoFim > tempoFim && !ausenteAcimaAtendendo;
 
         if (aCadaCiclo) {
           Hlog(
@@ -5041,7 +5057,7 @@
           );
         }
 
-        if (posicaoProximaTempoFimMaior) {
+        if (posicaoProximaTempoFimMaior || ausenteAcimaAtendendo) {
           if (aCaixaDaListaDisponivel.children[posicaoProxima]) {
             Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
             aCaixaDaListaDisponivel.insertBefore(
