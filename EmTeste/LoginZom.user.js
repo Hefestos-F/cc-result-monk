@@ -4894,9 +4894,9 @@
 
         const agente = dadosFilaAtendimentos[id]?.agente ?? 0;
 
-        const oStatus = dadosFilaAtendimentos[id]?.status ?? 0;
-
         const atendendo = tempoInicio ? 1 : 0;
+
+        const oStatus = dadosFilaAtendimentos[id]?.status ?? 0;
 
         const osStatus = ["-Atendendo-", "-Ausente-"];
 
@@ -4978,30 +4978,41 @@
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
               ? "-Atendendo-"
-              : posicao > variavelLista.ultimo
-                ? "-Ausente-"
-                : oStatus
+              : posicao < variavelLista.ultimo
+                ? "---"
+                : posicao > variavelLista.ultimo
+                  ? "-Ausente-"
+                  : oStatus
             : oStatus == "-Atendendo-"
               ? "---"
               : oStatus;
 
-          if (oStatus != oNovoStatus) {
+          const posicaoProximaStatus =
+            posicoesTempos[posicaoProxima]?.status ?? 0;
+
+          if (posicaoProximaStatus == "---" && oNovoStatus == "-Ausente-")
+            dadosFilaAtendimentos[id].status = "---";
+
+          if (oStatus && oStatus != oNovoStatus) {
+            dadosFilaAtendimentos[id].status = oNovoStatus;
+
             if (oNovoStatus == "-Ausente-" && oStatus != "-Ausente-")
               dadosFilaAtendimentos[id].ausente = agora;
 
-            dadosFilaAtendimentos[id].status = oNovoStatus;
-
-            if (itemStatus.textContent != oNovoStatus) {
-              itemStatus.textContent = oNovoStatus;
-              itemlinhaExiste.style.background = atendendo
-                ? "#b9b9b9"
-                : oNovoStatus == "-Ausente-"
-                  ? "#fff0af"
-                  : "";
-            }
-
             mudouStatus = 1;
+            reorganizou = mudouStatus;
+            variavelLista.reorganizou = reorganizou;
           }
+        }
+
+        if (oNovoStatus && itemStatus.textContent != oNovoStatus) {
+          itemStatus.textContent = oNovoStatus;
+
+          itemlinhaExiste.style.background = atendendo
+            ? "#b9b9b9"
+            : oNovoStatus == "-Ausente-"
+              ? "#fff0af"
+              : "";
         }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
@@ -5022,14 +5033,7 @@
         const posicaoProximaTempoFim =
           posicoesTempos[posicaoProxima]?.tempoFim ?? 0;
 
-        const statusPosicaoProxima =
-          posicoesTempos[posicaoProxima]?.status ?? 0;
-
-        const posicaoAnteriorAusente =
-          statusPosicaoProxima == "-Atendendo-" && oNovoStatus == "-Ausente-";
-
-        const posicaoProximaTempoFimMaior =
-          posicaoProximaTempoFim > tempoFim && !posicaoAnteriorAusente;
+        const posicaoProximaTempoFimMaior = posicaoProximaTempoFim > tempoFim;
 
         if (aCadaCiclo) {
           Hlog(
@@ -5040,15 +5044,14 @@
           );
         }
 
-        if (
-          (posicaoProximaTempoFimMaior || posicaoAnteriorAusente) &&
-          aCaixaDaListaDisponivel.children[posicaoProxima]
-        ) {
-          Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
-          aCaixaDaListaDisponivel.insertBefore(
-            aCaixaDaListaDisponivel.children[posicaoProxima],
-            aCaixaDaListaDisponivel.children[posicao],
-          );
+        if (posicaoProximaTempoFimMaior) {
+          if (aCaixaDaListaDisponivel.children[posicaoProxima]) {
+            Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
+            aCaixaDaListaDisponivel.insertBefore(
+              aCaixaDaListaDisponivel.children[posicaoProxima],
+              aCaixaDaListaDisponivel.children[posicao],
+            );
+          }
         } else {
           reorganizou = 0;
         }
