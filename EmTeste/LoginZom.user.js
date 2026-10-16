@@ -4817,9 +4817,7 @@
     });
   }
 
-  const variavelLista = {
-    reorganizou: 1,
-  };
+  const variavelLista = {};
 
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
@@ -4886,7 +4884,7 @@
       let oUltimo = nAtendimento;
       let existeAtendento = 0;
       let mudouStatus = 0;
-      let reorganizou = 1;
+      let reorganizou = 0;
       Object.keys(dadosFilaAtendimentos).forEach((id) => {
         const agora = dataHoraFormat();
 
@@ -4974,7 +4972,7 @@
 
         let oNovoStatus = oStatus;
 
-        if (!variavelLista.reorganizou && !reorganizou) {
+        if (variavelLista.reorganizou >= 3) {
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
               ? "-Atendendo-"
@@ -5000,8 +4998,7 @@
               dadosFilaAtendimentos[id].ausente = agora;
 
             mudouStatus = 1;
-            reorganizou = mudouStatus;
-            variavelLista.reorganizou = reorganizou;
+            variavelLista.reorganizou = 0;
           }
         }
 
@@ -5052,8 +5049,7 @@
               aCaixaDaListaDisponivel.children[posicao],
             );
           }
-        } else {
-          reorganizou = 0;
+          reorganizou = 1;
         }
       });
 
@@ -5067,7 +5063,11 @@
 
       variavelLista.Atendendo = existeAtendento;
       variavelLista.ultimo = oUltimo;
-      variavelLista.reorganizou = reorganizou;
+      if (reorganizou) {
+        variavelLista.reorganizou = 0;
+      } else if (variavelLista.reorganizou < 3) {
+        variavelLista.reorganizou += 1;
+      }
     }
   }
 
