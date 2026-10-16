@@ -5007,6 +5007,12 @@
             mudouStatus = 1;
             variavelLista.reorganizou = 0;
           }
+
+          const posicaoProximastatus =
+            posicoesTempos[posicaoProxima]?.status ?? 0;
+
+          ausenteAcimaAtendendo =
+            oNovoStatus == "-Ausente-" && posicaoProximastatus == "-Atendendo-";
         }
 
         if (oNovoStatus && itemStatus.textContent != oNovoStatus) {
@@ -5017,14 +5023,6 @@
             : oNovoStatus == "-Ausente-"
               ? "#fff0af"
               : "";
-
-          const posicaoProximastatus =
-            posicoesTempos[posicaoProxima]?.status ?? 0;
-
-          ausenteAcimaAtendendo =
-            oNovoStatus == "-Ausente-" &&
-            posicaoProximastatus == "-Atendendo-" &&
-            !tempoFim;
         }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
