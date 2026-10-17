@@ -4990,15 +4990,14 @@
           const posicaoProximaStatus =
             posicoesTempos[posicaoProxima]?.status ?? 0;
 
-          if (posicaoProximaStatus == "---" && oNovoStatus == "-Ausente-")
-            dadosFilaAtendimentos[id].status = "---";
+          if (oNovoStatus == "-Ausente-") {
+            if (oStatus != "-Ausente-" || !oAusente) {
+              dadosFilaAtendimentos[id].ausente = agora;
+              mudouStatus = 1;
+            }
 
-          if (
-            oNovoStatus == "-Ausente-" &&
-            (oStatus != "-Ausente-" || !oAusente)
-          ) {
-            dadosFilaAtendimentos[id].ausente = agora;
-            mudouStatus = 1;
+            if (posicaoProximaStatus == "---")
+              dadosFilaAtendimentos[id].status = "---";
           }
 
           if (oStatus && oStatus != oNovoStatus) {
@@ -5008,11 +5007,11 @@
             variavelLista.reorganizou = 0;
           }
 
-          const posicaoProximastatus =
+          /*const posicaoProximastatus =
             posicoesTempos[posicaoProxima]?.status ?? 0;
 
           ausenteAcimaAtendendo =
-            oNovoStatus == "-Ausente-" && posicaoProximastatus == "-Atendendo-";
+            oNovoStatus == "-Ausente-" && posicaoProximastatus == "-Atendendo-";*/
         }
 
         if (oNovoStatus && itemStatus.textContent != oNovoStatus) {
@@ -5044,7 +5043,8 @@
           posicoesTempos[posicaoProxima]?.tempoFim ?? 0;
 
         const posicaoProximaTempoFimMaior =
-          posicaoProximaTempoFim > tempoFim && !ausenteAcimaAtendendo;
+          posicaoProximaTempoFim > tempoFim ||
+          (posicaoProximaTempoFim > tempoInicio && !tempoFim);
 
         if (aCadaCiclo) {
           Hlog(
@@ -5055,7 +5055,7 @@
           );
         }
 
-        if (posicaoProximaTempoFimMaior || ausenteAcimaAtendendo) {
+        if (posicaoProximaTempoFimMaior) {
           if (aCaixaDaListaDisponivel.children[posicaoProxima]) {
             Hlog(`posicaoProxima: ${posicaoProxima} / posicao: ${posicao}`);
             aCaixaDaListaDisponivel.insertBefore(
