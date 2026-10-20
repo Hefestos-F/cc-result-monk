@@ -4766,7 +4766,7 @@
           dadosFilaAtendimentos[agentId] = {
             id: atendimento.engagementId,
             agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
-            status: dadosFilaAtendimentos[agentId]?.status ?? null,
+            status: "-Atendendo-",
             tempoFim: dadosFilaAtendimentos[agentId]?.tempoFim ?? null,
             tempoInicio: atendimento.startTime,
             ausente: null,
@@ -4784,6 +4784,8 @@
         dadosFilaAtendimentos[id].tempoInicio = null;
       }
     });
+
+    variavelLista.Atendendo = listaAtendimentos.length > 0;
   }
 
   function listarTempoDisponivelDoAgente(data) {
@@ -4817,7 +4819,10 @@
     });
   }
 
-  const variavelLista = {};
+  const variavelLista = {
+    Atendendo: 0,
+    reorganizou: 0,
+  };
 
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
@@ -4882,7 +4887,6 @@
 
     if (nAtendimento > 0) {
       let oUltimo = nAtendimento;
-      let existeAtendento = 0;
       let mudouStatus = 0;
       let reorganizou = 0;
       Object.keys(dadosFilaAtendimentos).forEach((id) => {
@@ -4892,11 +4896,9 @@
 
         const agente = dadosFilaAtendimentos[id]?.agente ?? 0;
 
-        const atendendo = tempoInicio ? 1 : 0;
-
         const oStatus = dadosFilaAtendimentos[id]?.status ?? 0;
 
-        const osStatus = ["-Atendendo-", "-Ausente-"];
+        const atendendo = tempoInicio || oStatus == "-Atendendo-" ? 1 : 0;
 
         const tempoFim = dadosFilaAtendimentos[id]?.tempoFim ?? 0;
 
@@ -4954,7 +4956,6 @@
         const posicaoAnterior = posicao - 1;
 
         if (atendendo) {
-          existeAtendento = 1;
           oUltimo = posicao < oUltimo ? posicao : oUltimo;
         }
 
@@ -4962,48 +4963,45 @@
 
         let oNovoStatus = oStatus;
 
-        let ausenteAcimaAtendendo = 0;
-
         const posicaoProximaStatus =
           posicoesTempos[posicaoProxima]?.status ?? 0;
+
         if (variavelLista.reorganizou >= 3) {
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
-              ? "-Atendendo-"
+              ? oStatus
               : posicao < variavelLista.ultimo
                 ? "---"
                 : posicao > variavelLista.ultimo
                   ? "-Ausente-"
                   : oStatus
-            : oStatus == "-Atendendo-"
+            : posicaoProximaStatus == "---" && oStatus == "-Ausente-"
               ? "---"
               : oStatus;
 
-          if (oNovoStatus == "-Ausente-") {
+          /*if (oNovoStatus == "-Ausente-") {
             if (oStatus != "-Ausente-" || !oAusente) {
               dadosFilaAtendimentos[id].ausente = agora;
               mudouStatus = 1;
             }
 
-            if (posicaoProximaStatus == "---") {
-              dadosFilaAtendimentos[id].status = "---";
+            if (oNovoStatus == "-Ausente-" && posicaoProximaStatus == "---") {
+              oNovoStatus = "---";
             }
+          }*/
+
+          if (oNovoStatus == "-Ausente-" && posicaoProximaStatus == "---") {
+            oNovoStatus = "---";
           }
 
-          if (oStatus && oStatus != oNovoStatus) {
+          if (oStatus != oNovoStatus) {
             dadosFilaAtendimentos[id].status = oNovoStatus;
 
             mudouStatus = 1;
           }
-
-          /*const posicaoProximastatus =
-            posicoesTempos[posicaoProxima]?.status ?? 0;
-
-          ausenteAcimaAtendendo =
-            oNovoStatus == "-Ausente-" && posicaoProximastatus == "-Atendendo-";*/
         }
 
-        if (oNovoStatus && itemStatus.textContent != oNovoStatus) {
+        if (itemStatus.textContent != oNovoStatus) {
           itemStatus.textContent = oNovoStatus;
 
           itemlinhaExiste.style.background = atendendo
@@ -5044,10 +5042,6 @@
 
         const posicaoProximaTempoFimMaior = posicaoProximaTempoFim > tempoFim;
 
-        const oredemStatusErrada =
-          (oNovoStatus != "---" && posicaoProximaStatus == "---") ||
-          (oNovoStatus == "-Ausente-" && posicaoProximaStatus != "-Ausente-");
-
         if (aCadaCiclo) {
           Hlog(
             `posicaoProximaTempoFim; ${posicaoProximaTempoFim} / posicaoProximaTempoFimMaior: ${posicaoProximaTempoFimMaior}`,
@@ -5072,12 +5066,6 @@
       if (mudouStatus)
         AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
 
-      /*(async () => {
-        if (mudouStatus)
-          await AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
-      })();*/
-
-      variavelLista.Atendendo = existeAtendento;
       variavelLista.ultimo = oUltimo;
       if (reorganizou) {
         variavelLista.reorganizou = 0;
