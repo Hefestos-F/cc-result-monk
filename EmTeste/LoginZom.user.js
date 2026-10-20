@@ -4989,7 +4989,7 @@
             }
             const posicaoProximaStatus =
               posicoesTempos[posicaoProxima]?.status ?? 0;
-            if (posicaoProximaStatus == "---") {
+            if (posicaoProximaStatus == "---" && !variavelLista.Atendendo) {
               oNovoStatus = "---";
             }
           }
