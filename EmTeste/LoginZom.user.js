@@ -4821,7 +4821,7 @@
 
   const variavelLista = {
     Atendendo: 0,
-    reorganizou: 0,
+    reorganizou: 1,
   };
 
   function colocarListaDeDisponibilidade() {
@@ -4910,15 +4910,17 @@
 
         const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
 
+        const ignorarAgente = dadosFilaAtendimentos[id]?.ignorar ?? 0;
+
         const maisDQ =
           !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
 
-        if (maisDQ) dadosFilaAtendimentos[id].tempoFim = null;
+        if (maisDQ != ignorarAgente) dadosFilaAtendimentos[id].ignorar = maisDQ;
 
         const itemlinhaExiste = document.getElementById("linha-" + id);
 
         if (!itemlinhaExiste) {
-          if (maisDQ) return;
+          if (ignorarAgente) return;
 
           const itemLinha = addLinhas(id, dadosFilaAtendimentos[id].agente);
 
@@ -4933,7 +4935,7 @@
 
           return;
         } else {
-          if (maisDQ) {
+          if (ignorarAgente) {
             itemlinhaExiste.remove();
             return;
           }
@@ -4942,6 +4944,10 @@
         const posicao = Array.from(aCaixaDaListaDisponivel.children).indexOf(
           itemlinhaExiste,
         );
+
+        const posicaoAnt = dadosFilaAtendimentos[id]?.posicao ?? null;
+
+        if (posicaoAnt != posicao) dadosFilaAtendimentos[id].posicao = posicao;
 
         if (tempoFim && agente)
           posicoesTempos[posicao] = {
@@ -4963,10 +4969,7 @@
 
         let oNovoStatus = oStatus;
 
-        const posicaoProximaStatus =
-          posicoesTempos[posicaoProxima]?.status ?? 0;
-
-        if (variavelLista.reorganizou >= 3) {
+        if (!variavelLista.reorganizou) {
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
               ? oStatus
@@ -4975,23 +4978,20 @@
                 : posicao > variavelLista.ultimo
                   ? "-Ausente-"
                   : oStatus
-            : posicaoProximaStatus == "---" && oStatus == "-Ausente-"
-              ? "---"
-              : oStatus;
+            : oStatus;
 
-          /*if (oNovoStatus == "-Ausente-") {
+          //Hlog(`oNovoStatus: ${oNovoStatus}`);
+
+          if (oNovoStatus == "-Ausente-") {
             if (oStatus != "-Ausente-" || !oAusente) {
               dadosFilaAtendimentos[id].ausente = agora;
               mudouStatus = 1;
             }
-
-            if (oNovoStatus == "-Ausente-" && posicaoProximaStatus == "---") {
+            const posicaoProximaStatus =
+              posicoesTempos[posicaoProxima]?.status ?? 0;
+            if (posicaoProximaStatus == "---") {
               oNovoStatus = "---";
             }
-          }*/
-
-          if (oNovoStatus == "-Ausente-" && posicaoProximaStatus == "---") {
-            oNovoStatus = "---";
           }
 
           if (oStatus != oNovoStatus) {
@@ -5067,11 +5067,7 @@
         AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
 
       variavelLista.ultimo = oUltimo;
-      if (reorganizou) {
-        variavelLista.reorganizou = 0;
-      } else if (variavelLista.reorganizou < 3) {
-        variavelLista.reorganizou += 1;
-      }
+      variavelLista.reorganizou = reorganizou;
     }
   }
 
