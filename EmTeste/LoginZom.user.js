@@ -4822,6 +4822,7 @@
   const variavelLista = {
     Atendendo: 0,
     reorganizou: 1,
+    verificaoParaIgnorar: 0,
   };
 
   function colocarListaDeDisponibilidade() {
@@ -4915,7 +4916,15 @@
         const maisDQ =
           !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
 
-        if (maisDQ != ignorarAgente) dadosFilaAtendimentos[id].ignorar = maisDQ;
+        if (maisDQ != ignorarAgente) {
+          if (variavelLista.verificaoParaIgnorar > 3)
+            dadosFilaAtendimentos[id].ignorar = maisDQ;
+
+          if (variavelLista.verificaoParaIgnorar < 3)
+            variavelLista.verificaoParaIgnorar++;
+        } else {
+          variavelLista.verificaoParaIgnorar = 0;
+        }
 
         const itemlinhaExiste = document.getElementById("linha-" + id);
 
@@ -4969,7 +4978,7 @@
 
         let oNovoStatus = oStatus;
 
-        if (!variavelLista.reorganizou) {
+        if (variavelLista.reorganizou > 2) {
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
               ? oStatus
@@ -5067,7 +5076,16 @@
         AddOuAtuIindexdb(ChaveFilaAtendimentos, dadosFilaAtendimentos);
 
       variavelLista.ultimo = oUltimo;
-      variavelLista.reorganizou = reorganizou;
+      //variavelLista.reorganizou = reorganizou;
+
+      if (reorganizou) {
+        variavelLista.reorganizou = 0;
+      } else if (variavelLista.reorganizou < 3) {
+        variavelLista.reorganizou++;
+      }
+      /*Hlog(
+        `variavelLista.reorganizou: ${variavelLista.reorganizou} / reorganizou: ${reorganizou}`,
+      );*/
     }
   }
 
