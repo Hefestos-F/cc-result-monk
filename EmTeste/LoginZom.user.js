@@ -1649,6 +1649,8 @@
       test.modoTesteAnt = test.modoTeste;
     }
 
+    const botaoAlarmeInicialDisplay = botaoAlarmeInicial.style.display;
+
     if (config.pausalimitada && config.notiEstouro && stt.Encontrado) {
       stt.Estouro = test.modoTeste
         ? test.Estouro
@@ -1656,20 +1658,10 @@
           ? compararDatas(agora, TempoPausas.Estouro)
           : 0;
 
-      const botaoAlarmeInicialDisplay = botaoAlarmeInicial.style.display;
       if (stt.Estouro) {
         contr("botaoAlarmeInicial", 1);
         contr("BotInicial", 1);
       }
-      if (
-        (stt.Estouro && botaoAlarmeInicialDisplay != "flex") ||
-        (!stt.Estouro && botaoAlarmeInicialDisplay != "none")
-      )
-        botaoAlarmeInicial.style.display = config.notiEstouro
-          ? stt.Estouro
-            ? "flex"
-            : "none"
-          : "none";
 
       if (!stt.bipando && stt.Estouro && config.SomEstouro) {
         Hwarn("Estouro de pausa detectado");
@@ -1683,6 +1675,15 @@
             : alarmeBipsIntercalados,
         );
       }
+    } else if (
+      (stt.Estouro && botaoAlarmeInicialDisplay != "flex") ||
+      (!stt.Estouro && botaoAlarmeInicialDisplay != "none")
+    ) {
+      botaoAlarmeInicial.style.display = config.notiEstouro
+        ? stt.Estouro
+          ? "flex"
+          : "none"
+        : "none";
     }
 
     if (stt.bipando) {
@@ -4956,8 +4957,6 @@
 
         const posicaoAnt = dadosFilaAtendimentos[id]?.posicao ?? null;
 
-        if (posicaoAnt != posicao) dadosFilaAtendimentos[id].posicao = posicao;
-
         if (tempoFim && agente)
           posicoesTempos[posicao] = {
             tempoFim: tempoFim,
@@ -4979,6 +4978,9 @@
         let oNovoStatus = oStatus;
 
         if (variavelLista.reorganizou > 2) {
+          if (posicaoAnt != posicao)
+            dadosFilaAtendimentos[id].posicao = posicao;
+
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
               ? oStatus
@@ -4999,7 +5001,7 @@
             const posicaoProximaStatus =
               posicoesTempos[posicaoProxima]?.status ?? 0;
             if (posicaoProximaStatus == "---" && !variavelLista.Atendendo) {
-              oNovoStatus = "---";
+              //oNovoStatus = "---";
             }
           }
 
