@@ -4826,9 +4826,6 @@
     verificaoParaIgnorar: 0,
   };
 
-  const a = { data: "2026-09-07", hora: "10:00:00" };
-  const b = { data: "2026-09-08", hora: "08:00:00" };
-
   function tempoEntreMomentos(dataInicio, dataFim) {
     const inicio = new Date(`${dataInicio.data}T${dataInicio.hora}`);
     const fim = new Date(`${dataFim.data}T${dataFim.hora}`);
@@ -4845,8 +4842,6 @@
       seg.toString().padStart(2, "0"),
     ].join(":");
   }
-
-  console.log(tempoEntreMomentos(a, b));
 
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
@@ -5002,7 +4997,7 @@
         const posicaoProximaStatus =
           posicoesTempos[posicaoProxima]?.status ?? 0;
 
-        if (variavelLista.reorganizou > 2) {
+        if (variavelLista.reorganizou > 3) {
           if (posicaoAnt != posicao)
             dadosFilaAtendimentos[id].posicao = posicao;
 
@@ -5114,7 +5109,7 @@
 
       if (reorganizou) {
         variavelLista.reorganizou = 0;
-      } else if (variavelLista.reorganizou < 3) {
+      } else if (variavelLista.reorganizou < 4) {
         variavelLista.reorganizou++;
       }
       /*Hlog(
