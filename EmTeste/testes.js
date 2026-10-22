@@ -1164,8 +1164,19 @@ function converterTimestamp(timestamp) {
     hora: hora,
   };
 }
-// Saída esperada: { data: '2026-09-07', hora: '12:49:11' }
+// Saída esperada: { data: '2026-09-07', hora: '10:00:00' }  { data: '2026-09-08', hora: '08:00:00' }
 //converterTimestamp(1788802541754);
+
+const a = { data: "2026-09-07", hora: "10:00:00" };
+const b = { data: "2026-09-08", hora: "08:00:00" };
+
+function tempoEntreMomentos(dataInicio, dataFim) {
+  const inicio = new Date(`${dataInicio.data}T${dataInicio.hora}`);
+  const fim = new Date(`${dataFim.data}T${dataFim.hora}`);
+  const diferencaMs = fim - inicio;
+  return diferencaMs / (1000 * 60 * 60);
+}
+tempoEntreMomentos(a, b);
 
 const nomeDoAgenteLimpo = (nomeEncontrado) =>
   nomeEncontrado

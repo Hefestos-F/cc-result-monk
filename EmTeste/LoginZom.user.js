@@ -4826,6 +4826,28 @@
     verificaoParaIgnorar: 0,
   };
 
+  const a = { data: "2026-09-07", hora: "10:00:00" };
+  const b = { data: "2026-09-08", hora: "08:00:00" };
+
+  function tempoEntreMomentos(dataInicio, dataFim) {
+    const inicio = new Date(`${dataInicio.data}T${dataInicio.hora}`);
+    const fim = new Date(`${dataFim.data}T${dataFim.hora}`);
+
+    const segundos = Math.abs(fim - inicio) / 1000;
+
+    const horas = Math.floor(segundos / 3600);
+    const minutos = Math.floor((segundos % 3600) / 60);
+    const seg = Math.floor(segundos % 60);
+
+    return [
+      horas.toString().padStart(2, "0"),
+      minutos.toString().padStart(2, "0"),
+      seg.toString().padStart(2, "0"),
+    ].join(":");
+  }
+
+  console.log(tempoEntreMomentos(a, b));
+
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
 
@@ -4907,7 +4929,7 @@
         const oAusente = dadosFilaAtendimentos[id]?.ausente ?? 0;
 
         const tempoDultimaLigacao = oAusente
-          ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
+          ? converterParaSegundos(tempoEntreMomentos(oAusente, agora))
           : 0;
 
         const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
@@ -4921,7 +4943,7 @@
           if (variavelLista.verificaoParaIgnorar > 3)
             dadosFilaAtendimentos[id].ignorar = maisDQ;
 
-          if (variavelLista.verificaoParaIgnorar < 3)
+          if (variavelLista.verificaoParaIgnorar < 4)
             variavelLista.verificaoParaIgnorar++;
         } else {
           variavelLista.verificaoParaIgnorar = 0;
@@ -4977,6 +4999,9 @@
 
         let oNovoStatus = oStatus;
 
+        const posicaoProximaStatus =
+          posicoesTempos[posicaoProxima]?.status ?? 0;
+
         if (variavelLista.reorganizou > 2) {
           if (posicaoAnt != posicao)
             dadosFilaAtendimentos[id].posicao = posicao;
@@ -4998,8 +5023,7 @@
               dadosFilaAtendimentos[id].ausente = agora;
               mudouStatus = 1;
             }
-            const posicaoProximaStatus =
-              posicoesTempos[posicaoProxima]?.status ?? 0;
+
             if (posicaoProximaStatus == "---" && !variavelLista.Atendendo) {
               //oNovoStatus = "---";
             }
@@ -5069,6 +5093,14 @@
               aCaixaDaListaDisponivel.children[posicaoProxima],
               aCaixaDaListaDisponivel.children[posicao],
             );
+
+            if (
+              !atendendo &&
+              posicaoProxima > variavelLista.ultimo &&
+              posicaoProximaStatus == "-Ausente-"
+            ) {
+              //dadosFilaAtendimentos[id].status
+            }
           }
           reorganizou = 1;
         }
