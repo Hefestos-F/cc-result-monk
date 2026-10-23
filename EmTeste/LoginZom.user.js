@@ -4825,25 +4825,8 @@
     variavelListaInicial: 0,
     Atendendo: 0,
     reorganizou: 1,
-    verificaoParaIgnorar: 0,
+    estadoAnterior: {},
   };
-
-  function tempoEntreMomentos(dataInicio, dataFim) {
-    const inicio = new Date(`${dataInicio.data}T${dataInicio.hora}`);
-    const fim = new Date(`${dataFim.data}T${dataFim.hora}`);
-
-    const segundos = Math.abs(fim - inicio) / 1000;
-
-    const horas = Math.floor(segundos / 3600);
-    const minutos = Math.floor((segundos % 3600) / 60);
-    const seg = Math.floor(segundos % 60);
-
-    return [
-      horas.toString().padStart(2, "0"),
-      minutos.toString().padStart(2, "0"),
-      seg.toString().padStart(2, "0"),
-    ].join(":");
-  }
 
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
@@ -4925,27 +4908,27 @@
 
         const oAusente = dadosFilaAtendimentos[id]?.ausente ?? 0;
 
-        const tempoDultimaLigacao = oAusente
-          ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
-          : 0;
-
-        const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
-
         const ignorarAgente = dadosFilaAtendimentos[id]?.ignorar ?? 0;
 
-        const maisDQ =
-          !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
+        const numeroIgnorar = dadosFilaAtendimentos[id]?.numeroIgnorar ?? 0;
 
-        if (maisDQ != ignorarAgente) {
-          if (variavelLista.verificaoParaIgnorar > 3) {
-            dadosFilaAtendimentos[id].ignorar = maisDQ;
-          }
+        /*Hlog(
+          `agente: ${agente} / maisDQ: ${maisDQ} / ignorarAgente: ${ignorarAgente} / tempoInicio: ${tempoInicio} / tempoDultimaLigacao: ${tempoDultimaLigacao} / tempoQuarentaMinuto: ${tempoQuarentaMinuto} `,
+        );*/
 
-          if (variavelLista.verificaoParaIgnorar < 4) {
-            variavelLista.verificaoParaIgnorar++;
-          }
-        } else {
-          variavelLista.verificaoParaIgnorar = 0;
+        if (variavelLista.estadoAnterior[id] != oAusente) {
+          variavelLista.estadoAnterior[id] = oAusente;
+
+          const tempoDultimaLigacao = oAusente
+            ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
+            : 0;
+
+          const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
+
+          const maisDQ =
+            !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
+
+          dadosFilaAtendimentos[id].ignorar = maisDQ;
         }
 
         const itemlinhaExiste = document.getElementById("linha-" + id);
@@ -4984,6 +4967,7 @@
             id: id,
             agente: agente,
             status: oStatus,
+            oAusente: oAusente,
           };
 
         const posicaoProxima = posicao + 1;
