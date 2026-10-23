@@ -4783,6 +4783,7 @@
       ) {
         dadosFilaAtendimentos[id].status = "---";
         dadosFilaAtendimentos[id].tempoInicio = null;
+        dadosFilaAtendimentos[id].ausente = null;
       }
     });
 
@@ -4821,6 +4822,7 @@
   }
 
   const variavelLista = {
+    variavelListaInicial: 0,
     Atendendo: 0,
     reorganizou: 1,
     verificaoParaIgnorar: 0,
@@ -4924,7 +4926,7 @@
         const oAusente = dadosFilaAtendimentos[id]?.ausente ?? 0;
 
         const tempoDultimaLigacao = oAusente
-          ? converterParaSegundos(tempoEntreMomentos(oAusente, agora))
+          ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
           : 0;
 
         const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
@@ -4935,11 +4937,13 @@
           !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
 
         if (maisDQ != ignorarAgente) {
-          if (variavelLista.verificaoParaIgnorar > 3)
+          if (variavelLista.verificaoParaIgnorar > 3) {
             dadosFilaAtendimentos[id].ignorar = maisDQ;
+          }
 
-          if (variavelLista.verificaoParaIgnorar < 4)
+          if (variavelLista.verificaoParaIgnorar < 4) {
             variavelLista.verificaoParaIgnorar++;
+          }
         } else {
           variavelLista.verificaoParaIgnorar = 0;
         }
@@ -5004,11 +5008,9 @@
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
               ? oStatus
-              : posicao < variavelLista.ultimo
-                ? "---"
-                : posicao > variavelLista.ultimo
-                  ? "-Ausente-"
-                  : oStatus
+              : posicao > variavelLista.ultimo
+                ? "-Ausente-"
+                : oStatus
             : oStatus;
 
           //Hlog(`oNovoStatus: ${oNovoStatus}`);
@@ -5070,7 +5072,10 @@
         const posicaoProximaTempoInicio =
           posicoesTempos[posicaoProxima]?.tempoInicio ?? 0;
 
-        const posicaoProximaTempoFimMaior = posicaoProximaTempoFim > tempoFim;
+        const posicaoProximaTempoFimMaior =
+          tempoFim &&
+          posicaoProximaTempoFim &&
+          posicaoProximaTempoFim > tempoFim;
 
         if (aCadaCiclo) {
           Hlog(
@@ -5089,11 +5094,9 @@
               aCaixaDaListaDisponivel.children[posicao],
             );
 
-            if (
-              !atendendo &&
-              posicaoProxima > variavelLista.ultimo &&
-              posicaoProximaStatus == "-Ausente-"
-            ) {
+            if (atendendo && posicaoProximaStatus == "-Ausente-") {
+              dadosFilaAtendimentos[posicoesTempos[posicaoProxima]?.id].status =
+                "---";
               //dadosFilaAtendimentos[id].status
             }
           }

@@ -979,6 +979,38 @@ function exibirAHora(a, op, b) {
   return { hora: outHora, data: outData };
 }
 
+function converterParaSegundos(tempo) {
+  // Mais tolerante: aceita "HH:MM:SS", "MM:SS" e números; retorna segundos inteiros.
+  if (tempo == null || tempo === "") return 0;
+  if (typeof tempo === "number") return Math.floor(tempo);
+  if (typeof tempo === "string") {
+    const parts = tempo
+      .trim()
+      .split(":")
+      .map((p) => Number(p.trim()));
+    if (parts.length === 3) {
+      const [h, m, s] = parts;
+      return (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0);
+    }
+    if (parts.length === 2) {
+      const [m, s] = parts;
+      return (Number(m) || 0) * 60 + (Number(s) || 0);
+    }
+    if (/^\d+$/.test(tempo.trim())) {
+      return Number(tempo.trim());
+    }
+  }
+  return 0;
+}
+
+const a = { data: "2026-09-07", hora: "10:00:00" };
+const b = { data: "2026-09-08", hora: "08:00:00" };
+
+const hora = exibirAHora(a, 0, b).hora;
+
+
+console.log(`Hora: ${hora} / Segundos: ${converterParaSegundos(hora)}`);
+
 function tempoEncurtado(input) {
   // --- Normaliza entrada para total de segundos (inteiro) ---
   let totalSeg;
@@ -1047,30 +1079,6 @@ function tempoEncurtado(input) {
   }
 
   return negativo ? `-${corpo}` : corpo;
-}
-
-function converterParaSegundos(tempo) {
-  // Mais tolerante: aceita "HH:MM:SS", "MM:SS" e números; retorna segundos inteiros.
-  if (tempo == null || tempo === "") return 0;
-  if (typeof tempo === "number") return Math.floor(tempo);
-  if (typeof tempo === "string") {
-    const parts = tempo
-      .trim()
-      .split(":")
-      .map((p) => Number(p.trim()));
-    if (parts.length === 3) {
-      const [h, m, s] = parts;
-      return (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0);
-    }
-    if (parts.length === 2) {
-      const [m, s] = parts;
-      return (Number(m) || 0) * 60 + (Number(s) || 0);
-    }
-    if (/^\d+$/.test(tempo.trim())) {
-      return Number(tempo.trim());
-    }
-  }
-  return 0;
 }
 
 function converterParaTempo(input) {
@@ -1167,14 +1175,21 @@ function converterTimestamp(timestamp) {
 // Saída esperada: { data: '2026-09-07', hora: '10:00:00' }  { data: '2026-09-08', hora: '08:00:00' }
 //converterTimestamp(1788802541754);
 
-const a = { data: "2026-09-07", hora: "10:00:00" };
-const b = { data: "2026-09-08", hora: "08:00:00" };
-
 function tempoEntreMomentos(dataInicio, dataFim) {
   const inicio = new Date(`${dataInicio.data}T${dataInicio.hora}`);
   const fim = new Date(`${dataFim.data}T${dataFim.hora}`);
-  const diferencaMs = fim - inicio;
-  return diferencaMs / (1000 * 60 * 60);
+
+  const segundos = Math.abs(fim - inicio) / 1000;
+
+  const horas = Math.floor(segundos / 3600);
+  const minutos = Math.floor((segundos % 3600) / 60);
+  const seg = Math.floor(segundos % 60);
+
+  return [
+    horas.toString().padStart(2, "0"),
+    minutos.toString().padStart(2, "0"),
+    seg.toString().padStart(2, "0"),
+  ].join(":");
 }
 tempoEntreMomentos(a, b);
 
