@@ -4828,6 +4828,8 @@
     estadoAnterior: {},
   };
 
+  const estadoAnterior = {};
+
   function colocarListaDeDisponibilidade() {
     const criarDiv = () => document.createElement("div");
 
@@ -4916,8 +4918,12 @@
           `agente: ${agente} / maisDQ: ${maisDQ} / ignorarAgente: ${ignorarAgente} / tempoInicio: ${tempoInicio} / tempoDultimaLigacao: ${tempoDultimaLigacao} / tempoQuarentaMinuto: ${tempoQuarentaMinuto} `,
         );*/
 
-        if (variavelLista.estadoAnterior[id] != oAusente) {
-          variavelLista.estadoAnterior[id] = oAusente;
+        if (
+          !estadoAnterior[id] ||
+          estadoAnterior[id].data != oAusente.data ||
+          estadoAnterior[id].hora != oAusente.hora
+        ) {
+          estadoAnterior[id] = oAusente;
 
           const tempoDultimaLigacao = oAusente
             ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
