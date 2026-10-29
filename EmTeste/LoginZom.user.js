@@ -4784,6 +4784,7 @@
         dadosFilaAtendimentos[id].status = "---";
         dadosFilaAtendimentos[id].tempoInicio = null;
         dadosFilaAtendimentos[id].ausente = null;
+        dadosFilaAtendimentos[id].tempoFim = null;
       }
     });
 
@@ -4918,22 +4919,22 @@
           `agente: ${agente} / maisDQ: ${maisDQ} / ignorarAgente: ${ignorarAgente} / tempoInicio: ${tempoInicio} / tempoDultimaLigacao: ${tempoDultimaLigacao} / tempoQuarentaMinuto: ${tempoQuarentaMinuto} `,
         );*/
 
+        const tempoDultimaLigacao = oAusente
+          ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
+          : 0;
+
+        const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
+
+        const maisDQ =
+          !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
+
         if (
+          ignorarAgente != maisDQ ||
           !estadoAnterior[id] ||
           estadoAnterior[id].data != oAusente.data ||
           estadoAnterior[id].hora != oAusente.hora
         ) {
           estadoAnterior[id] = oAusente;
-
-          const tempoDultimaLigacao = oAusente
-            ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
-            : 0;
-
-          const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
-
-          const maisDQ =
-            !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
-
           dadosFilaAtendimentos[id].ignorar = maisDQ;
         }
 
@@ -4967,7 +4968,7 @@
 
         const posicaoAnt = dadosFilaAtendimentos[id]?.posicao ?? null;
 
-        if (tempoFim && agente)
+        if (agente)
           posicoesTempos[posicao] = {
             tempoFim: tempoFim,
             id: id,
@@ -5063,9 +5064,8 @@
           posicoesTempos[posicaoProxima]?.tempoInicio ?? 0;
 
         const posicaoProximaTempoFimMaior =
-          tempoFim &&
-          posicaoProximaTempoFim &&
-          posicaoProximaTempoFim > tempoFim;
+          (!tempoFim && posicaoProximaTempoFim) ||
+          (posicaoProximaTempoFim && posicaoProximaTempoFim > tempoFim);
 
         if (aCadaCiclo) {
           Hlog(
