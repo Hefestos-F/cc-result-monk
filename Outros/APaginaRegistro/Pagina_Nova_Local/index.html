@@ -9,54 +9,94 @@
       :root {
         --orange: #ff6a00;
         --orange-dark: #e35a00;
+
         --gray-900: #1e2a36;
         --gray-700: #5b6875;
         --gray-500: #95a1ad;
+
         --gray-300: #e1e6ea;
         --gray-200: #eef1f4;
+
         --surface: #ffffff;
+        --background: #ffffff;
+
+        --input-bg: #ffffff;
+        --input-text: #1e2a36;
       }
+
+      /* Tema escuro */
+      body.dark {
+        --gray-900: #f3f4f6;
+        --gray-700: #d1d5db;
+        --gray-500: #9ca3af;
+
+        --gray-300: #374151;
+        --gray-200: #1f2937;
+
+        --surface: #111827;
+        --background: #030712;
+
+        --input-bg: #1f2937;
+        --input-text: #f3f4f6;
+      }
+
       * {
         box-sizing: border-box;
       }
+
       html,
       body {
         height: 100%;
       }
+
       body {
         margin: 0;
         font-family: "Segoe UI", Roboto, Arial, Helvetica, sans-serif;
-        background: #fff;
+        background: var(--background);
         color: var(--gray-900);
+        transition: all 0.3s ease;
       }
-      /* Container responsivo (fluido) */
+
+      /* Container */
       .app {
         max-width: clamp(360px, 90vw, 840px);
         margin: 24px auto 40px;
         padding: 0 16px;
       }
+
       .card {
         background: var(--surface);
         border: 1px solid var(--gray-300);
         border-radius: 12px;
         padding: 16px 14px 18px;
+        transition: all 0.3s ease;
       }
+
+      body.dark .card {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      }
+
       .header {
         padding: 6px 10px 0;
+        display: flex;
+        justify-content: space-between;
       }
+
       .titulo-sistema {
-        margin: 6px 0 6px;
+        margin: 6px 0;
         font-size: clamp(22px, 3.2vw, 28px);
         font-weight: 800;
         color: var(--gray-900);
       }
-      .titulo-sistema + .accent {
+
+      .accent {
         width: 54px;
         height: 4px;
         background: var(--orange);
         border-radius: 3px;
         margin: 8px 0 14px;
       }
+
       .field,
       .select-group,
       .input-container,
@@ -64,18 +104,20 @@
         width: 100%;
         margin-bottom: 12px;
       }
+
       .input-container,
       .text-area-container {
         display: flex;
         align-items: stretch;
         overflow: hidden;
-        background: #fff;
+        background: var(--input-bg);
         border: 1px solid var(--gray-300);
         border-radius: 10px;
       }
+
       .input-prefix {
         background: var(--gray-200);
-        color: #5c6b6f;
+        color: var(--gray-700);
         font-size: 14px;
         padding: 10px 12px;
         border-right: 1px solid var(--gray-300);
@@ -83,28 +125,35 @@
         align-items: center;
         white-space: nowrap;
       }
+
       .input-field,
       .text-area-field {
         border: 0;
         flex: 1;
         padding: 10px 12px;
         font-size: clamp(13px, 1.6vw, 14px);
+        background: var(--input-bg);
+        color: var(--input-text);
       }
+
       .text-area-field {
         min-height: 120px;
         resize: vertical;
       }
+
       .input-field:focus,
       .text-area-field:focus {
         outline: none;
       }
+
       .label {
         display: block;
         font-size: clamp(12px, 1.5vw, 13px);
         font-weight: 700;
-        color: #2c3947;
+        color: var(--gray-900);
         margin: 2px 0 6px;
       }
+
       select {
         display: block;
         width: 100%;
@@ -112,20 +161,25 @@
         font-size: clamp(13px, 1.6vw, 14px);
         border: 1px solid var(--gray-300);
         border-radius: 10px;
-        background: #fff;
+        background: var(--input-bg);
+        color: var(--input-text);
       }
+
       .hidden {
         display: none;
       }
+
       .action-container {
         display: flex;
         gap: 10px;
         align-items: center;
         flex-wrap: wrap;
       }
+
       .signature-box {
         flex: 1 1 100%;
       }
+
       .btn {
         appearance: none;
         border: 0;
@@ -133,31 +187,51 @@
         cursor: pointer;
         padding: 10px 16px;
         font-weight: 800;
-        color: #fff;
+        transition: 0.2s;
       }
+
       .btn-primary {
         background: var(--orange);
+        color: #fff;
       }
+
       .btn-primary:hover {
         background: var(--orange-dark);
       }
+
       .btn-secondary {
-        color: #445160;
-        background: #eef2f6;
-        border: 1px solid #d9dee3;
+        color: var(--gray-900);
+        background: var(--gray-200);
+        border: 1px solid var(--gray-300);
       }
+
+      .btn-modoDark {
+        width: fit-content;
+        height: fit-content;
+        appearance: none;
+        border: 0;
+        border-radius: 10px;
+        cursor: pointer;
+        padding: 10px 16px;
+        font-weight: 800;
+        transition: 0.2s;
+      }
+
       .btn-secondary:hover {
-        background: #e6ebf1;
+        filter: brightness(0.95);
       }
+
       .resultado-container {
         display: flex;
         gap: 10px;
         align-items: flex-start;
       }
+
       #resultado {
         width: 100%;
         min-height: 140px;
       }
+
       #copiarBtn {
         background: var(--orange);
         padding: 10px 16px;
@@ -165,59 +239,96 @@
         color: #fff;
         border-radius: 10px;
       }
+
       #copiarBtn:hover {
         background: var(--orange-dark);
       }
+
       .creditos {
         margin-top: 8px;
         font-size: 12px;
-        color: #6b7280;
+        color: var(--gray-500);
       }
+
       .creditos strong {
-        color: #111827;
+        color: var(--gray-900);
       }
-      /* ===== Campos empilhados (label em cima) ===== */
+
       .field--stacked .label {
         margin: 0 0 6px;
       }
+
       .field--stacked .input-plain,
       .field--stacked .textarea-plain {
         width: 100%;
         display: block;
-        background: #fff;
+        background: var(--input-bg);
+        color: var(--input-text);
         border: 1px solid var(--gray-300);
         border-radius: 10px;
         padding: 10px 12px;
         font-size: clamp(13px, 1.6vw, 14px);
       }
+
+      .field--stacked .input-plain:focus,
+      .field--stacked .textarea-plain:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--orange);
+        box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.2);
+      }
+
       .field--stacked .textarea-plain {
         min-height: 120px;
         resize: vertical;
       }
-      /* Ajustes específicos */
+
       .signature-block .input-plain {
         width: 100%;
       }
+
       .result-block .textarea-plain {
         min-height: 160px;
       }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--background);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--gray-500);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-700);
+      }
+
       /* Mobile */
       @media (max-width: 480px) {
         .card {
           padding: 14px 12px 16px;
         }
+
         .action-container {
           flex-direction: column;
           align-items: stretch;
         }
+
         .btn {
           width: 100%;
-          text-align: center;
         }
+
         #copiarBtn {
           width: 100%;
         }
       }
+
       @media (min-width: 900px) {
         .result-block .textarea-plain {
           min-height: 180px;
@@ -230,8 +341,17 @@
       <div class="card">
         <header class="header">
           <h1 class="titulo-sistema">Registro de Atendimento</h1>
-          <div class="accent" aria-hidden="true"></div>
+          <button
+            id="themeToggle"
+            class="btn-modoDark btn-secondary"
+            type="button"
+            onclick="alternarTema()"
+          >
+            🌙
+          </button>
         </header>
+
+        <div class="accent" aria-hidden="true"></div>
 
         <div class="field field--stacked">
           <label class="label" for="ticket">Ticket</label>
@@ -969,6 +1089,32 @@
           .then(() => {})
           .catch(() => {});
       }
+
+      function alternarTema() {
+        document.body.classList.toggle("dark");
+
+        localStorage.setItem(
+          "tema",
+          document.body.classList.contains("dark") ? "dark" : "light",
+        );
+
+        document.getElementById("themeToggle").textContent =
+          document.body.classList.contains("dark") ? "☀️" : "🌙";
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("tema") === "dark") {
+          document.body.classList.add("dark");
+        }
+
+        const btn = document.getElementById("themeToggle");
+
+        if (btn) {
+          btn.textContent = document.body.classList.contains("dark")
+            ? "☀️"
+            : "🌙";
+        }
+      });
 
       // ===== Inicialização + Expor no window para inline handlers =====
       window.toggleWaiverInput = toggleWaiverInput;
