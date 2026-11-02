@@ -368,39 +368,6 @@
     </div>
 
     <script>
-      // ===== UI + (Opcional) Firebase =====
-      // Mantém tudo funcionando mesmo que Firebase não carregue (ambiente local/sem internet)
-      let db = null; // será atribuído se Firebase carregar
-      const TOKEN = "Aug$2025";
-
-      /*(async () => {
-        try {
-          const { initializeApp, getApps, getApp } =
-            await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js");
-
-          const { getFirestore, doc, setDoc } =
-            await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
-
-          // firebaseConfig ocultado
-
-          let app;
-
-          if (!getApps().length) {
-            app = initializeApp(firebaseConfig);
-          } else {
-            app = getApp();
-          }
-
-          db = getFirestore(app);
-
-          // ✅ EXPOR AQUI
-          window.__doc = doc;
-          window.__setDoc = setDoc;
-        } catch (e) {
-          console.warn("[Aviso] Firebase não carregou:", e);
-        }
-      })();*/
-
       // ====== Lógica da Waiver ======
       function toggleWaiverInput() {
         const select = document.getElementById("usouWaiver");
@@ -756,39 +723,9 @@
           assinatura,
           dataHora: agora.toLocaleString("pt-BR"),
           dataISO: agora.toISOString(),
-          token: TOKEN,
         };
 
-        const mudou = await AddouAtualizarPausas(ticket, novoRegistro);
-
-        /*
-  try {
-    if (!db) {
-      console.warn("Firestore ainda não carregou");
-      return;
-    }
-
-    if (!mudou) {
-      console.log("Nada mudou, não salvou:", ticket);
-      return;
-    }
-
-    const ref = window.__doc(db, "registros", ticket);
-
-    await window.__setDoc(
-      ref,
-      {
-        ...novoRegistro,
-        atualizadoEm: new Date().toISOString(),
-      },
-      { merge: true },
-    );
-
-    console.log("Upsert direto:", ticket);
-  } catch (err) {
-    console.error("Erro Firestore:", err);
-  }
-  */
+        // await AddouAtualizarPausas(ticket, novoRegistro);
       }
 
       // Configuração do IndexedDB
