@@ -1277,6 +1277,12 @@
             textoResultado.style.height = "auto"; // Reset height
             textoResultado.style.height = textoResultado.scrollHeight + "px"; // Set new height
           });
+
+          const descricao = document.getElementById("descricao");
+          descricao.addEventListener("input", () => {
+            descricao.style.height = "auto"; // Reset height
+            descricao.style.height = descricao.scrollHeight + "px"; // Set new height
+          });
         }
 
         toggleWaiverInput();
