@@ -19,13 +19,6 @@
   const log = (...a) => console.log(LOG_PREFIX, ...a);
   const warn = (...a) => console.warn(LOG_PREFIX, ...a);
 
-  const stt = {
-    observ: 1,
-    ticket: "",
-    contato: "",
-    textHonr: "",
-  };
-
   function setInputValue(el, value) {
     if (!el) return;
     el.focus();
@@ -107,6 +100,13 @@
       setInputValue(ctEl, ct);
     }
   })();
+
+  const stt = {
+    observ: 1,
+    ticket: "",
+    contato: "",
+    textHonr: "",
+  };
 
   var entrada1 = "";
   var entrada2 = "";

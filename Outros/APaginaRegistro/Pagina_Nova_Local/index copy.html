@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registro de Atendimento</title>
-    <link rel="stylesheet" href="style.css" />
     <style>
       :root {
         --orange: #ff6a00;
@@ -270,6 +269,17 @@
         font-size: clamp(13px, 1.6vw, 14px);
       }
 
+      .field--stacked .textarea-2plain {
+        width: 100%;
+        display: block;
+        background: var(--input-bg);
+        color: var(--input-text);
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: clamp(13px, 1.6vw, 14px);
+      }
+
       .field--stacked .input-plain:focus,
       .field--stacked .textarea-plain:focus,
       select:focus {
@@ -345,7 +355,7 @@
             id="themeToggle"
             class="btn-modoDark btn-secondary"
             type="button"
-            onchange="alternarTema()"
+            onclick="alternarTema()"
           >
             🌙
           </button>
@@ -354,12 +364,12 @@
         <div class="accent" aria-hidden="true"></div>
 
         <div class="field field--stacked">
-          <label class="label" for="ticket">Ticket</label>
+          <label class="label" for="ticket">Ticket*</label>
           <input type="text" id="ticket" class="input-plain" />
         </div>
 
         <div class="field field--stacked">
-          <label class="label" for="contato">Nome do Cliente</label>
+          <label class="label" for="contato">Nome do Cliente*</label>
           <input type="text" id="contato" class="input-plain" />
         </div>
 
@@ -368,9 +378,59 @@
           <input type="text" id="localizador" class="input-plain" />
         </div>
 
-        <div class="field field--stacked">
-          <label class="label" for="descricao">Relato</label>
-          <textarea id="descricao" class="textarea-plain"></textarea>
+        <div>
+          <div class="field field--stacked">
+            <div class="label">
+              <label for="descricao">Relato*</label>
+              <button
+                class="btn-secondary"
+                type="button"
+                id="botaoDescricaoNova"
+                onclick="novaDescricao()"
+              >
+                Novo
+              </button>
+            </div>
+
+            <textarea id="descricao" class="textarea-plain"></textarea>
+            <div
+              id="descricaoNova"
+              style="display: none; flex-direction: column"
+            >
+              <div class="field field--stacked">
+                <label class="label" for="textoSolicitacao"
+                  >Entrou em contato solicitando:*</label
+                >
+
+                <textarea
+                  placeholder="Solicitação"
+                  class="textarea-2plain"
+                  id="textoSolicitacao"
+                ></textarea>
+              </div>
+              <div class="field field--stacked">
+                <label class="label" for="textoSituacao"
+                  >Foi realizada a verificação no sistema e constatado
+                  que:</label
+                >
+                <textarea
+                  placeholder="Situação"
+                  class="textarea-2plain"
+                  id="textoSituacao"
+                ></textarea>
+              </div>
+              <div class="field field--stacked">
+                <label class="label" for="textoResultado"
+                  >A solicitação foi atendida da seguinte forma:*</label
+                >
+                <textarea
+                  placeholder="Resultado"
+                  class="textarea-2plain"
+                  id="textoResultado"
+                ></textarea>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="select-group">
@@ -464,7 +524,7 @@
 
         <div class="action-container">
           <div class="field field--stacked">
-            <label class="label">Assinatura</label>
+            <label class="label">Assinatura*</label>
             <input id="assinatura" class="input-plain" />
           </div>
           <button class="btn btn-primary" onclick="gerarResumo()">Gerar</button>
@@ -488,6 +548,37 @@
     </div>
 
     <script>
+      function novaDescricao() {
+        const descricaoNova = document.getElementById("descricaoNova");
+        const descricao = document.getElementById("descricao");
+
+        const botaoDescricaoNova =
+          document.getElementById("botaoDescricaoNova");
+
+        const descricaoNovaTrue = descricaoNova.style.display != "none";
+
+        descricaoNova.style.display = descricaoNovaTrue ? "none" : "flex";
+        descricao.style.display = !descricaoNovaTrue ? "none" : "flex";
+
+        botaoDescricaoNova.textContent = descricaoNovaTrue ? "Novo" : "Antiga";
+      }
+
+      function alternarTema() {
+        document.body.classList.toggle("dark");
+
+        localStorage.setItem(
+          "tema",
+          document.body.classList.contains("dark") ? "dark" : "light",
+        );
+
+        const botao = document.getElementById("themeToggle");
+
+        if (!botao) return;
+        botao.textContent = document.body.classList.contains("dark")
+          ? "☀️"
+          : "🌙";
+      }
+
       // ====== Lógica da Waiver ======
       function toggleWaiverInput() {
         const select = document.getElementById("usouWaiver");
@@ -776,49 +867,79 @@
           document.getElementById("cardName")?.value.trim() || "";
         const assinatura = document.getElementById("assinatura").value.trim();
 
-        if (!ticket || !contato || !descricao || !assinatura) {
+        const textoSolicitacao =
+          document.getElementById("textoSolicitacao")?.value || "";
+        const textoSituacao =
+          document.getElementById("textoSituacao")?.value || "";
+        const textoResultado =
+          document.getElementById("textoResultado")?.value || "";
+
+        const descricaoNova = document.getElementById("descricaoNova");
+
+        const descricaoNovaTrue = descricaoNova.style.display != "none";
+
+        let newTexto =
+          "entrou em contato solicitando:\n" + textoSolicitacao + "\n\n";
+        if (textoSituacao)
+          newTexto +=
+            "Foi realizada a verificação no sistema e constatado que:\n" +
+            textoSituacao +
+            "\n\n";
+
+        newTexto +=
+          "A solicitação foi atendida da seguinte forma:\n" + textoResultado;
+
+        if (
+          !ticket ||
+          !contato ||
+          (!descricao && !descricaoNovaTrue) ||
+          ((!textoSolicitacao || !textoResultado) && descricaoNovaTrue) ||
+          !assinatura
+        ) {
           alert("Preencha todos os campos obrigatórios.");
           return;
         }
-        /*
-        let texto = \`Ticket - \${ticket}\\n\\n\`;
-        if (localizador) texto += \`Localizador - \${localizador}\\n\\n\`;
-        texto += \`\${contato} \${descricao}\\n\\n\`;
 
-    if (usouWaiver === "sim") {
-          texto += \`Utilizado - \${tipoWaiver}\\n\`;
-          texto += \`Motivo - \${motivo}\\n\`;
-    }
+        let texto = "Ticket - " + ticket + "\n\n";
+        if (localizador) texto += "Localizador - " + localizador + "\n\n";
+        texto +=
+          contato + " " + (descricaoNovaTrue ? newTexto : descricao) + "\n\n";
 
-        texto += \`Isentou taxa DU - \${isentouDU}\\n\`;
-    if (isentouDU === "sim") {
-          texto += \`Motivo da isencao - \${motivoDU}\\n\`;
-    }
+        if (usouWaiver === "sim") {
+          texto += "Utilizado - " + tipoWaiver + "\n";
+          texto += "Motivo - " + motivo + "\n";
+        }
 
-    // Bloco Invoice (associado a Possui Infant)
-        texto += \`Possui Infant na reserva - \${utilizouInvoice}\\n\`;
-    if (utilizouInvoice === "sim") {
-      const empresaLabel =
-        empresaInvoice === "gol"
-          ? "Gol"
-          : empresaInvoice === "smiles"
-            ? "Smiles"
-            : "";
-          if (empresaLabel) texto += \`Emissor da Reserva - \${empresaLabel}\\n\`;
-          if (valorInvoice) texto += \`Invoice - \${valorInvoice}\\n\`;
-    }
+        texto += "Isentou taxa DU - " + isentouDU + "\n";
+        if (isentouDU === "sim") {
+          texto += "Motivo da isencao - " + motivoDU + "\n";
+        }
 
-        texto += \`Utilizou link de pagamento - \${realizouPagamento}\\n\\n\`;
-    if (realizouPagamento === "nao") {
-          texto += \`Motivo - \${link}\\n\`;
-          texto += \`Bandeira - \${bandeira}\\n\`;
-          texto += \`Parcelas - \${parcelas}\\n\`;
-          texto += \`CardholderName - \${cardName}\\n\`;
-    }
+        // Bloco Invoice (associado a Possui Infant)
+        texto += "Possui Infant na reserva - " + utilizouInvoice + "\n";
+        if (utilizouInvoice === "sim") {
+          const empresaLabel =
+            empresaInvoice === "gol"
+              ? "Gol"
+              : empresaInvoice === "smiles"
+                ? "Smiles"
+                : "";
+          if (empresaLabel)
+            texto += "Emissor da Reserva - " + empresaLabel + "\n";
+          if (valorInvoice) texto += "Invoice - " + valorInvoice + "\n";
+        }
 
-        texto += \`\${assinatura}\\n\`;
-    document.getElementById("resultado").value = texto;
-*/
+        texto += "Utilizou link de pagamento - " + realizouPagamento + "\n\n";
+        if (realizouPagamento === "nao") {
+          texto += "Motivo - " + link + "\n";
+          texto += "Bandeira - " + bandeira + "\n";
+          texto += "Parcelas - " + parcelas + "\n";
+          texto += "CardholderName - " + cardName + "\n";
+        }
+
+        texto += assinatura + "\n";
+        document.getElementById("resultado").value = texto;
+
         // Salvar no Firestore (se disponível); caso contrário, apenas loga
         const agora = new Date();
         //agora.toISOString()
@@ -942,7 +1063,7 @@
               const request = store.put(dados, nomechave);
 
               request.onsuccess = function () {
-                //   Hdebug(\`Dados salvos com sucesso na chave "\${nomechave}"\`);
+                Hdebug("Dados salvos com sucesso na chave ", nomechave);
                 resolve(true);
               };
 
@@ -996,7 +1117,7 @@
           const request = store.delete(nomechave);
 
           request.onsuccess = function () {
-            //     Hlog(\`Chave "\${nomechave}" apagada com sucesso.\`);
+            Hlog("Chave apagada com sucesso.", nomechave);
           };
 
           request.onerror = function (event) {
@@ -1073,6 +1194,12 @@
 
         const resultado = document.getElementById("resultado");
         if (resultado) resultado.value = "";
+        const textoSolicitacao = document.getElementById("textoSolicitacao");
+        if (textoSolicitacao) textoSolicitacao.value = "";
+        const textoSituacao = document.getElementById("textoSituacao");
+        if (textoSituacao) textoSituacao.value = "";
+        const textoResultado = document.getElementById("textoResultado");
+        if (textoResultado) textoResultado.value = "";
 
         document
           .querySelectorAll(
@@ -1090,26 +1217,9 @@
           .catch(() => {});
       }
 
-      function alternarTema() {
-        document.body.classList.toggle("dark");
-
-        localStorage.setItem(
-          "tema",
-          document.body.classList.contains("dark") ? "dark" : "light",
-        );
-
-        const botao = document.getElementById("themeToggle");
-
-        if (botao) {
-          botao.textContent = document.body.classList.contains("dark")
-            ? "☀️"
-            : "🌙";
-        }
-      }
-
       /* ==========================================================
-   EXPORTAÇÕES
-========================================================== */
+               EXPORTAÇÕES
+            ========================================================== */
 
       window.toggleWaiverInput = toggleWaiverInput;
 
@@ -1127,9 +1237,11 @@
 
       window.copiarResultado = copiarResultado;
 
+      window.alternarTema = alternarTema;
+
       /* ==========================================================
-   INICIALIZAÇÃO
-========================================================== */
+               INICIALIZAÇÃO
+            ========================================================== */
 
       window.addEventListener("DOMContentLoaded", () => {
         if (localStorage.getItem("tema") === "dark") {
@@ -1146,6 +1258,25 @@
           /* REMOVER se existir onclick no HTML */
 
           //btn.addEventListener("click", alternarTema());
+
+          const textoSolicitacao = document.getElementById("textoSolicitacao");
+          textoSolicitacao.addEventListener("input", () => {
+            textoSolicitacao.style.height = "auto"; // Reset height
+            textoSolicitacao.style.height =
+              textoSolicitacao.scrollHeight + "px"; // Set new height
+          });
+
+          const textoSituacao = document.getElementById("textoSituacao");
+          textoSituacao.addEventListener("input", () => {
+            textoSituacao.style.height = "auto"; // Reset height
+            textoSituacao.style.height = textoSituacao.scrollHeight + "px"; // Set new height
+          });
+
+          const textoResultado = document.getElementById("textoResultado");
+          textoResultado.addEventListener("input", () => {
+            textoResultado.style.height = "auto"; // Reset height
+            textoResultado.style.height = textoResultado.scrollHeight + "px"; // Set new height
+          });
         }
 
         toggleWaiverInput();

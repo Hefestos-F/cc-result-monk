@@ -379,7 +379,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registro de Atendimento</title>
-    <link rel="stylesheet" href="style.css" />
     <style>
       :root {
         --orange: #ff6a00;
@@ -645,6 +644,17 @@
         font-size: clamp(13px, 1.6vw, 14px);
       }
 
+      .field--stacked .textarea-2plain {
+        width: 100%;
+        display: block;
+        background: var(--input-bg);
+        color: var(--input-text);
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: clamp(13px, 1.6vw, 14px);
+      }
+
       .field--stacked .input-plain:focus,
       .field--stacked .textarea-plain:focus,
       select:focus {
@@ -720,6 +730,7 @@
             id="themeToggle"
             class="btn-modoDark btn-secondary"
             type="button"
+            onclick="alternarTema()"
           >
             🌙
           </button>
@@ -728,12 +739,12 @@
         <div class="accent" aria-hidden="true"></div>
 
         <div class="field field--stacked">
-          <label class="label" for="ticket">Ticket</label>
+          <label class="label" for="ticket">Ticket*</label>
           <input type="text" id="ticket" class="input-plain" />
         </div>
 
         <div class="field field--stacked">
-          <label class="label" for="contato">Nome do Cliente</label>
+          <label class="label" for="contato">Nome do Cliente*</label>
           <input type="text" id="contato" class="input-plain" />
         </div>
 
@@ -742,9 +753,59 @@
           <input type="text" id="localizador" class="input-plain" />
         </div>
 
-        <div class="field field--stacked">
-          <label class="label" for="descricao">Relato</label>
-          <textarea id="descricao" class="textarea-plain"></textarea>
+        <div>
+          <div class="field field--stacked">
+            <div class="label">
+              <label for="descricao">Relato*</label>
+              <button
+                class="btn-secondary"
+                type="button"
+                id="botaoDescricaoNova"
+                onclick="novaDescricao()"
+              >
+                Novo
+              </button>
+            </div>
+
+            <textarea id="descricao" class="textarea-plain"></textarea>
+            <div
+              id="descricaoNova"
+              style="display: none; flex-direction: column"
+            >
+              <div class="field field--stacked">
+                <label class="label" for="textoSolicitacao"
+                  >Entrou em contato solicitando:*</label
+                >
+
+                <textarea
+                  placeholder="Solicitação"
+                  class="textarea-2plain"
+                  id="textoSolicitacao"
+                ></textarea>
+              </div>
+              <div class="field field--stacked">
+                <label class="label" for="textoSituacao"
+                  >Foi realizada a verificação no sistema e constatado
+                  que:</label
+                >
+                <textarea
+                  placeholder="Situação"
+                  class="textarea-2plain"
+                  id="textoSituacao"
+                ></textarea>
+              </div>
+              <div class="field field--stacked">
+                <label class="label" for="textoResultado"
+                  >A solicitação foi atendida da seguinte forma:*</label
+                >
+                <textarea
+                  placeholder="Resultado"
+                  class="textarea-2plain"
+                  id="textoResultado"
+                ></textarea>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="select-group">
@@ -838,7 +899,7 @@
 
         <div class="action-container">
           <div class="field field--stacked">
-            <label class="label">Assinatura</label>
+            <label class="label">Assinatura*</label>
             <input id="assinatura" class="input-plain" />
           </div>
           <button class="btn btn-primary" onclick="gerarResumo()">Gerar</button>
@@ -859,709 +920,738 @@
           Desenvolvido por <strong>Leandro Salvador de Oliveira</strong>
         </footer>
       </div>
-   </div>
+    </div>
 
     <script>
-  // ====== Lógica da Waiver ======
-  function toggleWaiverInput() {
-    const select = document.getElementById("usouWaiver");
-    const waiverDiv = document.getElementById("waiverInfo");
-    const motivoContainer = document.getElementById("motivoContainer");
-    const motivoSelect = document.getElementById("motivoSelect");
-    const tipoWaiverElem = document.getElementById("tipoWaiver");
-    const waiverFieldContainer = document.getElementById(
-      "waiverFieldContainer",
-    );
-    if (!select || !motivoSelect || !motivoContainer) return;
+      function novaDescricao() {
+        const descricaoNova = document.getElementById("descricaoNova");
+        const descricao = document.getElementById("descricao");
 
-    motivoSelect.innerHTML = "";
-    if (tipoWaiverElem) tipoWaiverElem.value = "";
-    if (waiverFieldContainer) waiverFieldContainer.classList.add("hidden");
-    motivoContainer.classList.add("hidden");
+        const botaoDescricaoNova =
+          document.getElementById("botaoDescricaoNova");
 
-    if (select.value !== "sim") {
-      if (waiverDiv) waiverDiv.classList.add("hidden");
-      return;
-    }
+        const descricaoNovaTrue = descricaoNova.style.display != "none";
 
-    if (waiverDiv) waiverDiv.classList.remove("hidden");
+        descricaoNova.style.display = descricaoNovaTrue ? "none" : "flex";
+        descricao.style.display = !descricaoNovaTrue ? "none" : "flex";
 
-    const motivos = [
-      { motivo: "Erro sistemico", waiver: "Waiver 01- SYSTEM ERROR" },
-      {
-        motivo: "Cliente Smiles Diamante categorizado cobrando assento",
-        waiver: "Waiver 01- SYSTEM ERROR",
-      },
-      {
-        motivo: "Regra tarifaria possui bagagem mas no VCR nao consta",
-        waiver: "Waiver 01- SYSTEM ERROR",
-      },
-      {
-        motivo:
-          "Regra tarifária não deveria cobrar taxa, tela 30 não apresenta N/A",
-        waiver: "Waiver 01- SYSTEM ERROR",
-      },
-      {
-        motivo:
-          "Serviços incluídos via site/app Smiles pagos não refletidos no Sabre",
-        waiver: "Waiver 01- SYSTEM ERROR",
-      },
-      {
+        botaoDescricaoNova.textContent = descricaoNovaTrue ? "Novo" : "Antiga";
+      }
+
+      function alternarTema() {
+        document.body.classList.toggle("dark");
+
+        localStorage.setItem(
+          "tema",
+          document.body.classList.contains("dark") ? "dark" : "light",
+        );
+
+        const botao = document.getElementById("themeToggle");
+
+        if (!botao) return;
+        botao.textContent = document.body.classList.contains("dark")
+          ? "☀️"
+          : "🌙";
+      }
+
+      // ====== Lógica da Waiver ======
+      function toggleWaiverInput() {
+        const select = document.getElementById("usouWaiver");
+        const waiverDiv = document.getElementById("waiverInfo");
+        const motivoContainer = document.getElementById("motivoContainer");
+        const motivoSelect = document.getElementById("motivoSelect");
+        const tipoWaiverElem = document.getElementById("tipoWaiver");
+        const waiverFieldContainer = document.getElementById(
+          "waiverFieldContainer",
+        );
+        if (!select || !motivoSelect || !motivoContainer) return;
+
+        motivoSelect.innerHTML = "";
+        if (tipoWaiverElem) tipoWaiverElem.value = "";
+        if (waiverFieldContainer) waiverFieldContainer.classList.add("hidden");
+        motivoContainer.classList.add("hidden");
+
+        if (select.value !== "sim") {
+          if (waiverDiv) waiverDiv.classList.add("hidden");
+          return;
+        }
+
+        if (waiverDiv) waiverDiv.classList.remove("hidden");
+
+        const motivos = [
+          { motivo: "Erro sistemico", waiver: "Waiver 01- SYSTEM ERROR" },
+          {
+            motivo: "Cliente Smiles Diamante categorizado cobrando assento",
+            waiver: "Waiver 01- SYSTEM ERROR",
+          },
+          {
+            motivo: "Regra tarifaria possui bagagem mas no VCR nao consta",
+            waiver: "Waiver 01- SYSTEM ERROR",
+          },
+          {
+            motivo:
+              "Regra tarifária não deveria cobrar taxa, tela 30 não apresenta N/A",
+            waiver: "Waiver 01- SYSTEM ERROR",
+          },
+          {
+            motivo:
+              "Serviços incluídos via site/app Smiles pagos não refletidos no Sabre",
+            waiver: "Waiver 01- SYSTEM ERROR",
+          },
+          {
             motivo:
               "Concessão Upgrade Smiles Troca de tarifa Light Para Classic",
-        waiver: "Waiver 05-SPECIAL REQUEST",
-      },
-      {
-        motivo: "Cancelamento dentro das 24 horas",
-        waiver: "Waiver 08-AE FEE NOT APPLICABLE",
-      },
-      {
-        motivo: "Cancelamento de servicos antes do voo",
-        waiver: "Waiver 08-AE FEE NOT APPLICABLE",
-      },
-      {
-        motivo: "Marcacao de assento obrigatoria ao lado do responsavel",
-        waiver: "Waiver 08-AE FEE NOT APPLICABLE",
-      },
-      {
-        motivo: "Erro operacional comprovado",
-        waiver: "Waiver 06- OPERATIONAL ERROR",
-      },
-      { motivo: "Remarcacao laudo medico", waiver: "Waiver 13- CONCESSAO" },
-      {
-        motivo: "Cancelamento laudo medico",
-        waiver: "Waiver 13- CONCESSAO",
-      },
-      {
-        motivo: "Remarcacao concurso publico",
-        waiver: "Waiver 13- CONCESSAO",
-      },
-      {
-        motivo: "Cancelamento concurso publico",
-        waiver: "Waiver 13- CONCESSAO",
-      },
-      { motivo: "Duplicidade de compra", waiver: "Waiver 13- CONCESSAO" },
-      {
-        motivo: "Remarcacao erro do cliente dentro das 24 Horas",
-        waiver: "Waiver 08-AE FEE NOT APPLICABLE",
-      },
-      {
-        motivo: "Cancelamento por acomodacao",
-        waiver: "Waiver 14- INVOL REACOMODACAO",
-      },
-      {
-        motivo: "Cancelamento de servicos por acomodacao",
-        waiver: "Waiver 14- INVOL REACOMODACAO",
-      },
-      {
-        motivo: "Isencao de assento por acomodacao voo direto para conexao",
-        waiver: "Waiver 14- INVOL REACOMODACAO",
-      },
-      {
-        motivo: "Isencao da taxa de Remarcação com Cota Smiles disponivel",
-        waiver: "Waiver 20-FFCOTASSMILES",
-      },
-      {
+            waiver: "Waiver 05-SPECIAL REQUEST",
+          },
+          {
+            motivo: "Cancelamento dentro das 24 horas",
+            waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+          },
+          {
+            motivo: "Cancelamento de servicos antes do voo",
+            waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+          },
+          {
+            motivo: "Marcacao de assento obrigatoria ao lado do responsavel",
+            waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+          },
+          {
+            motivo: "Erro operacional comprovado",
+            waiver: "Waiver 06- OPERATIONAL ERROR",
+          },
+          { motivo: "Remarcacao laudo medico", waiver: "Waiver 13- CONCESSAO" },
+          {
+            motivo: "Cancelamento laudo medico",
+            waiver: "Waiver 13- CONCESSAO",
+          },
+          {
+            motivo: "Remarcacao concurso publico",
+            waiver: "Waiver 13- CONCESSAO",
+          },
+          {
+            motivo: "Cancelamento concurso publico",
+            waiver: "Waiver 13- CONCESSAO",
+          },
+          { motivo: "Duplicidade de compra", waiver: "Waiver 13- CONCESSAO" },
+          {
+            motivo: "Remarcacao erro do cliente dentro das 24 Horas",
+            waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+          },
+          {
+            motivo: "Cancelamento por acomodacao",
+            waiver: "Waiver 14- INVOL REACOMODACAO",
+          },
+          {
+            motivo: "Cancelamento de servicos por acomodacao",
+            waiver: "Waiver 14- INVOL REACOMODACAO",
+          },
+          {
+            motivo: "Isencao de assento por acomodacao voo direto para conexao",
+            waiver: "Waiver 14- INVOL REACOMODACAO",
+          },
+          {
+            motivo: "Isencao da taxa de Remarcação com Cota Smiles disponivel",
+            waiver: "Waiver 20-FFCOTASSMILES",
+          },
+          {
             motivo:
               "Isencao da taxa de Cancelamento com Cota Smiles disponivel",
-        waiver: "Waiver 20-FFCOTASSMILES",
-      },
-      {
-        motivo:
-          "Isencao da taxa de Upgrade de cabine com Cota Smiles disponivel",
-        waiver: "Waiver 20-FFCOTASSMILES",
-      },
-      {
+            waiver: "Waiver 20-FFCOTASSMILES",
+          },
+          {
+            motivo:
+              "Isencao da taxa de Upgrade de cabine com Cota Smiles disponivel",
+            waiver: "Waiver 20-FFCOTASSMILES",
+          },
+          {
             motivo:
               "Voa Brasil Cancelamento Parcial ida voada cancelar a volta",
-        waiver: "Waiver 19- ART19RA400",
-      },
-      {
+            waiver: "Waiver 19- ART19RA400",
+          },
+          {
             motivo:
               "Voa Brasil Cancelamento Parcial cancelar ida e manter volta",
-        waiver: "Waiver 19- ART19RA400",
-      },
-    ];
+            waiver: "Waiver 19- ART19RA400",
+          },
+        ];
 
-    motivoSelect.innerHTML =
-      '<option value="">-- Selecione o motivo --</option>';
-    motivos.forEach((item) => {
-      const opt = document.createElement("option");
-      opt.value = item.motivo;
-      opt.textContent = item.motivo;
-      motivoSelect.appendChild(opt);
-    });
-    motivoContainer.classList.remove("hidden");
+        motivoSelect.innerHTML =
+          '<option value="">-- Selecione o motivo --</option>';
+        motivos.forEach((item) => {
+          const opt = document.createElement("option");
+          opt.value = item.motivo;
+          opt.textContent = item.motivo;
+          motivoSelect.appendChild(opt);
+        });
+        motivoContainer.classList.remove("hidden");
 
-    motivoSelect.onchange = function () {
+        motivoSelect.onchange = function () {
           const escolhido = motivos.find(
             (m) => m.motivo === motivoSelect.value,
           );
-      if (!escolhido) {
+          if (!escolhido) {
             if (waiverFieldContainer)
               waiverFieldContainer.classList.add("hidden");
-        if (tipoWaiverElem) tipoWaiverElem.value = "";
-        return;
-      }
-      if (tipoWaiverElem) tipoWaiverElem.value = escolhido.waiver;
+            if (tipoWaiverElem) tipoWaiverElem.value = "";
+            return;
+          }
+          if (tipoWaiverElem) tipoWaiverElem.value = escolhido.waiver;
           if (waiverFieldContainer)
             waiverFieldContainer.classList.remove("hidden");
-    };
-  }
+        };
+      }
 
-  // ====== Lógica da Isenção de Taxa DU ======
-  function toggleIsencaoDU() {
-    const select = document.getElementById("isentouDU");
-    const infoDiv = document.getElementById("isencaoDUInfo");
+      // ====== Lógica da Isenção de Taxa DU ======
+      function toggleIsencaoDU() {
+        const select = document.getElementById("isentouDU");
+        const infoDiv = document.getElementById("isencaoDUInfo");
         const motivoContainer = document.getElementById(
           "motivoIsencaoContainer",
         );
-    const motivoSelect = document.getElementById("motivoIsencaoSelect");
-    if (!select || !infoDiv || !motivoContainer || !motivoSelect) return;
+        const motivoSelect = document.getElementById("motivoIsencaoSelect");
+        if (!select || !infoDiv || !motivoContainer || !motivoSelect) return;
 
-    motivoSelect.innerHTML = "";
-    motivoContainer.classList.add("hidden");
+        motivoSelect.innerHTML = "";
+        motivoContainer.classList.add("hidden");
 
-    if (select.value !== "sim") {
-      infoDiv.classList.add("hidden");
-      return;
-    }
+        if (select.value !== "sim") {
+          infoDiv.classList.add("hidden");
+          return;
+        }
 
-    infoDiv.classList.remove("hidden");
+        infoDiv.classList.remove("hidden");
 
-    const motivosDU = [
-      "Todas as vendas de receitas auxiliares",
-      "Parcelamento com duas formas de pagamento",
-      "Duas formas de pagamento que não sejam 2 cartões ou Travel Bank + Cartão de crédito",
-      "Reserva de criança nos casos onde o adulto já possua a reserva",
-      "Inclusao de infant na reserva",
-      "Erro no site",
-      "Isencao devido erro no cadastro",
-      "Erro emissao menor desacompanhado",
-      "Isencao devido SPEQ",
-      "Isencao devido assitencia emergencial",
-      "Isencao devido emissao MEDIF-FREMEC",
-      "Para residentes no Amapá",
-      "Remarcacao dentro das 24 horas",
-      "Remarcacao de reserva Multitrechos",
-      "Remarcacao apos no-show",
-      "Cancelamentos",
-    ];
+        const motivosDU = [
+          "Todas as vendas de receitas auxiliares",
+          "Parcelamento com duas formas de pagamento",
+          "Duas formas de pagamento que não sejam 2 cartões ou Travel Bank + Cartão de crédito",
+          "Reserva de criança nos casos onde o adulto já possua a reserva",
+          "Inclusao de infant na reserva",
+          "Erro no site",
+          "Isencao devido erro no cadastro",
+          "Erro emissao menor desacompanhado",
+          "Isencao devido SPEQ",
+          "Isencao devido assitencia emergencial",
+          "Isencao devido emissao MEDIF-FREMEC",
+          "Para residentes no Amapá",
+          "Remarcacao dentro das 24 horas",
+          "Remarcacao de reserva Multitrechos",
+          "Remarcacao apos no-show",
+          "Cancelamentos",
+        ];
 
-    motivoSelect.innerHTML =
-      '<option value="">-- Selecione o motivo --</option>';
-    motivosDU.forEach((m) => {
-      const opt = document.createElement("option");
-      opt.value = m;
-      opt.textContent = m;
-      motivoSelect.appendChild(opt);
-    });
-    motivoContainer.classList.remove("hidden");
-  }
-
-  // ====== Lógica do Link de Pagamento ======
-  function togglePagamentoInput() {
-    const select = document.getElementById("realizouPagamento");
-    const pagamentoDiv = document.getElementById("pagamentoInfo");
-    const parcelasSelect = document.getElementById("parcelas");
-    if (!select || !pagamentoDiv || !parcelasSelect) return;
-
-    parcelasSelect.innerHTML = "";
-    if (select.value == "nao") {
-      for (let i = 1; i <= 12; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = i;
-        parcelasSelect.appendChild(option);
+        motivoSelect.innerHTML =
+          '<option value="">-- Selecione o motivo --</option>';
+        motivosDU.forEach((m) => {
+          const opt = document.createElement("option");
+          opt.value = m;
+          opt.textContent = m;
+          motivoSelect.appendChild(opt);
+        });
+        motivoContainer.classList.remove("hidden");
       }
-      pagamentoDiv.classList.remove("hidden");
-    } else {
-      pagamentoDiv.classList.add("hidden");
-    }
-  }
 
-  // ====== Lógica do Invoice (para o campo 'Possui Infant') ======
-  function toggleInvoice() {
-    const select = document.getElementById("utilizouInvoice");
-    const invoiceDiv = document.getElementById("invoiceInfo");
-    const empresaSelect = document.getElementById("empresaInvoice");
-    const valorInvoice = document.getElementById("valorInvoice");
-    if (!select || !invoiceDiv) return;
+      // ====== Lógica do Link de Pagamento ======
+      function togglePagamentoInput() {
+        const select = document.getElementById("realizouPagamento");
+        const pagamentoDiv = document.getElementById("pagamentoInfo");
+        const parcelasSelect = document.getElementById("parcelas");
+        if (!select || !pagamentoDiv || !parcelasSelect) return;
 
-    if (empresaSelect) empresaSelect.value = "";
-    if (valorInvoice) valorInvoice.value = "";
+        parcelasSelect.innerHTML = "";
+        if (select.value == "nao") {
+          for (let i = 1; i <= 12; i++) {
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = i;
+            parcelasSelect.appendChild(option);
+          }
+          pagamentoDiv.classList.remove("hidden");
+        } else {
+          pagamentoDiv.classList.add("hidden");
+        }
+      }
 
-    if (select.value !== "sim") {
-      invoiceDiv.classList.add("hidden");
-      return;
-    }
-    invoiceDiv.classList.remove("hidden");
-  }
+      // ====== Lógica do Invoice (para o campo 'Possui Infant') ======
+      function toggleInvoice() {
+        const select = document.getElementById("utilizouInvoice");
+        const invoiceDiv = document.getElementById("invoiceInfo");
+        const empresaSelect = document.getElementById("empresaInvoice");
+        const valorInvoice = document.getElementById("valorInvoice");
+        if (!select || !invoiceDiv) return;
 
-  function preencherValorInvoice() {
-    const empresaSelect = document.getElementById("empresaInvoice");
-    const valorInvoice = document.getElementById("valorInvoice");
-    if (!empresaSelect || !valorInvoice) return;
+        if (empresaSelect) empresaSelect.value = "";
+        if (valorInvoice) valorInvoice.value = "";
 
-    const valoresTexto = {
-      gol: "RS4900 - PAGTO INVOICE DUE INF VOO GOL",
-      smiles: "RS6920 - PAGTO INVOICE DUE INF VOO SMILES",
-    };
-    const empresa = empresaSelect.value;
-    valorInvoice.value = valoresTexto[empresa] || "";
-  }
+        if (select.value !== "sim") {
+          invoiceDiv.classList.add("hidden");
+          return;
+        }
+        invoiceDiv.classList.remove("hidden");
+      }
 
-  // ====== Gerar Resumo ======
-  async function gerarResumo() {
+      function preencherValorInvoice() {
+        const empresaSelect = document.getElementById("empresaInvoice");
+        const valorInvoice = document.getElementById("valorInvoice");
+        if (!empresaSelect || !valorInvoice) return;
+
+        const valoresTexto = {
+          gol: "RS4900 - PAGTO INVOICE DUE INF VOO GOL",
+          smiles: "RS6920 - PAGTO INVOICE DUE INF VOO SMILES",
+        };
+        const empresa = empresaSelect.value;
+        valorInvoice.value = valoresTexto[empresa] || "";
+      }
+
+      // ====== Gerar Resumo ======
+      async function gerarResumo() {
         const ticket = document
           .getElementById("ticket")
           .value.trim()
           .toUpperCase();
 
-    const contato = document.getElementById("contato").value.trim();
-    const localizador = document.getElementById("localizador")
-      ? document.getElementById("localizador").value.trim()
-      : "";
-    const descricao = document.getElementById("descricao").value.trim();
+        const contato = document.getElementById("contato").value.trim();
+        const localizador = document.getElementById("localizador")
+          ? document.getElementById("localizador").value.trim()
+          : "";
+        const descricao = document.getElementById("descricao").value.trim();
 
-    const usouWaiver = document.getElementById("usouWaiver").value;
-    const tipoWaiver = document.getElementById("tipoWaiver")?.value || "";
-    const motivo = document.getElementById("motivoSelect")?.value || "";
+        const usouWaiver = document.getElementById("usouWaiver").value;
+        const tipoWaiver = document.getElementById("tipoWaiver")?.value || "";
+        const motivo = document.getElementById("motivoSelect")?.value || "";
 
-    const isentouDU = document.getElementById("isentouDU").value;
-    const motivoDU =
-      document.getElementById("motivoIsencaoSelect")?.value || "";
+        const isentouDU = document.getElementById("isentouDU").value;
+        const motivoDU =
+          document.getElementById("motivoIsencaoSelect")?.value || "";
 
-    // Possui Infant (usa fluxo de invoice)
-    const utilizouInvoice =
-      document.getElementById("utilizouInvoice")?.value || "nao";
-    const empresaInvoice =
-      document.getElementById("empresaInvoice")?.value || "";
+        // Possui Infant (usa fluxo de invoice)
+        const utilizouInvoice =
+          document.getElementById("utilizouInvoice")?.value || "nao";
+        const empresaInvoice =
+          document.getElementById("empresaInvoice")?.value || "";
         const valorInvoice =
           document.getElementById("valorInvoice")?.value || "";
 
-    const realizouPagamento =
-      document.getElementById("realizouPagamento").value;
-    const link = document.getElementById("link")?.value.trim() || "";
+        const realizouPagamento =
+          document.getElementById("realizouPagamento").value;
+        const link = document.getElementById("link")?.value.trim() || "";
         const bandeira =
           document.getElementById("bandeira")?.value.trim() || "";
-    const parcelas = document.getElementById("parcelas")?.value || "";
+        const parcelas = document.getElementById("parcelas")?.value || "";
         const cardName =
           document.getElementById("cardName")?.value.trim() || "";
-    const assinatura = document.getElementById("assinatura").value.trim();
+        const assinatura = document.getElementById("assinatura").value.trim();
 
-    if (!ticket || !contato || !descricao || !assinatura) {
-      alert("Preencha todos os campos obrigatórios.");
-      return;
-    }
+        const textoSolicitacao =
+          document.getElementById("textoSolicitacao")?.value || "";
+        const textoSituacao =
+          document.getElementById("textoSituacao")?.value || "";
+        const textoResultado =
+          document.getElementById("textoResultado")?.value || "";
 
-        let texto = \`Ticket - \${ticket}\\n\\n\`;
-        if (localizador) texto += \`Localizador - \${localizador}\\n\\n\`;
-        texto += \`\${contato} \${descricao}\\n\\n\`;
+        const descricaoNova = document.getElementById("descricaoNova");
 
-    if (usouWaiver === "sim") {
-          texto += \`Utilizado - \${tipoWaiver}\\n\`;
-          texto += \`Motivo - \${motivo}\\n\`;
-    }
+        const descricaoNovaTrue = descricaoNova.style.display != "none";
 
-        texto += \`Isentou taxa DU - \${isentouDU}\\n\`;
-    if (isentouDU === "sim") {
-          texto += \`Motivo da isencao - \${motivoDU}\\n\`;
-    }
+        let newTexto =
+          "entrou em contato solicitando:\n" + textoSolicitacao + "\n\n";
+        if (textoSituacao)
+          newTexto +=
+            "Foi realizada a verificação no sistema e constatado que:\n" +
+            textoSituacao +
+            "\n\n";
 
-    // Bloco Invoice (associado a Possui Infant)
-        texto += \`Possui Infant na reserva - \${utilizouInvoice}\\n\`;
-    if (utilizouInvoice === "sim") {
-      const empresaLabel =
-        empresaInvoice === "gol"
-          ? "Gol"
-          : empresaInvoice === "smiles"
-            ? "Smiles"
-            : "";
-          if (empresaLabel) texto += \`Emissor da Reserva - \${empresaLabel}\\n\`;
-          if (valorInvoice) texto += \`Invoice - \${valorInvoice}\\n\`;
-    }
+        newTexto +=
+          "A solicitação foi atendida da seguinte forma:\n" + textoResultado;
 
-        texto += \`Utilizou link de pagamento - \${realizouPagamento}\\n\\n\`;
-    if (realizouPagamento === "nao") {
-          texto += \`Motivo - \${link}\\n\`;
-          texto += \`Bandeira - \${bandeira}\\n\`;
-          texto += \`Parcelas - \${parcelas}\\n\`;
-          texto += \`CardholderName - \${cardName}\\n\`;
-    }
+        if (
+          !ticket ||
+          !contato ||
+          (!descricao && !descricaoNovaTrue) ||
+          ((!textoSolicitacao || !textoResultado) && descricaoNovaTrue) ||
+          !assinatura
+        ) {
+          alert("Preencha todos os campos obrigatórios.");
+          return;
+        }
 
-        texto += \`\${assinatura}\\n\`;
-    document.getElementById("resultado").value = texto;
+        let texto = "Ticket - " + ticket + "\n\n";
+        if (localizador) texto += "Localizador - " + localizador + "\n\n";
+        texto +=
+          contato + " " + (descricaoNovaTrue ? newTexto : descricao) + "\n\n";
 
-    // Salvar no Firestore (se disponível); caso contrário, apenas loga
-    const agora = new Date();
-    //agora.toISOString()
-    //agora.toLocaleString("pt-BR")
+        if (usouWaiver === "sim") {
+          texto += "Utilizado - " + tipoWaiver + "\n";
+          texto += "Motivo - " + motivo + "\n";
+        }
 
-    const novoRegistro = {
-      ticket,
-      contato,
-      localizador,
-      waiver: tipoWaiver,
-      motivo,
-      isentouDU,
-      motivoDU,
-      utilizouInvoice,
-      empresaInvoice,
-      valorInvoice,
-      realizouPagamento,
-      link,
-      bandeira,
-      parcelas,
-      cardName,
-      assinatura,
-      dataHora: agora.toLocaleString("pt-BR"),
-      dataISO: agora.toISOString(),
-    };
+        texto += "Isentou taxa DU - " + isentouDU + "\n";
+        if (isentouDU === "sim") {
+          texto += "Motivo da isencao - " + motivoDU + "\n";
+        }
 
-    // await AddouAtualizarPausas(ticket, novoRegistro);
-  }
+        // Bloco Invoice (associado a Possui Infant)
+        texto += "Possui Infant na reserva - " + utilizouInvoice + "\n";
+        if (utilizouInvoice === "sim") {
+          const empresaLabel =
+            empresaInvoice === "gol"
+              ? "Gol"
+              : empresaInvoice === "smiles"
+                ? "Smiles"
+                : "";
+          if (empresaLabel)
+            texto += "Emissor da Reserva - " + empresaLabel + "\n";
+          if (valorInvoice) texto += "Invoice - " + valorInvoice + "\n";
+        }
 
-  // Configuração do IndexedDB
-  const nomeBD = "RegistAtt";
-  //const nomeBD = "HefestosTeste";
-  const StoreBD = "OsRegistAtt";
+        texto += "Utilizou link de pagamento - " + realizouPagamento + "\n\n";
+        if (realizouPagamento === "nao") {
+          texto += "Motivo - " + link + "\n";
+          texto += "Bandeira - " + bandeira + "\n";
+          texto += "Parcelas - " + parcelas + "\n";
+          texto += "CardholderName - " + cardName + "\n";
+        }
 
-  const Chave0 = "RegistreDeAtt";
+        texto += assinatura + "\n";
+        document.getElementById("resultado").value = texto;
 
-  let Salvar0;
+        // Salvar no Firestore (se disponível); caso contrário, apenas loga
+        const agora = new Date();
+        //agora.toISOString()
+        //agora.toLocaleString("pt-BR")
 
-  const PreFixo = "regatt:";
+        const novoRegistro = {
+          ticket,
+          contato,
+          localizador,
+          waiver: tipoWaiver,
+          motivo,
+          isentouDU,
+          motivoDU,
+          utilizouInvoice,
+          empresaInvoice,
+          valorInvoice,
+          realizouPagamento,
+          link,
+          bandeira,
+          parcelas,
+          cardName,
+          assinatura,
+          dataHora: agora.toLocaleString("pt-BR"),
+          dataISO: agora.toISOString(),
+        };
 
-  function Hlog(...args) {
-    console.log(PreFixo, ...args);
-  }
-  function Hwarn(...args) {
-    console.warn(PreFixo, ...args);
-  }
-  function Herror(...args) {
-    console.error(PreFixo, ...args);
-  }
-  function Hdebug(...args) {
-    console.debug(PreFixo, ...args);
-  }
-  function Hinfo(...args) {
-    console.info(PreFixo, ...args);
-  }
-
-  async function RecuperarTVariaveis() {
-    try {
-      Salvar0 = await RecDadosindexdb(Chave0);
-
-      const hoje = new Date().toLocaleDateString("pt-BR");
-
-      // ✅ garante array válido
-      if (!Array.isArray(Salvar0) || Salvar0.length === 0) {
-        Salvar0 = [{ data: hoje }];
-        await AddOuAtuIindexdb(Chave0, Salvar0);
-        return;
+        // await AddouAtualizarPausas(ticket, novoRegistro);
       }
 
-      // ✅ valida acesso seguro
-      if (Salvar0[0]?.data !== hoje) {
-        Salvar0 = [{ data: hoje }];
+      // Configuração do IndexedDB
+      const nomeBD = "RegistAtt";
+      //const nomeBD = "HefestosTeste";
+      const StoreBD = "OsRegistAtt";
 
-        await AddOuAtuIindexdb(Chave0, Salvar0);
+      const Chave0 = "RegistreDeAtt";
+
+      let Salvar0;
+
+      const PreFixo = "regatt:";
+
+      function Hlog(...args) {
+        console.log(PreFixo, ...args);
+      }
+      function Hwarn(...args) {
+        console.warn(PreFixo, ...args);
+      }
+      function Herror(...args) {
+        console.error(PreFixo, ...args);
+      }
+      function Hdebug(...args) {
+        console.debug(PreFixo, ...args);
+      }
+      function Hinfo(...args) {
+        console.info(PreFixo, ...args);
       }
 
-      Hdebug("Encontrados em Salvar0:", Salvar0);
-    } catch (e) {
-      Herror("Erro ao recuperar Salvar0:", e);
-    }
-  }
+      async function RecuperarTVariaveis() {
+        try {
+          Salvar0 = await RecDadosindexdb(Chave0);
 
-  RecuperarTVariaveis();
+          const hoje = new Date().toLocaleDateString("pt-BR");
 
-  /**
-   * abrirDB - abre ou cria IndexedDB para persistência de dados
-   * @param {Function} callback - função a executar com banco de dados aberto
-   */
-  function abrirDB(callback) {
-    const requisicao_bd = indexedDB.open(nomeBD, 1);
+          // ✅ garante array válido
+          if (!Array.isArray(Salvar0) || Salvar0.length === 0) {
+            Salvar0 = [{ data: hoje }];
+            await AddOuAtuIindexdb(Chave0, Salvar0);
+            return;
+          }
 
-    requisicao_bd.onupgradeneeded = function (event) {
-      const banco_dados = event.target.result;
-      if (!banco_dados.objectStoreNames.contains(StoreBD)) {
-        banco_dados.createObjectStore(StoreBD);
+          // ✅ valida acesso seguro
+          if (Salvar0[0]?.data !== hoje) {
+            Salvar0 = [{ data: hoje }];
+
+            await AddOuAtuIindexdb(Chave0, Salvar0);
+          }
+
+          Hdebug("Encontrados em Salvar0:", Salvar0);
+        } catch (e) {
+          Herror("Erro ao recuperar Salvar0:", e);
+        }
       }
-    };
 
-    requisicao_bd.onsuccess = function (event) {
-      const banco_dados = event.target.result;
-      callback(banco_dados);
-    };
+      RecuperarTVariaveis();
 
-    requisicao_bd.onerror = function (event) {
-      Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
-    };
-  }
+      /**
+       * abrirDB - abre ou cria IndexedDB para persistência de dados
+       * @param {Function} callback - função a executar com banco de dados aberto
+       */
+      function abrirDB(callback) {
+        const requisicao_bd = indexedDB.open(nomeBD, 1);
 
-  /**
-   * AddOuAtuIindexdb - salva ou atualiza dados no IndexedDB
-   * @param {string} nomechave - chave de armazenamento
-   * @param {*} dados - dados a salvar (qualquer tipo)
-   * @returns {Promise<boolean>} true se salvo com sucesso
-   */
-  function AddOuAtuIindexdb(nomechave, dados) {
-    return new Promise((resolve, reject) => {
-      try {
+        requisicao_bd.onupgradeneeded = function (event) {
+          const banco_dados = event.target.result;
+          if (!banco_dados.objectStoreNames.contains(StoreBD)) {
+            banco_dados.createObjectStore(StoreBD);
+          }
+        };
+
+        requisicao_bd.onsuccess = function (event) {
+          const banco_dados = event.target.result;
+          callback(banco_dados);
+        };
+
+        requisicao_bd.onerror = function (event) {
+          Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
+        };
+      }
+
+      /**
+       * AddOuAtuIindexdb - salva ou atualiza dados no IndexedDB
+       * @param {string} nomechave - chave de armazenamento
+       * @param {*} dados - dados a salvar (qualquer tipo)
+       * @returns {Promise<boolean>} true se salvo com sucesso
+       */
+      function AddOuAtuIindexdb(nomechave, dados) {
+        return new Promise((resolve, reject) => {
+          try {
+            abrirDB(function (db) {
+              const transacao = db.transaction([StoreBD], "readwrite");
+              const store = transacao.objectStore(StoreBD);
+              const request = store.put(dados, nomechave);
+
+              request.onsuccess = function () {
+                Hdebug("Dados salvos com sucesso na chave ", nomechave);
+                resolve(true);
+              };
+
+              request.onerror = function (event) {
+                Herror(
+                  "Erro ao salvar os dados:",
+                  event.target?.errorCode || event,
+                );
+                reject(event);
+              };
+            });
+          } catch (err) {
+            Herror("AddOuAtuIindexdb erro:", err);
+            reject(err);
+          }
+        });
+      }
+
+      /**
+       * RecDadosindexdb - recupera dados do IndexedDB por chave
+       * @param {string} nomechave - chave de armazenamento
+       * @returns {Promise<*>} dados armazenados ou false se não encontrado
+       */
+      function RecDadosindexdb(nomechave) {
+        return new Promise((resolve, reject) => {
+          abrirDB(function (db) {
+            const transacao = db.transaction([StoreBD], "readonly");
+            const store = transacao.objectStore(StoreBD);
+            const request = store.get(nomechave);
+
+            request.onsuccess = function (event) {
+              const resultado = event.target.result;
+              resolve(resultado !== undefined ? resultado : false);
+            };
+
+            request.onerror = function (event) {
+              reject(event.target.errorCode);
+            };
+          });
+        });
+      }
+
+      /**
+       * ApagarChaveIndexDB - deleta uma chave do IndexedDB
+       * @param {string} nomechave - chave a deletar
+       */
+      function ApagarChaveIndexDB(nomechave) {
         abrirDB(function (db) {
           const transacao = db.transaction([StoreBD], "readwrite");
           const store = transacao.objectStore(StoreBD);
-          const request = store.put(dados, nomechave);
+          const request = store.delete(nomechave);
 
           request.onsuccess = function () {
-                Hdebug(\`Dados salvos com sucesso na chave "\${nomechave}"\`);
-            resolve(true);
+            Hlog("Chave apagada com sucesso.", nomechave);
           };
 
           request.onerror = function (event) {
-            Herror(
-              "Erro ao salvar os dados:",
-              event.target?.errorCode || event,
-            );
-            reject(event);
+            Herror("Erro ao apagar a chave:", event.target.errorCode);
           };
         });
-      } catch (err) {
-        Herror("AddOuAtuIindexdb erro:", err);
-        reject(err);
       }
-    });
-  }
 
-  /**
-   * RecDadosindexdb - recupera dados do IndexedDB por chave
-   * @param {string} nomechave - chave de armazenamento
-   * @returns {Promise<*>} dados armazenados ou false se não encontrado
-   */
-  function RecDadosindexdb(nomechave) {
-    return new Promise((resolve, reject) => {
-      abrirDB(function (db) {
-        const transacao = db.transaction([StoreBD], "readonly");
-        const store = transacao.objectStore(StoreBD);
-        const request = store.get(nomechave);
+      async function AddouAtualizarPausas(id, novoItem) {
+        if (!Array.isArray(Salvar0)) Salvar0 = [];
 
-        request.onsuccess = function (event) {
-          const resultado = event.target.result;
-          resolve(resultado !== undefined ? resultado : false);
-        };
-
-        request.onerror = function (event) {
-          reject(event.target.errorCode);
-        };
-      });
-    });
-  }
-
-  /**
-   * ApagarChaveIndexDB - deleta uma chave do IndexedDB
-   * @param {string} nomechave - chave a deletar
-   */
-  function ApagarChaveIndexDB(nomechave) {
-    abrirDB(function (db) {
-      const transacao = db.transaction([StoreBD], "readwrite");
-      const store = transacao.objectStore(StoreBD);
-      const request = store.delete(nomechave);
-
-      request.onsuccess = function () {
-            Hlog(\`Chave "\${nomechave}" apagada com sucesso.\`);
-      };
-
-      request.onerror = function (event) {
-        Herror("Erro ao apagar a chave:", event.target.errorCode);
-      };
-    });
-  }
-
-  async function AddouAtualizarPausas(id, novoItem) {
-    if (!Array.isArray(Salvar0)) Salvar0 = [];
-
-    const index = Salvar0.findIndex(
-      (item) => String(item?.ticket) === String(id),
-    );
-
-    let mudou = true;
-
-    if (index !== -1) {
-      const antigo = Salvar0[index];
-
-      mudou = registroMudou(antigo, novoItem);
-
-      if (mudou) {
-        Salvar0[index] = { ...antigo, ...novoItem };
-      }
-    } else {
-      Salvar0.push(novoItem);
-    }
-
-    if (mudou) await AddOuAtuIindexdb(Chave0, Salvar0);
-
-    return mudou;
-  }
-
-  function registroMudou(antigo, novo) {
-    if (!antigo) return true;
-
-    const limpar = (obj) => {
-      const copia = { ...obj };
-
-      delete copia.dataHora;
-      delete copia.dataISO;
-      delete copia.atualizadoEm;
-
-      return copia;
-    };
-
-    return JSON.stringify(limpar(antigo)) !== JSON.stringify(limpar(novo));
-  }
-
-  function formatarNome(nome) {
-    const minusculas = ["da", "de", "do", "das", "dos", "e"];
-
-    return nome
-      .toLowerCase()
-      .trim()
-      .split(" ")
-      .map((palavra, index) => {
-        if (index > 0 && minusculas.includes(palavra)) {
-          return palavra; // mantém minúsculo
-        }
-        return palavra.charAt(0).toUpperCase() + palavra.slice(1);
-      })
-      .join(" ");
-  }
-
-  // ====== Limpar Tela ======
-  function limparTela() {
-    document.querySelectorAll("input, textarea, select").forEach((el) => {
-      if (el.id === "assinatura" || el.name === "assinatura") return;
-      if (el.tagName === "SELECT") el.selectedIndex = 0;
-      else el.value = "";
-    });
-
-    const resultado = document.getElementById("resultado");
-    if (resultado) resultado.value = "";
-
-    document
-      .querySelectorAll(
-        "#waiverInfo, #motivoContainer, #pagamentoInfo, #isencaoDUInfo, #invoiceInfo",
-      )
-      .forEach((div) => div.classList.add("hidden"));
-  }
-
-  function copiarResultado() {
-    const resultado = document.getElementById("resultado");
-    if (!resultado.value.trim()) return;
-    navigator.clipboard
-      .writeText(resultado.value)
-      .then(() => {})
-      .catch(() => {});
-  }
-
-  function alternarTema() {
-
-    document.body.classList.toggle(
-        "dark"
-    );
-
-    localStorage.setItem(
-        "tema",
-        document.body.classList.contains(
-            "dark"
-        )
-            ? "dark"
-            : "light"
-    );
-
-    const botao =
-        document.getElementById(
-            "themeToggle"
+        const index = Salvar0.findIndex(
+          (item) => String(item?.ticket) === String(id),
         );
 
-    if (botao) {
+        let mudou = true;
 
-        botao.textContent =
-            document.body.classList.contains(
-                "dark"
-            )
-                ? "☀️"
-                : "🌙";
-    }
-}
+        if (index !== -1) {
+          const antigo = Salvar0[index];
 
-/* ==========================================================
-   EXPORTAÇÕES
-========================================================== */
+          mudou = registroMudou(antigo, novoItem);
 
-window.toggleWaiverInput =
-    toggleWaiverInput;
-
-window.toggleIsencaoDU =
-    toggleIsencaoDU;
-
-window.togglePagamentoInput =
-    togglePagamentoInput;
-
-window.toggleInvoice =
-    toggleInvoice;
-
-window.preencherValorInvoice =
-    preencherValorInvoice;
-
-window.gerarResumo =
-    gerarResumo;
-
-window.limparTela =
-    limparTela;
-
-window.copiarResultado =
-    copiarResultado;
-
-/* ==========================================================
-   INICIALIZAÇÃO
-========================================================== */
-
-window.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        if (
-            localStorage.getItem(
-                "tema"
-            ) === "dark"
-        ) {
-
-            document.body.classList.add(
-                "dark"
-            );
+          if (mudou) {
+            Salvar0[index] = { ...antigo, ...novoItem };
+          }
+        } else {
+          Salvar0.push(novoItem);
         }
 
-        const btn =
-            document.getElementById(
-                "themeToggle"
-            );
+        if (mudou) await AddOuAtuIindexdb(Chave0, Salvar0);
+
+        return mudou;
+      }
+
+      function registroMudou(antigo, novo) {
+        if (!antigo) return true;
+
+        const limpar = (obj) => {
+          const copia = { ...obj };
+
+          delete copia.dataHora;
+          delete copia.dataISO;
+          delete copia.atualizadoEm;
+
+          return copia;
+        };
+
+        return JSON.stringify(limpar(antigo)) !== JSON.stringify(limpar(novo));
+      }
+
+      function formatarNome(nome) {
+        const minusculas = ["da", "de", "do", "das", "dos", "e"];
+
+        return nome
+          .toLowerCase()
+          .trim()
+          .split(" ")
+          .map((palavra, index) => {
+            if (index > 0 && minusculas.includes(palavra)) {
+              return palavra; // mantém minúsculo
+            }
+            return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+          })
+          .join(" ");
+      }
+
+      // ====== Limpar Tela ======
+      function limparTela() {
+        document.querySelectorAll("input, textarea, select").forEach((el) => {
+          if (el.id === "assinatura" || el.name === "assinatura") return;
+          if (el.tagName === "SELECT") el.selectedIndex = 0;
+          else el.value = "";
+        });
+
+        const resultado = document.getElementById("resultado");
+        if (resultado) resultado.value = "";
+        const textoSolicitacao = document.getElementById("textoSolicitacao");
+        if (textoSolicitacao) textoSolicitacao.value = "";
+        const textoSituacao = document.getElementById("textoSituacao");
+        if (textoSituacao) textoSituacao.value = "";
+        const textoResultado = document.getElementById("textoResultado");
+        if (textoResultado) textoResultado.value = "";
+
+        document
+          .querySelectorAll(
+            "#waiverInfo, #motivoContainer, #pagamentoInfo, #isencaoDUInfo, #invoiceInfo",
+          )
+          .forEach((div) => div.classList.add("hidden"));
+      }
+
+      function copiarResultado() {
+        const resultado = document.getElementById("resultado");
+        if (!resultado.value.trim()) return;
+        navigator.clipboard
+          .writeText(resultado.value)
+          .then(() => {})
+          .catch(() => {});
+      }
+
+      /* ==========================================================
+               EXPORTAÇÕES
+            ========================================================== */
+
+      window.toggleWaiverInput = toggleWaiverInput;
+
+      window.toggleIsencaoDU = toggleIsencaoDU;
+
+      window.togglePagamentoInput = togglePagamentoInput;
+
+      window.toggleInvoice = toggleInvoice;
+
+      window.preencherValorInvoice = preencherValorInvoice;
+
+      window.gerarResumo = gerarResumo;
+
+      window.limparTela = limparTela;
+
+      window.copiarResultado = copiarResultado;
+
+      window.alternarTema = alternarTema;
+
+      /* ==========================================================
+               INICIALIZAÇÃO
+            ========================================================== */
+
+      window.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("tema") === "dark") {
+          document.body.classList.add("dark");
+        }
+
+        const btn = document.getElementById("themeToggle");
 
         if (btn) {
+          btn.textContent = document.body.classList.contains("dark")
+            ? "☀️"
+            : "🌙";
 
-            btn.textContent =
-                document.body.classList.contains(
-                    "dark"
-                )
-                    ? "☀️"
-                    : "🌙";
+          /* REMOVER se existir onclick no HTML */
 
-            /* REMOVER se existir onclick no HTML */
+          //btn.addEventListener("click", alternarTema());
 
-            btn.addEventListener(
-                "click",
-                alternarTema
-            );
+          const textoSolicitacao = document.getElementById("textoSolicitacao");
+          textoSolicitacao.addEventListener("input", () => {
+            textoSolicitacao.style.height = "auto"; // Reset height
+            textoSolicitacao.style.height =
+              textoSolicitacao.scrollHeight + "px"; // Set new height
+          });
+
+          const textoSituacao = document.getElementById("textoSituacao");
+          textoSituacao.addEventListener("input", () => {
+            textoSituacao.style.height = "auto"; // Reset height
+            textoSituacao.style.height = textoSituacao.scrollHeight + "px"; // Set new height
+          });
+
+          const textoResultado = document.getElementById("textoResultado");
+          textoResultado.addEventListener("input", () => {
+            textoResultado.style.height = "auto"; // Reset height
+            textoResultado.style.height = textoResultado.scrollHeight + "px"; // Set new height
+          });
         }
 
         toggleWaiverInput();
@@ -1569,88 +1659,42 @@ window.addEventListener(
         toggleInvoice();
         togglePagamentoInput();
 
-        const ticket =
-            document.getElementById(
-                "ticket"
-            );
+        const ticket = document.getElementById("ticket");
 
         if (ticket) {
-
-            ticket.addEventListener(
-                "input",
-                function () {
-
-                    this.value =
-                        this.value.replace(
-                            /\D/g,
-                            ""
-                        );
-                }
-            );
+          ticket.addEventListener("input", function () {
+            this.value = this.value.replace(/\D/g, "");
+          });
         }
 
-        const localizador =
-            document.getElementById(
-                "localizador"
-            );
+        const localizador = document.getElementById("localizador");
 
         if (localizador) {
+          localizador.addEventListener("input", function () {
+            const pos = this.selectionStart;
 
-            localizador.addEventListener(
-                "input",
-                function () {
+            this.value = this.value.toUpperCase();
 
-                    const pos =
-                        this.selectionStart;
-
-                    this.value =
-                        this.value.toUpperCase();
-
-                    this.setSelectionRange(
-                        pos,
-                        pos
-                    );
-                }
-            );
+            this.setSelectionRange(pos, pos);
+          });
         }
 
-        const contato =
-            document.getElementById(
-                "contato"
-            );
+        const contato = document.getElementById("contato");
 
         if (contato) {
+          contato.addEventListener("input", function (e) {
+            let valor = e.target.value;
 
-            contato.addEventListener(
-                "input",
-                function (e) {
+            valor = valor.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
 
-                    let valor =
-                        e.target.value;
+            if (valor.endsWith(" ")) {
+              e.target.value = valor;
 
-                    valor =
-                        valor.replace(
-                            /[^a-zA-ZÀ-ÿ\s]/g,
-                            ""
-                        );
+              return;
+            }
 
-                    if (
-                        valor.endsWith(
-                            " "
-                        )
-                    ) {
-                        e.target.value =
-                            valor;
-
-                        return;
-                    }
-
-                    e.target.value =
-                        formatarNome(
-                            valor
-                        );
-                }
-            );
+            e.target.value = formatarNome(valor);
+          });
         }
 
         /*
@@ -1671,11 +1715,11 @@ window.addEventListener(
          * no script principal
          * ZendeskComRegist.
          */
-    }
-);
+      });
     </script>
   </body>
 </html>
+
   `;
 
   // CSS do botão/painel
