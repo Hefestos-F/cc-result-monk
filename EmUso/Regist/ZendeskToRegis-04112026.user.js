@@ -373,7 +373,6 @@
   const PANEL_WIDTH = 580;
   const PANEL_HEIGHT = 520;
   const REGISTRO_HTML = String.raw`
-
   <!doctype html>
 <html lang="pt-BR">
   <head>
