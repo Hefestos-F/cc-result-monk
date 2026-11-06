@@ -1756,7 +1756,7 @@
       const terc =
         segunda === ""
           ? el.Status +
-            (config.pausalimitada ? "/ volte as :" + config.RetPausaAtual : "")
+            (config.pausalimitada ? "/ volte as " + config.RetPausaAtual : "")
           : `${el.Status} - ${segunda}`;
 
       const statusAtual = stt.Encontrado
