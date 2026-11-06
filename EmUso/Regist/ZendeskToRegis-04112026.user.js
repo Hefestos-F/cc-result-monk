@@ -373,7 +373,7 @@
   const PANEL_WIDTH = 580;
   const PANEL_HEIGHT = 520;
   const REGISTRO_HTML = String.raw`
-  <!doctype html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -753,57 +753,51 @@
           <input type="text" id="localizador" class="input-plain" />
         </div>
 
-        <div>
-          <div class="field field--stacked">
-            <div class="label">
-              <label for="descricao">Relato*</label>
-              <button
-                class="btn-secondary"
-                type="button"
-                id="botaoDescricaoNova"
-                onclick="novaDescricao()"
-              >
-                Novo
-              </button>
-            </div>
-
-            <textarea id="descricao" class="textarea-plain"></textarea>
-            <div
-              id="descricaoNova"
-              style="display: none; flex-direction: column"
+        <div class="field field--stacked">
+          <div class="label">
+            <label for="descricao">Relato*</label>
+            <button
+              class="btn-secondary"
+              type="button"
+              id="botaoDescricaoNova"
+              onclick="novaDescricao()"
             >
-              <div class="field field--stacked">
-                <label class="label" for="textoSolicitacao"
-                  >Entrou em contato solicitando:*</label
-                >
+              Dividido
+            </button>
+          </div>
 
-                <textarea
-                  placeholder="Solicitação"
-                  class="textarea-2plain"
-                  id="textoSolicitacao"
-                ></textarea>
-              </div>
-              <div class="field field--stacked">
-                <label class="label" for="textoSituacao"
-                  >Foi realizada a verificação no sistema e constatado
-                  que:</label
-                >
-                <textarea
-                  placeholder="Situação"
-                  class="textarea-2plain"
-                  id="textoSituacao"
-                ></textarea>
-              </div>
-              <div class="field field--stacked">
-                <label class="label" for="textoResultado"
-                  >A solicitação foi atendida da seguinte forma:*</label
-                >
-                <textarea
-                  placeholder="Resultado"
-                  class="textarea-2plain"
-                  id="textoResultado"
-                ></textarea>
-              </div>
+          <textarea id="descricao" class="textarea-plain"></textarea>
+          <div id="descricaoNova" style="display: none; flex-direction: column">
+            <div class="field field--stacked">
+              <label class="label" for="textoSolicitacao"
+                >Entrou em contato solicitando:*</label
+              >
+
+              <textarea
+                placeholder="Solicitação"
+                class="textarea-2plain"
+                id="textoSolicitacao"
+              ></textarea>
+            </div>
+            <div class="field field--stacked">
+              <label class="label" for="textoSituacao"
+                >Foi realizada a verificação no sistema e constatado que:</label
+              >
+              <textarea
+                placeholder="Situação"
+                class="textarea-2plain"
+                id="textoSituacao"
+              ></textarea>
+            </div>
+            <div class="field field--stacked">
+              <label class="label" for="textoResultado"
+                >A solicitação foi atendida da seguinte forma:*</label
+              >
+              <textarea
+                placeholder="Resultado"
+                class="textarea-2plain"
+                id="textoResultado"
+              ></textarea>
             </div>
           </div>
         </div>
@@ -935,7 +929,9 @@
         descricaoNova.style.display = descricaoNovaTrue ? "none" : "flex";
         descricao.style.display = !descricaoNovaTrue ? "none" : "flex";
 
-        botaoDescricaoNova.textContent = descricaoNovaTrue ? "Novo" : "Antiga";
+        botaoDescricaoNova.textContent = descricaoNovaTrue
+          ? "Dividido"
+          : "Completo";
       }
 
       function alternarTema() {
@@ -1304,15 +1300,15 @@
           if (valorInvoice) texto += "Invoice - " + valorInvoice + "\n";
         }
 
-        texto += "Utilizou link de pagamento - " + realizouPagamento + "\n\n";
+        texto += "Utilizou link de pagamento - " + realizouPagamento + "\n";
         if (realizouPagamento === "nao") {
           texto += "Motivo - " + link + "\n";
           texto += "Bandeira - " + bandeira + "\n";
           texto += "Parcelas - " + parcelas + "\n";
-          texto += "CardholderName - " + cardName + "\n";
+          texto += "CardholderName-" + cardName;
         }
 
-        texto += assinatura + "\n";
+        texto += "\n" + assinatura + "\n";
         document.getElementById("resultado").value = texto;
 
         // Salvar no Firestore (se disponível); caso contrário, apenas loga
@@ -1568,13 +1564,28 @@
         });
 
         const resultado = document.getElementById("resultado");
-        if (resultado) resultado.value = "";
+        if (resultado) {
+          resultado.value = "";
+          resultado.style.height = "auto"; // Reset height
+        }
+
         const textoSolicitacao = document.getElementById("textoSolicitacao");
-        if (textoSolicitacao) textoSolicitacao.value = "";
+        if (textoSolicitacao) {
+          textoSolicitacao.value = "";
+          textoSolicitacao.style.height = "auto"; // Reset height
+        }
+
         const textoSituacao = document.getElementById("textoSituacao");
-        if (textoSituacao) textoSituacao.value = "";
+        if (textoSituacao) {
+          textoSituacao.value = "";
+          textoSituacao.style.height = "auto"; // Reset height
+        }
+
         const textoResultado = document.getElementById("textoResultado");
-        if (textoResultado) textoResultado.value = "";
+        if (textoResultado) {
+          textoResultado.value = "";
+          textoResultado.style.height = "auto"; // Reset height
+        }
 
         document
           .querySelectorAll(
@@ -1651,6 +1662,12 @@
           textoResultado.addEventListener("input", () => {
             textoResultado.style.height = "auto"; // Reset height
             textoResultado.style.height = textoResultado.scrollHeight + "px"; // Set new height
+          });
+
+          const descricao = document.getElementById("descricao");
+          descricao.addEventListener("input", () => {
+            descricao.style.height = "auto"; // Reset height
+            descricao.style.height = descricao.scrollHeight + "px"; // Set new height
           });
         }
 

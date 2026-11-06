@@ -1942,7 +1942,7 @@
         stt.verificarDurac = 0;
       }
       somarDuracoesGeral();
-      stt.verificarDurac = 1;
+      //stt.verificarDurac = 1;
     }
 
     const duracaoContAtr = document.getElementById("duracaoContAtr");
