@@ -48,6 +48,7 @@
     },
     dBUG: 0,
     HistComp: 0,
+    RetPausaAtual: 0,
   };
 
   const configPadrao = {
@@ -494,6 +495,7 @@
         config.pausalimitada = 1;
         // exibirHora soma duracaoPrevista ao "agora"
         fimPrevistoObj = exibirHora(agora, 1, duracaoPrevista); // retorna {data,hora}
+        config.RetPausaAtual = fimPrevistoObj.hora;
         TempoPausas.Estouro = exibirHora(fimPrevistoObj, 0, "00:00:10");
       }
 
@@ -1751,7 +1753,11 @@
       }
       //const segunda = ozero ? ozero.textContent.trim().split(/\s+/)[0] : "";
 
-      const terc = segunda === "" ? el.Status : `${el.Status} - ${segunda}`;
+      const terc =
+        segunda === ""
+          ? el.Status +
+            (config.pausalimitada ? "/ volte as :" + config.RetPausaAtual : "")
+          : `${el.Status} - ${segunda}`;
 
       const statusAtual = stt.Encontrado
         ? el.Pausa
