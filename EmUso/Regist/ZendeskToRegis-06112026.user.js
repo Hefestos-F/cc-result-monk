@@ -368,12 +368,11 @@
   /** ===========================
    *  UI: botão flutuante e painel com iframe (580px)
    *  =========================== */
-  const RC_ORIGIN = "https://registrodechamadas.netlify.app";
-  const RC_URL = `${RC_ORIGIN}/?embed=zendesk`;
   const PANEL_WIDTH = 580;
   const PANEL_HEIGHT = 520;
   const REGISTRO_HTML = String.raw`
-<!doctype html>
+
+  <!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -761,6 +760,7 @@
               type="button"
               id="botaoDescricaoNova"
               onclick="novaDescricao()"
+              style="cursor: pointer"
             >
               Dividido
             </button>
@@ -1604,8 +1604,8 @@
       }
 
       /* ==========================================================
-               EXPORTAÇÕES
-            ========================================================== */
+                     EXPORTAÇÕES
+                  ========================================================== */
 
       window.toggleWaiverInput = toggleWaiverInput;
 
@@ -1625,9 +1625,78 @@
 
       window.alternarTema = alternarTema;
 
-      /* ==========================================================
-               INICIALIZAÇÃO
-            ========================================================== */
+      // ============= INICIALIZAÇÃO======================
+
+      const stt = {
+        observ: 1,
+        ticket: "",
+        contato: "",
+        textHonr: "",
+      };
+
+      function setInputValue(el, value) {
+        if (!el) return;
+        el.focus();
+        el.value = value ?? "";
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+
+      function NorTX(valor) {
+        if (!valor) return "";
+
+        return valor
+          .toString()
+          .normalize("NFD") // separa acentos
+          .replace(/[\u0300-\u036f]/g, "") // remove acentos
+          .toUpperCase()
+          .trim();
+      }
+
+      function contemNumero(valor) {
+        return /\d/.test(String(valor));
+      }
+
+      window.addEventListener("message", (ev) => {
+        const data = ev.data || {};
+
+        if (data.type !== "preencher") return;
+
+        const { ticket, contato } = data;
+        const tkEl = document.getElementById("ticket");
+        const ctEl = document.getElementById("contato");
+
+        if (!tkEl) {
+          warn("Input #ticket não encontrado");
+        } else {
+          stt.ticket = ticket;
+          if (tkEl.value === "") setInputValue(tkEl, ticket);
+        }
+
+        if (!ctEl) {
+          warn("Input #contato não encontrado");
+        } else {
+          let ocont = NorTX(contato);
+          let onome =
+            ocont === NorTX("Anonymous") ||
+            ocont === NorTX("Anônimo") ||
+            contemNumero(contato)
+              ? "Pax"
+              : contato;
+          stt.contato = onome;
+          if (ctEl.value === "") setInputValue(ctEl, onome);
+        }
+
+        Hlog("Aplicados:", { ticket, contato });
+        ev.source?.postMessage(
+          {
+            type: "status",
+            status: "ok",
+            fields: ["ticket", "contato"],
+          },
+          "*",
+        );
+      });
 
       window.addEventListener("DOMContentLoaded", () => {
         if (localStorage.getItem("tema") === "dark") {
@@ -1737,6 +1806,7 @@
   </body>
 </html>
 
+  
   `;
 
   // CSS do botão/painel
