@@ -142,6 +142,8 @@
     Config: "#96a8bb",
     Varian: "",
     TVarian: "",
+    ausente: "#fff0af",
+    atendendo: "#b9b9b9",
   };
 
   /**
@@ -2863,7 +2865,7 @@
       const caixa = criarCaixaSeg();
       const linha = criarLinhaTextoComBot2(
         "Disponibilidade",
-        "Dispon",
+        "Fila",
         config.disponibilidade,
         () => {
           config.disponibilidade = !config.disponibilidade;
@@ -2959,7 +2961,7 @@
         align-items: center;
         `;
       horaInputCai.id = "inputEscala";
-      const SalvarHora = criarBotSalv(13, "Salvar");
+      const SalvarHora = criarBotSalv("Salvar");
       SalvarHora.style.marginLeft = "5px";
       SalvarHora.addEventListener("click", function () {
         salvarHorario();
@@ -3128,7 +3130,7 @@
 
       horaInputCailogueManual.append(ContDataHoralogueManual, logueManualC);
       const a = CaixaDeOcultar(
-        criarBotSalv(27, "Logue Manual"),
+        criarBotSalv("Logue Manual"),
         horaInputCailogueManual,
       );
       return a;
@@ -3168,7 +3170,7 @@
       border-radius: 8px;
       `;
 
-      const SalvarHora = criarBotSalv("A13", "Salvar");
+      const SalvarHora = criarBotSalv("Salvar");
       SalvarHora.addEventListener("click", function () {
         salvarHorario();
         SalvandoVariConfig(1);
@@ -3246,7 +3248,7 @@
 
       horaInputCaiHM.append(selSign, horaInputTE, doispontos(), minuInputTE);
 
-      const SubPrLog = criarBotSalv("ASubPrLog", "Substituir Logue");
+      const SubPrLog = criarBotSalv("Substituir Logue");
 
       SubPrLog.addEventListener("click", () => {
         caixa.appendChild(
@@ -3277,10 +3279,7 @@
         return a;
       }
 
-      const botaoInclusaoManual = c1riarBotSalv(
-        "botaoInclusaoManual",
-        "Ação Manual",
-      );
+      const botaoInclusaoManual = c1riarBotSalv("Ação Manual");
       botaoInclusaoManual.addEventListener("click", inclusaoManual(1));
 
       const caixaBotaoInclusaoManual = criarCaixaSeg();
@@ -3300,7 +3299,7 @@
         caixaBotaoInclusaoManual,
       );
 
-      const a = CaixaDeOcultar(criarBotSalv("A28", "Teste"), horaInputCai);
+      const a = CaixaDeOcultar(criarBotSalv("Teste"), horaInputCai);
 
       return a;
     }
@@ -3351,15 +3350,32 @@
       const c1aixaDeCor = criarCaixaSeg();
       c1aixaDeCor.id = "c1aixaDeCor";
       c1aixaDeCor.append(
-        LinhaSelCor(7, "Principal", Ccor.Principal),
+        LinhaSelCor("Principal", Ccor.Principal, (novaCor) => {
+          Ccor.Principal = novaCor;
+          Ccor.AreaAr = escurecer(novaCor);
+        }),
         //LinhaSelCor(8, "Atualizando", Ccor.Atualizando),
-        LinhaSelCor(9, "Meta TMA", Ccor.MetaTMA),
+        LinhaSelCor("Meta TMA", Ccor.MetaTMA, (novaCor) => {
+          Ccor.MetaTMA = novaCor;
+        }),
         //LinhaSelCor(10, "Erro", Ccor.Aviso),
         //LinhaSelCor(11, "Offline", Ccor.Offline),
-        LinhaSelCor(12, "Config", Ccor.Config),
+        LinhaSelCor("Config", Ccor.Config, (novaCor) => {
+          Ccor.Config = novaCor;
+        }),
+        config.disponibilidade
+          ? LinhaSelCor("Ausente", Ccor.ausente, (novaCor) => {
+              Ccor.ausente = novaCor;
+            })
+          : "",
+        config.disponibilidade
+          ? LinhaSelCor("Atendendo", Ccor.atendendo, (novaCor) => {
+              Ccor.atendendo = novaCor;
+            })
+          : "",
       );
 
-      const a = CaixaDeOcultar(criarBotSalv(25, "Cores"), c1aixaDeCor);
+      const a = CaixaDeOcultar(criarBotSalv("Cores"), c1aixaDeCor);
       return a;
     }
 
@@ -3395,7 +3411,7 @@
         width: 50px;
         font-size: 12px;
         `;
-      const SalvarTMA = criarBotSalv("SavTMA", "Salvar");
+      const SalvarTMA = criarBotSalv("Salvar");
       SalvarTMA.style.marginLeft = "5px";
       SalvarTMA.addEventListener("click", function () {
         const valorinputtma = inputTMA.value || inputTMA.placeholder;
@@ -3439,10 +3455,7 @@
 
       CaixaModos.append(item1Modos, item2Modos);
 
-      const a = CaixaDeOcultar(
-        criarBotSalv("ModCal", "Modo de Calculo"),
-        CaixaModos,
-      );
+      const a = CaixaDeOcultar(criarBotSalv("Modo de Calculo"), CaixaModos);
       return a;
     }
 
@@ -3473,13 +3486,10 @@
 
     CigEstDep.append(IgEst, IgEstSom);
 
-    const CIgEst = CaixaDeOcultar(
-      criarBotSalv("CIgEst", "Estouro de Pausa"),
-      CigEstDep,
-    );
+    const CIgEst = CaixaDeOcultar(criarBotSalv("Estouro de Pausa"), CigEstDep);
 
-    function c1riarBotSalv(a, b) {
-      const c = criarBotSalv(a, b);
+    function c1riarBotSalv(b) {
+      const c = criarBotSalv(b);
       c.style.cssText = `
             padding: 2px;
             border-radius: 8px;
@@ -3496,7 +3506,7 @@
       const CBancDa = criarCaixaSeg();
       CBancDa.id = "CBancDa";
 
-      const BBancDa = c1riarBotSalv("BBancDa", "Banco de Dados");
+      const BBancDa = c1riarBotSalv("Banco de Dados");
       BBancDa.addEventListener("click", function () {
         if (CBancDa.innerHTML === "") {
           listarChavesEConteudos(); // Preenche o conteúdo
@@ -3509,7 +3519,7 @@
       CBBancDa.append(BBancDa);
       CBBancDa.append(CBancDa);
 
-      const BotaoResetT = c1riarBotSalv("BotaoResetT", "Restaurar Config");
+      const BotaoResetT = c1riarBotSalv("Restaurar Config");
       BotaoResetT.addEventListener("click", function () {
         caixa.appendChild(
           ADDCaixaDAviso("Restaurar Config", () => {
@@ -3538,7 +3548,7 @@
         caixaDeBotres,
       );
 
-      const a = CaixaDeOcultar(criarBotSalv("Avanc", "Avançado"), Cavancado);
+      const a = CaixaDeOcultar(criarBotSalv("Avançado"), Cavancado);
 
       a.style.cssText = `
       display: flex;
@@ -3568,7 +3578,7 @@
       Cbotavan(),
     );
 
-    function LinhaSelCor(a, b, c) {
+    function LinhaSelCor(b, c, funcaoDeLinhaCor) {
       const div1 = document.createElement("div");
       div1.style.cssText = `
             display: flex;
@@ -3579,7 +3589,6 @@
             `;
 
       const inputCor = document.createElement("input");
-      inputCor.id = `cor${a}`;
       inputCor.type = "color";
       inputCor.value = c; // Corrigido aqui
 
@@ -3595,12 +3604,12 @@
       const textoDiv = document.createElement("div");
       textoDiv.textContent = b;
 
-      const botao = criarBotSalv(a, "Aplicar");
+      const botao = criarBotSalv("Aplicar");
 
       botao.addEventListener("click", function () {
-        Ccor.Varian = inputCor.value;
+        funcaoDeLinhaCor(inputCor.value);
+        atualizarVisual();
         copiarTexto(Ccor.Varian);
-        atualizarVisual(inputCor.id);
         SalvandoVariConfig(1);
       });
 
@@ -3636,20 +3645,13 @@
     }
   }
 
-  function atualizarVisual(qq = "---") {
+  function atualizarVisual() {
     const minhaCaixa = document.getElementById("minhaCaixa");
     const AreaArrast = document.getElementById("AreaArrast");
     const CaixaConfig = document.getElementById("CaixaConfig");
     const CaiDPa = document.getElementById("CaiDPa");
     const BotInicial = document.getElementById("BotInicial");
 
-    if (qq === "cor7") {
-      Ccor.Principal = Ccor.Varian;
-      Ccor.AreaAr = escurecer(Ccor.Principal);
-    }
-
-    if (qq === "cor9") Ccor.MetaTMA = Ccor.Varian;
-    if (qq === "cor12") Ccor.Config = Ccor.Varian;
     if (minhaCaixa) minhaCaixa.style.backgroundColor = Ccor.Principal;
     if (AreaArrast) AreaArrast.style.backgroundColor = Ccor.AreaAr;
     if (CaixaConfig) CaixaConfig.style.backgroundColor = Ccor.Config;
@@ -3723,7 +3725,6 @@
    */
   function criarBotSalv(idBot, texto) {
     const Botao = document.createElement("button");
-    Botao.id = `Botao${idBot}`;
     Botao.style.cssText = `
             padding: 2px 4px;
             border-radius: 8px;
@@ -4791,6 +4792,15 @@
         dadosFilaAtendimentos[id].tempoInicio = null;
         dadosFilaAtendimentos[id].ausente = null;
         dadosFilaAtendimentos[id].tempoFim = null;
+
+        const b = document.getElementById("tab-closed");
+
+        // Verifica se o elemento realmente existe antes de clicar para evitar erros
+        if (b && config.disponibilidade) {
+          b.click();
+        } else {
+          console.error("Elemento com ID 'tab-active' não foi encontrado.");
+        }
       }
     });
 
@@ -4932,7 +4942,8 @@
         const tempoQuarentaMinuto = converterParaSegundos("00:40:00");
 
         const maisDQ =
-          !tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto;
+          (!tempoInicio && tempoDultimaLigacao > tempoQuarentaMinuto) ||
+          (!tempoFim && !tempoInicio);
 
         if (
           ignorarAgente != maisDQ ||
@@ -5030,14 +5041,19 @@
           }
         }
 
-        if (itemStatus.textContent != oNovoStatus) {
+        const aCor = atendendo
+          ? Ccor.atendendo
+          : oNovoStatus == "-Ausente-"
+            ? Ccor.ausente
+            : "";
+
+        if (
+          itemStatus.textContent != oNovoStatus ||
+          itemlinhaExiste.style.background != aCor
+        ) {
           itemStatus.textContent = oNovoStatus;
 
-          itemlinhaExiste.style.background = atendendo
-            ? "#b9b9b9"
-            : oNovoStatus == "-Ausente-"
-              ? "#fff0af"
-              : "";
+          itemlinhaExiste.style.background = aCor;
         }
 
         const itemAtendendo = document.getElementById("atendendo-" + id);
@@ -5105,6 +5121,17 @@
 
       variavelLista.ultimo = oUltimo;
       //variavelLista.reorganizou = reorganizou;
+
+      if (reorganizou) {
+        const b = document.getElementById("tab-active");
+
+        // Verifica se o elemento realmente existe antes de clicar para evitar erros
+        if (b) {
+          b.click();
+        } else {
+          console.error("Elemento com ID 'tab-active' não foi encontrado.");
+        }
+      }
 
       if (reorganizou) {
         variavelLista.reorganizou = 0;
