@@ -3023,10 +3023,7 @@
       horaInputCaiHM.append(horaInputTE, doispontos(), minuInputTE);
       horaInputCai.append(horaInputCaiHM, SalvarHora);
 
-      const a = CaixaDeOcultar(
-        criarBotSalv(28, "Tempo Escalado"),
-        horaInputCai,
-      );
+      const a = CaixaDeOcultar(criarBotSalv("Tempo Escalado"), horaInputCai);
       return a;
     }
 
@@ -3735,11 +3732,10 @@
 
   /**
    * criarBotSalv - cria um botão estilizado simples
-   * @param {number} idBot - id único do botão
    * @param {string} texto - texto a exibir
    * @returns {HTMLElement} botão criado
    */
-  function criarBotSalv(idBot, texto) {
+  function criarBotSalv(texto) {
     const Botao = document.createElement("button");
     Botao.style.cssText = `
             padding: 2px 4px;

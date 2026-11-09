@@ -576,32 +576,40 @@
           : "🌙";
       }
 
-      let TextosRegistro = {};
-
       RecuperarSalvarTexto(0);
 
-      function RecuperarSalvarTexto(salvar) {
-        if (salvar) {
-          localStorage.setItem("TextosRegistro", TextosRegistro);
-        } else {
-          TextosRegistro = localStorage.getItem("TextosRegistro") ?? {};
+      let variaveisRegistro = {};
 
-          [
-            "ticket",
-            "contato",
-            "localizador",
-            "textoSolicitacao",
-            "textoSituacao",
-            "textoResultado",
-            "descricao",
-            "assinatura",
-          ].forEach((itemLista) => {
-            const item = document.getElementById(itemLista);
-            if (item) {
-              item.value = TextosRegistro[itemLista] ?? "";
+      function RecuperarSalvarTexto(salvar) {
+        [
+          "ticket",
+          "contato",
+          "localizador",
+          "textoSolicitacao",
+          "textoSituacao",
+          "textoResultado",
+          "descricao",
+          "assinatura",
+          "variaveisRegistro",
+        ].forEach((itemLista) => {
+          const item = document.getElementById(itemLista);
+
+          if (item) {
+            if (salvar) {
+              localStorage.setItem(itemLista, item.value);
+            } else {
+              item.value = localStorage.getItem(itemLista);
             }
-          });
-        }
+          } else {
+            if (itemLista != "variaveisRegistro") return;
+
+            if (salvar) {
+              localStorage.setItem(itemLista, variaveisRegistro);
+            } else {
+              variaveisRegistro = localStorage.getItem(itemLista);
+            }
+          }
+        });
       }
 
       // ====== Lógica da Waiver ======
@@ -1066,6 +1074,13 @@
             "#waiverInfo, #motivoContainer, #pagamentoInfo, #isencaoDUInfo, #invoiceInfo",
           )
           .forEach((div) => div.classList.add("hidden"));
+
+        RecuperarSalvarTexto(1);
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
       }
 
       function copiarResultado() {
@@ -1079,7 +1094,7 @@
 
       /* ==========================================================
                      EXPORTAÇÕES
-                  ========================================================== */
+      ========================================================== */
 
       window.toggleWaiverInput = toggleWaiverInput;
 
@@ -1202,7 +1217,7 @@
           item.addEventListener("input", () => {
             item.style.height = "auto"; // Reset height
             item.style.height = item.scrollHeight + "px"; // Set new height
-            TextosRegistro[itemDaLista] = item.value ?? "";
+            //variaveisRegistro[itemDaLista] = item.value;
             RecuperarSalvarTexto(1);
           });
         });
