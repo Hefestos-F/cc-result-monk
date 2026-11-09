@@ -55,8 +55,10 @@
     TempoEscaladoHoras: "06:20:00", // Horário alvo do escalonado (HH:MM:SS)
     ValorMetaTMA: 725,
     logueEntreDatas: 0,
+    disponibilidade: 0,
     pausalimitada: 0,
     LogueManual: 0,
+    logueSalvo: 1,
     SomEstouro: 1,
     notiEstouro: 1,
     OBS_ATIVO: 1,
@@ -65,6 +67,21 @@
     LadoBot: 0,
     LadoBotAnterior: 0,
     MetaTMA: 1,
+    FaixaVerti: 1,
+    TolerOff: 40,
+    posicaoH: {
+      top: "34px",
+      right: "106px",
+      left: "",
+    },
+    posicaoV: {
+      top: "260px",
+      right: "0px",
+      left: "",
+    },
+    dBUG: 0,
+    HistComp: 0,
+    RetPausaAtual: 0,
   };
 
   const stt = {
@@ -140,8 +157,6 @@
     Principal: "#4c95bd",
     AreaAr: "#337091",
     Config: "#96a8bb",
-    Varian: "",
-    TVarian: "",
     ausente: "#fff0af",
     atendendo: "#b9b9b9",
   };
@@ -150,15 +165,16 @@
    * PCcor - Cores padrão (backup)
    */
   const CorPad = {
-    Offline: "#3a82cf",
-    Atualizando: "#c97123ff",
-    Erro: "#992e2e",
+    Alerta: "#992e2e",
+    Aviso: "#c97123ff",
+    Contagem: "darkcyan",
     MetaTMA: "#229b8d",
+    destaque: "#1b81ff",
     Principal: "#4c95bd",
     AreaAr: "#337091",
     Config: "#96a8bb",
-    Varian: "",
-    TVarian: "",
+    ausente: "#fff0af",
+    atendendo: "#b9b9b9",
   };
 
   // Chaves usadas no IndexedDB/local storage
@@ -3609,7 +3625,7 @@
       botao.addEventListener("click", function () {
         funcaoDeLinhaCor(inputCor.value);
         atualizarVisual();
-        copiarTexto(Ccor.Varian);
+        copiarTexto(inputCor.value);
         SalvandoVariConfig(1);
       });
 
