@@ -1748,7 +1748,7 @@
     const el = encoStatus();
     Hodeb("Estado do agente", el);
 
-    if (config.disponibilidade) colocarListaDeDisponibilidade();
+    colocarListaDeDisponibilidade();
 
     const agora = gerarDataHora();
 
@@ -4864,6 +4864,14 @@
   const estadoAnterior = {};
 
   function colocarListaDeDisponibilidade() {
+    const aCaixaDaListaDisponivel = document.getElementById(
+      "aCaixaDaListaDisponivel",
+    );
+    if (!config.disponibilidade) {
+      if (aCaixaDaListaDisponivel) aCaixaDaListaDisponivel.remove();
+      return;
+    }
+
     const criarDiv = () => document.createElement("div");
 
     function addLinhas(id, agente) {
@@ -4902,10 +4910,6 @@
     if (!abaInteracaoConcluida) return;
 
     const opai = abaInteracaoConcluida.parentElement;
-
-    const aCaixaDaListaDisponivel = document.getElementById(
-      "aCaixaDaListaDisponivel",
-    );
 
     const aCaixaDaLista = criarDiv();
     aCaixaDaLista.id = "aCaixaDaListaDisponivel";

@@ -371,8 +371,7 @@
   const PANEL_WIDTH = 580;
   const PANEL_HEIGHT = 520;
   const REGISTRO_HTML = String.raw`
-
-  <!doctype html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -1806,7 +1805,6 @@
   </body>
 </html>
 
-  
   `;
 
   // CSS do botão/painel
