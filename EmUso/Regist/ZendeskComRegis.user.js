@@ -371,7 +371,8 @@
   const PANEL_WIDTH = 580;
   const PANEL_HEIGHT = 520;
   const REGISTRO_HTML = String.raw`
-<!doctype html>
+
+  <!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -949,6 +950,42 @@
           : "🌙";
       }
 
+      RecuperarSalvarTexto(0);
+
+      let variaveisRegistro = {};
+
+      function RecuperarSalvarTexto(salvar) {
+        [
+          "ticket",
+          "contato",
+          "localizador",
+          "textoSolicitacao",
+          "textoSituacao",
+          "textoResultado",
+          "descricao",
+          "assinatura",
+          "variaveisRegistro",
+        ].forEach((itemLista) => {
+          const item = document.getElementById(itemLista);
+
+          if (item) {
+            if (salvar) {
+              localStorage.setItem(itemLista, item.value);
+            } else {
+              item.value = localStorage.getItem(itemLista);
+            }
+          } else {
+            if (itemLista != "variaveisRegistro") return;
+
+            if (salvar) {
+              localStorage.setItem(itemLista, variaveisRegistro);
+            } else {
+              //variaveisRegistro = localStorage.getItem(itemLista) ?? "";
+            }
+          }
+        });
+      }
+
       // ====== Lógica da Waiver ======
       function toggleWaiverInput() {
         const select = document.getElementById("usouWaiver");
@@ -1335,18 +1372,10 @@
           dataHora: agora.toLocaleString("pt-BR"),
           dataISO: agora.toISOString(),
         };
-
-        // await AddouAtualizarPausas(ticket, novoRegistro);
       }
 
       // Configuração do IndexedDB
       const nomeBD = "RegistAtt";
-      //const nomeBD = "HefestosTeste";
-      const StoreBD = "OsRegistAtt";
-
-      const Chave0 = "RegistreDeAtt";
-
-      let Salvar0;
 
       const PreFixo = "regatt:";
 
@@ -1364,178 +1393,6 @@
       }
       function Hinfo(...args) {
         console.info(PreFixo, ...args);
-      }
-
-      async function RecuperarTVariaveis() {
-        try {
-          Salvar0 = await RecDadosindexdb(Chave0);
-
-          const hoje = new Date().toLocaleDateString("pt-BR");
-
-          // ✅ garante array válido
-          if (!Array.isArray(Salvar0) || Salvar0.length === 0) {
-            Salvar0 = [{ data: hoje }];
-            await AddOuAtuIindexdb(Chave0, Salvar0);
-            return;
-          }
-
-          // ✅ valida acesso seguro
-          if (Salvar0[0]?.data !== hoje) {
-            Salvar0 = [{ data: hoje }];
-
-            await AddOuAtuIindexdb(Chave0, Salvar0);
-          }
-
-          Hdebug("Encontrados em Salvar0:", Salvar0);
-        } catch (e) {
-          Herror("Erro ao recuperar Salvar0:", e);
-        }
-      }
-
-      RecuperarTVariaveis();
-
-      /**
-       * abrirDB - abre ou cria IndexedDB para persistência de dados
-       * @param {Function} callback - função a executar com banco de dados aberto
-       */
-      function abrirDB(callback) {
-        const requisicao_bd = indexedDB.open(nomeBD, 1);
-
-        requisicao_bd.onupgradeneeded = function (event) {
-          const banco_dados = event.target.result;
-          if (!banco_dados.objectStoreNames.contains(StoreBD)) {
-            banco_dados.createObjectStore(StoreBD);
-          }
-        };
-
-        requisicao_bd.onsuccess = function (event) {
-          const banco_dados = event.target.result;
-          callback(banco_dados);
-        };
-
-        requisicao_bd.onerror = function (event) {
-          Herror("Erro ao abrir o banco de dados:", event.target.errorCode);
-        };
-      }
-
-      /**
-       * AddOuAtuIindexdb - salva ou atualiza dados no IndexedDB
-       * @param {string} nomechave - chave de armazenamento
-       * @param {*} dados - dados a salvar (qualquer tipo)
-       * @returns {Promise<boolean>} true se salvo com sucesso
-       */
-      function AddOuAtuIindexdb(nomechave, dados) {
-        return new Promise((resolve, reject) => {
-          try {
-            abrirDB(function (db) {
-              const transacao = db.transaction([StoreBD], "readwrite");
-              const store = transacao.objectStore(StoreBD);
-              const request = store.put(dados, nomechave);
-
-              request.onsuccess = function () {
-                Hdebug("Dados salvos com sucesso na chave ", nomechave);
-                resolve(true);
-              };
-
-              request.onerror = function (event) {
-                Herror(
-                  "Erro ao salvar os dados:",
-                  event.target?.errorCode || event,
-                );
-                reject(event);
-              };
-            });
-          } catch (err) {
-            Herror("AddOuAtuIindexdb erro:", err);
-            reject(err);
-          }
-        });
-      }
-
-      /**
-       * RecDadosindexdb - recupera dados do IndexedDB por chave
-       * @param {string} nomechave - chave de armazenamento
-       * @returns {Promise<*>} dados armazenados ou false se não encontrado
-       */
-      function RecDadosindexdb(nomechave) {
-        return new Promise((resolve, reject) => {
-          abrirDB(function (db) {
-            const transacao = db.transaction([StoreBD], "readonly");
-            const store = transacao.objectStore(StoreBD);
-            const request = store.get(nomechave);
-
-            request.onsuccess = function (event) {
-              const resultado = event.target.result;
-              resolve(resultado !== undefined ? resultado : false);
-            };
-
-            request.onerror = function (event) {
-              reject(event.target.errorCode);
-            };
-          });
-        });
-      }
-
-      /**
-       * ApagarChaveIndexDB - deleta uma chave do IndexedDB
-       * @param {string} nomechave - chave a deletar
-       */
-      function ApagarChaveIndexDB(nomechave) {
-        abrirDB(function (db) {
-          const transacao = db.transaction([StoreBD], "readwrite");
-          const store = transacao.objectStore(StoreBD);
-          const request = store.delete(nomechave);
-
-          request.onsuccess = function () {
-            Hlog("Chave apagada com sucesso.", nomechave);
-          };
-
-          request.onerror = function (event) {
-            Herror("Erro ao apagar a chave:", event.target.errorCode);
-          };
-        });
-      }
-
-      async function AddouAtualizarPausas(id, novoItem) {
-        if (!Array.isArray(Salvar0)) Salvar0 = [];
-
-        const index = Salvar0.findIndex(
-          (item) => String(item?.ticket) === String(id),
-        );
-
-        let mudou = true;
-
-        if (index !== -1) {
-          const antigo = Salvar0[index];
-
-          mudou = registroMudou(antigo, novoItem);
-
-          if (mudou) {
-            Salvar0[index] = { ...antigo, ...novoItem };
-          }
-        } else {
-          Salvar0.push(novoItem);
-        }
-
-        if (mudou) await AddOuAtuIindexdb(Chave0, Salvar0);
-
-        return mudou;
-      }
-
-      function registroMudou(antigo, novo) {
-        if (!antigo) return true;
-
-        const limpar = (obj) => {
-          const copia = { ...obj };
-
-          delete copia.dataHora;
-          delete copia.dataISO;
-          delete copia.atualizadoEm;
-
-          return copia;
-        };
-
-        return JSON.stringify(limpar(antigo)) !== JSON.stringify(limpar(novo));
       }
 
       function formatarNome(nome) {
@@ -1591,6 +1448,13 @@
             "#waiverInfo, #motivoContainer, #pagamentoInfo, #isencaoDUInfo, #invoiceInfo",
           )
           .forEach((div) => div.classList.add("hidden"));
+
+        RecuperarSalvarTexto(1);
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
       }
 
       function copiarResultado() {
@@ -1604,7 +1468,7 @@
 
       /* ==========================================================
                      EXPORTAÇÕES
-                  ========================================================== */
+      ========================================================== */
 
       window.toggleWaiverInput = toggleWaiverInput;
 
@@ -1704,40 +1568,33 @@
 
         const btn = document.getElementById("themeToggle");
 
-        if (btn) {
+        if (btn)
           btn.textContent = document.body.classList.contains("dark")
             ? "☀️"
             : "🌙";
 
-          /* REMOVER se existir onclick no HTML */
+        /* REMOVER se existir onclick no HTML */
 
-          //btn.addEventListener("click", alternarTema());
+        //btn.addEventListener("click", alternarTema());
 
-          const textoSolicitacao = document.getElementById("textoSolicitacao");
-          textoSolicitacao.addEventListener("input", () => {
-            textoSolicitacao.style.height = "auto"; // Reset height
-            textoSolicitacao.style.height =
-              textoSolicitacao.scrollHeight + "px"; // Set new height
+        [
+          "ticket",
+          "contato",
+          "localizador",
+          "textoSolicitacao",
+          "textoSituacao",
+          "textoResultado",
+          "descricao",
+          "assinatura",
+        ].forEach((itemDaLista) => {
+          const item = document.getElementById(itemDaLista);
+          item.addEventListener("input", () => {
+            item.style.height = "auto"; // Reset height
+            item.style.height = item.scrollHeight + "px"; // Set new height
+            //variaveisRegistro[itemDaLista] = item.value;
+            RecuperarSalvarTexto(1);
           });
-
-          const textoSituacao = document.getElementById("textoSituacao");
-          textoSituacao.addEventListener("input", () => {
-            textoSituacao.style.height = "auto"; // Reset height
-            textoSituacao.style.height = textoSituacao.scrollHeight + "px"; // Set new height
-          });
-
-          const textoResultado = document.getElementById("textoResultado");
-          textoResultado.addEventListener("input", () => {
-            textoResultado.style.height = "auto"; // Reset height
-            textoResultado.style.height = textoResultado.scrollHeight + "px"; // Set new height
-          });
-
-          const descricao = document.getElementById("descricao");
-          descricao.addEventListener("input", () => {
-            descricao.style.height = "auto"; // Reset height
-            descricao.style.height = descricao.scrollHeight + "px"; // Set new height
-          });
-        }
+        });
 
         toggleWaiverInput();
         toggleIsencaoDU();

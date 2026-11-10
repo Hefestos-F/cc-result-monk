@@ -1695,7 +1695,8 @@
             : alarmeBipsIntercalados,
         );
       }
-    } else if (
+    }
+    if (
       (stt.Estouro && botaoAlarmeInicialDisplay != "flex") ||
       (!stt.Estouro && botaoAlarmeInicialDisplay != "none")
     ) {
@@ -2928,13 +2929,11 @@
             `;
       Titulofeito.addEventListener("click", function () {
         const a = document.getElementById(objeto.id);
-        const b = document.getElementById(Titulofeito.id);
         if (!a) {
           CaixaPrincipal.append(objeto);
         } else {
           a.remove();
         }
-        b.style.marginBottom = a ? "0px" : "6px";
       });
       CaixaPrincipal.append(Titulofeito);
       return CaixaPrincipal;
