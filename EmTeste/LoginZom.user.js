@@ -4743,7 +4743,7 @@
             listarAgentesAtendendo(data);
           }
         } catch (err) {
-          Herror("❌ Resposta não é JSON");
+          Herror("❌ Resposta não é JSON", this.responseText);
         }
       });
 
@@ -4803,15 +4803,7 @@
         dadosFilaAtendimentos[id].tempoInicio = null;
         dadosFilaAtendimentos[id].ausente = null;
         dadosFilaAtendimentos[id].tempoFim = null;
-
-        const b = document.getElementById("tab-closed");
-
-        // Verifica se o elemento realmente existe antes de clicar para evitar erros
-        if (b && config.disponibilidade) {
-          b.click();
-        } else {
-          console.error("Elemento com ID 'tab-active' não foi encontrado.");
-        }
+        atualizarOsClicks(0);
       }
     });
 
@@ -4849,11 +4841,34 @@
     });
   }
 
+  function atualizarOsClicks(ativo = 0) {
+    if (ativo) {
+      const tabActive = document.getElementById("tab-active");
+
+      // Verifica se o elemento realmente existe antes de clicar para evitar erros
+      if (tabActive) {
+        tabActive.click();
+      } else {
+        console.error("Elemento com ID 'tab-active' não foi encontrado.");
+      }
+    } else {
+      const tabClosed = document.getElementById("tab-closed");
+
+      // Verifica se o elemento realmente existe antes de clicar para evitar erros
+      if (tabClosed) {
+        tabClosed.click();
+      } else {
+        console.error("Elemento com ID 'tab-active' não foi encontrado.");
+      }
+    }
+  }
+
   const variavelLista = {
     variavelListaInicial: 0,
     Atendendo: 0,
     reorganizou: 1,
     estadoAnterior: {},
+    contagemClick: 0,
   };
 
   const estadoAnterior = {};
@@ -4923,6 +4938,16 @@
     // Hlog(nAtendimento)
     // Hlog(dadosFilaAtendimentos)
 
+    if (variavelLista.contagemClick > 30) {
+      atualizarOsClicks(1);
+      variavelLista.contagemClick = 0;
+    } else if (variavelLista.contagemClick > 28) {
+      atualizarOsClicks(0);
+      variavelLista.contagemClick++;
+    } else {
+      variavelLista.contagemClick++;
+    }
+
     if (nAtendimento > 0) {
       let oUltimo = nAtendimento;
       let mudouStatus = 0;
@@ -4979,6 +5004,7 @@
 
           if (aCaixaDaListaDisponivel) {
             aCaixaDaListaDisponivel.append(itemLinha);
+            atualizarOsClicks(1);
             Hlog("Linha nao existe, criada");
           } else {
             aCaixaDaLista.append(itemLinha);
@@ -5013,8 +5039,8 @@
 
         const posicaoAnterior = posicao - 1;
 
-        if (atendendo) {
-          oUltimo = posicao < oUltimo ? posicao : oUltimo;
+        if (atendendo && posicao < oUltimo) {
+          oUltimo = posicao;
         }
 
         const itemStatus = document.getElementById("status-" + id);
@@ -5025,13 +5051,14 @@
           posicoesTempos[posicaoProxima]?.status ?? 0;
 
         if (variavelLista.reorganizou > 3) {
-          if (posicaoAnt != posicao)
-            dadosFilaAtendimentos[id].posicao = posicao;
+          const novoAusente = posicao > variavelLista.ultimo;
+
+          const oStatuseAusente = oStatus == "-Ausente-";
 
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
               ? oStatus
-              : posicao > variavelLista.ultimo
+              : novoAusente
                 ? "-Ausente-"
                 : oStatus
             : oStatus;
@@ -5136,17 +5163,6 @@
 
       variavelLista.ultimo = oUltimo;
       //variavelLista.reorganizou = reorganizou;
-
-      if (reorganizou) {
-        const b = document.getElementById("tab-active");
-
-        // Verifica se o elemento realmente existe antes de clicar para evitar erros
-        if (b) {
-          b.click();
-        } else {
-          console.error("Elemento com ID 'tab-active' não foi encontrado.");
-        }
-      }
 
       if (reorganizou) {
         variavelLista.reorganizou = 0;

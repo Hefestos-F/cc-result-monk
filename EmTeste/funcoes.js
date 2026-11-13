@@ -116,10 +116,10 @@ function RecDadosindexdb(nomechave) {
 }
 
 /**
- * ApagarChaveIndexDB - deleta uma chave do IndexedDB
+ * ApagarChaveIndexdb - deleta uma chave do IndexedDB
  * @param {string} nomechave - chave a deletar
  */
-function ApagarChaveIndexDB(nomechave) {
+function ApagarChaveIndexdb(nomechave) {
   abrirDB(function (db) {
     const transacao = db.transaction([StoreBD], "readwrite");
     const store = transacao.objectStore(StoreBD);

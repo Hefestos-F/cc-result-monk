@@ -543,6 +543,16 @@
     </div>
 
     <script>
+      let errolocalStorage = 0;
+
+      const variaveisSalvas = {
+        tema: "light",
+      };
+
+      // Configuração do IndexedDB
+      const nomeBD = "RegistAtt";
+      const PreFixo = "regatt:";
+
       function novaDescricao() {
         const descricaoNova = document.getElementById("descricaoNova");
         const descricao = document.getElementById("descricao");
@@ -563,10 +573,9 @@
       function alternarTema() {
         document.body.classList.toggle("dark");
 
-        localStorage.setItem(
-          "tema",
-          document.body.classList.contains("dark") ? "dark" : "light",
-        );
+        tema = document.body.classList.contains("dark") ? "dark" : "light";
+
+        if (!errolocalStorage) localStorage.setItem("tema", tema);
 
         const botao = document.getElementById("themeToggle");
 
@@ -576,12 +585,8 @@
           : "🌙";
       }
 
-      RecuperarSalvarTexto(0);
-
-      let variaveisRegistro = {};
-
       function RecuperarSalvarTexto(salvar) {
-        [
+        const listaIDs = [
           "ticket",
           "contato",
           "localizador",
@@ -590,26 +595,51 @@
           "textoResultado",
           "descricao",
           "assinatura",
-          "variaveisRegistro",
-        ].forEach((itemLista) => {
+        ];
+
+        listaIDs.forEach((itemLista) => {
           const item = document.getElementById(itemLista);
 
           if (item) {
             if (salvar) {
-              localStorage.setItem(itemLista, item.value);
+              variaveisSalvas[itemLista] = item.value;
             } else {
-              item.value = localStorage.getItem(itemLista);
-            }
-          } else {
-            if (itemLista != "variaveisRegistro") return;
-
-            if (salvar) {
-              localStorage.setItem(itemLista, variaveisRegistro);
-            } else {
-              //variaveisRegistro = localStorage.getItem(itemLista) ?? "";
+              item.value = variaveisSalvas[itemLista] ?? "";
             }
           }
         });
+
+        if (salvar) {
+          if (errolocalStorage) {
+            window.parent.postMessage(
+              {
+                type: "TextoRegistroParaSalvar",
+                TextoRegist: variaveisSalvas,
+              },
+              "*",
+            );
+          } else {
+            localStorage.setItem("variaveisSalvas", variaveisSalvas);
+          }
+        } else {
+          if (errolocalStorage) {
+            window.parent.postMessage(
+              {
+                type: "retornarSalvosLocal",
+              },
+              "*",
+            );
+          } else {
+            const RegistroSalvos = localStorage.getItem("variaveisSalvas");
+
+            Object.keys(variaveisSalvas).forEach((itenLocal) => {
+              Object.keys(RegistroSalvos).forEach((iten) => {
+                if (itenLocal == iten)
+                  variaveisSalvas[itenLocal] = RegistroSalvos[iten];
+              });
+            });
+          }
+        }
       }
 
       // ====== Lógica da Waiver ======
@@ -1000,11 +1030,6 @@
         };
       }
 
-      // Configuração do IndexedDB
-      const nomeBD = "RegistAtt";
-
-      const PreFixo = "regatt:";
-
       function Hlog(...args) {
         console.log(PreFixo, ...args);
       }
@@ -1149,6 +1174,20 @@
       window.addEventListener("message", (ev) => {
         const data = ev.data || {};
 
+        if (data.type === "AsVeriaveisSalvas") {
+          const AvariaveisRegistro = data.variaveis;
+
+          Object.keys(variaveisSalvas).forEach((itenLocal) => {
+            Object.keys(AvariaveisRegistro).forEach((iten) => {
+              if (
+                itenLocal == iten &&
+                variaveisSalvas[itenLocal] != AvariaveisRegistro[iten]
+              )
+                variaveisSalvas[itenLocal] = AvariaveisRegistro[iten];
+            });
+          });
+        }
+
         if (data.type !== "preencher") return;
 
         const { ticket, contato } = data;
@@ -1188,9 +1227,22 @@
       });
 
       window.addEventListener("DOMContentLoaded", () => {
-        if (localStorage.getItem("tema") === "dark") {
-          document.body.classList.add("dark");
+        try {
+          localStorage.setItem("teste", errolocalStorage);
+        } catch (erro) {
+          console.warn(
+            "O localStorage não está disponível neste ambiente:",
+            erro,
+          );
+          errolocalStorage = 1;
+          // Aqui você pode salvar os dados em uma variável na memória como alternativa
         }
+
+        if (!errolocalStorage)
+          if (localStorage.getItem("tema") === "dark") {
+            tema = "dark";
+            document.body.classList.add("dark");
+          }
 
         const btn = document.getElementById("themeToggle");
 
@@ -1200,7 +1252,6 @@
             : "🌙";
 
         /* REMOVER se existir onclick no HTML */
-
         //btn.addEventListener("click", alternarTema());
 
         [
@@ -1217,7 +1268,7 @@
           item.addEventListener("input", () => {
             item.style.height = "auto"; // Reset height
             item.style.height = item.scrollHeight + "px"; // Set new height
-            //variaveisRegistro[itemDaLista] = item.value;
+            //item.value = variaveisRegistro[itemDaLista];
             RecuperarSalvarTexto(1);
           });
         });
