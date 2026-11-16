@@ -1046,6 +1046,16 @@
                 variaveisSalvas[itenLocal] = objetoRecuperado[itenLocal];
             });
           }
+          if (variaveisSalvas.tema === "dark") {
+            document.body.classList.add("dark");
+          }
+
+          const btn = document.getElementById("themeToggle");
+
+          if (btn)
+            btn.textContent = document.body.classList.contains("dark")
+              ? "☀️"
+              : "🌙";
           atualizarVariavelLocal();
         }
       }
@@ -1514,6 +1524,13 @@
           top: 0,
           behavior: "smooth",
         });
+
+        window.parent.postMessage(
+          {
+            type: "RenviarContatoETicket",
+          },
+          "*",
+        );
       }
 
       function copiarResultado() {
@@ -1526,8 +1543,8 @@
       }
 
       /* ==========================================================
-                     EXPORTAÇÕES
-      ========================================================== */
+EXPORTAÇÕES
+========================================================== */
 
       window.toggleWaiverInput = toggleWaiverInput;
 
@@ -1592,18 +1609,8 @@
             )
               variaveisSalvas[itenLocal] = objetoRecuperado[itenLocal];
           });
+
           RecuperarSalvarTexto(0);
-
-          if (variaveisSalvas.tema === "dark") {
-            document.body.classList.add("dark");
-          }
-
-          const btn = document.getElementById("themeToggle");
-
-          if (btn)
-            btn.textContent = document.body.classList.contains("dark")
-              ? "☀️"
-              : "🌙";
         }
 
         if (data.type !== "preencher") return;
@@ -1650,6 +1657,8 @@
           errolocalStorage = 1;
           // Aqui você pode salvar os dados em uma variável na memória como alternativa
         }
+
+        if (!errolocalStorage) RecuperarSalvarTexto(0);
 
         window.parent.postMessage(
           {
@@ -1954,7 +1963,11 @@
   window.addEventListener("message", (ev) => {
     const data = ev.data || {};
 
-    if (data.type === "RetorneSalvosRegistro") {
+    if (data.type === "RenviarContatoETicket") {
+      enviarDadosParaRegistro().catch(Hwarn);
+
+      Hlog("Renviado Ticket e Contato");
+    } else if (data.type === "RetorneSalvosRegistro") {
       iframe.contentWindow?.postMessage(
         { type: "dadosSalvosDoRegistro", dados: recLocal() },
         "*",
