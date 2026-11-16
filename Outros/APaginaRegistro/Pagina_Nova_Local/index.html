@@ -573,9 +573,9 @@
       function alternarTema() {
         document.body.classList.toggle("dark");
 
-        tema = document.body.classList.contains("dark") ? "dark" : "light";
-
-        if (!errolocalStorage) localStorage.setItem("tema", tema);
+        variaveisSalvas.tema = document.body.classList.contains("dark")
+          ? "dark"
+          : "light";
 
         const botao = document.getElementById("themeToggle");
 
@@ -583,33 +583,40 @@
         botao.textContent = document.body.classList.contains("dark")
           ? "☀️"
           : "🌙";
+        Hlog("Atualizou Tema");
+        RecuperarSalvarTexto(1);
       }
 
       function RecuperarSalvarTexto(salvar) {
-        const listaIDs = [
-          "ticket",
-          "contato",
-          "localizador",
-          "textoSolicitacao",
-          "textoSituacao",
-          "textoResultado",
-          "descricao",
-          "assinatura",
-        ];
+        function atualizarVariavelLocal() {
+          const listaIDs = [
+            "ticket",
+            "contato",
+            "localizador",
+            "textoSolicitacao",
+            "textoSituacao",
+            "textoResultado",
+            "descricao",
+            "assinatura",
+          ];
 
-        listaIDs.forEach((itemLista) => {
-          const item = document.getElementById(itemLista);
+          listaIDs.forEach((itemLista) => {
+            const item = document.getElementById(itemLista);
 
-          if (item) {
-            if (salvar) {
-              variaveisSalvas[itemLista] = item.value;
-            } else {
-              item.value = variaveisSalvas[itemLista] ?? "";
+            if (item) {
+              if (salvar) {
+                variaveisSalvas[itemLista] = item.value;
+                //Hlog("Atualizado " + itemLista + ": " + item.value);
+              } else {
+                item.value = variaveisSalvas[itemLista] ?? "";
+                Hlog("Recuperado " + itemLista + ": " + item.value);
+              }
             }
-          }
-        });
+          });
+        }
 
         if (salvar) {
+          atualizarVariavelLocal();
           if (errolocalStorage) {
             window.parent.postMessage(
               {
@@ -618,27 +625,39 @@
               },
               "*",
             );
+            Hlog("variaveisSalvas Enviadas: ", variaveisSalvas);
           } else {
-            localStorage.setItem("variaveisSalvas", variaveisSalvas);
+            localStorage.setItem(
+              "variaveisSalvas",
+              JSON.stringify(variaveisSalvas),
+            );
+            Hlog("variaveisSalvas local: ", variaveisSalvas);
           }
         } else {
-          if (errolocalStorage) {
-            window.parent.postMessage(
-              {
-                type: "retornarSalvosLocal",
-              },
-              "*",
-            );
-          } else {
-            const RegistroSalvos = localStorage.getItem("variaveisSalvas");
+          if (!errolocalStorage) {
+            // Pega o texto salvo
+            const dadosSalvos = localStorage.getItem("variaveisSalvas");
 
-            Object.keys(variaveisSalvas).forEach((itenLocal) => {
-              Object.keys(RegistroSalvos).forEach((iten) => {
-                if (itenLocal == iten)
-                  variaveisSalvas[itenLocal] = RegistroSalvos[iten];
-              });
+            let objetoRecuperado = {};
+
+            if (dadosSalvos) {
+              try {
+                objetoRecuperado = JSON.parse(dadosSalvos);
+              } catch (erro) {
+                // Se o que estiver salvo não for um JSON válido, limpa a chave corrompida
+                console.warn(
+                  "Dado inválido encontrado no localStorage. Resetando...",
+                );
+                localStorage.removeItem("variaveisSalvas");
+              }
+            }
+
+            Object.keys(objetoRecuperado).forEach((itenLocal) => {
+              if (objetoRecuperado[itenLocal])
+                variaveisSalvas[itenLocal] = objetoRecuperado[itenLocal];
             });
           }
+          atualizarVariavelLocal();
         }
       }
 
@@ -1100,7 +1119,7 @@
           )
           .forEach((div) => div.classList.add("hidden"));
 
-        RecuperarSalvarTexto(1);
+        Hlog("Comando de limpar");
 
         window.scrollTo({
           top: 0,
@@ -1174,23 +1193,34 @@
       window.addEventListener("message", (ev) => {
         const data = ev.data || {};
 
-        if (data.type === "AsVeriaveisSalvas") {
-          const AvariaveisRegistro = data.variaveis;
+        if (data.type == "dadosSalvosDoRegistro") {
+          const objetoRecuperado = data.dados;
 
-          Object.keys(variaveisSalvas).forEach((itenLocal) => {
-            Object.keys(AvariaveisRegistro).forEach((iten) => {
-              if (
-                itenLocal == iten &&
-                variaveisSalvas[itenLocal] != AvariaveisRegistro[iten]
-              )
-                variaveisSalvas[itenLocal] = AvariaveisRegistro[iten];
-            });
+          Object.keys(objetoRecuperado).forEach((itenLocal) => {
+            if (
+              objetoRecuperado[itenLocal] &&
+              variaveisSalvas[itenLocal] != objetoRecuperado[itenLocal]
+            )
+              variaveisSalvas[itenLocal] = objetoRecuperado[itenLocal];
           });
+          RecuperarSalvarTexto(0);
+
+          if (variaveisSalvas.tema === "dark") {
+            document.body.classList.add("dark");
+          }
+
+          const btn = document.getElementById("themeToggle");
+
+          if (btn)
+            btn.textContent = document.body.classList.contains("dark")
+              ? "☀️"
+              : "🌙";
         }
 
         if (data.type !== "preencher") return;
 
         const { ticket, contato } = data;
+
         const tkEl = document.getElementById("ticket");
         const ctEl = document.getElementById("contato");
 
@@ -1216,17 +1246,11 @@
         }
 
         Hlog("Aplicados:", { ticket, contato });
-        ev.source?.postMessage(
-          {
-            type: "status",
-            status: "ok",
-            fields: ["ticket", "contato"],
-          },
-          "*",
-        );
       });
 
       window.addEventListener("DOMContentLoaded", () => {
+        Hlog("Dom Carregado");
+
         try {
           localStorage.setItem("teste", errolocalStorage);
         } catch (erro) {
@@ -1238,18 +1262,12 @@
           // Aqui você pode salvar os dados em uma variável na memória como alternativa
         }
 
-        if (!errolocalStorage)
-          if (localStorage.getItem("tema") === "dark") {
-            tema = "dark";
-            document.body.classList.add("dark");
-          }
-
-        const btn = document.getElementById("themeToggle");
-
-        if (btn)
-          btn.textContent = document.body.classList.contains("dark")
-            ? "☀️"
-            : "🌙";
+        window.parent.postMessage(
+          {
+            type: "RetorneSalvosRegistro",
+          },
+          "*",
+        );
 
         /* REMOVER se existir onclick no HTML */
         //btn.addEventListener("click", alternarTema());
@@ -1269,6 +1287,7 @@
             item.style.height = "auto"; // Reset height
             item.style.height = item.scrollHeight + "px"; // Set new height
             //item.value = variaveisRegistro[itemDaLista];
+            Hlog("Atualizou Texto");
             RecuperarSalvarTexto(1);
           });
         });
