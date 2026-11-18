@@ -1,0 +1,3442 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro de Atendimento</title>
+    <style>
+      :root {
+        --orange: #ff6a00;
+        --orange-dark: #e35a00;
+
+        --gray-900: #1e2a36;
+        --gray-700: #5b6875;
+        --gray-500: #95a1ad;
+
+        --gray-300: #e1e6ea;
+        --gray-200: #eef1f4;
+
+        --surface: #ffffff;
+        --background: #ffffff;
+
+        --input-bg: #ffffff;
+        --input-text: #1e2a36;
+      }
+
+      /* Tema escuro */
+      body.dark {
+        --gray-900: #f3f4f6;
+        --gray-700: #d1d5db;
+        --gray-500: #9ca3af;
+
+        --gray-300: #374151;
+        --gray-200: #1f2937;
+
+        --surface: #111827;
+        --background: #030712;
+
+        --input-bg: #1f2937;
+        --input-text: #f3f4f6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Roboto, Arial, Helvetica, sans-serif;
+        background: var(--background);
+        color: var(--gray-900);
+        transition: all 0.3s ease;
+      }
+
+      /* Container */
+      .app {
+        max-width: clamp(360px, 90vw, 840px);
+        margin: 24px auto 40px;
+        padding: 0 16px;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--gray-300);
+        border-radius: 12px;
+        padding: 16px 14px 18px;
+        transition: all 0.3s ease;
+      }
+
+      body.dark .card {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      }
+
+      .header {
+        padding: 6px 10px 0;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .titulo-sistema {
+        margin: 6px 0;
+        font-size: clamp(22px, 3.2vw, 28px);
+        font-weight: 800;
+        color: var(--gray-900);
+      }
+
+      .accent {
+        width: auto;
+        height: 4px;
+        background: var(--orange);
+        border-radius: 3px;
+        margin: 8px 0 14px;
+      }
+
+      .row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .row > * {
+        flex: 1;
+      }
+
+      .field,
+      .select-group,
+      .input-container,
+      .text-area-container {
+        width: 100%;
+        margin-bottom: 12px;
+      }
+
+      .input-container,
+      .text-area-container {
+        display: flex;
+        align-items: stretch;
+        overflow: hidden;
+        background: var(--input-bg);
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+      }
+
+      .input-prefix {
+        background: var(--gray-200);
+        color: var(--gray-700);
+        font-size: 14px;
+        padding: 10px 12px;
+        border-right: 1px solid var(--gray-300);
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+      }
+
+      .input-field,
+      .text-area-field {
+        border: 0;
+        flex: 1;
+        padding: 10px 12px;
+        font-size: clamp(13px, 1.6vw, 14px);
+        background: var(--input-bg);
+        color: var(--input-text);
+      }
+
+      .text-area-field {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .input-field:focus,
+      .text-area-field:focus {
+        outline: none;
+      }
+
+      .label {
+        display: block;
+        font-size: clamp(12px, 1.5vw, 13px);
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 2px 0 6px;
+      }
+
+      select {
+        display: block;
+        width: 100%;
+        padding: 10px 12px;
+        font-size: clamp(13px, 1.6vw, 14px);
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+        background: var(--input-bg);
+        color: var(--input-text);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .action-container {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .signature-box {
+        flex: 1 1 100%;
+      }
+
+      .btn {
+        appearance: none;
+        border: 0;
+        border-radius: 10px;
+        cursor: pointer;
+        padding: 10px 16px;
+        font-weight: 800;
+        transition: 0.2s;
+      }
+
+      .btn-primary {
+        background: var(--orange);
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        background: var(--orange-dark);
+      }
+
+      .btn-secondary {
+        color: var(--gray-900);
+        background: var(--gray-200);
+        border: 1px solid var(--gray-300);
+      }
+
+      .btn-modoDark {
+        width: fit-content;
+        height: fit-content;
+        appearance: none;
+        border: 0;
+        border-radius: 10px;
+        cursor: pointer;
+        padding: 10px 16px;
+        font-weight: 800;
+        transition: 0.2s;
+      }
+
+      .btn-secondary:hover {
+        filter: brightness(0.95);
+      }
+
+      .resultado-container {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      #resultado {
+        width: 100%;
+        min-height: 140px;
+      }
+
+      #copiarBtn {
+        background: var(--orange);
+        padding: 10px 16px;
+        border: 0;
+        color: #fff;
+        border-radius: 10px;
+      }
+
+      #copiarBtn:hover {
+        background: var(--orange-dark);
+      }
+
+      .creditos {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--gray-500);
+      }
+
+      .creditos strong {
+        color: var(--gray-900);
+      }
+
+      .field--stacked .label {
+        margin: 0 0 6px;
+      }
+
+      .field--stacked .input-plain,
+      .field--stacked .textarea-plain {
+        width: 100%;
+        display: block;
+        background: var(--input-bg);
+        color: var(--input-text);
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: clamp(13px, 1.6vw, 14px);
+      }
+
+      .field--stacked .textarea-2plain {
+        width: 100%;
+        display: block;
+        background: var(--input-bg);
+        color: var(--input-text);
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: clamp(13px, 1.6vw, 14px);
+      }
+
+      .field--stacked .input-plain:focus,
+      .field--stacked .textarea-plain:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--orange);
+        box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.2);
+      }
+
+      .field--stacked .textarea-plain {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .signature-block .input-plain {
+        width: 100%;
+      }
+
+      .result-block .textarea-plain {
+        min-height: 160px;
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--background);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--gray-500);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-700);
+      }
+
+      /* Mobile */
+      @media (max-width: 480px) {
+        .row {
+          display: none;
+        }
+
+        .card {
+          padding: 14px 12px 16px;
+        }
+
+        .action-container {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .btn {
+          width: 100%;
+        }
+
+        #copiarBtn {
+          width: 100%;
+        }
+      }
+
+      @media (min-width: 900px) {
+        .result-block .textarea-plain {
+          min-height: 180px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="card">
+        <header class="header">
+          <h1 id="oTitulo" class="titulo-sistema">Registro de Atendimento</h1>
+          <button
+            id="themeToggle"
+            class="btn-modoDark btn-secondary"
+            type="button"
+            onclick="alternarTema()"
+          >
+            🌙
+          </button>
+        </header>
+
+        <div class="accent" aria-hidden="true"></div>
+        <div id="declaracaoDeEmbarqueConteiner">
+          <p class="muted">
+            Preencha os campos abaixo e clique em "Gerar Declaração" para criar
+            o texto formatado.
+          </p>
+
+          <div class="row">
+            <div class="field field--stacked">
+              <label class="label" for="cidade">Cidade da declaração</label>
+              <input
+                type="text"
+                id="cidade"
+                class="input-plain"
+                value="São Paulo"
+                readonly
+              />
+            </div>
+            <div class="field field--stacked">
+              <label class="label" for="declaracao_date"
+                >Data da declaração</label
+              >
+              <input
+                type="text"
+                id="declaracao_date"
+                class="input-plain"
+                readonly
+                disabled
+              />
+            </div>
+
+            <div class="field field--stacked">
+              <label class="label" for="companhia">Companhia aérea</label>
+              <input
+                type="text"
+                id="companhia"
+                class="input-plain"
+                value="GOL Linhas Aéreas S.A"
+                readonly
+                disabled
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field field--stacked">
+              <label class="label" for="OouA">O ou A</label>
+              <input
+                type="text"
+                id="OouA"
+                class="input-plain"
+                placeholder="O ou A"
+              />
+            </div>
+
+            <div class="field field--stacked">
+              <label class="label" for="nome">Nome do(a) passageiro(a)</label>
+              <input
+                type="text"
+                id="nome"
+                class="input-plain"
+                placeholder="Joâo"
+              />
+            </div>
+
+            <div class="field field--stacked">
+              <label class="label" for="localizador">Código localizador</label>
+              <input
+                type="text"
+                id="localizador"
+                class="input-plain"
+                placeholder="ABCDEF"
+              />
+            </div>
+          </div>
+
+          <h3>Voo de ida</h3>
+          <label>Tipo de viagem</label>
+          <select
+            id="tipo_viagem_select"
+            onchange="marcadoida()"
+            style="width: auto"
+          >
+            <option placeholder="tipo"></option>
+            <option value="ida">IDA</option>
+            <option value="ida/volta">IDA/VOLTA</option>
+          </select>
+          <div id="CaixaDida" style="display: none">
+            <div class="row">
+              <div>
+                <label for="ida_data">Data (ida)</label>
+                <input
+                  id="ida_data"
+                  type="date"
+                  aria-label="data ida"
+                  required
+                />
+              </div>
+              <div>
+                <label for="ida_num">Número do voo</label>
+                <input id="ida_num" placeholder="1234" />
+              </div>
+            </div>
+            <div>
+              <label for="ida_conexoes_count">Número de conexões (ida)</label>
+              <input id="ida_conexoes_count" type="number" min="0" value="0" />
+            </div>
+            <div class="row">
+              <div>
+                <label for="ida_partida_aero">Partida</label>
+                <select id="ida_partida_aero" class="aero-select">
+                  <option></option>
+                </select>
+              </div>
+              <div>
+                <label for="ida_partida_hora">Horário partida</label>
+                <input id="ida_partida_hora" placeholder="23:59" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label for="ida_chegada_aero">Chegada</label>
+                <select id="ida_chegada_aero" class="aero-select">
+                  <option></option>
+                </select>
+              </div>
+              <div>
+                <label for="ida_chegada_hora">Horário chegada</label>
+                <input id="ida_chegada_hora" placeholder="23:59" />
+              </div>
+            </div>
+
+            <div id="ida_conexoes_container"></div>
+          </div>
+
+          <h3>Voo de volta</h3>
+          <div id="CaixaDvolta" style="display: none">
+            <div class="row">
+              <div>
+                <label for="volta_data">Data (volta)</label>
+                <input
+                  id="volta_data"
+                  type="date"
+                  aria-label="data volta"
+                  required
+                />
+              </div>
+              <div>
+                <label for="volta_num">Número do voo</label>
+                <input id="volta_num" placeholder="1234" />
+              </div>
+            </div>
+            <div>
+              <label for="volta_conexoes_count"
+                >Número de conexões (volta)</label
+              >
+              <input
+                id="volta_conexoes_count"
+                type="number"
+                min="0"
+                value="0"
+              />
+            </div>
+            <div class="row">
+              <div>
+                <label for="volta_partida_aero">Partida</label>
+                <select id="volta_partida_aero" class="aero-select">
+                  <option></option>
+                </select>
+              </div>
+              <div>
+                <label for="volta_partida_hora">Horário partida</label>
+                <input id="volta_partida_hora" placeholder="23:59" />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label for="volta_chegada_aero">Chegada</label>
+                <select id="volta_chegada_aero" class="aero-select">
+                  <option></option>
+                </select>
+              </div>
+              <div>
+                <label for="volta_chegada_hora">Horário chegada</label>
+                <input id="volta_chegada_hora" placeholder="23:59" />
+              </div>
+            </div>
+
+            <div id="volta_conexoes_container"></div>
+          </div>
+
+          <div class="actions">
+            <button id="btn_gerar_form" class="btn btn-primary" type="button">
+              📄 Gerar Declaração
+            </button>
+            <button
+              id="btn_limpar_form"
+              class="btn btn-secondary"
+              type="button"
+            >
+              ⟲ Limpar Formulário
+            </button>
+            <button id="btn_copiar_form" class="btn btn-primary" type="button">
+              📋 Copiar
+            </button>
+            <button id="btn_exemplo" class="btn btn-secondary" type="button">
+              ⭐ Carregar Exemplo
+            </button>
+          </div>
+
+          <pre id="preview" aria-live="polite"></pre>
+        </div>
+
+        <div id="registroAtendimentoConteiner">
+          <div class="field field--stacked">
+            <label class="label" for="ticket">Ticket*</label>
+            <input type="text" id="ticket" class="input-plain" />
+          </div>
+
+          <div class="field field--stacked">
+            <label class="label" for="contato">Nome do Cliente*</label>
+            <input type="text" id="contato" class="input-plain" />
+          </div>
+
+          <div class="field field--stacked">
+            <label class="label" for="localizador">Localizador</label>
+            <input type="text" id="localizador" class="input-plain" />
+          </div>
+
+          <div class="field field--stacked">
+            <div class="label">
+              <label for="descricao">Relato*</label>
+              <button
+                class="btn-secondary"
+                type="button"
+                id="botaoDescricaoNova"
+                onclick="novaDescricao()"
+                style="cursor: pointer"
+              >
+                Dividido
+              </button>
+            </div>
+
+            <textarea id="descricao" class="textarea-plain"></textarea>
+            <div
+              id="descricaoNova"
+              style="display: none; flex-direction: column"
+            >
+              <div class="field field--stacked">
+                <label class="label" for="textoSolicitacao"
+                  >Entrou em contato solicitando:*</label
+                >
+
+                <textarea
+                  placeholder="Solicitação"
+                  class="textarea-2plain"
+                  id="textoSolicitacao"
+                ></textarea>
+              </div>
+              <div class="field field--stacked">
+                <label class="label" for="textoSituacao"
+                  >Foi realizada a verificação no sistema e constatado
+                  que:</label
+                >
+                <textarea
+                  placeholder="Situação"
+                  class="textarea-2plain"
+                  id="textoSituacao"
+                ></textarea>
+              </div>
+              <div class="field field--stacked">
+                <label class="label" for="textoResultado"
+                  >A solicitação foi atendida da seguinte forma:*</label
+                >
+                <textarea
+                  placeholder="Resultado"
+                  class="textarea-2plain"
+                  id="textoResultado"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="select-group">
+            <label class="label" for="usouWaiver">Utilizou Waiver?</label>
+            <select id="usouWaiver" onchange="toggleWaiverInput()">
+              <option value="nao" selected>Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          <div id="waiverInfo" class="hidden">
+            <div id="motivoContainer" class="field field--stacked hidden">
+              <label class="label">Motivo</label>
+              <select id="motivoSelect"></select>
+            </div>
+            <div id="waiverFieldContainer" class="field field--stacked hidden">
+              <label class="label">Tipo de Waiver</label>
+              <input id="tipoWaiver" class="input-plain" readonly />
+            </div>
+          </div>
+
+          <div class="select-group">
+            <label class="label" for="isentouDU">Isentou taxa DU?</label>
+            <select id="isentouDU" onchange="toggleIsencaoDU()">
+              <option value="nao" selected>Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          <div id="isencaoDUInfo" class="hidden">
+            <div
+              id="motivoIsencaoContainer"
+              class="field field--stacked hidden"
+            >
+              <label class="label">Motivo da isenção</label>
+              <select id="motivoIsencaoSelect"></select>
+            </div>
+          </div>
+
+          <div class="select-group">
+            <label class="label" for="utilizouInvoice"
+              >Possui Infant na reserva?</label
+            >
+            <select id="utilizouInvoice" onchange="toggleInvoice()">
+              <option value="nao" selected>Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          <div id="invoiceInfo" class="hidden">
+            <div class="field field--stacked">
+              <label class="label">Emissor da Reserva</label>
+              <select id="empresaInvoice" onchange="preencherValorInvoice()">
+                <option value="">Selecione</option>
+                <option value="gol">Gol</option>
+                <option value="smiles">Smiles</option>
+              </select>
+            </div>
+            <div class="field field--stacked">
+              <label class="label">Invoice</label>
+              <input id="valorInvoice" class="input-plain" readonly />
+            </div>
+          </div>
+
+          <div class="select-group">
+            <label class="label" for="realizouPagamento"
+              >Utilizou link de pagamento?</label
+            >
+            <select id="realizouPagamento" onchange="togglePagamentoInput()">
+              <option value="nao se aplica" selected>Não se aplica</option>
+              <option value="nao">Nao</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          <div id="pagamentoInfo" class="hidden">
+            <div class="field field--stacked">
+              <label class="label">Motivo</label
+              ><input id="link" class="input-plain" />
+            </div>
+            <div class="field field--stacked">
+              <label class="label">Bandeira</label
+              ><input id="bandeira" class="input-plain" />
+            </div>
+            <div class="field field--stacked">
+              <label class="label">Parcelas</label
+              ><select id="parcelas"></select>
+            </div>
+            <div class="field field--stacked">
+              <label class="label">CardholderName</label
+              ><input id="cardName" class="input-plain" />
+            </div>
+          </div>
+
+          <div class="action-container">
+            <div class="field field--stacked">
+              <label class="label">Assinatura*</label>
+              <input id="assinatura" class="input-plain" />
+            </div>
+            <button class="btn btn-primary" onclick="gerarResumo()">
+              Gerar
+            </button>
+            <button class="btn btn-secondary" onclick="limparTela()">
+              Limpar Tela
+            </button>
+            <button class="btn btn-primary" onclick="copiarResultado()">
+              Copiar
+            </button>
+          </div>
+
+          <div class="field field--stacked">
+            <label class="label">Resultado</label>
+            <textarea id="resultado" class="textarea-plain" readonly></textarea>
+          </div>
+        </div>
+        <footer class="creditos">
+          Desenvolvido por <strong>Leandro Salvador de Oliveira</strong>
+        </footer>
+      </div>
+    </div>
+
+    <script>
+      let errolocalStorage = 0;
+
+      const variaveisSalvas = {
+        tema: "light",
+      };
+
+      // Configuração do IndexedDB
+      const nomeBD = "RegistAtt";
+      const PreFixo = "regatt:";
+
+      function novaDescricao() {
+        const descricaoNova = document.getElementById("descricaoNova");
+        const descricao = document.getElementById("descricao");
+
+        const botaoDescricaoNova =
+          document.getElementById("botaoDescricaoNova");
+
+        const descricaoNovaTrue = descricaoNova.style.display != "none";
+
+        descricaoNova.style.display = descricaoNovaTrue ? "none" : "flex";
+        descricao.style.display = !descricaoNovaTrue ? "none" : "flex";
+
+        botaoDescricaoNova.textContent = descricaoNovaTrue
+          ? "Dividido"
+          : "Completo";
+      }
+
+      function alternarTema() {
+        document.body.classList.toggle("dark");
+
+        variaveisSalvas.tema = document.body.classList.contains("dark")
+          ? "dark"
+          : "light";
+
+        const botao = document.getElementById("themeToggle");
+
+        if (!botao) return;
+        botao.textContent = document.body.classList.contains("dark")
+          ? "☀️"
+          : "🌙";
+        Hlog("Atualizou Tema");
+        RecuperarSalvarTexto(1);
+      }
+
+      function RecuperarSalvarTexto(salvar) {
+        function atualizarVariavelLocal() {
+          const listaIDs = [
+            "ticket",
+            "contato",
+            "localizador",
+            "textoSolicitacao",
+            "textoSituacao",
+            "textoResultado",
+            "descricao",
+            "assinatura",
+          ];
+
+          listaIDs.forEach((itemLista) => {
+            const item = document.getElementById(itemLista);
+
+            if (item) {
+              if (salvar) {
+                variaveisSalvas[itemLista] = item.value;
+                //Hlog("Atualizado " + itemLista + ": " + item.value);
+              } else {
+                item.value = variaveisSalvas[itemLista] ?? "";
+                Hlog("Recuperado " + itemLista + ": " + item.value);
+              }
+            }
+          });
+        }
+
+        if (salvar) {
+          atualizarVariavelLocal();
+          if (errolocalStorage) {
+            window.parent.postMessage(
+              {
+                type: "TextoRegistroParaSalvar",
+                TextoRegist: variaveisSalvas,
+              },
+              "*",
+            );
+            Hlog("variaveisSalvas Enviadas: ", variaveisSalvas);
+          } else {
+            localStorage.setItem(
+              "variaveisSalvas",
+              JSON.stringify(variaveisSalvas),
+            );
+            Hlog("variaveisSalvas local: ", variaveisSalvas);
+          }
+        } else {
+          if (!errolocalStorage) {
+            // Pega o texto salvo
+            const dadosSalvos = localStorage.getItem("variaveisSalvas");
+
+            let objetoRecuperado = {};
+
+            if (dadosSalvos) {
+              try {
+                objetoRecuperado = JSON.parse(dadosSalvos);
+              } catch (erro) {
+                // Se o que estiver salvo não for um JSON válido, limpa a chave corrompida
+                console.warn(
+                  "Dado inválido encontrado no localStorage. Resetando...",
+                );
+                localStorage.removeItem("variaveisSalvas");
+              }
+            }
+
+            Object.keys(objetoRecuperado).forEach((itenLocal) => {
+              if (objetoRecuperado[itenLocal])
+                variaveisSalvas[itenLocal] = objetoRecuperado[itenLocal];
+            });
+          }
+          if (variaveisSalvas.tema === "dark") {
+            document.body.classList.add("dark");
+          }
+
+          const btn = document.getElementById("themeToggle");
+
+          if (btn)
+            btn.textContent = document.body.classList.contains("dark")
+              ? "☀️"
+              : "🌙";
+          atualizarVariavelLocal();
+        }
+      }
+
+      // ====== Lógica da Waiver ======
+      function toggleWaiverInput() {
+        const select = document.getElementById("usouWaiver");
+        const waiverDiv = document.getElementById("waiverInfo");
+        const motivoContainer = document.getElementById("motivoContainer");
+        const motivoSelect = document.getElementById("motivoSelect");
+        const tipoWaiverElem = document.getElementById("tipoWaiver");
+        const waiverFieldContainer = document.getElementById(
+          "waiverFieldContainer",
+        );
+        if (!select || !motivoSelect || !motivoContainer) return;
+
+        motivoSelect.innerHTML = "";
+        if (tipoWaiverElem) tipoWaiverElem.value = "";
+        if (waiverFieldContainer) waiverFieldContainer.classList.add("hidden");
+        motivoContainer.classList.add("hidden");
+
+        if (select.value !== "sim") {
+          if (waiverDiv) waiverDiv.classList.add("hidden");
+          return;
+        }
+
+        if (waiverDiv) waiverDiv.classList.remove("hidden");
+
+        const motivos = [
+          { motivo: "Erro sistemico", waiver: "Waiver 01- SYSTEM ERROR" },
+          {
+            motivo: "Cliente Smiles Diamante categorizado cobrando assento",
+            waiver: "Waiver 01- SYSTEM ERROR",
+          },
+          {
+            motivo: "Regra tarifaria possui bagagem mas no VCR nao consta",
+            waiver: "Waiver 01- SYSTEM ERROR",
+          },
+          {
+            motivo:
+              "Regra tarifária não deveria cobrar taxa, tela 30 não apresenta N/A",
+            waiver: "Waiver 01- SYSTEM ERROR",
+          },
+          {
+            motivo:
+              "Serviços incluídos via site/app Smiles pagos não refletidos no Sabre",
+            waiver: "Waiver 01- SYSTEM ERROR",
+          },
+          {
+            motivo:
+              "Concessão Upgrade Smiles Troca de tarifa Light Para Classic",
+            waiver: "Waiver 05-SPECIAL REQUEST",
+          },
+          {
+            motivo: "Cancelamento dentro das 24 horas",
+            waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+          },
+          {
+            motivo: "Cancelamento de servicos antes do voo",
+            waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+          },
+          {
+            motivo: "Marcacao de assento obrigatoria ao lado do responsavel",
+            waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+          },
+          {
+            motivo: "Erro operacional comprovado",
+            waiver: "Waiver 06- OPERATIONAL ERROR",
+          },
+          { motivo: "Remarcacao laudo medico", waiver: "Waiver 13- CONCESSAO" },
+          {
+            motivo: "Cancelamento laudo medico",
+            waiver: "Waiver 13- CONCESSAO",
+          },
+          {
+            motivo: "Remarcacao concurso publico",
+            waiver: "Waiver 13- CONCESSAO",
+          },
+          {
+            motivo: "Cancelamento concurso publico",
+            waiver: "Waiver 13- CONCESSAO",
+          },
+          { motivo: "Duplicidade de compra", waiver: "Waiver 13- CONCESSAO" },
+          {
+            motivo: "Remarcacao erro do cliente dentro das 24 Horas",
+            waiver: "Waiver 08-AE FEE NOT APPLICABLE",
+          },
+          {
+            motivo: "Cancelamento por acomodacao",
+            waiver: "Waiver 14- INVOL REACOMODACAO",
+          },
+          {
+            motivo: "Cancelamento de servicos por acomodacao",
+            waiver: "Waiver 14- INVOL REACOMODACAO",
+          },
+          {
+            motivo: "Isencao de assento por acomodacao voo direto para conexao",
+            waiver: "Waiver 14- INVOL REACOMODACAO",
+          },
+          {
+            motivo: "Isencao da taxa de Remarcação com Cota Smiles disponivel",
+            waiver: "Waiver 20-FFCOTASSMILES",
+          },
+          {
+            motivo:
+              "Isencao da taxa de Cancelamento com Cota Smiles disponivel",
+            waiver: "Waiver 20-FFCOTASSMILES",
+          },
+          {
+            motivo:
+              "Isencao da taxa de Upgrade de cabine com Cota Smiles disponivel",
+            waiver: "Waiver 20-FFCOTASSMILES",
+          },
+          {
+            motivo:
+              "Voa Brasil Cancelamento Parcial ida voada cancelar a volta",
+            waiver: "Waiver 19- ART19RA400",
+          },
+          {
+            motivo:
+              "Voa Brasil Cancelamento Parcial cancelar ida e manter volta",
+            waiver: "Waiver 19- ART19RA400",
+          },
+        ];
+
+        motivoSelect.innerHTML =
+          '<option value="">-- Selecione o motivo --</option>';
+        motivos.forEach((item) => {
+          const opt = document.createElement("option");
+          opt.value = item.motivo;
+          opt.textContent = item.motivo;
+          motivoSelect.appendChild(opt);
+        });
+        motivoContainer.classList.remove("hidden");
+
+        motivoSelect.onchange = function () {
+          const escolhido = motivos.find(
+            (m) => m.motivo === motivoSelect.value,
+          );
+          if (!escolhido) {
+            if (waiverFieldContainer)
+              waiverFieldContainer.classList.add("hidden");
+            if (tipoWaiverElem) tipoWaiverElem.value = "";
+            return;
+          }
+          if (tipoWaiverElem) tipoWaiverElem.value = escolhido.waiver;
+          if (waiverFieldContainer)
+            waiverFieldContainer.classList.remove("hidden");
+        };
+      }
+
+      // ====== Lógica da Isenção de Taxa DU ======
+      function toggleIsencaoDU() {
+        const select = document.getElementById("isentouDU");
+        const infoDiv = document.getElementById("isencaoDUInfo");
+        const motivoContainer = document.getElementById(
+          "motivoIsencaoContainer",
+        );
+        const motivoSelect = document.getElementById("motivoIsencaoSelect");
+        if (!select || !infoDiv || !motivoContainer || !motivoSelect) return;
+
+        motivoSelect.innerHTML = "";
+        motivoContainer.classList.add("hidden");
+
+        if (select.value !== "sim") {
+          infoDiv.classList.add("hidden");
+          return;
+        }
+
+        infoDiv.classList.remove("hidden");
+
+        const motivosDU = [
+          "Todas as vendas de receitas auxiliares",
+          "Parcelamento com duas formas de pagamento",
+          "Duas formas de pagamento que não sejam 2 cartões ou Travel Bank + Cartão de crédito",
+          "Reserva de criança nos casos onde o adulto já possua a reserva",
+          "Inclusao de infant na reserva",
+          "Erro no site",
+          "Isencao devido erro no cadastro",
+          "Erro emissao menor desacompanhado",
+          "Isencao devido SPEQ",
+          "Isencao devido assitencia emergencial",
+          "Isencao devido emissao MEDIF-FREMEC",
+          "Para residentes no Amapá",
+          "Remarcacao dentro das 24 horas",
+          "Remarcacao de reserva Multitrechos",
+          "Remarcacao apos no-show",
+          "Cancelamentos",
+        ];
+
+        motivoSelect.innerHTML =
+          '<option value="">-- Selecione o motivo --</option>';
+        motivosDU.forEach((m) => {
+          const opt = document.createElement("option");
+          opt.value = m;
+          opt.textContent = m;
+          motivoSelect.appendChild(opt);
+        });
+        motivoContainer.classList.remove("hidden");
+      }
+
+      // ====== Lógica do Link de Pagamento ======
+      function togglePagamentoInput() {
+        const select = document.getElementById("realizouPagamento");
+        const pagamentoDiv = document.getElementById("pagamentoInfo");
+        const parcelasSelect = document.getElementById("parcelas");
+        if (!select || !pagamentoDiv || !parcelasSelect) return;
+
+        parcelasSelect.innerHTML = "";
+        if (select.value == "nao") {
+          for (let i = 1; i <= 12; i++) {
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = i;
+            parcelasSelect.appendChild(option);
+          }
+          pagamentoDiv.classList.remove("hidden");
+        } else {
+          pagamentoDiv.classList.add("hidden");
+        }
+      }
+
+      // ====== Lógica do Invoice (para o campo 'Possui Infant') ======
+      function toggleInvoice() {
+        const select = document.getElementById("utilizouInvoice");
+        const invoiceDiv = document.getElementById("invoiceInfo");
+        const empresaSelect = document.getElementById("empresaInvoice");
+        const valorInvoice = document.getElementById("valorInvoice");
+        if (!select || !invoiceDiv) return;
+
+        if (empresaSelect) empresaSelect.value = "";
+        if (valorInvoice) valorInvoice.value = "";
+
+        if (select.value !== "sim") {
+          invoiceDiv.classList.add("hidden");
+          return;
+        }
+        invoiceDiv.classList.remove("hidden");
+      }
+
+      function preencherValorInvoice() {
+        const empresaSelect = document.getElementById("empresaInvoice");
+        const valorInvoice = document.getElementById("valorInvoice");
+        if (!empresaSelect || !valorInvoice) return;
+
+        const valoresTexto = {
+          gol: "RS4900 - PAGTO INVOICE DUE INF VOO GOL",
+          smiles: "RS6920 - PAGTO INVOICE DUE INF VOO SMILES",
+        };
+        const empresa = empresaSelect.value;
+        valorInvoice.value = valoresTexto[empresa] || "";
+      }
+
+      // ====== Gerar Resumo ======
+      async function gerarResumo() {
+        const ticket = document
+          .getElementById("ticket")
+          .value.trim()
+          .toUpperCase();
+
+        const contato = document.getElementById("contato").value.trim();
+        const localizador = document.getElementById("localizador")
+          ? document.getElementById("localizador").value.trim()
+          : "";
+        const descricao = document.getElementById("descricao").value.trim();
+
+        const usouWaiver = document.getElementById("usouWaiver").value;
+        const tipoWaiver = document.getElementById("tipoWaiver")?.value || "";
+        const motivo = document.getElementById("motivoSelect")?.value || "";
+
+        const isentouDU = document.getElementById("isentouDU").value;
+        const motivoDU =
+          document.getElementById("motivoIsencaoSelect")?.value || "";
+
+        // Possui Infant (usa fluxo de invoice)
+        const utilizouInvoice =
+          document.getElementById("utilizouInvoice")?.value || "nao";
+        const empresaInvoice =
+          document.getElementById("empresaInvoice")?.value || "";
+        const valorInvoice =
+          document.getElementById("valorInvoice")?.value || "";
+
+        const realizouPagamento =
+          document.getElementById("realizouPagamento").value;
+        const link = document.getElementById("link")?.value.trim() || "";
+        const bandeira =
+          document.getElementById("bandeira")?.value.trim() || "";
+        const parcelas = document.getElementById("parcelas")?.value || "";
+        const cardName =
+          document.getElementById("cardName")?.value.trim() || "";
+        const assinatura = document.getElementById("assinatura").value.trim();
+
+        const textoSolicitacao =
+          document.getElementById("textoSolicitacao")?.value || "";
+        const textoSituacao =
+          document.getElementById("textoSituacao")?.value || "";
+        const textoResultado =
+          document.getElementById("textoResultado")?.value || "";
+
+        const descricaoNova = document.getElementById("descricaoNova");
+
+        const descricaoNovaTrue = descricaoNova.style.display != "none";
+
+        let newTexto =
+          "entrou em contato solicitando:\n" + textoSolicitacao + "\n\n";
+        if (textoSituacao)
+          newTexto +=
+            "Foi realizada a verificação no sistema e constatado que:\n" +
+            textoSituacao +
+            "\n\n";
+
+        newTexto +=
+          "A solicitação foi atendida da seguinte forma:\n" + textoResultado;
+
+        if (
+          !ticket ||
+          !contato ||
+          (!descricao && !descricaoNovaTrue) ||
+          ((!textoSolicitacao || !textoResultado) && descricaoNovaTrue) ||
+          !assinatura
+        ) {
+          alert("Preencha todos os campos obrigatórios.");
+          return;
+        }
+
+        let texto = "Ticket - " + ticket + "\n\n";
+        if (localizador) texto += "Localizador - " + localizador + "\n\n";
+        texto +=
+          contato + " " + (descricaoNovaTrue ? newTexto : descricao) + "\n\n";
+
+        if (usouWaiver === "sim") {
+          texto += "Utilizado - " + tipoWaiver + "\n";
+          texto += "Motivo - " + motivo + "\n";
+        }
+
+        texto += "Isentou taxa DU - " + isentouDU + "\n";
+        if (isentouDU === "sim") {
+          texto += "Motivo da isencao - " + motivoDU + "\n";
+        }
+
+        // Bloco Invoice (associado a Possui Infant)
+        texto += "Possui Infant na reserva - " + utilizouInvoice + "\n";
+        if (utilizouInvoice === "sim") {
+          const empresaLabel =
+            empresaInvoice === "gol"
+              ? "Gol"
+              : empresaInvoice === "smiles"
+                ? "Smiles"
+                : "";
+          if (empresaLabel)
+            texto += "Emissor da Reserva - " + empresaLabel + "\n";
+          if (valorInvoice) texto += "Invoice - " + valorInvoice + "\n";
+        }
+
+        texto += "Utilizou link de pagamento - " + realizouPagamento + "\n";
+        if (realizouPagamento === "nao") {
+          texto += "Motivo - " + link + "\n";
+          texto += "Bandeira - " + bandeira + "\n";
+          texto += "Parcelas - " + parcelas + "\n";
+          texto += "CardholderName-" + cardName;
+        }
+
+        texto += "\n" + assinatura + "\n";
+        document.getElementById("resultado").value = texto;
+
+        // Salvar no Firestore (se disponível); caso contrário, apenas loga
+        const agora = new Date();
+        //agora.toISOString()
+        //agora.toLocaleString("pt-BR")
+
+        const novoRegistro = {
+          ticket,
+          contato,
+          localizador,
+          waiver: tipoWaiver,
+          motivo,
+          isentouDU,
+          motivoDU,
+          utilizouInvoice,
+          empresaInvoice,
+          valorInvoice,
+          realizouPagamento,
+          link,
+          bandeira,
+          parcelas,
+          cardName,
+          assinatura,
+          dataHora: agora.toLocaleString("pt-BR"),
+          dataISO: agora.toISOString(),
+        };
+      }
+
+      function Hlog(...args) {
+        console.log(PreFixo, ...args);
+      }
+      function Hwarn(...args) {
+        console.warn(PreFixo, ...args);
+      }
+      function Herror(...args) {
+        console.error(PreFixo, ...args);
+      }
+      function Hdebug(...args) {
+        console.debug(PreFixo, ...args);
+      }
+      function Hinfo(...args) {
+        console.info(PreFixo, ...args);
+      }
+
+      function formatarNome(nome) {
+        const minusculas = ["da", "de", "do", "das", "dos", "e"];
+
+        return nome
+          .toLowerCase()
+          .trim()
+          .split(" ")
+          .map((palavra, index) => {
+            if (index > 0 && minusculas.includes(palavra)) {
+              return palavra; // mantém minúsculo
+            }
+            return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+          })
+          .join(" ");
+      }
+
+      // ====== Limpar Tela ======
+      function limparTela() {
+        document.querySelectorAll("input, textarea, select").forEach((el) => {
+          if (el.id === "assinatura" || el.name === "assinatura") return;
+          if (el.tagName === "SELECT") el.selectedIndex = 0;
+          else el.value = "";
+        });
+
+        const resultado = document.getElementById("resultado");
+        if (resultado) {
+          resultado.value = "";
+          resultado.style.height = "auto"; // Reset height
+        }
+
+        const textoSolicitacao = document.getElementById("textoSolicitacao");
+        if (textoSolicitacao) {
+          textoSolicitacao.value = "";
+          textoSolicitacao.style.height = "auto"; // Reset height
+        }
+
+        const textoSituacao = document.getElementById("textoSituacao");
+        if (textoSituacao) {
+          textoSituacao.value = "";
+          textoSituacao.style.height = "auto"; // Reset height
+        }
+
+        const textoResultado = document.getElementById("textoResultado");
+        if (textoResultado) {
+          textoResultado.value = "";
+          textoResultado.style.height = "auto"; // Reset height
+        }
+
+        document
+          .querySelectorAll(
+            "#waiverInfo, #motivoContainer, #pagamentoInfo, #isencaoDUInfo, #invoiceInfo",
+          )
+          .forEach((div) => div.classList.add("hidden"));
+
+        Hlog("Comando de limpar");
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+
+        window.parent.postMessage(
+          {
+            type: "RenviarContatoETicket",
+          },
+          "*",
+        );
+      }
+
+      function copiarResultado() {
+        const resultado = document.getElementById("resultado");
+        if (!resultado.value.trim()) return;
+        navigator.clipboard
+          .writeText(resultado.value)
+          .then(() => {})
+          .catch(() => {});
+      }
+
+      /* ==========================================================
+      EXPORTAÇÕES
+      ========================================================== */
+
+      window.toggleWaiverInput = toggleWaiverInput;
+
+      window.toggleIsencaoDU = toggleIsencaoDU;
+
+      window.togglePagamentoInput = togglePagamentoInput;
+
+      window.toggleInvoice = toggleInvoice;
+
+      window.preencherValorInvoice = preencherValorInvoice;
+
+      window.gerarResumo = gerarResumo;
+
+      window.limparTela = limparTela;
+
+      window.copiarResultado = copiarResultado;
+
+      window.alternarTema = alternarTema;
+
+      // ============= INICIALIZAÇÃO======================
+
+      const stt = {
+        observ: 1,
+        ticket: "",
+        contato: "",
+        textHonr: "",
+      };
+
+      function setInputValue(el, value) {
+        if (!el) return;
+        el.focus();
+        el.value = value ?? "";
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+
+      function NorTX(valor) {
+        if (!valor) return "";
+
+        return valor
+          .toString()
+          .normalize("NFD") // separa acentos
+          .replace(/[\u0300-\u036f]/g, "") // remove acentos
+          .toUpperCase()
+          .trim();
+      }
+
+      function contemNumero(valor) {
+        return /\d/.test(String(valor));
+      }
+
+      window.addEventListener("message", (ev) => {
+        const data = ev.data || {};
+
+        if (data.type == "dadosSalvosDoRegistro") {
+          const objetoRecuperado = data.dados;
+
+          Object.keys(objetoRecuperado).forEach((itenLocal) => {
+            if (
+              objetoRecuperado[itenLocal] &&
+              variaveisSalvas[itenLocal] != objetoRecuperado[itenLocal]
+            )
+              variaveisSalvas[itenLocal] = objetoRecuperado[itenLocal];
+          });
+
+          RecuperarSalvarTexto(0);
+        }
+
+        if (data.type !== "preencher") return;
+
+        const { ticket, contato } = data;
+
+        const tkEl = document.getElementById("ticket");
+        const ctEl = document.getElementById("contato");
+
+        if (!tkEl) {
+          warn("Input #ticket não encontrado");
+        } else {
+          stt.ticket = ticket;
+          if (tkEl.value === "") setInputValue(tkEl, ticket);
+        }
+
+        if (!ctEl) {
+          warn("Input #contato não encontrado");
+        } else {
+          let ocont = NorTX(contato);
+          let onome =
+            ocont === NorTX("Anonymous") ||
+            ocont === NorTX("Anônimo") ||
+            contemNumero(contato)
+              ? "Pax"
+              : contato;
+          stt.contato = onome;
+          if (ctEl.value === "") setInputValue(ctEl, onome);
+        }
+
+        Hlog("Aplicados:", { ticket, contato });
+      });
+
+      window.addEventListener("DOMContentLoaded", () => {
+        Hlog("Dom Carregado");
+
+        try {
+          localStorage.setItem("teste", errolocalStorage);
+        } catch (erro) {
+          console.warn(
+            "O localStorage não está disponível neste ambiente:",
+            erro,
+          );
+          errolocalStorage = 1;
+          // Aqui você pode salvar os dados em uma variável na memória como alternativa
+        }
+
+        if (!errolocalStorage) RecuperarSalvarTexto(0);
+
+        window.parent.postMessage(
+          {
+            type: "RetorneSalvosRegistro",
+          },
+          "*",
+        );
+
+        /* REMOVER se existir onclick no HTML */
+        //btn.addEventListener("click", alternarTema());
+
+        [
+          "ticket",
+          "contato",
+          "localizador",
+          "textoSolicitacao",
+          "textoSituacao",
+          "textoResultado",
+          "descricao",
+          "assinatura",
+        ].forEach((itemDaLista) => {
+          const item = document.getElementById(itemDaLista);
+          item.addEventListener("input", () => {
+            item.style.height = "auto"; // Reset height
+            item.style.height = item.scrollHeight + "px"; // Set new height
+            //item.value = variaveisRegistro[itemDaLista];
+            Hlog("Atualizou Texto");
+            RecuperarSalvarTexto(1);
+          });
+        });
+
+        toggleWaiverInput();
+        toggleIsencaoDU();
+        toggleInvoice();
+        togglePagamentoInput();
+
+        const ticket = document.getElementById("ticket");
+
+        if (ticket) {
+          ticket.addEventListener("input", function () {
+            this.value = this.value.replace(/\D/g, "");
+          });
+        }
+
+        const localizador = document.getElementById("localizador");
+
+        if (localizador) {
+          localizador.addEventListener("input", function () {
+            const pos = this.selectionStart;
+
+            this.value = this.value.toUpperCase();
+
+            this.setSelectionRange(pos, pos);
+          });
+        }
+
+        const contato = document.getElementById("contato");
+
+        if (contato) {
+          contato.addEventListener("input", function (e) {
+            let valor = e.target.value;
+
+            valor = valor.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
+
+            if (valor.endsWith(" ")) {
+              e.target.value = valor;
+
+              return;
+            }
+
+            e.target.value = formatarNome(valor);
+          });
+        }
+
+        /*
+         * NÃO criar novamente
+         * adicionarQuartoItem(
+         *     criarContentBox()
+         * );
+         *
+         * porque o Regis já faz isso.
+         */
+
+        /*
+         * NÃO chamar
+         * preencherDadosZendesk()
+         * aqui dentro.
+         *
+         * A chamada deve ficar
+         * no script principal
+         * ZendeskComRegist.
+         */
+      });
+
+      //============== Declaração ===================
+
+      const Byid = (id) => document.getElementById(id);
+
+      // ---- Campos de contagem e containers de conexões ----
+      const ida_conexoes_count = Byid("ida_conexoes_count");
+      const ida_conexoes_container = Byid("ida_conexoes_container");
+
+      const volta_conexoes_count = Byid("volta_conexoes_count");
+      const volta_conexoes_container = Byid("volta_conexoes_container");
+
+      // ---- Mostrar/ocultar se é ida e/ou volta ----
+      function marcadoida() {
+        const CaixaDida = Byid("CaixaDida");
+        const CaixaDvolta = Byid("CaixaDvolta");
+        const tipo_viagem_select = Byid("tipo_viagem_select");
+
+        if (
+          tipo_viagem_select.value === "ida/volta" ||
+          tipo_viagem_select.value === "ida"
+        ) {
+          CaixaDida.style.display = "block";
+        } else {
+          CaixaDida.style.display = "none";
+        }
+
+        if (tipo_viagem_select.value === "ida/volta") {
+          CaixaDvolta.style.display = "block";
+        } else {
+          CaixaDvolta.style.display = "none";
+        }
+      }
+
+      // ---- Funções de geração de inputs de conexão ----
+      function inputConexao(trecho, idx) {
+        // trecho: "ida" ou "volta"
+        return `
+      <fieldset class="conexao-bloco">
+        <legend>Conexão ${idx + 1} (${trecho})</legend>
+        <div class="row">
+          <div>
+            <label for="${trecho}_num_${idx}">Número do voo</label>
+            <input id="${trecho}_num_${idx}" placeholder="1234" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="${trecho}_partida_aero_${idx}">Partida</label>
+              <select id="${trecho}_partida_aero_${idx}" class="aero-select"><option></option></select>
+          </div>
+          <div>
+            <label for="${trecho}_partida_hora_${idx}">Horário partida</label>
+              <input id="${trecho}_partida_hora_${idx}" class="time-input" placeholder="2359 or 23:59" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="${trecho}_chegada_aero_${idx}">Chegada</label>
+              <select id="${trecho}_chegada_aero_${idx}" class="aero-select"><option></option></select>
+          </div>
+          <div>
+            <label for="${trecho}_chegada_hora_${idx}">Horário chegada</label>
+              <input id="${trecho}_chegada_hora_${idx}" class="time-input" placeholder="2359 or 23:59" />
+          </div>
+        </div>
+      </fieldset>
+    `;
+      }
+
+      function renderConexoes(trecho, count) {
+        const container =
+          trecho === "ida" ? ida_conexoes_container : volta_conexoes_container;
+        let html = "";
+        for (let i = 0; i < count; i++) {
+          html += inputConexao(trecho, i);
+        }
+        if (container) container.innerHTML = html;
+        // after injecting connection HTML, populate any new aero-selects
+        try {
+          buildAirportOptions();
+        } catch (e) {
+          // ignore if buildAirportOptions not defined yet
+        }
+      }
+
+      // ---- Eventos para quantidade de conexões (IDA/ VOLTA) ----
+      if (ida_conexoes_count) {
+        ida_conexoes_count.addEventListener("input", () => {
+          const qtd = Math.max(0, Number(ida_conexoes_count.value || 0));
+          renderConexoes("ida", qtd);
+        });
+      }
+
+      if (volta_conexoes_count) {
+        volta_conexoes_count.addEventListener("input", () => {
+          const qtd = Math.max(0, Number(volta_conexoes_count.value || 0));
+          renderConexoes("volta", qtd);
+        });
+      }
+
+      // ---- Preenchimento automático do aeroporto (IDA e VOLTA) ----
+      const ida_partida_aero = Byid("ida_partida_aero");
+      const ida_chegada_aero = Byid("ida_chegada_aero");
+      const volta_partida_aero = Byid("volta_partida_aero");
+      const volta_chegada_aero = Byid("volta_chegada_aero");
+
+      // ---- Texto inicial (cidade e data da declaração) ----
+      // função consolidada definida mais adiante (evita duplicatas)
+
+      // ---- Botão "Gerar Declaração" ----
+      // ===== Funções de ações: gerar, copiar, imprimir, baixar, exemplo =====
+      function gerarDeclaracao() {
+        const preview = Byid("preview");
+        const errs = validateRules();
+        if (errs.length) {
+          preview.innerHTML = `<strong>Corrija os seguintes itens:</strong><br>- ${errs.join(
+            "<br>- ",
+          )}`;
+          return null;
+        }
+        const tipo = Byid("tipo_viagem_select")?.value;
+        const partes = [textoInicial(), textodaida()];
+        if (tipo === "ida/volta") partes.push(textodavolta());
+        const texto = partes.filter(Boolean).join(". ") + ".";
+        preview.textContent = texto;
+        return texto;
+      }
+
+      async function copiarPreview() {
+        const preview = Byid("preview");
+        const text = preview.textContent || preview.innerText || "";
+        if (!text) return false;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch (err) {
+            // fallback
+          }
+        }
+        // fallback: criar textarea
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          return true;
+        } catch (e) {
+          document.body.removeChild(ta);
+          return false;
+        }
+      }
+
+      function imprimirPreview() {
+        // abre nova janela com conteúdo do preview e chama print
+        const txt = Byid("preview").textContent || "";
+        const w = window.open("", "_blank");
+        if (!w) return false;
+        w.document.write(
+          `<pre style="font-family:system-ui, -apple-system, Segoe UI, Roboto; white-space:pre-wrap;">${escapeHtml(
+            txt,
+          )}</pre>`,
+        );
+        w.document.close();
+        w.focus();
+        w.print();
+        return true;
+      }
+
+      function baixarTxt() {
+        const texto = Byid("preview").textContent || gerarDeclaracao() || "";
+        if (!texto) return false;
+        const nome = (
+          Byid("localizador")?.value ||
+          Byid("nome")?.value ||
+          "declaracao"
+        ).replace(/[^a-z0-9\-_]/gi, "_");
+        const blob = new Blob([texto], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${nome}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return true;
+      }
+
+      // helper: seleciona uma option de <select> tentando match exato, contains ou por código (GRU)
+      function setSelectByLabel(selectEl, label) {
+        if (!selectEl || !label) return;
+        const opts = Array.from(selectEl.options || []);
+
+        // helper: normalize (remove accents, punctuation, lower)
+        function normalize(s) {
+          return (s || "")
+            .toString()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[\-–—\/\\()\.\,\*]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLowerCase();
+        }
+
+        const lbl = label.toString().trim();
+        // exact match (value or text)
+        for (const opt of opts) {
+          if (opt.value === lbl || opt.textContent === lbl) {
+            selectEl.value = opt.value;
+            try {
+              selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+            } catch (e) {}
+            return;
+          }
+        }
+
+        const nlbl = normalize(lbl);
+        // contains or normalized match
+        for (const opt of opts) {
+          const tv = (opt.textContent || "").toString();
+          if (tv === lbl) {
+            selectEl.value = opt.value;
+            return;
+          }
+          if (
+            normalize(tv).includes(nlbl) ||
+            normalize(opt.value || "").includes(nlbl)
+          ) {
+            selectEl.value = opt.value;
+            try {
+              selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+            } catch (e) {}
+            return;
+          }
+        }
+
+        // try match by code in parentheses e.g. (GRU) or standalone
+        const m =
+          lbl.match(/\(([A-Z0-9]{2,4})\)/i) || lbl.match(/\b([A-Z]{2,4})\b/);
+        if (m) {
+          const code = (m[1] || "").toUpperCase();
+          for (const opt of opts) {
+            const tv = opt.textContent || opt.value || "";
+            if (tv.includes(`(${code})`) || tv.includes(code)) {
+              selectEl.value = opt.value;
+              try {
+                selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+              } catch (e) {}
+              return;
+            }
+          }
+        }
+
+        // last resort: try partial word matches (e.g., 'guarulhos' or 'recife')
+        const tokens = nlbl.split(" ").filter(Boolean);
+        if (tokens.length) {
+          for (const opt of opts) {
+            const nt = normalize(opt.textContent || opt.value || "");
+            let matches = 0;
+            for (const t of tokens) if (nt.includes(t)) matches++;
+            // choose option that matches at least half of the tokens
+            if (matches >= Math.max(1, Math.floor(tokens.length / 2))) {
+              selectEl.value = opt.value;
+              try {
+                selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+              } catch (e) {}
+              return;
+            }
+          }
+        }
+
+        // fallback: set raw value
+        try {
+          selectEl.value = label;
+          try {
+            selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+          } catch (e) {}
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // attach small helpers to allow users to search airports via an input
+      // and see a popup of suggestions while typing
+      function attachAeroSelectHandlers() {
+        const list = parseRawAirports(rawAeroportos || "");
+        const nodes = Array.from(
+          document.querySelectorAll("select.aero-select"),
+        );
+        for (const el of nodes) {
+          // avoid attaching multiple times
+          if (el.dataset.aeroHandler) continue;
+
+          // create wrapper and search input + suggestions container
+          const wrapper = document.createElement("div");
+          wrapper.className = "aero-search-wrapper";
+          el.parentNode.insertBefore(wrapper, el);
+          wrapper.appendChild(el);
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "aero-search-input";
+          input.placeholder = "Buscar aeroporto (código/nome)";
+          wrapper.appendChild(input);
+
+          const sug = document.createElement("div");
+          sug.className = "aero-suggestions";
+          wrapper.appendChild(sug);
+
+          // sync input when select changes
+          function syncInputFromSelect() {
+            input.value =
+              (el.selectedOptions &&
+                el.selectedOptions[0] &&
+                el.selectedOptions[0].textContent) ||
+              el.value ||
+              "";
+          }
+          syncInputFromSelect();
+          el.addEventListener("change", syncInputFromSelect);
+          // hide the native select and let the input be the visible control
+          try {
+            el.style.display = "none";
+          } catch (e) {}
+
+          // helper normalize
+          const normalize = (s) =>
+            (s || "")
+              .toString()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/[\-–—\/\\()\.\,\*]/g, " ")
+              .replace(/\s+/g, " ")
+              .trim()
+              .toLowerCase();
+
+          let currentMatches = [];
+
+          input.addEventListener("input", () => {
+            const q = input.value.trim();
+            if (!q) {
+              sug.innerHTML = "";
+              sug.style.display = "none";
+              return;
+            }
+            const qn = normalize(q);
+            const matches = list
+              .filter(
+                (it) =>
+                  normalize(it.label).includes(qn) ||
+                  (it.code || "").toLowerCase().includes(qn),
+              )
+              .slice(0, 10);
+            currentMatches = matches;
+            sug.innerHTML = "";
+            for (const m of matches) {
+              const it = document.createElement("div");
+              it.className = "aero-suggestion-item";
+              it.textContent = m.label;
+              it.addEventListener("mousedown", (ev) => {
+                // use mousedown to prevent losing focus before click
+                ev.preventDefault();
+                setSelectByLabel(el, m.label);
+                syncInputFromSelect();
+                sug.innerHTML = "";
+                sug.style.display = "none";
+                input.focus();
+              });
+              sug.appendChild(it);
+            }
+            sug.style.display = matches.length ? "block" : "none";
+          });
+
+          // enter picks the first suggestion
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (currentMatches && currentMatches[0]) {
+                setSelectByLabel(el, currentMatches[0].label);
+                syncInputFromSelect();
+                sug.innerHTML = "";
+                sug.style.display = "none";
+              }
+            }
+            if (e.key === "Escape") {
+              sug.innerHTML = "";
+              sug.style.display = "none";
+            }
+          });
+
+          // hide suggestions when clicking outside
+          document.addEventListener("click", (ev) => {
+            if (!wrapper.contains(ev.target)) {
+              sug.innerHTML = "";
+              sug.style.display = "none";
+            }
+          });
+
+          // mark as attached
+          el.dataset.aeroHandler = "1";
+        }
+      }
+
+      function carregarExemplo() {
+        // valores de exemplo
+        Byid("OouA").value = "o";
+        Byid("nome").value = "João da Silva";
+        Byid("localizador").value = "ABC123";
+        Byid("tipo_viagem_select").value = "ida/volta";
+        marcadoida();
+        // conexões zero
+        Byid("ida_conexoes_count").value = "0";
+        renderConexoes("ida", 0);
+        Byid("volta_conexoes_count").value = "0";
+        renderConexoes("volta", 0);
+        // ida
+        Byid("ida_data").value = new Date().toISOString().split("T")[0];
+        Byid("ida_num").value = "1234";
+        setSelectByLabel(
+          Byid("ida_partida_aero"),
+          "São Paulo - Guarulhos (GRU)",
+        );
+        Byid("ida_partida_hora").value = "10:50";
+        setSelectByLabel(Byid("ida_chegada_aero"), "Recife (REC)");
+        Byid("ida_chegada_hora").value = "11:55";
+        // volta
+        Byid("volta_data").value = new Date(Date.now() + 5 * 24 * 3600 * 1000)
+          .toISOString()
+          .split("T")[0];
+        Byid("volta_num").value = "4321";
+        setSelectByLabel(Byid("volta_partida_aero"), "Recife (REC)");
+        Byid("volta_partida_hora").value = "13:00";
+        setSelectByLabel(
+          Byid("volta_chegada_aero"),
+          "São Paulo - Guarulhos (GRU)",
+        );
+        Byid("volta_chegada_hora").value = "16:35";
+
+        // gerar visual
+        gerarDeclaracao();
+      }
+
+      function escapeHtml(str) {
+        return (str + "").replace(/[&<>\"]/g, function (c) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+        });
+      }
+
+      // ===== Parser para importar linhas no formato especificado =====
+      /**
+       * Exemplo de linha:
+       * 1 G33689Y 17OCT VIXGIG HK1 2030 2135 /RLLA*AUKLWM/E
+       * Campos relevantes: (ignore o primeiro dígito e o bloco da companhia)
+       * - número do voo: os 4 dígitos após a companhia (por exemplo 3689 dentro de G33689Y -> 3689)
+       * - data: 17OCT (dia + mês abreviado)
+       * - origem/destino: VIXGIG (origem 3 letras + destino 3 letras)
+       * - horários: saída e chegada (2030, 2135)
+       */
+      function parseTrechoLine(line) {
+        if (!line) return null;
+        // normaliza espaços
+        const parts = line.trim().split(/\s+/);
+        // procura por um token que contenha letras+digitos tipo G33689Y
+        let flightToken = parts.find((p) => /[A-Z]\d{3,}/i.test(p));
+        if (!flightToken) {
+          // fallback: tenta o segundo token
+          flightToken = parts[1] || parts[0];
+        }
+        // extrair 4 dígitos contíguos do token
+        const flightDigits = (flightToken.match(/\d{4}/) || [])[0] || "";
+
+        // data token (ex: 17OCT)
+        const dateToken =
+          parts.find((p) => /^[0-9]{1,2}[A-Z]{3}$/i.test(p)) || "";
+        // origem/destino token (6 letras juntas ou dois tokens de 3)
+        let odToken = parts.find((p) => /^[A-Z]{6}$/i.test(p));
+        if (!odToken) {
+          // tenta juntar próximo token
+          const idx = parts.indexOf(dateToken);
+          if (idx >= 0 && parts[idx + 1]) {
+            // se o token depois da data tiver 6 letras
+            if (/^[A-Z]{6}$/i.test(parts[idx + 1])) odToken = parts[idx + 1];
+            else if (
+              /^[A-Z]{3}$/i.test(parts[idx + 1]) &&
+              /^[A-Z]{3}$/i.test(parts[idx + 2] || "")
+            )
+              odToken = parts[idx + 1] + parts[idx + 2];
+          }
+        }
+
+        // horários: procura por dois tokens com 3 ou 4 dígitos
+        const timeCandidates = parts.filter((p) => /^\d{3,4}$/.test(p));
+        let depart = timeCandidates[0] || "";
+        let arrive = timeCandidates[1] || timeCandidates[0] || "";
+
+        // normalizações
+        const number = flightDigits.padStart(4, "0");
+        const origem = odToken ? odToken.slice(0, 3) : "";
+        const destino = odToken ? odToken.slice(3, 6) : "";
+
+        // data: converte 17OCT para YYYY-MM-DD aproximado no ano atual
+        let isoDate = "";
+        if (dateToken) {
+          const day = parseInt(dateToken.slice(0, -3), 10);
+          const mon = dateToken.slice(-3).toUpperCase();
+          const monthMap = {
+            JAN: 1,
+            FEB: 2,
+            MAR: 3,
+            APR: 4,
+            MAY: 5,
+            JUN: 6,
+            JUL: 7,
+            AUG: 8,
+            SEP: 9,
+            OCT: 10,
+            NOV: 11,
+            DEC: 12,
+          };
+          const m = monthMap[mon] || NaN;
+          if (!isNaN(m) && day >= 1 && day <= 31) {
+            const y = new Date().getFullYear();
+            isoDate = `${y.toString().padStart(4, "0")}-${String(m).padStart(
+              2,
+              "0",
+            )}-${String(day).padStart(2, "0")}`;
+          }
+        }
+
+        function fmtTime(t) {
+          if (!t) return "";
+          const s = t.padStart(4, "0");
+          return `${s.slice(0, 2)}:${s.slice(2, 4)}`;
+        }
+
+        return {
+          number,
+          date: isoDate,
+          origem: origem ? `${origem} (${origem})` : "",
+          destino: destino ? `${destino} (${destino})` : "",
+          depart: fmtTime(depart),
+          arrive: fmtTime(arrive),
+          raw: line,
+        };
+      }
+
+      function importarTrechosFromTextarea() {
+        const ta = Byid("import_text");
+        if (!ta) return;
+        const lines = ta.value
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean);
+        if (!lines.length) return alert("Cole pelo menos uma linha válida.");
+        const parsed = lines.map(parseTrechoLine).filter(Boolean);
+        if (!parsed.length)
+          return alert(
+            "Não foi possível parsear as linhas. Verifique o formato.",
+          );
+
+        // popula o primeiro trecho na seção de ida
+        const first = parsed[0];
+        if (first.date) Byid("ida_data").value = first.date;
+        if (first.number) Byid("ida_num").value = first.number;
+        if (first.origem)
+          setSelectByLabel(Byid("ida_partida_aero"), first.origem);
+        if (first.depart) Byid("ida_partida_hora").value = first.depart;
+        if (first.destino)
+          setSelectByLabel(Byid("ida_chegada_aero"), first.destino);
+        if (first.arrive) Byid("ida_chegada_hora").value = first.arrive;
+
+        // se houver mais linhas, transforme em conexões
+        if (parsed.length > 1) {
+          Byid("ida_conexoes_count").value = String(parsed.length - 1);
+          renderConexoes("ida", parsed.length - 1);
+          for (let i = 1; i < parsed.length; i++) {
+            const p = parsed[i];
+            if (p.number) Byid(`ida_num_${i - 1}`).value = p.number;
+            if (p.origem)
+              setSelectByLabel(Byid(`ida_partida_aero_${i - 1}`), p.origem);
+            if (p.depart) Byid(`ida_partida_hora_${i - 1}`).value = p.depart;
+            if (p.destino)
+              setSelectByLabel(Byid(`ida_chegada_aero_${i - 1}`), p.destino);
+            if (p.arrive) Byid(`ida_chegada_hora_${i - 1}`).value = p.arrive;
+          }
+        }
+        gerarDeclaracao();
+      }
+
+      // ---- Render inicial (garante estado consistente ao carregar) ----
+      (function init() {
+        // data da declaração
+        const declaracaoDate = Byid("declaracao_date");
+        if (declaracaoDate && !declaracaoDate.value)
+          declaracaoDate.value = new Date().toISOString().split("T")[0];
+
+        const qIda = Math.max(0, Number(ida_conexoes_count?.value || 0));
+        const qVolta = Math.max(0, Number(volta_conexoes_count?.value || 0));
+        renderConexoes("ida", qIda);
+        renderConexoes("volta", qVolta);
+
+        function limparFormulario() {
+          // Limpa campos do cabeçalho
+          Byid("OouA").value = "";
+          Byid("nome").value = "";
+          Byid("localizador").value = "";
+
+          // Reseta tipo de viagem
+          Byid("tipo_viagem_select").value = "";
+          marcadoida();
+
+          // Limpa campos de ida
+          Byid("ida_data").value = "";
+          Byid("ida_num").value = "";
+          Byid("ida_partida_aero").value = "";
+          try {
+            Byid("ida_partida_aero").dispatchEvent(
+              new Event("change", { bubbles: true }),
+            );
+          } catch (e) {}
+          Byid("ida_partida_hora").value = "";
+          Byid("ida_chegada_aero").value = "";
+          try {
+            Byid("ida_chegada_aero").dispatchEvent(
+              new Event("change", { bubbles: true }),
+            );
+          } catch (e) {}
+          Byid("ida_chegada_hora").value = "";
+
+          // Reseta conexões ida
+          Byid("ida_conexoes_count").value = "0";
+          renderConexoes("ida", 0);
+
+          // Limpa campos de volta
+          Byid("volta_data").value = "";
+          Byid("volta_num").value = "";
+          Byid("volta_partida_aero").value = "";
+          try {
+            Byid("volta_partida_aero").dispatchEvent(
+              new Event("change", { bubbles: true }),
+            );
+          } catch (e) {}
+          Byid("volta_partida_hora").value = "";
+          Byid("volta_chegada_aero").value = "";
+          try {
+            Byid("volta_chegada_aero").dispatchEvent(
+              new Event("change", { bubbles: true }),
+            );
+          } catch (e) {}
+          Byid("volta_chegada_hora").value = "";
+
+          // Reseta conexões volta
+          Byid("volta_conexoes_count").value = "0";
+          renderConexoes("volta", 0);
+
+          // Limpa preview
+          const preview = Byid("preview");
+          if (preview) preview.textContent = "";
+        }
+
+        // hookup buttons
+        const bGerar = Byid("btn_gerar");
+        if (bGerar)
+          bGerar.addEventListener("click", (e) => {
+            e.preventDefault();
+            gerarDeclaracao();
+          });
+        const bCopiar = Byid("btn_copiar");
+        if (bCopiar)
+          bCopiar.addEventListener("click", async () => {
+            const ok = await copiarPreview();
+            if (ok) {
+              alert("Texto copiado para a área de transferência");
+            } else {
+              alert("Não foi possível copiar");
+            }
+          });
+        const bImprimir = Byid("btn_imprimir");
+        if (bImprimir)
+          bImprimir.addEventListener("click", () => {
+            imprimirPreview();
+          });
+        const bBaixar = Byid("btn_baixar");
+        if (bBaixar)
+          bBaixar.addEventListener("click", () => {
+            baixarTxt();
+          });
+        const bEx = Byid("btn_exemplo");
+        if (bEx)
+          bEx.addEventListener("click", () => {
+            carregarExemplo();
+          });
+
+        // Botão Importar
+        const bImport = Byid("btn_importar");
+        if (bImport)
+          bImport.addEventListener("click", () =>
+            importarTrechosFromTextarea(),
+          );
+
+        // Botão Limpar
+        const bLimpar = Byid("btn_limpar");
+        if (bLimpar)
+          bLimpar.addEventListener("click", () => {
+            if (
+              confirm("Deseja realmente limpar todos os campos do formulário?")
+            ) {
+              limparFormulario();
+            }
+          });
+      })();
+      // ===== Utilitários de formatação/validação =====
+
+      // 1) Localizador: 6 caracteres maiúsculos (alfa-numérico)
+      function normalizeLocalizador(v) {
+        if (!v) return "";
+        return v
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "")
+          .slice(0, 6);
+      }
+      function isValidLocalizador(v) {
+        return /^[A-Z0-9]{6}$/.test(v);
+      }
+
+      // 2) Nome: primeira letra maiúscula e restante minúsculo
+      function formatPassengerName(v) {
+        if (!v) return "";
+        return v
+          .toString()
+          .trim()
+          .split(/\s+/)
+          .map((w) =>
+            w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : "",
+          )
+          .join(" ");
+      }
+
+      // 3) Data: "01 de Janeiro de 2025"
+      function formatDateLong(yyyy_mm_dd) {
+        if (!yyyy_mm_dd) return "";
+        const [y, m, d] = yyyy_mm_dd.split("-").map(Number);
+        if (!y || !m || !d) return "";
+        const meses = [
+          "Janeiro",
+          "Fevereiro",
+          "Março",
+          "Abril",
+          "Maio",
+          "Junho",
+          "Julho",
+          "Agosto",
+          "Setembro",
+          "Outubro",
+          "Novembro",
+          "Dezembro",
+        ];
+        const dd = String(d).padStart(2, "0");
+        const mes = meses[m - 1] || "";
+        return `${dd} de ${mes} de ${y}`;
+      }
+
+      // 4) Número do voo: sempre 4 dígitos
+      function onlyDigits(v) {
+        return (v || "").replace(/\D/g, "");
+      }
+      function fourDigitFlight(v) {
+        // Mantém só dígitos e força 4 dígitos (com zero à esquerda, se necessário)
+        const d = onlyDigits(v).slice(0, 4);
+        return d.padStart(4, "0");
+      }
+      function isValidFourDigit(v) {
+        return /^\d{4}$/.test(v);
+      }
+
+      // 5) Horário: função de normalização consolidada definida mais abaixo
+      function formatTimeHhMm(v) {
+        // recebe "23:59" e devolve "23h59"
+        if (!v) return "";
+        const norm = normalizeTimeToHHMM(v);
+        if (!norm) return "";
+        const [hh, mm] = norm.split(":");
+        return `${hh}h${mm}`;
+      }
+
+      // ===== Listeners para higienizar enquanto digita =====
+      document.addEventListener("DOMContentLoaded", () => {
+        // a) Localizador
+        const localizador = Byid("localizador");
+        if (localizador) {
+          localizador.addEventListener("input", () => {
+            const cur = localizador.selectionStart; // tenta preservar caret
+            const val = normalizeLocalizador(localizador.value);
+            localizador.value = val;
+            // reposiciona caret ao fim
+            localizador.setSelectionRange(val.length, val.length);
+          });
+        }
+
+        // b) Nome do passageiro
+        const nome = Byid("nome");
+        if (nome) {
+          nome.addEventListener("blur", () => {
+            nome.value = formatPassengerName(nome.value);
+          });
+        }
+
+        // c) Números de voo fixos (ida e volta)
+        const ida_num = Byid("ida_num");
+        if (ida_num) {
+          ida_num.addEventListener("input", () => {
+            ida_num.value = onlyDigits(ida_num.value).slice(0, 4);
+          });
+        }
+        const volta_num = Byid("volta_num");
+        if (volta_num) {
+          volta_num.addEventListener("input", () => {
+            volta_num.value = onlyDigits(volta_num.value).slice(0, 4);
+          });
+        }
+
+        // d) Números de voo das conexões (delegado para ida/volta)
+        const ida_conexoes_container = Byid("ida_conexoes_container");
+        if (ida_conexoes_container) {
+          ida_conexoes_container.addEventListener("input", (e) => {
+            const el = e.target;
+            if (el && /^ida_num_\d+$/.test(el.id)) {
+              el.value = onlyDigits(el.value).slice(0, 4);
+            }
+          });
+        }
+        const volta_conexoes_container = Byid("volta_conexoes_container");
+        if (volta_conexoes_container) {
+          volta_conexoes_container.addEventListener("input", (e) => {
+            const el = e.target;
+            if (el && /^volta_num_\d+$/.test(el.id)) {
+              el.value = onlyDigits(el.value).slice(0, 4);
+            }
+          });
+        }
+
+        // f) Preencher data da declaração com hoje (mantendo type="date")
+        const declaracaoDate = Byid("declaracao_date");
+        if (declaracaoDate && !declaracaoDate.value) {
+          declaracaoDate.value = new Date().toISOString().split("T")[0];
+        }
+      });
+
+      // ===== Validação antes de gerar =====
+      function validateRules() {
+        const errors = [];
+
+        const loc = Byid("localizador")?.value || "";
+        if (!isValidLocalizador(loc)) {
+          errors.push(
+            "Código localizador deve ter 6 caracteres alfa-numéricos em MAIÚSCULO (ex.: ABC123).",
+          );
+        }
+
+        const idaNum = Byid("ida_num")?.value || "";
+        if (!isValidFourDigit(onlyDigits(idaNum).padStart(4, "0"))) {
+          errors.push("Número do voo (ida) deve conter 4 dígitos (ex.: 0123).");
+        }
+
+        const voltaNumEl = Byid("volta_num");
+        if (voltaNumEl && Byid("tipo_viagem_select")?.value === "ida/volta") {
+          const v = voltaNumEl.value || "";
+          if (!isValidFourDigit(onlyDigits(v).padStart(4, "0"))) {
+            errors.push(
+              "Número do voo (volta) deve conter 4 dígitos (ex.: 0456).",
+            );
+          }
+        }
+
+        // Conexões IDA
+        const qIda = Number(Byid("ida_conexoes_count")?.value || 0);
+        for (let i = 0; i < qIda; i++) {
+          const v = Byid(`ida_num_${i}`)?.value || "";
+          if (!isValidFourDigit(onlyDigits(v).padStart(4, "0"))) {
+            errors.push(
+              `Número do voo da conexão ${i + 1} (ida) deve conter 4 dígitos.`,
+            );
+          }
+        }
+
+        // Conexões VOLTA
+        const qVolta = Number(Byid("volta_conexoes_count")?.value || 0);
+        const tipo = Byid("tipo_viagem_select")?.value;
+        if (tipo === "ida/volta") {
+          for (let i = 0; i < qVolta; i++) {
+            const v = Byid(`volta_num_${i}`)?.value || "";
+            if (!isValidFourDigit(onlyDigits(v).padStart(4, "0"))) {
+              errors.push(
+                `Número do voo da conexão ${
+                  i + 1
+                } (volta) deve conter 4 dígitos.`,
+              );
+            }
+          }
+        }
+
+        // Horários: aceitar HH:MM no input, mas precisam ser válidos
+        const timeIds = ["ida_partida_hora", "ida_chegada_hora"];
+        if (tipo === "ida/volta")
+          timeIds.push("volta_partida_hora", "volta_chegada_hora");
+        for (const id of timeIds) {
+          const el = Byid(id);
+          if (el) {
+            const norm = normalizeTimeToHHMM(el.value);
+            if (!norm)
+              errors.push(
+                `Horário inválido em "${id}". Use formato HH:MM (ex.: 23:59).`,
+              );
+          }
+        }
+
+        return errors;
+      }
+
+      // ===== Ajuste nas funções de geração de texto =====
+      function textoInicial() {
+        const cidade = Byid("cidade")?.value || "";
+        const dataDeclRaw = Byid("declaracao_date")?.value || "";
+        const dataDeclFmt = formatDateLong(dataDeclRaw);
+        return `${cidade}, ${dataDeclFmt}`;
+      }
+
+      function textodaida() {
+        // Normalizações exigidas
+        const nomeFmt = formatPassengerName(Byid("nome")?.value || "");
+        const OouAEl = Byid("OouA");
+        // pega o valor (O ou A), remove espaços e força maiúscula; padrão 'O'
+        const OouAV = (OouAEl?.value || "o").toString().trim();
+        const localizadorFmt = normalizeLocalizador(
+          Byid("localizador")?.value || "",
+        );
+        const companhia = Byid("companhia")?.value || "GOL Linhas Aéreas S.A";
+
+        const ida_data_raw = Byid("ida_data")?.value || "";
+        const ida_data_fmt = formatDateLong(ida_data_raw);
+
+        const ida_num_fmt = fourDigitFlight(Byid("ida_num")?.value || "");
+        const ida_partida_sel = Byid("ida_partida_aero");
+        const ida_partida_aero_v =
+          ida_partida_sel?.selectedOptions?.[0]?.textContent ||
+          ida_partida_sel?.value ||
+          "";
+        const ida_partida_hora_fmt = formatTimeHhMm(
+          Byid("ida_partida_hora")?.value || "",
+        );
+        const ida_chegada_sel = Byid("ida_chegada_aero");
+        const ida_chegada_aero_v =
+          ida_chegada_sel?.selectedOptions?.[0]?.textContent ||
+          ida_chegada_sel?.value ||
+          "";
+        const ida_chegada_hora_fmt = formatTimeHhMm(
+          Byid("ida_chegada_hora")?.value || "",
+        );
+
+        let texto =
+          `\n\n\nFazemos referência, por ora, que ${OouAV} Sr.(a) ${nomeFmt} possuía a passagem de código ` +
+          `localizador ${localizadorFmt} e embarcou com a companhia ${companhia}, sendo o voo de ` +
+          `ida no dia ${ida_data_fmt}, no voo G3 ${ida_num_fmt}, partindo de ${ida_partida_aero_v} às ${ida_partida_hora_fmt}, ` +
+          `chegando em ${ida_chegada_aero_v} às ${ida_chegada_hora_fmt}`;
+
+        const qtdCon = Number(Byid("ida_conexoes_count")?.value || 0);
+        for (let i = 0; i < qtdCon; i++) {
+          const v = fourDigitFlight(Byid(`ida_num_${i}`)?.value || "");
+          const oel = Byid(`ida_partida_aero_${i}`);
+          const o = oel?.selectedOptions?.[0]?.textContent || oel?.value || "";
+          const hs = formatTimeHhMm(Byid(`ida_partida_hora_${i}`)?.value || "");
+          const del = Byid(`ida_chegada_aero_${i}`);
+          const d = del?.selectedOptions?.[0]?.textContent || del?.value || "";
+          const hc = formatTimeHhMm(Byid(`ida_chegada_hora_${i}`)?.value || "");
+          texto += `, com conexão no voo G3 ${v}, partindo de ${o} às ${hs}, chegando em ${d} às ${hc}`;
+        }
+
+        return texto;
+      }
+
+      function textodavolta() {
+        const volta_data_fmt = formatDateLong(Byid("volta_data")?.value || "");
+        const volta_num_fmt = fourDigitFlight(Byid("volta_num")?.value || "");
+        const volta_partida_sel = Byid("volta_partida_aero");
+        const volta_partida_aero_v =
+          volta_partida_sel?.selectedOptions?.[0]?.textContent ||
+          volta_partida_sel?.value ||
+          "";
+        const volta_partida_hora_fmt = formatTimeHhMm(
+          Byid("volta_partida_hora")?.value || "",
+        );
+        const volta_chegada_sel = Byid("volta_chegada_aero");
+        const volta_chegada_aero_v =
+          volta_chegada_sel?.selectedOptions?.[0]?.textContent ||
+          volta_chegada_sel?.value ||
+          "";
+        const volta_chegada_hora_fmt = formatTimeHhMm(
+          Byid("volta_chegada_hora")?.value || "",
+        );
+
+        let texto =
+          `\n\nE o voo de volta no dia ${volta_data_fmt}, no voo G3 ${volta_num_fmt}, partindo de ${volta_partida_aero_v} às ` +
+          `${volta_partida_hora_fmt}, chegando em ${volta_chegada_aero_v} às ${volta_chegada_hora_fmt}`;
+
+        const qtdCon = Number(Byid("volta_conexoes_count")?.value || 0);
+        for (let i = 0; i < qtdCon; i++) {
+          const v = fourDigitFlight(Byid(`volta_num_${i}`)?.value || "");
+          const oel = Byid(`volta_partida_aero_${i}`);
+          const o = oel?.selectedOptions?.[0]?.textContent || oel?.value || "";
+          const hs = formatTimeHhMm(
+            Byid(`volta_partida_hora_${i}`)?.value || "",
+          );
+          const del = Byid(`volta_chegada_aero_${i}`);
+          const d = del?.selectedOptions?.[0]?.textContent || del?.value || "";
+          const hc = formatTimeHhMm(
+            Byid(`volta_chegada_hora_${i}`)?.value || "",
+          );
+          texto += `, com conexão no voo G3 ${v}, partindo de ${o} às ${hs}, chegando em ${d} às ${hc}`;
+        }
+
+        return texto;
+      }
+
+      // ===== Integre com seu botão "Gerar Declaração" =====
+      document.addEventListener("DOMContentLoaded", () => {
+        const btnGerar = Byid("btn_gerar");
+        const preview = Byid("preview");
+        if (btnGerar && preview) {
+          btnGerar.addEventListener("click", (e) => {
+            e.preventDefault();
+            const errs = validateRules();
+            if (errs.length) {
+              preview.innerHTML = `<strong>Corrija os seguintes itens:</strong><br>- ${errs.join(
+                "<br>- ",
+              )}`;
+              return;
+            }
+            const tipo = Byid("tipo_viagem_select")?.value;
+            const partes = [textoInicial(), textodaida()];
+            if (tipo === "ida/volta") partes.push(textodavolta());
+            preview.innerHTML = partes.filter(Boolean).join(". ") + ".";
+          });
+        }
+      });
+
+      const rawAeroportos = `Aalborg Airport	AAL
+Aberdeen	ABZ
+Abidjan, Ivory Coast	ABJ
+Abuja, Nigeria	ABV
+Accra	ACC
+Accra - Todos os Aeroportos	GH
+Aeroporto Cap Carlos Perez	VSA
+Aeroporto Internacional de Piarco	POS
+Agadir, Morocco	AGA
+Ajaccio, France	AJA
+Al Ain - Terminal de Onibus	AAN
+Albany	ALB
+Alesund	AES
+Alicante, Spain	ALC
+Alta Floresta	AFL
+Altamira	ATM
+Antofagasta	ANF
+Aracaju	AJU
+Araguaina	AUX
+Arauca	AUC
+Araxá	AAX
+Araçatuba	ARU
+Arica - Arica y Parinacota	ARI
+Armênia	AXM
+Aruba	AUA
+Assunção	ASU
+Athens - Eleftherios Venizelos	ATH
+Atlanta	ATL
+Austin	AUS
+Ayacucho	AYP
+B Diagne Int Dkr, Senegal	DSS
+Bahia Blanca	BHI
+Balmaceda - Aysén del General Carlos Ibáñez del Campo	BBA
+Baltimore	BWI
+Bamako, Mali	BKO
+Banjul, Gambia	BJL
+Barbados	BGI
+Barcelona - El Prat	BCN
+Bari, Italy	BRI
+Bariloche	BRC
+Barrancabermeja	EJA
+Barranquilla	BAQ
+Barreiras	BRA
+Barretos	BAT
+Bastia, France	BIA
+Bauru - Arealva	JTC
+Belo Horizonte - Pampulha	PLU
+Belo Horizonte - Todos os Aeroportos	BHZ
+Berlin - Brandenburg Airport	BER
+Biarritz, France	BIQ
+Bilbao	BIO
+Billund Airport	BLL
+Birmingham	BHX
+Birmingham Alabama	BHM
+Bissau, Guinea Bissau	OXB
+Boa Vista	BVB
+Bogotá	BOG
+Boipeba	PBA
+Bolonha	BLQ
+Bordeaux Airport	BOD
+Brasília	BSB
+Bremen Airport	BRE
+Bucaramanga	BGA
+Bucharest Otopeni, Romania	OTP
+Bucharest, Romania	BUH
+Budapest, Hungary	BUD
+Buenos Aires - Aeroparque	AEP
+Buenos Aires - Ezeiza	EZE
+Buenos Aires - Todos os Aeroportos	BUE
+Buffalo	BUF
+Cabo Frio	CFB
+Cacoal	OAL
+Cagliari, Italy	CAG
+Cairo, Egypt	CAI
+Calama - Antofagasta	CJC
+Caldas Novas	CLV
+Cali	CLO
+Calvi, France	CLY
+Campina Grande	CPV
+Campo Grande	CGR
+Campos dos Goitacazes	CAW
+Cancún	CUN
+Canoas	QNS
+Caracas	CCS
+Cardiff	CWL
+Cartagena	CTG
+Caruaru	CAU
+Casablanca, Morocco	CMN
+Cascavel	CAC
+Castro - Dalcahue - Chiloé Island - Los Lagos	MHC
+Catamarca	CTC
+Catania, Italy	CTA
+Caxias do Sul - Gramado e Canela	CXJ
+Cayenne - Félix Eboué	CAY
+Cedar Rapids	CID
+Chapecó	XAP
+Charleston	CHS
+Charlotte	CLT
+Charlottetown Pe, Canada	YYG
+Chicago	ORD
+Chicago - Todos os Aeroportos	CHI
+Cidade do Cabo	CPT
+Cidade do México	MEX
+Cidade do Panamá	PTY
+Cincinnati	CVG
+Clermont - Ferrand	CFE
+Cleveland	CLE
+Cochabamba	CBB
+Comodoro Rivadavia	CRD
+Conakry, Guinea	CKY
+Copenhagen Airport	CPH
+Copiapó - Atacama	CPO
+Cork, Ireland	ORK
+Corrientes	CNQ
+Corumbá	CMG
+Cuenca	CUE
+Cuiabá	CGB
+Curaçao	CUR
+Curitiba	CWB
+Córdoba	COR
+Cúcuta	CUC
+Dakhla, Morocco	VIL
+Dallas - Fort Worth	DFW
+Dar Es Salaam, Tanzania	DAR
+Deer Lake	YDF
+Detroit - Todos os Aeroportos	DTT
+Dourados	DOU
+Dubai – Terminal de Onibus	XNB
+Dublin Airport	DUB
+Duesseldorf International	DUS
+Durban	DUR
+Durham	MME
+Eagle County Airport	EGE
+Edmonton	YEG
+El Calafate	FTE
+El Yopal	EYP
+Errachidla, Morocco	ERH
+Esquel	EQS
+Estocolmo Arlanda	ARN
+Estocolmo Arlanda - Todos os Aeroportos	STO
+EuroAirport Swiss	BSL
+Faro, Portugal	FAO
+Fayetteville Northwest Arkansas	XNA
+Feira de Santana	FEC
+Fernando de Noronha	FEN
+Fez, Morocco	FEZ
+Figari, France	FSC
+Filadelfia	PHL
+Florença	FLR
+Florianópolis	FLN
+Formosa	FMA
+Fort - de - France - Martinica	FDF
+Fort Lauderdale	FLL
+Fortaleza	FOR
+Forte McMurray	YMM
+Foz do Iguaçu – Iguazu Falls	IGU
+Franca	FRC
+Frankfurt International Airport	FRA
+Fredericton	YFC
+Freetown Lungi, Sierra Leone	FNA
+Funchal, Portugal	FNC
+Gatwick, Londres	LGW
+Gdansk, Poland	GDN
+Geneva	GVA
+Genova	GOA
+Glasgow	GLA
+Goiânia	GYN
+Gotemburgo Landvetter	GOT
+Governador Valadares	GVR
+Gran Canaria, Espanha	LPA
+Grand Rapids	GRR
+Greenville Spartanburg	GSP
+Guadalajara	GDL
+Guanambi	GNM
+Guarapuava	GPB
+Guatemala	GUA
+Guayaquil	GYE
+Halifax	YHZ
+Hamburg Airport	HAM
+Hannover Airport	HAJ
+Harare, Zimbabwe	HRE
+Hartford Springfield	BDL
+Havana	HAV
+Helsinki Vantaa, Finland	HEL
+Heraklion, Greece	HER
+Honolulu International Airport	HNL
+Houston	IAH
+Houston - Todos os Aeroportos	HOU
+Ibagué	IBE
+Ibiza, Spain	IBZ
+Iguazu	IGR
+Ilha Da Boa Vista, Cabo Verde	BVC
+Ilha De São Vicente, Cabo Verde	VXE
+Ilha Terceira, Portugal	TER
+Ilhas Galápagos	GPS
+Imperatriz	IMP
+Indianapolis	IND
+Ipatinga / Vale do Aço	IPN
+Ipiales	IPI
+Iquique - Tarapacá	IQQ
+Istambul	IST
+Itaituba	ITB
+Jacksonville	JAX
+Jaguaruna - Criciúma	JJG
+Jauja - Junín	JAU
+Jericoacoara	JJD
+Ji - Paraná	JPR
+Johannesburg	JNB
+Johannesburg - Todos os Aeroportos	ZA
+João Pessoa	JPA
+Juazeiro do Norte	JDO
+Juiz de Fora - Zona da Mata	IZA
+Jujuy	JUJ
+Juliaca - Puno	JUL
+Kansas City Missouri	MCI
+Kittila, Finland	KTT
+Kristiansand	KRS
+La Paz – El Alto	LPB
+La Rioja	IRJ
+La Serena - Coquimbo	LSC
+Laayoune, Morocco	EUN
+Lages - Correia Pinto	EEA
+Lagos, Nigeria	LOS
+Las Vegas	LAS
+Leeds/Bradford	LBA
+Lençóis/Chapada Diamantina	LEC
+Leticia	LET
+Lima	LIM
+Linkoping Airport	LPI
+Lisboa	LIS
+London - Heathrow	LHR
+London - Todos os Aeroportos	LON
+London On, Canada	YXU
+Londrina	LDB
+Los Angeles	LAX
+Luanda, Aeroporto Internacional Dr. António Agostinho Neto, Angola	NBJ
+Luanda, Angola	LAD
+Lubumbashi, Congo Dem Rep	FBM
+Lusaka, Zambia	LUN
+Lyon Satolas Airport	LYS
+Macapá	MCP
+Maceió	MCZ
+Madison	MSN
+Madrid - Barajas	MAD
+Malaga, Spain	AGP
+Malta, Malta	MLA
+Manaus	MAO
+Manchester	MAN
+Manta	MEC
+Manágua	MGA
+Maputo	MPM
+Maputo - Todos os Aeroportos	MZ
+Mar del Plata	MDQ
+Marabá	MAB
+Maracaibo	MAR
+Maringá	MGF
+Marrakech, Morocco	RAK
+Marseille	MRS
+Marília	MII
+Mauritius, Mauritius	MRU
+Mendoza	MDZ
+Menorca, Espanha	MAH
+Miami	MIA
+Milwaukee	MKE
+Milão - Linate	LIN
+Milão - Malpensa	MXP
+Milão - Todos os Aeroportos	MIL
+Minneapolis	MSP
+Moncton	YQM
+Monrovia Roberts, Liberia	ROB
+Montego Bay	MBJ
+Montería	MTR
+Montes Claros	MOC
+Montreal - Todos os Aeroportos	YMQ
+Montreal	YUL
+Morro de São Paulo	MXQ
+Munich International	MUC
+Nador, Morocco	NDR
+Nantes	NTE
+Napoles	NAP
+Nashville	BNA
+Nassau	NAS
+Natal	NAT
+Navegantes	NVT
+Neiva	NVA
+Neuquen	NQN
+New Orleans	MSY
+Newcastle	NCL
+Niamey, Niger	NIM
+Norfolk Virginia	ORF
+Nouakchott, Mauritania	NKC
+Nova York - John F. Kennedy	JFK
+Nova Iorque - La Guardia	LGA
+Nova Iorque - Newark	EWR
+Nova Iorque - Todos os Aeroportos	NYC
+Nuremberg Airport	NUE
+Oakland	OAK
+Oklahoma City	OKC
+Olbia, Italy	OLB
+Omaha	OMA
+Ontário - Califórnia	ONT
+Orlando	MCO
+Oslo Gardemoen - Todos os Aeroportos	OSL
+Oslo Sandefjord	TRF
+Osorno - Los Lagos	ZOS
+Ottawa	YOW
+Ouagadougou, Burkina Faso	OUA
+Ouarzazate, Morocco	OZZ
+Oujda, Morocco	OUD
+Palermo, Italy	PMO
+Palma de Mallorca, Spain	PMI
+Palmas	PMW
+Paramaribo	PBM
+Parauapebas - Carajás	CKS
+Parintins	PIN
+Paris - Charles De Gaulle	CDG
+Paris - Todos os Aeroportos	PAR
+Parnaíba	PHB
+Passo Fundo	PFB
+Pato Branco	PTO
+Patos de Minas	POJ
+Pau	PUF
+Paulo Afonso	PAV
+Pelotas	PET
+Pensacola	PNS
+Península de Maraú	MUU
+Pereira	PEI
+Perth, Australia	PER
+Petrolina	PNZ
+Piura	PIU
+Pointe - a - Pitre, Guadeloupe	PTP
+Ponta Delgada, Portugal	PDL
+Ponta Grossa	PGZ
+Ponta Negra	PNR
+Ponta Porã	PMG
+Popayán	PPN
+Port Elizabeth	PLZ
+Portland	PDX
+Porto - Todos os Aeroportos	PT
+Porto Alegre	POA
+Porto Príncipe	PAP
+Porto Santo, Portugal	PXO
+Porto Trombetas	TMT
+Posadas	PSS
+Poznan, Poland	POZ
+Prague, Czech Republic	PRG
+Praia, Cape Verde	RAI
+Pucallpa - Ucayali	PCL
+Puerto Maldonado - Madre de Dios	PEM
+Puerto Montt - Los Lagos	PMC
+Puerto Natales - Magallanes y de la Antártica Chilena	PNT
+Punta Arenas - Magallanes y de la Antártica Chilena	PUQ
+Punta Cana	PUJ
+Punta Del Este	PDP
+Quebec	YQB
+Quinxassa	FIH
+Quinxassa - Todos os Aeroportos	CD
+Raleigh/Durham	RDU
+Regina	YQR
+Resistencia	RES
+Rhodes, Rhodos Island	RHO
+Ribeirão Preto	RAO
+Rio Branco	RBR
+Rio Gallegos	RGL
+Rio Grande	RGA
+Rio Hondo	RHD
+Rio de Janeiro - Galeão	GIG
+Rio de Janeiro - Santos Dumont	SDU
+Rio de Janeiro - Todos os Aeroportos	RIO
+Riohacha	RCH
+Rodriguez Ballon Airport	AQP
+Roma – Fiumicino	FCO
+Roma – Fiumicino - Todos os Aeroportos	ROM
+Rosario	ROS
+Rovaniemi, Finland	RVN
+Sacramento	SMF
+Saint Croix	STX
+Saint Louis	STL
+Saint Thomas	STT
+Sal, Cape Verde	SID
+Salt Lake City	SLC
+Salta	SLA
+Salto da Santa Maria - Todos os Aeroportos	CA
+Salto da Santa Maria	YAM
+Salvador	SSA
+San Andrés	ADZ
+San Antonio	SAT
+San Cristobal – Ilhas Galápagos	SCY
+San Diego	SAN
+San José - Califórnia	SJC
+San José - Costa Rica	SJO
+San José del Cabo	SJD
+San Juan	SJU
+San Juan	UAQ
+San Juan de Pasto	PSO
+San Luis	LUQ
+San Martín de los Andes	CPC
+San Pedro Sula	SAP
+San Rafael	AFA
+San Salvador	SAL
+Santa Cruz de la Sierra	VVI
+Santa Maria	RIA
+Santa Marta	SMR
+Santa Rosa	RSA
+Santana do Livramento	RVY
+Santarém	STM
+Santiago	SCL
+Santiago del Estero	SDE
+Santo Domingo	SDQ
+Santo Ângelo	GEL
+Santorini, Greece	JTR
+Savannah	SAV
+Schiphol Airport	AMS
+Seattle	SEA
+Sevilha	SVQ
+Sevilha - Todos os Aeroportos	ES
+Southampton, United Kingdom	SOU
+Stavanger	SVG
+Stuttgart Airport	STR
+Sucre Airport	SRE
+Sudbury	YSB
+Sydney	YQY
+Syracuse	SYR
+São Francisco	SFN
+São Francisco	SFO
+São Gabriel da Cachoeira	SJL
+São José do Rio Preto - Olímpia	SJP
+São João da Terra Nova	YSJ
+São Luis	SLZ
+São Martinho	SXM
+São Paulo - Campinas - Viracopos	VCP
+São Paulo - Congonhas	CGH
+São Paulo - Guarulhos	GRU
+São Paulo - São José dos Campos	SJK
+São Paulo - Todos os Aeroportos	SAO
+São Raimundo Nonato	NSR
+São Tomé e Príncipe	TMS
+Tabatinga	TBT
+Tacna	TCQ
+Tampa	TPA
+Tangier, Morocco	TNG
+Tarapoto - San Martín	TPP
+Tbilisi, Georgia	TBS
+Tegucigalpa	XPL
+Tel Aviv, Israel	TLV
+Temuco - Araucanía	ZCO
+Teresina	THE
+Thunder Bay	YQT
+Tijuana	TIJ
+Timmins	YTS
+Tirana, Albania	TIA
+Tobago	TAB
+Toronto - Todos os Aeroportos	YTO
+Toronto	YYZ
+Trelew	REL
+Tromso Norway, Norway	TOS
+Trujillo - La Libertad	TRU
+Três Lagoas	TJL
+Tucuman	TUC
+Tulsa	TUL
+Tunis, Tunisia	TUN
+Uberaba	UBA
+Uberlândia	UDI
+Una - Comandatuba	UNA
+Uruguaiana	URG
+Ushuaia	USH
+Valdivia - Los Ríos	ZAL
+Valencia, Carabobo, Venezuela	VLN
+Valledupar	VUP
+Valência	VLC
+Vancouver	YVR
+Veneza	VCE
+Verona, Italy	VRN
+Victoria Falls, Zimbabwe	VFA
+Viedma	VDM
+Vienna, Austria	VIE
+Vilhena	BVH
+Villavicencio	VVC
+Vitória	VIX
+Vitória da Conquista	VDC
+Warsaw, Poland	WAW
+Washington - Dulles	IAD
+Washington - Ronald Reagan	DCA
+Washington - Todos os Aeroportos	WAS
+Wichita	ICT
+Windhoek - Todos os Aeroportos	NA
+Windhoek	WDH
+Windsor	YQG
+Winnipeg	YWG
+Wroclaw, Poland	WRO
+Belo Horizonte - Confins	CNF
+Belém	BEL
+Bergen	BGO
+Brest	BES
+Brussels, Belgium	BRU
+Concepción - Bío Bío	CCP
+Cotonou, Benin	COO
+Cruzeiro do Sul	CZS
+Cusco	CUZ
+Denver	DEN
+Des Moines	DSM
+Detroit	DTW
+Edinburgh	EDI
+Eirunepé	ERN
+Flores	FRS
+Georgetown	GEO
+Greensboro	GSO
+Greenwood	GWO
+Humberside	HUY
+Ilhéus	IOS
+Inverness, United Kingdom	INV
+Iquitos - Loreto	IQT
+Joinville	JOI
+Key West	EYW
+Knoxville	TYS
+León	BJX
+Little Rock	LIT
+Lome, Togo	LFW
+Louisville	SDF
+Luxembourg, Luxembourg	LUX
+Medellín	MDE
+Memphis	MEM
+Monterrey	MTY
+Montevidéu	MVD
+Montpellier	MPL
+Mucugê	CHD
+Mykonos, Greece	JMK
+Nice	NCE
+Phoenix	PHX
+Porto Seguro	BPS
+Porto Velho	PVH
+Presidente Prudente	PPB
+Quito	UIO
+Recife	REC
+Rennes	RNS
+Rio Verde	RVD
+Rochester	ROC
+Tefé	TFF
+Toulouse	TLS
+Trondheim	TRD
+Tumbes	TBP
+Bonito	BYO
+Bristol	BRS
+Kingston	KIN
+Norwich	NWI
+Nova Iorque - John F. Kennedy	JFK
+Pittsburgh	PIT
+Quibdó	UIB
+Richmond	RIC
+Rondonópolis	ROO
+Sinop	OPS
+Sorriso	SMT
+Turin	TRN
+Zurich	ZRH
+Boston	BOS
+Columbus	CMH
+Mossoró	MVF
+Porto	OPO
+Tulum	TQO
+      `;
+
+      // ===== Parse rawAeroportos and populate origem/destino selects =====
+      function parseRawAirports(raw) {
+        if (!raw) return [];
+
+        return raw
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean)
+          .map((line) => {
+            const [name, code] = line.split(/\t+/);
+
+            const cleanName = (name || "").trim();
+            const cleanCode = (code || "").trim();
+
+            return {
+              code: cleanCode,
+              name: cleanName,
+              label: `${cleanName} (${cleanCode})`,
+            };
+          });
+      }
+
+      function buildAirportOptions() {
+        const list = parseRawAirports(rawAeroportos || "");
+        const selects = Array.from(
+          document.querySelectorAll("select.aero-select"),
+        );
+
+        function makeOptions(el) {
+          // keep an empty placeholder option
+          // preserve previous selection (if any) and restore after rebuild
+          const prev = el.value;
+          el.innerHTML = "";
+          const empty = document.createElement("option");
+          empty.value = "";
+          empty.textContent = "";
+          el.appendChild(empty);
+          for (const item of list) {
+            const opt = document.createElement("option");
+            opt.value = item.label;
+            opt.textContent = item.label;
+            el.appendChild(opt);
+          }
+          // try to restore previous selection if it still matches an option
+          if (prev) {
+            // exact match first
+            try {
+              el.value = prev;
+            } catch (e) {}
+            if (!el.value) {
+              // try to match by visible text or normalized contains
+              const normalize = (s) =>
+                (s || "")
+                  .toString()
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .replace(/[\-–—\/\\()\.\,\*]/g, " ")
+                  .replace(/\s+/g, " ")
+                  .trim()
+                  .toLowerCase();
+              const np = normalize(prev);
+              for (const o of Array.from(el.options)) {
+                const tv = (o.textContent || o.value || "").toString();
+                if (
+                  tv === prev ||
+                  normalize(tv) === np ||
+                  normalize(tv).includes(np)
+                ) {
+                  el.value = o.value;
+                  break;
+                }
+              }
+            }
+            try {
+              el.dispatchEvent(new Event("change", { bubbles: true }));
+            } catch (e) {}
+          }
+        }
+
+        for (const el of selects) makeOptions(el);
+        // ensure selects gain helper handlers that allow quick code lookup
+        try {
+          attachAeroSelectHandlers();
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // populate selects once DOM is ready (if not already done elsewhere)
+      document.addEventListener("DOMContentLoaded", () => {
+        buildAirportOptions();
+        try {
+          attachAeroSelectHandlers();
+        } catch (e) {}
+      });
+
+      // ===== Time input sanitization: accept either 4 digits (2359) or HH:MM =====
+      function normalizeTimeToHHMM(v) {
+        if (!v) return "";
+        // accept '2359' or '23:59' or '23h59' but prefer 4 digits or with ':'
+        const onlyDigits = v.replace(/\D/g, "");
+        if (/^\d{4}$/.test(onlyDigits)) {
+          const hh = onlyDigits.slice(0, 2);
+          const mm = onlyDigits.slice(2, 4);
+          const H = Number(hh),
+            M = Number(mm);
+          if (H > 23 || M > 59) return "";
+          return `${hh}:${mm}`;
+        }
+        // try HH:MM
+        const m = v.match(/^(\d{1,2})[:h](\d{2})$/);
+        if (m) {
+          const hh = m[1].padStart(2, "0");
+          const mm = m[2];
+          const H = Number(hh),
+            M = Number(mm);
+          if (H > 23 || M > 59) return "";
+          return `${hh}:${mm}`;
+        }
+        return "";
+      }
+
+      // attach listeners to sanitize time inputs (existing and future via delegation)
+      document.addEventListener("DOMContentLoaded", () => {
+        // sanitize existing known ids
+        const timeIds = [
+          "ida_partida_hora",
+          "ida_chegada_hora",
+          "volta_partida_hora",
+          "volta_chegada_hora",
+        ];
+        timeIds.forEach((id) => {
+          const el = Byid(id);
+          if (el) {
+            el.addEventListener("input", () => {
+              // allow only digits and ':'
+              el.value = el.value.replace(/[^0-9:]/g, "");
+            });
+            el.addEventListener("blur", () => {
+              const norm = normalizeTimeToHHMM(el.value);
+              if (norm) el.value = norm; // keep as HH:MM
+            });
+          }
+        });
+
+        // delegation for dynamic .time-input fields inside conexoes
+        document.body.addEventListener("input", (e) => {
+          const t = e.target;
+          if (t && t.classList && t.classList.contains("time-input")) {
+            t.value = t.value.replace(/[^0-9:]/g, "");
+          }
+        });
+        document.body.addEventListener(
+          "blur",
+          (e) => {
+            const t = e.target;
+            if (t && t.classList && t.classList.contains("time-input")) {
+              const norm = normalizeTimeToHHMM(t.value);
+              if (norm) t.value = norm;
+            }
+          },
+          true,
+        );
+      });
+
+      // Auto-fill rules linking ida <-> volta
+      document.addEventListener("DOMContentLoaded", () => {
+        // delegate changes from any ida select (including conexoes)
+        document.body.addEventListener("change", (e) => {
+          const t = e.target;
+          if (!t || t.tagName !== "SELECT") return;
+          const id = (t.id || "").toString();
+          // only handle ida partida/chegada selects
+          if (
+            !id.startsWith("ida_partida_aero") &&
+            !id.startsWith("ida_chegada_aero")
+          )
+            return;
+
+          const tipo = Byid("tipo_viagem_select")?.value;
+          if (tipo !== "ida/volta") return; // only for round trips
+
+          const selectedText =
+            (t.selectedOptions &&
+              t.selectedOptions[0] &&
+              t.selectedOptions[0].textContent) ||
+            t.value ||
+            "";
+          // 1) if user set ida_partida -> fill volta_chegada (main or last connection) when empty
+          if (id.startsWith("ida_partida_aero")) {
+            const qVolta = Math.max(
+              0,
+              Number(Byid("volta_conexoes_count")?.value || 0),
+            );
+            let target = null;
+            if (qVolta > 0) {
+              const last = qVolta - 1;
+              target =
+                Byid(`volta_chegada_aero_${last}`) ||
+                Byid("volta_chegada_aero");
+            } else {
+              target = Byid("volta_chegada_aero");
+            }
+            if (target && !target.value) {
+              setSelectByLabel(target, selectedText);
+            }
+          }
+
+          // 2) if user set ida_chegada -> fill volta_partida (main or last connection) when empty
+          if (id.startsWith("ida_chegada_aero")) {
+            const qVolta = Math.max(
+              0,
+              Number(Byid("volta_conexoes_count")?.value || 0),
+            );
+            let target = null;
+            if (qVolta > 0) {
+              const last = qVolta - 1;
+              target =
+                Byid(`volta_partida_aero_${last}`) ||
+                Byid("volta_partida_aero");
+            } else {
+              target = Byid("volta_partida_aero");
+            }
+            if (target && !target.value) {
+              setSelectByLabel(target, selectedText);
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
