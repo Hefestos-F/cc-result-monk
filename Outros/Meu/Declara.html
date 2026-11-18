@@ -1389,565 +1389,566 @@
         }
       });
 
-      const rawAeroportos = `Aalborg Airport	AAL
-Aberdeen	ABZ
-Abidjan, Ivory Coast	ABJ
-Abuja, Nigeria	ABV
-Accra	ACC
-Accra - Todos os Aeroportos	GH
-Aeroporto Cap Carlos Perez	VSA
-Aeroporto Internacional de Piarco	POS
-Agadir, Morocco	AGA
-Ajaccio, France	AJA
-Al Ain - Terminal de Onibus	AAN
-Albany	ALB
-Alesund	AES
-Alicante, Spain	ALC
-Alta Floresta	AFL
-Altamira	ATM
-Antofagasta	ANF
-Aracaju	AJU
-Araguaina	AUX
-Arauca	AUC
-Araxá	AAX
-Araçatuba	ARU
-Arica - Arica y Parinacota	ARI
-Armênia	AXM
-Aruba	AUA
-Assunção	ASU
-Athens - Eleftherios Venizelos	ATH
-Atlanta	ATL
-Austin	AUS
-Ayacucho	AYP
-B Diagne Int Dkr, Senegal	DSS
-Bahia Blanca	BHI
-Balmaceda - Aysén del General Carlos Ibáñez del Campo	BBA
-Baltimore	BWI
-Bamako, Mali	BKO
-Banjul, Gambia	BJL
-Barbados	BGI
-Barcelona - El Prat	BCN
-Bari, Italy	BRI
-Bariloche	BRC
-Barrancabermeja	EJA
-Barranquilla	BAQ
-Barreiras	BRA
-Barretos	BAT
-Bastia, France	BIA
-Bauru - Arealva	JTC
-Belo Horizonte - Pampulha	PLU
-Belo Horizonte - Todos os Aeroportos	BHZ
-Berlin - Brandenburg Airport	BER
-Biarritz, France	BIQ
-Bilbao	BIO
-Billund Airport	BLL
-Birmingham	BHX
-Birmingham Alabama	BHM
-Bissau, Guinea Bissau	OXB
-Boa Vista	BVB
-Bogotá	BOG
-Boipeba	PBA
-Bolonha	BLQ
-Bordeaux Airport	BOD
-Brasília	BSB
-Bremen Airport	BRE
-Bucaramanga	BGA
-Bucharest Otopeni, Romania	OTP
-Bucharest, Romania	BUH
-Budapest, Hungary	BUD
-Buenos Aires - Aeroparque	AEP
-Buenos Aires - Ezeiza	EZE
-Buenos Aires - Todos os Aeroportos	BUE
-Buffalo	BUF
-Cabo Frio	CFB
-Cacoal	OAL
-Cagliari, Italy	CAG
-Cairo, Egypt	CAI
-Calama - Antofagasta	CJC
-Caldas Novas	CLV
-Cali	CLO
-Calvi, France	CLY
-Campina Grande	CPV
-Campo Grande	CGR
-Campos dos Goitacazes	CAW
-Cancún	CUN
-Canoas	QNS
-Caracas	CCS
-Cardiff	CWL
-Cartagena	CTG
-Caruaru	CAU
-Casablanca, Morocco	CMN
-Cascavel	CAC
-Castro - Dalcahue - Chiloé Island - Los Lagos	MHC
-Catamarca	CTC
-Catania, Italy	CTA
-Caxias do Sul - Gramado e Canela	CXJ
-Cayenne - Félix Eboué	CAY
-Cedar Rapids	CID
-Chapecó	XAP
-Charleston	CHS
-Charlotte	CLT
-Charlottetown Pe, Canada	YYG
-Chicago	ORD
-Chicago - Todos os Aeroportos	CHI
-Cidade do Cabo	CPT
-Cidade do México	MEX
-Cidade do Panamá	PTY
-Cincinnati	CVG
-Clermont - Ferrand	CFE
-Cleveland	CLE
-Cochabamba	CBB
-Comodoro Rivadavia	CRD
-Conakry, Guinea	CKY
-Copenhagen Airport	CPH
-Copiapó - Atacama	CPO
-Cork, Ireland	ORK
-Corrientes	CNQ
-Corumbá	CMG
-Cuenca	CUE
-Cuiabá	CGB
-Curaçao	CUR
-Curitiba	CWB
-Córdoba	COR
-Cúcuta	CUC
-Dakhla, Morocco	VIL
-Dallas - Fort Worth	DFW
-Dar Es Salaam, Tanzania	DAR
-Deer Lake	YDF
-Detroit - Todos os Aeroportos	DTT
-Dourados	DOU
-Dubai – Terminal de Onibus	XNB
-Dublin Airport	DUB
-Duesseldorf International	DUS
-Durban	DUR
-Durham	MME
-Eagle County Airport	EGE
-Edmonton	YEG
-El Calafate	FTE
-El Yopal	EYP
-Errachidla, Morocco	ERH
-Esquel	EQS
-Estocolmo Arlanda	ARN
-Estocolmo Arlanda - Todos os Aeroportos	STO
-EuroAirport Swiss	BSL
-Faro, Portugal	FAO
-Fayetteville Northwest Arkansas	XNA
-Feira de Santana	FEC
-Fernando de Noronha	FEN
-Fez, Morocco	FEZ
-Figari, France	FSC
-Filadelfia	PHL
-Florença	FLR
-Florianópolis	FLN
-Formosa	FMA
-Fort - de - France - Martinica	FDF
-Fort Lauderdale	FLL
-Fortaleza	FOR
-Forte McMurray	YMM
-Foz do Iguaçu – Iguazu Falls	IGU
-Franca	FRC
-Frankfurt International Airport	FRA
-Fredericton	YFC
-Freetown Lungi, Sierra Leone	FNA
-Funchal, Portugal	FNC
-Gatwick, Londres	LGW
-Gdansk, Poland	GDN
-Geneva	GVA
-Genova	GOA
-Glasgow	GLA
-Goiânia	GYN
-Gotemburgo Landvetter	GOT
-Governador Valadares	GVR
-Gran Canaria, Espanha	LPA
-Grand Rapids	GRR
-Greenville Spartanburg	GSP
-Guadalajara	GDL
-Guanambi	GNM
-Guarapuava	GPB
-Guatemala	GUA
-Guayaquil	GYE
-Halifax	YHZ
-Hamburg Airport	HAM
-Hannover Airport	HAJ
-Harare, Zimbabwe	HRE
-Hartford Springfield	BDL
-Havana	HAV
-Helsinki Vantaa, Finland	HEL
-Heraklion, Greece	HER
-Honolulu International Airport	HNL
-Houston	IAH
-Houston - Todos os Aeroportos	HOU
-Ibagué	IBE
-Ibiza, Spain	IBZ
-Iguazu	IGR
-Ilha Da Boa Vista, Cabo Verde	BVC
-Ilha De São Vicente, Cabo Verde	VXE
-Ilha Terceira, Portugal	TER
-Ilhas Galápagos	GPS
-Imperatriz	IMP
-Indianapolis	IND
-Ipatinga / Vale do Aço	IPN
-Ipiales	IPI
-Iquique - Tarapacá	IQQ
-Istambul	IST
-Itaituba	ITB
-Jacksonville	JAX
-Jaguaruna - Criciúma	JJG
-Jauja - Junín	JAU
-Jericoacoara	JJD
-Ji - Paraná	JPR
-Johannesburg	JNB
-Johannesburg - Todos os Aeroportos	ZA
-João Pessoa	JPA
-Juazeiro do Norte	JDO
-Juiz de Fora - Zona da Mata	IZA
-Jujuy	JUJ
-Juliaca - Puno	JUL
-Kansas City Missouri	MCI
-Kittila, Finland	KTT
-Kristiansand	KRS
-La Paz – El Alto	LPB
-La Rioja	IRJ
-La Serena - Coquimbo	LSC
-Laayoune, Morocco	EUN
-Lages - Correia Pinto	EEA
-Lagos, Nigeria	LOS
-Las Vegas	LAS
-Leeds/Bradford	LBA
-Lençóis/Chapada Diamantina	LEC
-Leticia	LET
-Lima	LIM
-Linkoping Airport	LPI
-Lisboa	LIS
-London - Heathrow	LHR
-London - Todos os Aeroportos	LON
-London On, Canada	YXU
-Londrina	LDB
-Los Angeles	LAX
-Luanda, Aeroporto Internacional Dr. António Agostinho Neto, Angola	NBJ
-Luanda, Angola	LAD
-Lubumbashi, Congo Dem Rep	FBM
-Lusaka, Zambia	LUN
-Lyon Satolas Airport	LYS
-Macapá	MCP
-Maceió	MCZ
-Madison	MSN
-Madrid - Barajas	MAD
-Malaga, Spain	AGP
-Malta, Malta	MLA
-Manaus	MAO
-Manchester	MAN
-Manta	MEC
-Manágua	MGA
-Maputo	MPM
-Maputo - Todos os Aeroportos	MZ
-Mar del Plata	MDQ
-Marabá	MAB
-Maracaibo	MAR
-Maringá	MGF
-Marrakech, Morocco	RAK
-Marseille	MRS
-Marília	MII
-Mauritius, Mauritius	MRU
-Mendoza	MDZ
-Menorca, Espanha	MAH
-Miami	MIA
-Milwaukee	MKE
-Milão - Linate	LIN
-Milão - Malpensa	MXP
-Milão - Todos os Aeroportos	MIL
-Minneapolis	MSP
-Moncton	YQM
-Monrovia Roberts, Liberia	ROB
-Montego Bay	MBJ
-Montería	MTR
-Montes Claros	MOC
-Montreal - Todos os Aeroportos	YMQ
-Montreal	YUL
-Morro de São Paulo	MXQ
-Munich International	MUC
-Nador, Morocco	NDR
-Nantes	NTE
-Napoles	NAP
-Nashville	BNA
-Nassau	NAS
-Natal	NAT
-Navegantes	NVT
-Neiva	NVA
-Neuquen	NQN
-New Orleans	MSY
-Newcastle	NCL
-Niamey, Niger	NIM
-Norfolk Virginia	ORF
-Nouakchott, Mauritania	NKC
-Nova York - John F. Kennedy	JFK
-Nova Iorque - La Guardia	LGA
-Nova Iorque - Newark	EWR
-Nova Iorque - Todos os Aeroportos	NYC
-Nuremberg Airport	NUE
-Oakland	OAK
-Oklahoma City	OKC
-Olbia, Italy	OLB
-Omaha	OMA
-Ontário - Califórnia	ONT
-Orlando	MCO
-Oslo Gardemoen - Todos os Aeroportos	OSL
-Oslo Sandefjord	TRF
-Osorno - Los Lagos	ZOS
-Ottawa	YOW
-Ouagadougou, Burkina Faso	OUA
-Ouarzazate, Morocco	OZZ
-Oujda, Morocco	OUD
-Palermo, Italy	PMO
-Palma de Mallorca, Spain	PMI
-Palmas	PMW
-Paramaribo	PBM
-Parauapebas - Carajás	CKS
-Parintins	PIN
-Paris - Charles De Gaulle	CDG
-Paris - Todos os Aeroportos	PAR
-Parnaíba	PHB
-Passo Fundo	PFB
-Pato Branco	PTO
-Patos de Minas	POJ
-Pau	PUF
-Paulo Afonso	PAV
-Pelotas	PET
-Pensacola	PNS
-Península de Maraú	MUU
-Pereira	PEI
-Perth, Australia	PER
-Petrolina	PNZ
-Piura	PIU
-Pointe - a - Pitre, Guadeloupe	PTP
-Ponta Delgada, Portugal	PDL
-Ponta Grossa	PGZ
-Ponta Negra	PNR
-Ponta Porã	PMG
-Popayán	PPN
-Port Elizabeth	PLZ
-Portland	PDX
-Porto - Todos os Aeroportos	PT
-Porto Alegre	POA
-Porto Príncipe	PAP
-Porto Santo, Portugal	PXO
-Porto Trombetas	TMT
-Posadas	PSS
-Poznan, Poland	POZ
-Prague, Czech Republic	PRG
-Praia, Cape Verde	RAI
-Pucallpa - Ucayali	PCL
-Puerto Maldonado - Madre de Dios	PEM
-Puerto Montt - Los Lagos	PMC
-Puerto Natales - Magallanes y de la Antártica Chilena	PNT
-Punta Arenas - Magallanes y de la Antártica Chilena	PUQ
-Punta Cana	PUJ
-Punta Del Este	PDP
-Quebec	YQB
-Quinxassa	FIH
-Quinxassa - Todos os Aeroportos	CD
-Raleigh/Durham	RDU
-Regina	YQR
-Resistencia	RES
-Rhodes, Rhodos Island	RHO
-Ribeirão Preto	RAO
-Rio Branco	RBR
-Rio Gallegos	RGL
-Rio Grande	RGA
-Rio Hondo	RHD
-Rio de Janeiro - Galeão	GIG
-Rio de Janeiro - Santos Dumont	SDU
-Rio de Janeiro - Todos os Aeroportos	RIO
-Riohacha	RCH
-Rodriguez Ballon Airport	AQP
-Roma – Fiumicino	FCO
-Roma – Fiumicino - Todos os Aeroportos	ROM
-Rosario	ROS
-Rovaniemi, Finland	RVN
-Sacramento	SMF
-Saint Croix	STX
-Saint Louis	STL
-Saint Thomas	STT
-Sal, Cape Verde	SID
-Salt Lake City	SLC
-Salta	SLA
-Salto da Santa Maria - Todos os Aeroportos	CA
-Salto da Santa Maria	YAM
-Salvador	SSA
-San Andrés	ADZ
-San Antonio	SAT
-San Cristobal – Ilhas Galápagos	SCY
-San Diego	SAN
-San José - Califórnia	SJC
-San José - Costa Rica	SJO
-San José del Cabo	SJD
-San Juan	SJU
-San Juan	UAQ
-San Juan de Pasto	PSO
-San Luis	LUQ
-San Martín de los Andes	CPC
-San Pedro Sula	SAP
-San Rafael	AFA
-San Salvador	SAL
-Santa Cruz de la Sierra	VVI
-Santa Maria	RIA
-Santa Marta	SMR
-Santa Rosa	RSA
-Santana do Livramento	RVY
-Santarém	STM
-Santiago	SCL
-Santiago del Estero	SDE
-Santo Domingo	SDQ
-Santo Ângelo	GEL
-Santorini, Greece	JTR
-Savannah	SAV
-Schiphol Airport	AMS
-Seattle	SEA
-Sevilha	SVQ
-Sevilha - Todos os Aeroportos	ES
-Southampton, United Kingdom	SOU
-Stavanger	SVG
-Stuttgart Airport	STR
-Sucre Airport	SRE
-Sudbury	YSB
-Sydney	YQY
-Syracuse	SYR
-São Francisco	SFN
-São Francisco	SFO
-São Gabriel da Cachoeira	SJL
-São José do Rio Preto - Olímpia	SJP
-São João da Terra Nova	YSJ
-São Luis	SLZ
-São Martinho	SXM
-São Paulo - Campinas - Viracopos	VCP
-São Paulo - Congonhas	CGH
-São Paulo - Guarulhos	GRU
-São Paulo - São José dos Campos	SJK
-São Paulo - Todos os Aeroportos	SAO
-São Raimundo Nonato	NSR
-São Tomé e Príncipe	TMS
-Tabatinga	TBT
-Tacna	TCQ
-Tampa	TPA
-Tangier, Morocco	TNG
-Tarapoto - San Martín	TPP
-Tbilisi, Georgia	TBS
-Tegucigalpa	XPL
-Tel Aviv, Israel	TLV
-Temuco - Araucanía	ZCO
-Teresina	THE
-Thunder Bay	YQT
-Tijuana	TIJ
-Timmins	YTS
-Tirana, Albania	TIA
-Tobago	TAB
-Toronto - Todos os Aeroportos	YTO
-Toronto	YYZ
-Trelew	REL
-Tromso Norway, Norway	TOS
-Trujillo - La Libertad	TRU
-Três Lagoas	TJL
-Tucuman	TUC
-Tulsa	TUL
-Tunis, Tunisia	TUN
-Uberaba	UBA
-Uberlândia	UDI
-Una - Comandatuba	UNA
-Uruguaiana	URG
-Ushuaia	USH
-Valdivia - Los Ríos	ZAL
-Valencia, Carabobo, Venezuela	VLN
-Valledupar	VUP
-Valência	VLC
-Vancouver	YVR
-Veneza	VCE
-Verona, Italy	VRN
-Victoria Falls, Zimbabwe	VFA
-Viedma	VDM
-Vienna, Austria	VIE
-Vilhena	BVH
-Villavicencio	VVC
-Vitória	VIX
-Vitória da Conquista	VDC
-Warsaw, Poland	WAW
-Washington - Dulles	IAD
-Washington - Ronald Reagan	DCA
-Washington - Todos os Aeroportos	WAS
-Wichita	ICT
-Windhoek - Todos os Aeroportos	NA
-Windhoek	WDH
-Windsor	YQG
-Winnipeg	YWG
-Wroclaw, Poland	WRO
-Belo Horizonte - Confins	CNF
-Belém	BEL
-Bergen	BGO
-Brest	BES
-Brussels, Belgium	BRU
-Concepción - Bío Bío	CCP
-Cotonou, Benin	COO
-Cruzeiro do Sul	CZS
-Cusco	CUZ
-Denver	DEN
-Des Moines	DSM
-Detroit	DTW
-Edinburgh	EDI
-Eirunepé	ERN
-Flores	FRS
-Georgetown	GEO
-Greensboro	GSO
-Greenwood	GWO
-Humberside	HUY
-Ilhéus	IOS
-Inverness, United Kingdom	INV
-Iquitos - Loreto	IQT
-Joinville	JOI
-Key West	EYW
-Knoxville	TYS
-León	BJX
-Little Rock	LIT
-Lome, Togo	LFW
-Louisville	SDF
-Luxembourg, Luxembourg	LUX
-Medellín	MDE
-Memphis	MEM
-Monterrey	MTY
-Montevidéu	MVD
-Montpellier	MPL
-Mucugê	CHD
-Mykonos, Greece	JMK
-Nice	NCE
-Phoenix	PHX
-Porto Seguro	BPS
-Porto Velho	PVH
-Presidente Prudente	PPB
-Quito	UIO
-Recife	REC
-Rennes	RNS
-Rio Verde	RVD
-Rochester	ROC
-Tefé	TFF
-Toulouse	TLS
-Trondheim	TRD
-Tumbes	TBP
-Bonito	BYO
-Bristol	BRS
-Kingston	KIN
-Norwich	NWI
-Nova Iorque - John F. Kennedy	JFK
-Pittsburgh	PIT
-Quibdó	UIB
-Richmond	RIC
-Rondonópolis	ROO
-Sinop	OPS
-Sorriso	SMT
-Turin	TRN
-Zurich	ZRH
-Boston	BOS
-Columbus	CMH
-Mossoró	MVF
-Porto	OPO
-Tulum	TQO
+      const rawAeroportos = `
+                Aalborg Airport	AAL
+        Aberdeen	ABZ
+        Abidjan, Ivory Coast	ABJ
+        Abuja, Nigeria	ABV
+        Accra	ACC
+        Accra - Todos os Aeroportos	GH
+        Aeroporto Cap Carlos Perez	VSA
+        Aeroporto Internacional de Piarco	POS
+        Agadir, Morocco	AGA
+        Ajaccio, France	AJA
+        Al Ain - Terminal de Onibus	AAN
+        Albany	ALB
+        Alesund	AES
+        Alicante, Spain	ALC
+        Alta Floresta	AFL
+        Altamira	ATM
+        Antofagasta	ANF
+        Aracaju	AJU
+        Araguaina	AUX
+        Arauca	AUC
+        Araxá	AAX
+        Araçatuba	ARU
+        Arica - Arica y Parinacota	ARI
+        Armênia	AXM
+        Aruba	AUA
+        Assunção	ASU
+        Athens - Eleftherios Venizelos	ATH
+        Atlanta	ATL
+        Austin	AUS
+        Ayacucho	AYP
+        B Diagne Int Dkr, Senegal	DSS
+        Bahia Blanca	BHI
+        Balmaceda - Aysén del General Carlos Ibáñez del Campo	BBA
+        Baltimore	BWI
+        Bamako, Mali	BKO
+        Banjul, Gambia	BJL
+        Barbados	BGI
+        Barcelona - El Prat	BCN
+        Bari, Italy	BRI
+        Bariloche	BRC
+        Barrancabermeja	EJA
+        Barranquilla	BAQ
+        Barreiras	BRA
+        Barretos	BAT
+        Bastia, France	BIA
+        Bauru - Arealva	JTC
+        Belo Horizonte - Pampulha	PLU
+        Belo Horizonte - Todos os Aeroportos	BHZ
+        Berlin - Brandenburg Airport	BER
+        Biarritz, France	BIQ
+        Bilbao	BIO
+        Billund Airport	BLL
+        Birmingham	BHX
+        Birmingham Alabama	BHM
+        Bissau, Guinea Bissau	OXB
+        Boa Vista	BVB
+        Bogotá	BOG
+        Boipeba	PBA
+        Bolonha	BLQ
+        Bordeaux Airport	BOD
+        Brasília	BSB
+        Bremen Airport	BRE
+        Bucaramanga	BGA
+        Bucharest Otopeni, Romania	OTP
+        Bucharest, Romania	BUH
+        Budapest, Hungary	BUD
+        Buenos Aires - Aeroparque	AEP
+        Buenos Aires - Ezeiza	EZE
+        Buenos Aires - Todos os Aeroportos	BUE
+        Buffalo	BUF
+        Cabo Frio	CFB
+        Cacoal	OAL
+        Cagliari, Italy	CAG
+        Cairo, Egypt	CAI
+        Calama - Antofagasta	CJC
+        Caldas Novas	CLV
+        Cali	CLO
+        Calvi, France	CLY
+        Campina Grande	CPV
+        Campo Grande	CGR
+        Campos dos Goitacazes	CAW
+        Cancún	CUN
+        Canoas	QNS
+        Caracas	CCS
+        Cardiff	CWL
+        Cartagena	CTG
+        Caruaru	CAU
+        Casablanca, Morocco	CMN
+        Cascavel	CAC
+        Castro - Dalcahue - Chiloé Island - Los Lagos	MHC
+        Catamarca	CTC
+        Catania, Italy	CTA
+        Caxias do Sul - Gramado e Canela	CXJ
+        Cayenne - Félix Eboué	CAY
+        Cedar Rapids	CID
+        Chapecó	XAP
+        Charleston	CHS
+        Charlotte	CLT
+        Charlottetown Pe, Canada	YYG
+        Chicago	ORD
+        Chicago - Todos os Aeroportos	CHI
+        Cidade do Cabo	CPT
+        Cidade do México	MEX
+        Cidade do Panamá	PTY
+        Cincinnati	CVG
+        Clermont - Ferrand	CFE
+        Cleveland	CLE
+        Cochabamba	CBB
+        Comodoro Rivadavia	CRD
+        Conakry, Guinea	CKY
+        Copenhagen Airport	CPH
+        Copiapó - Atacama	CPO
+        Cork, Ireland	ORK
+        Corrientes	CNQ
+        Corumbá	CMG
+        Cuenca	CUE
+        Cuiabá	CGB
+        Curaçao	CUR
+        Curitiba	CWB
+        Córdoba	COR
+        Cúcuta	CUC
+        Dakhla, Morocco	VIL
+        Dallas - Fort Worth	DFW
+        Dar Es Salaam, Tanzania	DAR
+        Deer Lake	YDF
+        Detroit - Todos os Aeroportos	DTT
+        Dourados	DOU
+        Dubai – Terminal de Onibus	XNB
+        Dublin Airport	DUB
+        Duesseldorf International	DUS
+        Durban	DUR
+        Durham	MME
+        Eagle County Airport	EGE
+        Edmonton	YEG
+        El Calafate	FTE
+        El Yopal	EYP
+        Errachidla, Morocco	ERH
+        Esquel	EQS
+        Estocolmo Arlanda	ARN
+        Estocolmo Arlanda - Todos os Aeroportos	STO
+        EuroAirport Swiss	BSL
+        Faro, Portugal	FAO
+        Fayetteville Northwest Arkansas	XNA
+        Feira de Santana	FEC
+        Fernando de Noronha	FEN
+        Fez, Morocco	FEZ
+        Figari, France	FSC
+        Filadelfia	PHL
+        Florença	FLR
+        Florianópolis	FLN
+        Formosa	FMA
+        Fort - de - France - Martinica	FDF
+        Fort Lauderdale	FLL
+        Fortaleza	FOR
+        Forte McMurray	YMM
+        Foz do Iguaçu – Iguazu Falls	IGU
+        Franca	FRC
+        Frankfurt International Airport	FRA
+        Fredericton	YFC
+        Freetown Lungi, Sierra Leone	FNA
+        Funchal, Portugal	FNC
+        Gatwick, Londres	LGW
+        Gdansk, Poland	GDN
+        Geneva	GVA
+        Genova	GOA
+        Glasgow	GLA
+        Goiânia	GYN
+        Gotemburgo Landvetter	GOT
+        Governador Valadares	GVR
+        Gran Canaria, Espanha	LPA
+        Grand Rapids	GRR
+        Greenville Spartanburg	GSP
+        Guadalajara	GDL
+        Guanambi	GNM
+        Guarapuava	GPB
+        Guatemala	GUA
+        Guayaquil	GYE
+        Halifax	YHZ
+        Hamburg Airport	HAM
+        Hannover Airport	HAJ
+        Harare, Zimbabwe	HRE
+        Hartford Springfield	BDL
+        Havana	HAV
+        Helsinki Vantaa, Finland	HEL
+        Heraklion, Greece	HER
+        Honolulu International Airport	HNL
+        Houston	IAH
+        Houston - Todos os Aeroportos	HOU
+        Ibagué	IBE
+        Ibiza, Spain	IBZ
+        Iguazu	IGR
+        Ilha Da Boa Vista, Cabo Verde	BVC
+        Ilha De São Vicente, Cabo Verde	VXE
+        Ilha Terceira, Portugal	TER
+        Ilhas Galápagos	GPS
+        Imperatriz	IMP
+        Indianapolis	IND
+        Ipatinga / Vale do Aço	IPN
+        Ipiales	IPI
+        Iquique - Tarapacá	IQQ
+        Istambul	IST
+        Itaituba	ITB
+        Jacksonville	JAX
+        Jaguaruna - Criciúma	JJG
+        Jauja - Junín	JAU
+        Jericoacoara	JJD
+        Ji - Paraná	JPR
+        Johannesburg	JNB
+        Johannesburg - Todos os Aeroportos	ZA
+        João Pessoa	JPA
+        Juazeiro do Norte	JDO
+        Juiz de Fora - Zona da Mata	IZA
+        Jujuy	JUJ
+        Juliaca - Puno	JUL
+        Kansas City Missouri	MCI
+        Kittila, Finland	KTT
+        Kristiansand	KRS
+        La Paz – El Alto	LPB
+        La Rioja	IRJ
+        La Serena - Coquimbo	LSC
+        Laayoune, Morocco	EUN
+        Lages - Correia Pinto	EEA
+        Lagos, Nigeria	LOS
+        Las Vegas	LAS
+        Leeds/Bradford	LBA
+        Lençóis/Chapada Diamantina	LEC
+        Leticia	LET
+        Lima	LIM
+        Linkoping Airport	LPI
+        Lisboa	LIS
+        London - Heathrow	LHR
+        London - Todos os Aeroportos	LON
+        London On, Canada	YXU
+        Londrina	LDB
+        Los Angeles	LAX
+        Luanda, Aeroporto Internacional Dr. António Agostinho Neto, Angola	NBJ
+        Luanda, Angola	LAD
+        Lubumbashi, Congo Dem Rep	FBM
+        Lusaka, Zambia	LUN
+        Lyon Satolas Airport	LYS
+        Macapá	MCP
+        Maceió	MCZ
+        Madison	MSN
+        Madrid - Barajas	MAD
+        Malaga, Spain	AGP
+        Malta, Malta	MLA
+        Manaus	MAO
+        Manchester	MAN
+        Manta	MEC
+        Manágua	MGA
+        Maputo	MPM
+        Maputo - Todos os Aeroportos	MZ
+        Mar del Plata	MDQ
+        Marabá	MAB
+        Maracaibo	MAR
+        Maringá	MGF
+        Marrakech, Morocco	RAK
+        Marseille	MRS
+        Marília	MII
+        Mauritius, Mauritius	MRU
+        Mendoza	MDZ
+        Menorca, Espanha	MAH
+        Miami	MIA
+        Milwaukee	MKE
+        Milão - Linate	LIN
+        Milão - Malpensa	MXP
+        Milão - Todos os Aeroportos	MIL
+        Minneapolis	MSP
+        Moncton	YQM
+        Monrovia Roberts, Liberia	ROB
+        Montego Bay	MBJ
+        Montería	MTR
+        Montes Claros	MOC
+        Montreal - Todos os Aeroportos	YMQ
+        Montreal	YUL
+        Morro de São Paulo	MXQ
+        Munich International	MUC
+        Nador, Morocco	NDR
+        Nantes	NTE
+        Napoles	NAP
+        Nashville	BNA
+        Nassau	NAS
+        Natal	NAT
+        Navegantes	NVT
+        Neiva	NVA
+        Neuquen	NQN
+        New Orleans	MSY
+        Newcastle	NCL
+        Niamey, Niger	NIM
+        Norfolk Virginia	ORF
+        Nouakchott, Mauritania	NKC
+        Nova York - John F. Kennedy	JFK
+        Nova Iorque - La Guardia	LGA
+        Nova Iorque - Newark	EWR
+        Nova Iorque - Todos os Aeroportos	NYC
+        Nuremberg Airport	NUE
+        Oakland	OAK
+        Oklahoma City	OKC
+        Olbia, Italy	OLB
+        Omaha	OMA
+        Ontário - Califórnia	ONT
+        Orlando	MCO
+        Oslo Gardemoen - Todos os Aeroportos	OSL
+        Oslo Sandefjord	TRF
+        Osorno - Los Lagos	ZOS
+        Ottawa	YOW
+        Ouagadougou, Burkina Faso	OUA
+        Ouarzazate, Morocco	OZZ
+        Oujda, Morocco	OUD
+        Palermo, Italy	PMO
+        Palma de Mallorca, Spain	PMI
+        Palmas	PMW
+        Paramaribo	PBM
+        Parauapebas - Carajás	CKS
+        Parintins	PIN
+        Paris - Charles De Gaulle	CDG
+        Paris - Todos os Aeroportos	PAR
+        Parnaíba	PHB
+        Passo Fundo	PFB
+        Pato Branco	PTO
+        Patos de Minas	POJ
+        Pau	PUF
+        Paulo Afonso	PAV
+        Pelotas	PET
+        Pensacola	PNS
+        Península de Maraú	MUU
+        Pereira	PEI
+        Perth, Australia	PER
+        Petrolina	PNZ
+        Piura	PIU
+        Pointe - a - Pitre, Guadeloupe	PTP
+        Ponta Delgada, Portugal	PDL
+        Ponta Grossa	PGZ
+        Ponta Negra	PNR
+        Ponta Porã	PMG
+        Popayán	PPN
+        Port Elizabeth	PLZ
+        Portland	PDX
+        Porto - Todos os Aeroportos	PT
+        Porto Alegre	POA
+        Porto Príncipe	PAP
+        Porto Santo, Portugal	PXO
+        Porto Trombetas	TMT
+        Posadas	PSS
+        Poznan, Poland	POZ
+        Prague, Czech Republic	PRG
+        Praia, Cape Verde	RAI
+        Pucallpa - Ucayali	PCL
+        Puerto Maldonado - Madre de Dios	PEM
+        Puerto Montt - Los Lagos	PMC
+        Puerto Natales - Magallanes y de la Antártica Chilena	PNT
+        Punta Arenas - Magallanes y de la Antártica Chilena	PUQ
+        Punta Cana	PUJ
+        Punta Del Este	PDP
+        Quebec	YQB
+        Quinxassa	FIH
+        Quinxassa - Todos os Aeroportos	CD
+        Raleigh/Durham	RDU
+        Regina	YQR
+        Resistencia	RES
+        Rhodes, Rhodos Island	RHO
+        Ribeirão Preto	RAO
+        Rio Branco	RBR
+        Rio Gallegos	RGL
+        Rio Grande	RGA
+        Rio Hondo	RHD
+        Rio de Janeiro - Galeão	GIG
+        Rio de Janeiro - Santos Dumont	SDU
+        Rio de Janeiro - Todos os Aeroportos	RIO
+        Riohacha	RCH
+        Rodriguez Ballon Airport	AQP
+        Roma – Fiumicino	FCO
+        Roma – Fiumicino - Todos os Aeroportos	ROM
+        Rosario	ROS
+        Rovaniemi, Finland	RVN
+        Sacramento	SMF
+        Saint Croix	STX
+        Saint Louis	STL
+        Saint Thomas	STT
+        Sal, Cape Verde	SID
+        Salt Lake City	SLC
+        Salta	SLA
+        Salto da Santa Maria - Todos os Aeroportos	CA
+        Salto da Santa Maria	YAM
+        Salvador	SSA
+        San Andrés	ADZ
+        San Antonio	SAT
+        San Cristobal – Ilhas Galápagos	SCY
+        San Diego	SAN
+        San José - Califórnia	SJC
+        San José - Costa Rica	SJO
+        San José del Cabo	SJD
+        San Juan	SJU
+        San Juan	UAQ
+        San Juan de Pasto	PSO
+        San Luis	LUQ
+        San Martín de los Andes	CPC
+        San Pedro Sula	SAP
+        San Rafael	AFA
+        San Salvador	SAL
+        Santa Cruz de la Sierra	VVI
+        Santa Maria	RIA
+        Santa Marta	SMR
+        Santa Rosa	RSA
+        Santana do Livramento	RVY
+        Santarém	STM
+        Santiago	SCL
+        Santiago del Estero	SDE
+        Santo Domingo	SDQ
+        Santo Ângelo	GEL
+        Santorini, Greece	JTR
+        Savannah	SAV
+        Schiphol Airport	AMS
+        Seattle	SEA
+        Sevilha	SVQ
+        Sevilha - Todos os Aeroportos	ES
+        Southampton, United Kingdom	SOU
+        Stavanger	SVG
+        Stuttgart Airport	STR
+        Sucre Airport	SRE
+        Sudbury	YSB
+        Sydney	YQY
+        Syracuse	SYR
+        São Francisco	SFN
+        São Francisco	SFO
+        São Gabriel da Cachoeira	SJL
+        São José do Rio Preto - Olímpia	SJP
+        São João da Terra Nova	YSJ
+        São Luis	SLZ
+        São Martinho	SXM
+        São Paulo - Campinas - Viracopos	VCP
+        São Paulo - Congonhas	CGH
+        São Paulo - Guarulhos	GRU
+        São Paulo - São José dos Campos	SJK
+        São Paulo - Todos os Aeroportos	SAO
+        São Raimundo Nonato	NSR
+        São Tomé e Príncipe	TMS
+        Tabatinga	TBT
+        Tacna	TCQ
+        Tampa	TPA
+        Tangier, Morocco	TNG
+        Tarapoto - San Martín	TPP
+        Tbilisi, Georgia	TBS
+        Tegucigalpa	XPL
+        Tel Aviv, Israel	TLV
+        Temuco - Araucanía	ZCO
+        Teresina	THE
+        Thunder Bay	YQT
+        Tijuana	TIJ
+        Timmins	YTS
+        Tirana, Albania	TIA
+        Tobago	TAB
+        Toronto - Todos os Aeroportos	YTO
+        Toronto	YYZ
+        Trelew	REL
+        Tromso Norway, Norway	TOS
+        Trujillo - La Libertad	TRU
+        Três Lagoas	TJL
+        Tucuman	TUC
+        Tulsa	TUL
+        Tunis, Tunisia	TUN
+        Uberaba	UBA
+        Uberlândia	UDI
+        Una - Comandatuba	UNA
+        Uruguaiana	URG
+        Ushuaia	USH
+        Valdivia - Los Ríos	ZAL
+        Valencia, Carabobo, Venezuela	VLN
+        Valledupar	VUP
+        Valência	VLC
+        Vancouver	YVR
+        Veneza	VCE
+        Verona, Italy	VRN
+        Victoria Falls, Zimbabwe	VFA
+        Viedma	VDM
+        Vienna, Austria	VIE
+        Vilhena	BVH
+        Villavicencio	VVC
+        Vitória	VIX
+        Vitória da Conquista	VDC
+        Warsaw, Poland	WAW
+        Washington - Dulles	IAD
+        Washington - Ronald Reagan	DCA
+        Washington - Todos os Aeroportos	WAS
+        Wichita	ICT
+        Windhoek - Todos os Aeroportos	NA
+        Windhoek	WDH
+        Windsor	YQG
+        Winnipeg	YWG
+        Wroclaw, Poland	WRO
+        Belo Horizonte - Confins	CNF
+        Belém	BEL
+        Bergen	BGO
+        Brest	BES
+        Brussels, Belgium	BRU
+        Concepción - Bío Bío	CCP
+        Cotonou, Benin	COO
+        Cruzeiro do Sul	CZS
+        Cusco	CUZ
+        Denver	DEN
+        Des Moines	DSM
+        Detroit	DTW
+        Edinburgh	EDI
+        Eirunepé	ERN
+        Flores	FRS
+        Georgetown	GEO
+        Greensboro	GSO
+        Greenwood	GWO
+        Humberside	HUY
+        Ilhéus	IOS
+        Inverness, United Kingdom	INV
+        Iquitos - Loreto	IQT
+        Joinville	JOI
+        Key West	EYW
+        Knoxville	TYS
+        León	BJX
+        Little Rock	LIT
+        Lome, Togo	LFW
+        Louisville	SDF
+        Luxembourg, Luxembourg	LUX
+        Medellín	MDE
+        Memphis	MEM
+        Monterrey	MTY
+        Montevidéu	MVD
+        Montpellier	MPL
+        Mucugê	CHD
+        Mykonos, Greece	JMK
+        Nice	NCE
+        Phoenix	PHX
+        Porto Seguro	BPS
+        Porto Velho	PVH
+        Presidente Prudente	PPB
+        Quito	UIO
+        Recife	REC
+        Rennes	RNS
+        Rio Verde	RVD
+        Rochester	ROC
+        Tefé	TFF
+        Toulouse	TLS
+        Trondheim	TRD
+        Tumbes	TBP
+        Bonito	BYO
+        Bristol	BRS
+        Kingston	KIN
+        Norwich	NWI
+        Nova Iorque - John F. Kennedy	JFK
+        Pittsburgh	PIT
+        Quibdó	UIB
+        Richmond	RIC
+        Rondonópolis	ROO
+        Sinop	OPS
+        Sorriso	SMT
+        Turin	TRN
+        Zurich	ZRH
+        Boston	BOS
+        Columbus	CMH
+        Mossoró	MVF
+        Porto	OPO
+        Tulum	TQO
       `;
 
       // ===== Parse rawAeroportos and populate origem/destino selects =====
