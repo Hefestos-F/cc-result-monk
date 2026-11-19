@@ -945,12 +945,14 @@
         );
 
         const oTitulo = document.getElementById("oTitulo");
+        const osCreditos = document.getElementById("osCreditos");
 
         if (
           !botao ||
           !declaracaoDeEmbarqueConteiner ||
           !oTitulo ||
-          !registroAtendimentoConteiner
+          !registroAtendimentoConteiner ||
+          !osCreditos
         )
           return;
 
@@ -967,7 +969,12 @@
         oTitulo.textContent = declaraAtivo
           ? "Texto Declaração de Embarque"
           : "Registro de Atendimento";
-        Hlog("declaraAtivo: ", declaraAtivo);
+
+        osCreditos.textContent = declaraAtivo
+          ? "@-@"
+          : "Leandro Salvador de Oliveira";
+
+        osCreditos.Hlog("declaraAtivo: ", declaraAtivo);
       }
 
       function RecuperarSalvarTexto(salvar) {
