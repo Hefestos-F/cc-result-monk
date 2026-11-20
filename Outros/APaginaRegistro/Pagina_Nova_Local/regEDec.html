@@ -2035,9 +2035,9 @@
         const w = window.open("", "_blank");
         if (!w) return false;
         w.document.write(
-          '<pre style="font-family:system-ui, -apple-system, Segoe UI, Roboto; white-space:pre-wrap;">' + escapeHtml(
-            txt,
-          ) + "</pre> ",
+          '<pre style="font-family:system-ui, -apple-system, Segoe UI, Roboto; white-space:pre-wrap;">' +
+            escapeHtml(txt) +
+            "</pre> ",
         );
         w.document.close();
         w.focus();
