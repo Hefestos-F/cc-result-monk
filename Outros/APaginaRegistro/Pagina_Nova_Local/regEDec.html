@@ -1535,35 +1535,28 @@
 
       // ====== Limpar Tela ======
       function limparTela() {
+        const apenas = [
+          "resultado",
+          "ticket",
+          "contato",
+          "localizador",
+          "textoSolicitacao",
+          "textoSituacao",
+          "textoResultado",
+          "descricao",
+          "assinatura",
+        ];
         document.querySelectorAll("input, textarea, select").forEach((el) => {
-          if (el.id === "assinatura" || el.name === "assinatura") return;
+          if (
+            el.id === "assinatura" ||
+            el.name === "assinatura" ||
+            !apenas.includes(el.id)
+          )
+            return;
           if (el.tagName === "SELECT") el.selectedIndex = 0;
           else el.value = "";
+          if (el.tagName === "TEXTAREA") el.style.height = "auto"; // Reset height
         });
-
-        const resultado = Byid("resultado");
-        if (resultado) {
-          resultado.value = "";
-          resultado.style.height = "auto"; // Reset height
-        }
-
-        const textoSolicitacao = Byid("textoSolicitacao");
-        if (textoSolicitacao) {
-          textoSolicitacao.value = "";
-          textoSolicitacao.style.height = "auto"; // Reset height
-        }
-
-        const textoSituacao = Byid("textoSituacao");
-        if (textoSituacao) {
-          textoSituacao.value = "";
-          textoSituacao.style.height = "auto"; // Reset height
-        }
-
-        const textoResultado = Byid("textoResultado");
-        if (textoResultado) {
-          textoResultado.value = "";
-          textoResultado.style.height = "auto"; // Reset height
-        }
 
         document
           .querySelectorAll(
