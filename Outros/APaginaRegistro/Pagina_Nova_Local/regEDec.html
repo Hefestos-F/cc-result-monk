@@ -150,7 +150,8 @@
       .input-container,
       .text-area-container {
         width: 100%;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
+        margin-top: 10px;
       }
 
       .input-container,
@@ -368,6 +369,38 @@
         background: var(--gray-700);
       }
 
+      .menu-btn {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        user-select: none;
+        color: var(--gray-900);
+        background: var(--gray-200);
+        border: 1px solid var(--gray-300);
+        border-radius: 10px;
+      }
+
+      .menu-icon {
+        width: 22px;
+        height: 22px;
+        background: var(--gray-900);
+        mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="%23000" viewBox="0 0 24 24"><path d="M4 4h16v2H4V4zm0 6h16v2H4v-2zm0 6h16v2H4v-2z"/></svg>')
+          no-repeat center / contain;
+      }
+
+      .menu-cont {
+        position: absolute;
+        width: 250px;
+        right: 10%;
+        top: 12%;
+        gap: 10px;
+        align-items: flex-end;
+        flex-direction: column;
+      }
+
       /* Mobile */
       @media (max-width: 480px) {
         .row {
@@ -404,29 +437,51 @@
       <div class="card">
         <header class="header">
           <h1 id="oTitulo" class="titulo-sistema">Registro de Atendimento</h1>
+
+          <button
+            id="bot_menu"
+            class="menu-btn"
+            type="button"
+            onclick="abrirMenu()"
+          >
+            <span class="menu-icon" aria-hidden="true"></span>
+          </button>
+        </header>
+
+        <div class="card menu-cont" id="conteinerMenu" style="display: none">
           <button
             id="themeToggle"
             class="btn-modoDark btn-secondary"
             type="button"
             onclick="alternarTema()"
           >
-            🌙
+            Thema Escuro 🌙
           </button>
           <button
             id="bot_alternar_declaracao"
             class="btn-modoDark btn-secondary"
             type="button"
-            onclick="mudarParaDeclaracao(1)"
+            onclick="mudarParaDeclaracao()"
           >
-            DEC
+            Texto Declaração de Embarque
           </button>
-        </header>
-
+        </div>
         <div class="accent" aria-hidden="true"></div>
         <div id="declaracaoDeEmbarqueConteiner" style="display: none">
           <p class="muted">
-            Preencha os campos abaixo e clique em "Gerar Declaração" para criar
-            o texto formatado.
+            1. Preencha os campos abaixo e clique em "Gerar Declaração" para
+            criar o texto formatado. 2. Copie o texto gerado. 3. Acesse o
+            <a
+              href="https://cloud.microsoft"
+              target="_blank"
+              rel="noopener noreferrer"
+              style="color: var(--orange)"
+              >Word Online</a
+            >
+            e carregue o arquivo do papel timbrado. 4. Cole o texto no documento
+            e confira se todos os dados estão corretos. 5. Para salvar, clique
+            em Arquivo > Exportar > Baixar como PDF (aguarde o carregamento e
+            clique em Baixar).
           </p>
 
           <div class="row">
@@ -899,12 +954,13 @@
       const nomeBD = "RegistAtt";
       const PreFixo = "regatt:";
 
-      function novaDescricao() {
-        const descricaoNova = document.getElementById("descricaoNova");
-        const descricao = document.getElementById("descricao");
+      const Byid = (id) => document.getElementById(id);
 
-        const botaoDescricaoNova =
-          document.getElementById("botaoDescricaoNova");
+      function novaDescricao() {
+        const descricaoNova = Byid("descricaoNova");
+        const descricao = Byid("descricao");
+
+        const botaoDescricaoNova = Byid("botaoDescricaoNova");
 
         const descricaoNovaTrue = descricaoNova.style.display != "none";
 
@@ -923,29 +979,30 @@
           ? "dark"
           : "light";
 
-        const botao = document.getElementById("themeToggle");
+        const botao = Byid("themeToggle");
 
         if (!botao) return;
         botao.textContent = document.body.classList.contains("dark")
-          ? "☀️"
-          : "🌙";
+          ? "Thema Claro ☀️"
+          : "Thema Escuro 🌙";
         Hlog("Atualizou Tema");
         RecuperarSalvarTexto(1);
+        abrirMenu();
       }
 
       function mudarParaDeclaracao() {
-        const botao = document.getElementById("bot_alternar_declaracao");
+        const botao = Byid("bot_alternar_declaracao");
 
-        const declaracaoDeEmbarqueConteiner = document.getElementById(
+        const declaracaoDeEmbarqueConteiner = Byid(
           "declaracaoDeEmbarqueConteiner",
         );
 
-        const registroAtendimentoConteiner = document.getElementById(
+        const registroAtendimentoConteiner = Byid(
           "registroAtendimentoConteiner",
         );
 
-        const oTitulo = document.getElementById("oTitulo");
-        const osCreditos = document.getElementById("osCreditos");
+        const oTitulo = Byid("oTitulo");
+        const osCreditos = Byid("osCreditos");
 
         if (
           !botao ||
@@ -964,17 +1021,20 @@
 
         registroAtendimentoConteiner.style.display = declaraAtivo ? "none" : "";
 
-        botao.textContent = declaraAtivo ? "REG" : "DEC";
+        botao.textContent = declaraAtivo
+          ? "Registro de Atendimento"
+          : "Texto Declaração de Embarque";
 
         oTitulo.textContent = declaraAtivo
           ? "Texto Declaração de Embarque"
           : "Registro de Atendimento";
 
         osCreditos.textContent = declaraAtivo
-          ? "@-@"
+          ? "|#_#|&_&|@_@|$_$|0_0|+_+|*-*|^-^|'-'|"
           : "Leandro Salvador de Oliveira";
 
-        osCreditos.Hlog("declaraAtivo: ", declaraAtivo);
+        Hlog("declaraAtivo: ", declaraAtivo);
+        abrirMenu();
       }
 
       function RecuperarSalvarTexto(salvar) {
@@ -991,7 +1051,7 @@
           ];
 
           listaIDs.forEach((itemLista) => {
-            const item = document.getElementById(itemLista);
+            const item = Byid(itemLista);
 
             if (item) {
               if (salvar) {
@@ -1051,26 +1111,24 @@
             document.body.classList.add("dark");
           }
 
-          const btn = document.getElementById("themeToggle");
+          const btn = Byid("themeToggle");
 
           if (btn)
             btn.textContent = document.body.classList.contains("dark")
-              ? "☀️"
-              : "🌙";
+              ? "Thema Claro ☀️"
+              : "Thema Escuro 🌙";
           atualizarVariavelLocal();
         }
       }
 
       // ====== Lógica da Waiver ======
       function toggleWaiverInput() {
-        const select = document.getElementById("usouWaiver");
-        const waiverDiv = document.getElementById("waiverInfo");
-        const motivoContainer = document.getElementById("motivoContainer");
-        const motivoSelect = document.getElementById("motivoSelect");
-        const tipoWaiverElem = document.getElementById("tipoWaiver");
-        const waiverFieldContainer = document.getElementById(
-          "waiverFieldContainer",
-        );
+        const select = Byid("usouWaiver");
+        const waiverDiv = Byid("waiverInfo");
+        const motivoContainer = Byid("motivoContainer");
+        const motivoSelect = Byid("motivoSelect");
+        const tipoWaiverElem = Byid("tipoWaiver");
+        const waiverFieldContainer = Byid("waiverFieldContainer");
         if (!select || !motivoSelect || !motivoContainer) return;
 
         motivoSelect.innerHTML = "";
@@ -1210,12 +1268,10 @@
 
       // ====== Lógica da Isenção de Taxa DU ======
       function toggleIsencaoDU() {
-        const select = document.getElementById("isentouDU");
-        const infoDiv = document.getElementById("isencaoDUInfo");
-        const motivoContainer = document.getElementById(
-          "motivoIsencaoContainer",
-        );
-        const motivoSelect = document.getElementById("motivoIsencaoSelect");
+        const select = Byid("isentouDU");
+        const infoDiv = Byid("isencaoDUInfo");
+        const motivoContainer = Byid("motivoIsencaoContainer");
+        const motivoSelect = Byid("motivoIsencaoSelect");
         if (!select || !infoDiv || !motivoContainer || !motivoSelect) return;
 
         motivoSelect.innerHTML = "";
@@ -1260,9 +1316,9 @@
 
       // ====== Lógica do Link de Pagamento ======
       function togglePagamentoInput() {
-        const select = document.getElementById("realizouPagamento");
-        const pagamentoDiv = document.getElementById("pagamentoInfo");
-        const parcelasSelect = document.getElementById("parcelas");
+        const select = Byid("realizouPagamento");
+        const pagamentoDiv = Byid("pagamentoInfo");
+        const parcelasSelect = Byid("parcelas");
         if (!select || !pagamentoDiv || !parcelasSelect) return;
 
         parcelasSelect.innerHTML = "";
@@ -1281,10 +1337,10 @@
 
       // ====== Lógica do Invoice (para o campo 'Possui Infant') ======
       function toggleInvoice() {
-        const select = document.getElementById("utilizouInvoice");
-        const invoiceDiv = document.getElementById("invoiceInfo");
-        const empresaSelect = document.getElementById("empresaInvoice");
-        const valorInvoice = document.getElementById("valorInvoice");
+        const select = Byid("utilizouInvoice");
+        const invoiceDiv = Byid("invoiceInfo");
+        const empresaSelect = Byid("empresaInvoice");
+        const valorInvoice = Byid("valorInvoice");
         if (!select || !invoiceDiv) return;
 
         if (empresaSelect) empresaSelect.value = "";
@@ -1298,8 +1354,8 @@
       }
 
       function preencherValorInvoice() {
-        const empresaSelect = document.getElementById("empresaInvoice");
-        const valorInvoice = document.getElementById("valorInvoice");
+        const empresaSelect = Byid("empresaInvoice");
+        const valorInvoice = Byid("valorInvoice");
         if (!empresaSelect || !valorInvoice) return;
 
         const valoresTexto = {
@@ -1317,46 +1373,36 @@
           .value.trim()
           .toUpperCase();
 
-        const contato = document.getElementById("contato").value.trim();
-        const localizador = document.getElementById("localizador")
-          ? document.getElementById("localizador").value.trim()
+        const contato = Byid("contato").value.trim();
+        const localizador = Byid("localizador")
+          ? Byid("localizador").value.trim()
           : "";
-        const descricao = document.getElementById("descricao").value.trim();
+        const descricao = Byid("descricao").value.trim();
 
-        const usouWaiver = document.getElementById("usouWaiver").value;
-        const tipoWaiver = document.getElementById("tipoWaiver")?.value || "";
-        const motivo = document.getElementById("motivoSelect")?.value || "";
+        const usouWaiver = Byid("usouWaiver").value;
+        const tipoWaiver = Byid("tipoWaiver")?.value || "";
+        const motivo = Byid("motivoSelect")?.value || "";
 
-        const isentouDU = document.getElementById("isentouDU").value;
-        const motivoDU =
-          document.getElementById("motivoIsencaoSelect")?.value || "";
+        const isentouDU = Byid("isentouDU").value;
+        const motivoDU = Byid("motivoIsencaoSelect")?.value || "";
 
         // Possui Infant (usa fluxo de invoice)
-        const utilizouInvoice =
-          document.getElementById("utilizouInvoice")?.value || "nao";
-        const empresaInvoice =
-          document.getElementById("empresaInvoice")?.value || "";
-        const valorInvoice =
-          document.getElementById("valorInvoice")?.value || "";
+        const utilizouInvoice = Byid("utilizouInvoice")?.value || "nao";
+        const empresaInvoice = Byid("empresaInvoice")?.value || "";
+        const valorInvoice = Byid("valorInvoice")?.value || "";
 
-        const realizouPagamento =
-          document.getElementById("realizouPagamento").value;
-        const link = document.getElementById("link")?.value.trim() || "";
-        const bandeira =
-          document.getElementById("bandeira")?.value.trim() || "";
-        const parcelas = document.getElementById("parcelas")?.value || "";
-        const cardName =
-          document.getElementById("cardName")?.value.trim() || "";
-        const assinatura = document.getElementById("assinatura").value.trim();
+        const realizouPagamento = Byid("realizouPagamento").value;
+        const link = Byid("link")?.value.trim() || "";
+        const bandeira = Byid("bandeira")?.value.trim() || "";
+        const parcelas = Byid("parcelas")?.value || "";
+        const cardName = Byid("cardName")?.value.trim() || "";
+        const assinatura = Byid("assinatura").value.trim();
 
-        const textoSolicitacao =
-          document.getElementById("textoSolicitacao")?.value || "";
-        const textoSituacao =
-          document.getElementById("textoSituacao")?.value || "";
-        const textoResultado =
-          document.getElementById("textoResultado")?.value || "";
+        const textoSolicitacao = Byid("textoSolicitacao")?.value || "";
+        const textoSituacao = Byid("textoSituacao")?.value || "";
+        const textoResultado = Byid("textoResultado")?.value || "";
 
-        const descricaoNova = document.getElementById("descricaoNova");
+        const descricaoNova = Byid("descricaoNova");
 
         const descricaoNovaTrue = descricaoNova.style.display != "none";
 
@@ -1420,7 +1466,7 @@
         }
 
         texto += "\n" + assinatura + "\n";
-        document.getElementById("resultado").value = texto;
+        Byid("resultado").value = texto;
 
         // Salvar no Firestore (se disponível); caso contrário, apenas loga
         const agora = new Date();
@@ -1495,25 +1541,25 @@
           else el.value = "";
         });
 
-        const resultado = document.getElementById("resultado");
+        const resultado = Byid("resultado");
         if (resultado) {
           resultado.value = "";
           resultado.style.height = "auto"; // Reset height
         }
 
-        const textoSolicitacao = document.getElementById("textoSolicitacao");
+        const textoSolicitacao = Byid("textoSolicitacao");
         if (textoSolicitacao) {
           textoSolicitacao.value = "";
           textoSolicitacao.style.height = "auto"; // Reset height
         }
 
-        const textoSituacao = document.getElementById("textoSituacao");
+        const textoSituacao = Byid("textoSituacao");
         if (textoSituacao) {
           textoSituacao.value = "";
           textoSituacao.style.height = "auto"; // Reset height
         }
 
-        const textoResultado = document.getElementById("textoResultado");
+        const textoResultado = Byid("textoResultado");
         if (textoResultado) {
           textoResultado.value = "";
           textoResultado.style.height = "auto"; // Reset height
@@ -1541,7 +1587,7 @@
       }
 
       function copiarResultado() {
-        const resultado = document.getElementById("resultado");
+        const resultado = Byid("resultado");
         if (!resultado.value.trim()) return;
         navigator.clipboard
           .writeText(resultado.value)
@@ -1624,8 +1670,8 @@
 
         const { ticket, contato } = data;
 
-        const tkEl = document.getElementById("ticket");
-        const ctEl = document.getElementById("contato");
+        const tkEl = Byid("ticket");
+        const ctEl = Byid("contato");
 
         if (!tkEl) {
           warn("Input #ticket não encontrado");
@@ -1687,7 +1733,7 @@
           "descricao",
           "assinatura",
         ].forEach((itemDaLista) => {
-          const item = document.getElementById(itemDaLista);
+          const item = Byid(itemDaLista);
           item.addEventListener("input", () => {
             item.style.height = "auto"; // Reset height
             item.style.height = item.scrollHeight + "px"; // Set new height
@@ -1702,7 +1748,7 @@
         toggleInvoice();
         togglePagamentoInput();
 
-        const ticket = document.getElementById("ticket");
+        const ticket = Byid("ticket");
 
         if (ticket) {
           ticket.addEventListener("input", function () {
@@ -1710,7 +1756,7 @@
           });
         }
 
-        const localizador = document.getElementById("localizador");
+        const localizador = Byid("localizador");
 
         if (localizador) {
           localizador.addEventListener("input", function () {
@@ -1722,7 +1768,7 @@
           });
         }
 
-        const contato = document.getElementById("contato");
+        const contato = Byid("contato");
 
         if (contato) {
           contato.addEventListener("input", function (e) {
@@ -1760,9 +1806,17 @@
          */
       });
 
-      //============== Declaração ===================
+      function abrirMenu() {
+        const conteinerMenu = Byid("conteinerMenu");
+        if (!conteinerMenu) return;
 
-      const Byid = (id) => document.getElementById(id);
+        conteinerMenu.style.display =
+          conteinerMenu.style.display != "none" ? "none" : "flex";
+      }
+
+      /*------------------------------------------------------
+      ====================== Declaração ======================
+      -------------------------------------------------------*/
 
       // ---- Campos de contagem e containers de conexões ----
       const ida_conexoes_count = Byid("ida_conexoes_count");
@@ -1938,10 +1992,13 @@
         const tipo = Byid("tipo_viagem_select")?.value;
         const partes = [textoInicial(), textodaida()];
         if (tipo === "ida/volta") partes.push(textodavolta());
-        const texto = partes.filter(Boolean).join(". ") + ".";
+        const texto =
+          partes.filter(Boolean).join(". ") +
+          ".\n\n\nAtenciosamente,\n\n\n\nGol Linhas Aéreas S/A.";
         preview.textContent = texto;
         preview.style.height = "auto"; // Reset height
         preview.style.height = preview.scrollHeight + 20 + "px"; // Set new height
+
         return texto;
       }
 
@@ -1978,9 +2035,9 @@
         const w = window.open("", "_blank");
         if (!w) return false;
         w.document.write(
-          `<pre style="font-family:system-ui, -apple-system, Segoe UI, Roboto; white-space:pre-wrap;">${escapeHtml(
+          '<pre style="font-family:system-ui, -apple-system, Segoe UI, Roboto; white-space:pre-wrap;">' + escapeHtml(
             txt,
-          )}</pre>`,
+          ) + "</pre> ",
         );
         w.document.close();
         w.focus();
@@ -2488,7 +2545,7 @@
             e.preventDefault();
             gerarDeclaracao();
           });
-        const bCopiar = Byid("btn_copiar");
+        const bCopiar = Byid("btn_copiar_form");
         if (bCopiar)
           bCopiar.addEventListener("click", async () => {
             const ok = await copiarPreview();
@@ -2745,7 +2802,7 @@
         const cidade = Byid("cidade")?.value || "";
         const dataDeclRaw = Byid("declaracao_date")?.value || "";
         const dataDeclFmt = formatDateLong(dataDeclRaw);
-        return `${cidade}, ${dataDeclFmt}`;
+        return `Declaração de Embarque \n\n\n${cidade}, ${dataDeclFmt}`;
       }
 
       function textodaida() {
@@ -2781,7 +2838,7 @@
         );
 
         let texto =
-          `\n\n\nFazemos referência, por ora, que ${OouAV} Sr.(a) ${nomeFmt} possuía a passagem de código ` +
+          `\n\n\n\nFazemos referência, por ora, que ${OouAV} Sr.(a) ${nomeFmt} possuía a passagem de código ` +
           `localizador ${localizadorFmt} e embarcou com a companhia ${companhia}, sendo o voo de ` +
           `ida no dia ${ida_data_fmt}, no voo G3 ${ida_num_fmt}, partindo de ${ida_partida_aero_v} às ${ida_partida_hora_fmt}, ` +
           `chegando em ${ida_chegada_aero_v} às ${ida_chegada_hora_fmt}`;
@@ -2843,28 +2900,6 @@
 
         return texto;
       }
-
-      // ===== Integre com seu botão "Gerar Declaração" =====
-      document.addEventListener("DOMContentLoaded", () => {
-        const btnGerar = Byid("btn_gerar_decl");
-        const preview = Byid("preview");
-        if (btnGerar && preview) {
-          btnGerar.addEventListener("click", (e) => {
-            e.preventDefault();
-            const errs = validateRules();
-            if (errs.length) {
-              preview.innerHTML = `<strong>Corrija os seguintes itens:</strong><br>- ${errs.join(
-                "<br>- ",
-              )}`;
-              return;
-            }
-            const tipo = Byid("tipo_viagem_select")?.value;
-            const partes = [textoInicial(), textodaida()];
-            if (tipo === "ida/volta") partes.push(textodavolta());
-            preview.innerHTML = partes.filter(Boolean).join(". ") + ".";
-          });
-        }
-      });
 
       const rawAeroportos = `
           Aalborg Airport	AAL
