@@ -2535,7 +2535,10 @@
 
           // Limpa preview
           const preview = Byid("preview");
-          if (preview) preview.textContent = "";
+          if (preview) {
+            preview.textContent = "";
+            preview.style.height = "auto"; // Reset height
+          }
         }
 
         // hookup buttons
