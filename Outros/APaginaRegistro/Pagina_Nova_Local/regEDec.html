@@ -1466,7 +1466,13 @@
         }
 
         texto += "\n" + assinatura + "\n";
-        Byid("resultado").value = texto;
+
+        const resultado = Byid("resultado");
+
+        resultado.value = texto;
+
+        resultado.style.height = "auto"; // Reset height
+        resultado.style.height = resultado.scrollHeight + 20 + "px"; // Set new height
 
         // Salvar no Firestore (se disponível); caso contrário, apenas loga
         const agora = new Date();

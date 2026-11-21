@@ -4952,6 +4952,7 @@
       let oUltimo = nAtendimento;
       let mudouStatus = 0;
       let reorganizou = 0;
+
       Object.keys(dadosFilaAtendimentos).forEach((id) => {
         const agora = dataHoraFormat();
 
@@ -4971,9 +4972,7 @@
 
         const numeroIgnorar = dadosFilaAtendimentos[id]?.numeroIgnorar ?? 0;
 
-        /*Hlog(
-          `agente: ${agente} / maisDQ: ${maisDQ} / ignorarAgente: ${ignorarAgente} / tempoInicio: ${tempoInicio} / tempoDultimaLigacao: ${tempoDultimaLigacao} / tempoQuarentaMinuto: ${tempoQuarentaMinuto} `,
-        );*/
+        const posicaoSalva = dadosFilaAtendimentos[id]?.posicao ?? null;
 
         const tempoDultimaLigacao = oAusente
           ? converterParaSegundos(exibirAHora(agora, 0, oAusente).hora)
@@ -5023,8 +5022,9 @@
         const posicao = Array.from(aCaixaDaListaDisponivel.children).indexOf(
           itemlinhaExiste,
         );
+        dadosFilaAtendimentos[id].posicao = posicao;
 
-        const posicaoAnt = dadosFilaAtendimentos[id]?.posicao ?? null;
+        
 
         if (agente)
           posicoesTempos[posicao] = {
