@@ -469,8 +469,8 @@
         <div class="accent" aria-hidden="true"></div>
         <div id="declaracaoDeEmbarqueConteiner" style="display: none">
           <p class="muted">
-            1. Preencha os campos abaixo e clique em "Gerar Texto" para
-            criar o texto formatado. 2. Copie o texto gerado. 3. Acesse o
+            1. Preencha os campos abaixo e clique em "Gerar Texto" para criar o
+            texto formatado. 2. Copie o texto gerado. 3. Acesse o
             <a
               href="https://cloud.microsoft"
               target="_blank"
@@ -1535,30 +1535,20 @@
 
       // ====== Limpar Tela ======
       function limparTela() {
-        const apenas = [
-          "resultado",
-          "ticket",
-          "contato",
-          "localizador",
-          "textoSolicitacao",
-          "textoSituacao",
-          "textoResultado",
-          "descricao",
-          "assinatura",
-        ];
-        document.querySelectorAll("input, textarea, select").forEach((el) => {
-          if (
-            el.id === "assinatura" ||
-            el.name === "assinatura" ||
-            !apenas.includes(el.id)
-          )
-            return;
-          if (el.tagName === "SELECT") el.selectedIndex = 0;
-          else el.value = "";
-          if (el.tagName === "TEXTAREA") el.style.height = "auto"; // Reset height
-        });
+        const registroAtendimentoConteiner = Byid(
+          "registroAtendimentoConteiner",
+        );
+        if (!registroAtendimentoConteiner) return;
+        registroAtendimentoConteiner
+          .querySelectorAll("input, textarea, select")
+          .forEach((el) => {
+            if (el.id === "assinatura" || el.name === "assinatura") return;
+            if (el.tagName === "SELECT") el.selectedIndex = 0;
+            else el.value = "";
+            if (el.tagName === "TEXTAREA") el.style.height = "auto"; // Reset height
+          });
 
-        document
+        registroAtendimentoConteiner
           .querySelectorAll(
             "#waiverInfo, #motivoContainer, #pagamentoInfo, #isencaoDUInfo, #invoiceInfo",
           )
@@ -1776,6 +1766,14 @@
             }
 
             e.target.value = formatarNome(valor);
+          });
+        }
+
+        const assinatura = Byid("assinatura");
+
+        if (assinatura) {
+          assinatura.addEventListener("input", () => {
+            assinatura.value = assinatura.value.trim().toUpperCase();
           });
         }
 
