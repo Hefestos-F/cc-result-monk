@@ -4867,7 +4867,6 @@
     variavelListaInicial: 0,
     Atendendo: 0,
     reorganizou: 1,
-    estadoAnterior: {},
     contagemClick: 0,
   };
 
@@ -5019,12 +5018,12 @@
         if (qualTempo != "---" && tempoProximo > qualTempo) {
           const IDPosicaoProxima = itemExibidos[posicaoProxima]?.id;
 
-          const itemlinhaExiste = document.getElementById(
-            "linha-" + IDPosicaoProxima,
-          );
+          if (
+            !aCaixaDaListaDisponivel.children[posicaoProxima] ||
+            !aCaixaDaListaDisponivel.children[posicao]
+          )
+            return;
 
-          if (!itemlinhaExiste) return;
-          
           aCaixaDaListaDisponivel.insertBefore(
             aCaixaDaListaDisponivel.children[posicaoProxima],
             aCaixaDaListaDisponivel.children[posicao],
