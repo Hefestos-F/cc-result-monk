@@ -4803,7 +4803,7 @@
         dadosFilaAtendimentos[id].tempoInicio = null;
         dadosFilaAtendimentos[id].ausente = null;
         dadosFilaAtendimentos[id].tempoFim = null;
-        atualizarOsClicks(0);
+        atualizarOsClicks();
       }
     });
 
@@ -4841,8 +4841,17 @@
     });
   }
 
-  function atualizarOsClicks(ativo = 0) {
-    if (ativo) {
+  function atualizarOsClicks() {
+    const tabClosed = document.getElementById("tab-closed");
+
+    // Verifica se o elemento realmente existe antes de clicar para evitar erros
+    if (tabClosed) {
+      tabClosed.click();
+    } else {
+      console.error("Elemento com ID 'tab-active' não foi encontrado.");
+    }
+
+    setTimeout(() => {
       const tabActive = document.getElementById("tab-active");
 
       // Verifica se o elemento realmente existe antes de clicar para evitar erros
@@ -4851,16 +4860,7 @@
       } else {
         console.error("Elemento com ID 'tab-active' não foi encontrado.");
       }
-    } else {
-      const tabClosed = document.getElementById("tab-closed");
-
-      // Verifica se o elemento realmente existe antes de clicar para evitar erros
-      if (tabClosed) {
-        tabClosed.click();
-      } else {
-        console.error("Elemento com ID 'tab-active' não foi encontrado.");
-      }
-    }
+    }, 2000);
   }
 
   const variavelLista = {
@@ -4940,11 +4940,8 @@
     // Hlog(dadosFilaAtendimentos)
 
     if (variavelLista.contagemClick > 30) {
-      atualizarOsClicks(1);
+      atualizarOsClicks();
       variavelLista.contagemClick = 0;
-    } else if (variavelLista.contagemClick > 28) {
-      atualizarOsClicks(0);
-      variavelLista.contagemClick++;
     } else {
       variavelLista.contagemClick++;
     }
@@ -4984,7 +4981,7 @@
 
           if (aCaixaDaListaDisponivel) {
             aCaixaDaListaDisponivel.append(itemLinha);
-            atualizarOsClicks(1);
+            atualizarOsClicks();
             Hlog("Linha nao existe, criada");
           } else {
             aCaixaDaLista.append(itemLinha);
