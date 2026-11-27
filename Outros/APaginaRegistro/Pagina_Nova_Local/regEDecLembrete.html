@@ -230,6 +230,7 @@
       }
 
       .btn {
+        height: max-content;
         appearance: none;
         border: 0;
         border-radius: 10px;
@@ -392,13 +393,26 @@
       }
 
       .menu-cont {
+        margin-top: 10px;
         gap: 10px;
         align-items: flex-end;
         flex-wrap: wrap;
       }
 
+      .lembrete {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        align-items: center;
+      }
+
+      .ContpainelAlertas {
+        display: none;
+        flex-direction: column;
+      }
+
       /* Mobile */
-      @media (max-width: 480px) {
+      @media (max-width: 500px) {
         .row {
           display: flow;
         }
@@ -414,10 +428,15 @@
 
         .btn {
           width: 100%;
+          height: max-content;
         }
 
         #copiarBtn {
           width: 100%;
+        }
+
+        .lembrete {
+          flex-wrap: wrap;
         }
       }
 
@@ -454,6 +473,13 @@
             Thema Escuro 🌙
           </button>
           <button
+            id="bot_alertas"
+            class="btn-modoDark btn-secondary"
+            type="button"
+          >
+            🔔 Lembretes
+          </button>
+          <button
             id="bot_alternar_declaracao"
             class="btn-modoDark btn-secondary"
             type="button"
@@ -463,6 +489,46 @@
           </button>
         </div>
         <div class="accent" aria-hidden="true"></div>
+        <div id="painelAlertas" class="card ContpainelAlertas">
+          <button class="btn btn-secondary" onclick="adicionarLembrete()">
+            Adicionar
+          </button>
+          <div id="lembrete_0" class="lembrete">
+            <div class="field field--stacked">
+              <label class="label">Mensagem</label>
+              <input
+                id="alertaMensagem_0"
+                class="input-plain"
+                value="Beber água"
+              />
+            </div>
+
+            <div class="field field--stacked">
+              <label class="label">Intervalo (minutos)</label>
+              <input
+                id="alertaMinutos_0"
+                type="number"
+                class="input-plain"
+                value="60"
+                min="1"
+              />
+            </div>
+
+            <button id="iniciarLembrete_0" class="btn btn-primary">
+              ▶ Iniciar
+            </button>
+
+            <button id="pararLembrete_0" class="btn btn-secondary">
+              ⏹ Parar
+            </button>
+
+            <button id="exluirLembrete_0" class="btn btn-secondary">
+              Excluir
+            </button>
+          </div>
+        </div>
+        <div id="AlertasLembrete" class="card">texte</div>
+
         <div id="declaracaoDeEmbarqueConteiner" style="display: none">
           <p class="muted">
             1. Preencha os campos abaixo e clique em "Gerar Texto" para criar o
@@ -939,6 +1005,402 @@
     </div>
 
     <script>
+      const Byid = (id) => document.getElementById(id);
+
+      //os Alertas
+
+      let alertaTimer;
+      let alertaFim;
+
+      const variLembrete = {
+        repetir: 1,
+      };
+
+      function definicoesLembrete(qual, textoLembrete) {
+        //const listasLembretes = document.querySelectorAll('[id*="lembrete_"]');
+
+        const divLembrete = document.createElement("div");
+        divLembrete.id = "lembrete_0";
+
+
+        <div id="lembrete_0" class="lembrete">
+            <div class="field field--stacked">
+              <label class="label">Mensagem</label>
+              <input
+                id="alertaMensagem_0"
+                class="input-plain"
+                value="Beber água"
+              />
+            </div>
+
+            <div class="field field--stacked">
+              <label class="label">Intervalo (minutos)</label>
+              <input
+                id="alertaMinutos_0"
+                type="number"
+                class="input-plain"
+                value="60"
+                min="1"
+              />
+            </div>
+
+            <button id="iniciarLembrete_0" class="btn btn-primary">
+              ▶ Iniciar
+            </button>
+
+            <button id="pararLembrete_0" class="btn btn-secondary">
+              ⏹ Parar
+            </button>
+
+            <button id="exluirLembrete_0" class="btn btn-secondary">
+              Excluir
+            </button>
+          </div>
+
+        const minutos = Number(Byid("alertaMinutos_" + qual).value);
+
+        const mensagem = Byid("alertaMensagem_" + qual).value;
+
+        alertaFim = Date.now() + minutos * 60 * 1000;
+
+        clearInterval(alertaTimer);
+
+        alertaTimer = setInterval(() => {
+          const restante = alertaFim - Date.now();
+
+          if (restante <= 0) {
+            const AlertasLembrete = Byid("AlertasLembrete");
+
+            if (AlertasLembrete) {
+              AlertasLembrete.textContent = textoLembrete;
+              AlertasLembrete.style.display = "flex";
+              setInterval(() => {
+                AlertasLembrete.style.display = "none";
+              }, 2000);
+            }
+
+            if (variLembrete.repetir)
+              alertaFim = Date.now() + minutos * 60 * 1000;
+            else clearInterval(alertaTimer);
+          }
+
+          atualizarContador();
+        }, 1000);
+      }
+
+      function atualizarContador() {
+        const restante = Math.max(0, alertaFim - Date.now());
+
+        const horas = Math.floor(restante / 3600000);
+
+        const minutos = Math.floor((restante % 3600000) / 60000);
+
+        const segundos = Math.floor((restante % 60000) / 1000);
+
+        Byid("contadorAlerta").innerText =
+          `⏰ ${horas.toString().padStart(2, "0")}:` +
+          `${minutos.toString().padStart(2, "0")}:` +
+          `${segundos.toString().padStart(2, "0")}`;
+      }
+
+      //Carregamento ao iniciar parte alerta
+      document.addEventListener("DOMContentLoaded", () => {
+        const bot_alertas = Byid("bot_alertas");
+
+        bot_alertas.addEventListener("click", () => {
+          const painelAlertas = Byid("painelAlertas");
+
+          if (painelAlertas)
+            painelAlertas.style.display =
+              painelAlertas.style.display != "none" ? "none" : "flex";
+        });
+      });
+
+      //Fim //os Alertas
+
+      //Sons
+
+      // =====================================
+      // PREMIUM WEB AUDIO PLAYER
+      // =====================================
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      const asCofMus = {
+        stopMusic: false,
+        repetirMusic: true,
+        osciladoresAtivos: [],
+      };
+
+      // =====================================
+      // REVERB
+      // =====================================
+      function criarReverb(segundos = 2.5) {
+        const sampleRate = audioCtx.sampleRate;
+        const length = sampleRate * segundos;
+        const impulse = audioCtx.createBuffer(2, length, sampleRate);
+
+        for (let c = 0; c < 2; c++) {
+          const data = impulse.getChannelData(c);
+          for (let i = 0; i < length; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 3);
+          }
+        }
+        return impulse;
+      }
+
+      const reverb = audioCtx.createConvolver();
+      reverb.buffer = criarReverb(2.8);
+      reverb.connect(audioCtx.destination);
+
+      // =====================================
+      // BPM
+      // =====================================
+      function notaParaMs(valor, bpm) {
+        return (60000 / bpm) * valor;
+      }
+
+      // =====================================
+      // TOCAR MÚSICA
+      // =====================================
+      async function tocarMusica(musica) {
+        asCofMus.stopMusic = false;
+        await audioCtx.resume();
+
+        const bpm = musica.config.bpm || 120;
+
+        for (const [notaTexto, valor] of musica.notas) {
+          if (asCofMus.stopMusic) {
+            Hlog("Música interrompida");
+            return;
+          }
+
+          const duracao = notaParaMs(valor, bpm);
+
+          if (notaTexto === "PAUSA") {
+            await new Promise((r) => setTimeout(r, duracao));
+            continue;
+          }
+
+          const notas = notaTexto.split("+");
+          notas.forEach((nota) => {
+            const freq = musica.config.frequencias[nota];
+            if (!freq) return;
+            tocarNotaPremium(freq, duracao, musica.config);
+          });
+
+          await new Promise((r) => setTimeout(r, duracao));
+        }
+
+        if (asCofMus.repetirMusic && !asCofMus.stopMusic) {
+          return tocarMusica(musica);
+        }
+        Hlog("Fim da música");
+      }
+
+      // =====================================
+      // NOTA PREMIUM (CORRIGIDA)
+      // =====================================
+      function tocarNotaPremium(freqFundamental, duracao, config) {
+        const now = audioCtx.currentTime;
+        const duracaoSegundos = duracao / 1000;
+        const parciais = config.parciais || [{ mult: 1, vol: 1, dec: 1 }];
+
+        parciais.forEach((parcial) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const pan = audioCtx.createStereoPanner();
+          const lfo = audioCtx.createOscillator();
+          const lfoGain = audioCtx.createGain();
+
+          osc.type = config.oscType || "sine";
+          osc.frequency.setValueAtTime(freqFundamental * parcial.mult, now);
+
+          // Vibrato
+          lfo.frequency.setValueAtTime(config.vibratoSpeed || 5, now);
+          lfoGain.gain.setValueAtTime(config.vibratoDepth || 0, now);
+          lfo.connect(lfoGain);
+          lfoGain.connect(osc.frequency);
+
+          // Stereo Pan
+          pan.pan.setValueAtTime(Math.random() * 0.5 - 0.25, now);
+
+          // Configurações do Envelope ADSR
+          const volumeMaximo = (config.volume || 0.2) * parcial.vol;
+          const attack = config.attack || 0.01;
+          const decay = config.decay || 0.1;
+          const sustain = config.sustain || 0.4;
+          const release = (config.release || 1.5) * parcial.dec;
+
+          // Cálculo correto dos tempos de transição
+          const tempoAttack = now + attack;
+          const tempoDecay = tempoAttack + decay;
+          const tempoSustain = now + duracaoSegundos;
+          const tempoRelease = tempoSustain + release;
+
+          // Execução do Envelope de Volume (Garante curvas limpas sem estalos)
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(volumeMaximo, tempoAttack);
+          gain.gain.linearRampToValueAtTime(volumeMaximo * sustain, tempoDecay);
+
+          // Mantém o sustain estável e prepara a rampa exponencial sem conflito de tempo
+          gain.gain.setValueAtTime(volumeMaximo * sustain, tempoSustain);
+          gain.gain.exponentialRampToValueAtTime(0.0001, tempoRelease);
+
+          // Conexões de Áudio
+          osc.connect(gain);
+          gain.connect(pan);
+          gain.connect(reverb); // Reverb em paralelo
+          pan.connect(audioCtx.destination); // Som direto em estéreo
+
+          // Início e parada programada dos osciladores
+          osc.start(now);
+          lfo.start(now);
+          osc.stop(tempoRelease);
+          lfo.stop(tempoRelease);
+
+          // Registro para controle externo de parada
+          asCofMus.osciladoresAtivos.push(osc);
+
+          // FAXINA DE MEMÓRIA (Essencial para não travar o navegador)
+          osc.onended = () => {
+            asCofMus.osciladoresAtivos = asCofMus.osciladoresAtivos.filter(
+              (o) => o !== osc,
+            );
+
+            // Desconecta absolutamente tudo para liberar o Garbage Collector
+            osc.disconnect();
+            lfo.disconnect();
+            lfoGain.disconnect();
+            gain.disconnect();
+            pan.disconnect();
+          };
+        });
+      }
+
+      // =====================================
+      // PARAR
+      // =====================================
+      function pararMusica() {
+        asCofMus.stopMusic = true;
+
+        asCofMus.osciladoresAtivos.forEach((osc) => {
+          try {
+            osc.stop();
+          } catch {}
+        });
+
+        asCofMus.osciladoresAtivos = [];
+
+        Hlog("Parado");
+      }
+
+      // =====================================
+      // MUSIC
+      // =====================================
+
+      const jingleBellsPremium = {
+        config: {
+          bpm: 180,
+          oscType: "sine",
+          volume: 0.25, // Volume levemente aumentado pois frequências graves são menos audíveis
+          vibratoDepth: 2,
+          vibratoSpeed: 4,
+          attack: 0.01, // Ataque ligeiramente mais lento para evitar estalos no grave
+          decay: 0.3,
+          sustain: 0.4,
+          release: 2.5,
+          parciais: [
+            { mult: 0.5, vol: 1.0, dec: 4.0 }, // Sub-grave reforçado
+            { mult: 1.0, vol: 0.9, dec: 3.0 }, // Frequência fundamental
+            { mult: 1.5, vol: 0.6, dec: 2.0 }, // Quinta harmônica para dar corpo
+            { mult: 2.0, vol: 0.4, dec: 1.5 }, // Oitava superior harmônica
+            { mult: 3.0, vol: 0.2, dec: 1.0 }, // Brilho discreto
+          ],
+          frequencias: {
+            C3: 130.81,
+            D3: 146.83,
+            E3: 164.81,
+            F3: 174.61,
+            G3: 196.0,
+            A3: 220.0,
+            B3: 246.94,
+            C4: 261.63,
+          },
+        },
+        notas: [
+          ["E3", 1],
+          ["E3", 1],
+          ["E3", 2],
+          ["PAUSA", 0.4],
+          ["E3", 1],
+          ["E3", 1],
+          ["E3", 2],
+          ["PAUSA", 0.4],
+          ["E3", 1],
+          ["G3", 1],
+          ["C3", 1],
+          ["D3", 1],
+          ["E3", 3],
+          ["PAUSA", 0.8],
+          ["F3", 1],
+          ["F3", 1],
+          ["F3", 1],
+          ["F3", 1],
+          ["F3", 1],
+          ["E3", 1],
+          ["E3", 1],
+          ["E3", 0.5],
+          ["E3", 0.5],
+          ["G3", 1],
+          ["G3", 1],
+          ["F3", 1],
+          ["D3", 1],
+          ["C3", 3],
+        ],
+      };
+
+      const alarmeBipsIntercalados = {
+        config: {
+          bpm: 120, // Ritmo compassado de 2 bipes por segundo
+          oscType: "square", // Onda senoidal pura para som de bipe eletrônico limpo
+          volume: 0.16, // Volume ligeiramente maior por ser uma frequência pura
+          vibratoDepth: 0,
+          vibratoSpeed: 0,
+          attack: 0.001, // Ataque instantâneo para estalar o início do bipe
+          decay: 0.05,
+          sustain: 0.8, // Mantém o bipe firme até o corte
+          release: 0.01, // Corte abrupto sem eco
+          parciais: [
+            { mult: 1.0, vol: 1.0, dec: 1.0 }, // Apenas a frequência fundamental para pureza
+          ],
+          frequencias: {
+            BipeAlto: 500.0, // Tom agudo clássico de despertador de pulso
+            BipeBaixo: 500.0, // Tom secundário para o efeito intercalado
+          },
+        },
+        notas: [
+          // Primeiro par de bipes rápidos
+          ["BipeAlto", 0.25],
+          ["PAUSA", 0.25],
+          ["BipeAlto", 0.25],
+          ["PAUSA", 0.25],
+
+          // Pausa longa de respiro entre os blocos
+          ["PAUSA", 1.0],
+
+          // Segundo par de bipes com tom intercalado (mais grave)
+          ["BipeBaixo", 0.25],
+          ["PAUSA", 0.25],
+          ["BipeBaixo", 0.25],
+          ["PAUSA", 0.25],
+
+          // Pausa longa para reiniciar o ciclo do alarme
+          ["PAUSA", 1.0],
+        ],
+      };
+
+      //Fim sons
+
       let errolocalStorage = 0;
       let declaraAtivo = 0;
 
@@ -949,8 +1411,6 @@
       // Configuração do IndexedDB
       const nomeBD = "RegistAtt";
       const PreFixo = "regatt:";
-
-      const Byid = (id) => document.getElementById(id);
 
       function novaDescricao() {
         const descricaoNova = Byid("descricaoNova");
