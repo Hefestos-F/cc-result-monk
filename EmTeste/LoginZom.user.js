@@ -5080,7 +5080,7 @@
 
           oNovoStatus = variavelLista.Atendendo
             ? atendendo
-              ? oStatus
+              ? "-Atendendo-"
               : novoAusente
                 ? "-Ausente-"
                 : oStatus
