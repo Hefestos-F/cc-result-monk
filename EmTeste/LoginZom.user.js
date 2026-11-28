@@ -4686,6 +4686,21 @@
   // Saída esperada: { data: '2026-09-07', hora: '12:49:11' }
   //converterTimestamp(1788802541754);
 
+  function converterParaTimestamp({ data, hora }, emSegundos = false) {
+    // Converte "dd/mm/aaaa" para "aaaa-mm-dd"
+    const [dia, mes, ano] = data.split("/");
+    const dataIso = `${ano}-${mes}-${dia}`;
+
+    // Monta uma string no padrão ISO 8601 especificando o fuso de Brasília (-03:00)
+    const isoString = `${dataIso}T${hora}-03:00`;
+
+    // Converte para timestamp em milissegundos (13 dígitos)
+    const timestampMs = new Date(isoString).getTime();
+
+    // Retorna em segundos (10 dígitos) ou milissegundos (13 dígitos)
+    return emSegundos ? Math.floor(timestampMs / 1000) : timestampMs;
+  }
+
   const nomeDoAgenteLimpo = (nomeEncontrado) =>
     nomeEncontrado
       .replace(/[0-9_@!.,/\\#%&*()\-+=[\]{};:<>?]/g, "")
@@ -4787,9 +4802,10 @@
             agente: nomeDoAgenteLimpo(atendimento.agents[0].agentName),
             status: "-Atendendo-",
             tempoFim: dadosFilaAtendimentos[agentId]?.tempoFim ?? null,
-            tempoInicio: atendimento.startTime,
+            tempoInicio: atendimento.statusModifyTime,
             ausente: null,
           };
+
           ignorarAgentes.push(agentId);
         });
       }
@@ -4875,13 +4891,19 @@
   const itemExibidos = {};
 
   function colocarListaDeDisponibilidade() {
+    const abaInteracaoConcluida = document.getElementById("pane-active");
+
+    if (!abaInteracaoConcluida) return;
     const aCaixaDaListaDisponivel = document.getElementById(
       "aCaixaDaListaDisponivel",
     );
+
     if (!config.disponibilidade) {
       if (aCaixaDaListaDisponivel) aCaixaDaListaDisponivel.remove();
       return;
     }
+
+    const opai = abaInteracaoConcluida.parentElement;
 
     const criarDiv = () => document.createElement("div");
 
@@ -4915,23 +4937,16 @@
       linhaCaixa.append(itemNome, itemStatus, tempoAtendendo, tempoDisponivel);
       return linhaCaixa;
     }
-
-    const abaInteracaoConcluida = document.getElementById("pane-active");
-
-    if (!abaInteracaoConcluida) return;
-
-    const opai = abaInteracaoConcluida.parentElement;
-
     const aCaixaDaLista = criarDiv();
     aCaixaDaLista.id = "aCaixaDaListaDisponivel";
     aCaixaDaLista.style.cssText = `
-        color: rgba(4, 4, 19, .56);
-        font-size: 12px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 10px;
-      `;
+      color: rgba(4, 4, 19, .56);
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+    `;
 
     const nAtendimento = Object.keys(dadosFilaAtendimentos).length;
 
@@ -5088,7 +5103,7 @@
 
           //Hlog(`oNovoStatus: ${oNovoStatus}`);
 
-          if (oNovoStatus == "-Ausente-") {
+          if (oStatus != "-Atendendo-" && oNovoStatus == "-Ausente-") {
             if (oStatus != "-Ausente-" || !oAusente) {
               dadosFilaAtendimentos[id].ausente = agora;
               mudouStatus = 1;
